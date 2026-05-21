@@ -223,52 +223,65 @@ export default function MediaLinksDocsDrawer({ open, onClose, conversationId }: 
             </Box>
           ) : (
             <Box>
-              {docItems.map(item => (
-                <Box
-                  key={item.id}
-                  component='a'
-                  href={item.url}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3,
-                    px: 4,
-                    py: 2,
-                    textDecoration: 'none',
-                    borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                    '&:hover': { backgroundColor: 'customColors.Surface' },
-                    transition: 'background-color 150ms'
-                  }}
-                >
-                  <MuiAvatar
-                    variant='rounded'
-                    sx={{ width: 40, height: 40, backgroundColor: 'customColors.Surface', flexShrink: 0 }}
+              {/* Docs open in the in-app `AttachmentPreviewDialog` (same
+                  one the chat bubbles use) instead of downloading. The
+                  dialog dynamic-imports `PdfPreview` / `DocxPreview` /
+                  `SpreadsheetPreview` based on mime type. We pass the
+                  full doc list so the user can step through documents
+                  the same way they navigate between media items. */}
+              {(() => {
+                const docAttachments = docItems.map(fileToAttachment)
+
+                return docItems.map((item, idx) => (
+                  <Box
+                    key={item.id}
+                    onClick={() =>
+                      setPreview({
+                        attachment: fileToAttachment(item),
+                        list: docAttachments,
+                        index: idx
+                      })
+                    }
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
+                      px: 4,
+                      py: 2,
+                      cursor: 'pointer',
+                      borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                      '&:hover': { backgroundColor: 'customColors.Surface' },
+                      transition: 'background-color 150ms'
+                    }}
                   >
-                    <Icon icon='mdi:file-document-outline' fontSize='1.25rem' color='customColors.Outline' />
-                  </MuiAvatar>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: 'customColors.OnSurfaceVariant',
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
+                    <MuiAvatar
+                      variant='rounded'
+                      sx={{ width: 40, height: 40, backgroundColor: 'customColors.Surface', flexShrink: 0 }}
                     >
-                      {item.originalFilename || item.filename}
-                    </Typography>
-                    <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
-                      {formatBytes(item.size)}
-                      {item.uploadedAt ? ` · ${new Date(item.uploadedAt).toLocaleDateString()}` : ''}
-                    </Typography>
+                      <Icon icon='mdi:file-document-outline' fontSize='1.25rem' color='customColors.Outline' />
+                    </MuiAvatar>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'customColors.OnSurfaceVariant',
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {item.originalFilename || item.filename}
+                      </Typography>
+                      <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+                        {formatBytes(item.size)}
+                        {item.uploadedAt ? ` · ${new Date(item.uploadedAt).toLocaleDateString()}` : ''}
+                      </Typography>
+                    </Box>
+                    <Icon icon='mdi:eye-outline' fontSize='1.25rem' color='customColors.Outline' />
                   </Box>
-                  <Icon icon='mdi:download-outline' fontSize='1.1rem' color='customColors.Outline' />
-                </Box>
-              ))}
+                ))
+              })()}
               {docHasMore && (
                 <Box sx={{ textAlign: 'center', py: 2 }}>
                   <Typography

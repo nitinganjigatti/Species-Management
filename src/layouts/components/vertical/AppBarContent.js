@@ -42,17 +42,11 @@ const AppBarContent = props => {
   const notifications = useSelector(state => state.notifications.items)
 
   const handleNotificationClick = notification => {
-    console.log('[AppBarContent] Notification clicked:', notification)
-
-    // Mark as read in Redux
     dispatch(markAsRead(notification.id))
 
-    // Navigate to conversation
     if (notification.conversationId) {
-      console.log('[AppBarContent] Navigating to conversation:', notification.conversationId)
       router.push(`/chat?conversationId=${notification.conversationId}`)
     } else {
-      console.log('[AppBarContent] No conversationId, navigating to /chat')
       router.push('/chat')
     }
   }

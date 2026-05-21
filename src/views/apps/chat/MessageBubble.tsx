@@ -5,17 +5,6 @@ import { ReactNode } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-
-// ** Redux (for "did I react?" highlighting on chips)
-import { useSelector } from 'react-redux'
-import type { RootState } from 'src/store'
-
-// ** SDK — only `add_reaction` is acked by the chat backend; a re-emit
-// with the same emoji is treated as a toggle (server removes if the user
-// already reacted). Both add and remove use this one call; state for both
-// sides lands via the `reaction_updated` broadcast.
-import { addReactionOverSocket } from 'src/lib/chat/api'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -25,6 +14,17 @@ import Icon from 'src/@core/components/icon'
 // MessageReactionPicker = 😀 trigger outside the bubble (vertically centered).
 import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
+import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
+
+// ** Forward marker — strip the sentinel for display and detect the
+// "Forwarded" state so we can render <ForwardedTag /> above the body.
+import { isForwarded, stripForwardMarker, hasDisplayableText } from 'src/lib/chat/forwardMarker'
+
+// ** Auto-detected URLs / mailto / tel links inside the body text.
+// Per-text-segment callback keeps search-highlight scoped to non-link
+// portions so we never wrap a <Box component='a'> in a highlight span.
+import LinkifyText from 'src/lib/chat/linkify'
 
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
@@ -45,6 +45,14 @@ interface MessageBubbleProps {
    * entry). Defaults to true so DMs and other call sites are unaffected.
    */
   canInteract?: boolean
+  /**
+   * Fired when the user clicks the reply snippet. ChatContent uses this to
+   * drive the same `scrollTargetMessageId` flow as the pinned-bar click —
+   * needed because PerfectScrollbar's `overflow: hidden` wrapper makes
+   * native `scrollIntoView` a no-op, and because the original message may
+   * sit outside the loaded message window (pagination).
+   */
+  onJumpToReply?: (messageId: string) => void
 }
 
 /**
@@ -61,22 +69,21 @@ const MessageBubble = ({
   isSearchMatch,
   isActiveSearchMatch,
   searchQuery,
-  canInteract = true
+  canInteract = true,
+  onJumpToReply
 }: MessageBubbleProps) => {
-  const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
-
   // Tombstone for "delete for everyone".
   if (chat.isDeletedForEveryone) {
     return (
       <Box
         sx={{
           boxShadow: 1,
-          borderRadius: 1,
+          borderRadius: '8px',
           maxWidth: '100%',
           width: 'fit-content',
           p: theme => theme.spacing(2.5, 4),
-          borderTopLeftRadius: !isSender ? 0 : undefined,
-          borderTopRightRadius: isSender ? 0 : undefined,
+          borderTopLeftRadius: !isSender ? '0px' : '8px',
+          borderTopRightRadius: isSender ? '0px' : '8px',
           backgroundColor: 'background.paper',
           color: 'text.secondary',
           display: 'inline-flex',
@@ -124,31 +131,23 @@ const MessageBubble = ({
     return <>{parts}</>
   }
 
-  if (!chat.msg) return null
+  // Marker-only payloads (forwarded attachment-only messages) have a
+  // truthy `chat.msg` but no visible body — let the attachment-only
+  // render path in ChatLog handle them so the tag appears with the
+  // attachment column instead of inside an empty text bubble.
+  if (!hasDisplayableText(chat.msg)) return null
 
-  // Click the reply snippet → scroll the original bubble into view + flash.
+  const forwarded = isForwarded(chat.msg)
+  const displayText = forwarded ? stripForwardMarker(chat.msg) : chat.msg ?? ''
+
+  // Click the reply snippet → ask ChatContent to scroll + flash the original
+  // bubble via the shared `scrollTargetMessageId` flow (same path as the
+  // pinned-bar click). That handler also loads a context window via
+  // `jumpToMessage` when the original sits outside the loaded slice.
   const handleReplySnippetClick = () => {
-    if (!chat.replyTo?.messageId) return
-    const el = document.querySelector(`[data-msg-id="${chat.replyTo.messageId}"]`)
-    if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('msg-flash')
-    setTimeout(() => el.classList.remove('msg-flash'), 1200)
-  }
-
-  // Toggle our reaction with `emoji` on this message (used when clicking an
-  // existing chip below the bubble — the popover picker lives in MessageActions).
-  const handleToggleReaction = (emoji: string) => {
-    if (!chat.id) return
-    const me = currentUserId != null ? String(currentUserId) : ''
-    const existing = chat.reactions?.find(r => r.emoji === emoji)
-    const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    // Single call for both add and remove — server treats a re-emit as a
-    // toggle. `alreadyReacted` is kept only for any future UI branching.
-    void alreadyReacted
-    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
-      console.error('[chat] toggle reaction failed:', err)
-    })
+    const targetId = chat.replyTo?.messageId
+    if (!targetId) return
+    onJumpToReply?.(String(targetId))
   }
 
   return (
@@ -174,17 +173,15 @@ const MessageBubble = ({
           sx={{
             position: 'relative',
             boxShadow: 1,
-            borderRadius: 1,
+            borderRadius: '8px',
             maxWidth: '100%',
             width: 'fit-content',
             p: theme => theme.spacing(3, 4),
-            // Reserve room for the absolutely-positioned chevron at top-right
-            // so it doesn't overlap the message text.
-            pr: theme => theme.spacing(7),
-            borderTopLeftRadius: !isSender ? 0 : undefined,
-            borderTopRightRadius: isSender ? 0 : undefined,
+            pr: isSender ? '12px' : theme => theme.spacing(4),
+            borderTopLeftRadius: !isSender ? '0px' : '8px',
+            borderTopRightRadius: isSender ? '0px' : '8px',
             color: isSender ? 'common.white' : 'text.primary',
-            backgroundColor: isSender ? 'primary.main' : 'background.paper',
+            backgroundColor: isSender ? '#1F515B' : 'background.paper',
             ...(isActiveSearchMatch && {
               outline: theme => `2px solid ${theme.palette.warning.main}`,
               outlineOffset: '2px'
@@ -216,18 +213,14 @@ const MessageBubble = ({
               onClick={handleReplySnippetClick}
               sx={{
                 cursor: chat.replyTo.messageId ? 'pointer' : 'default',
-                borderLeft: theme =>
-                  `3px solid ${isSender ? theme.palette.common.white : theme.palette.primary.main}`,
+                borderLeft: theme => `3px solid ${isSender ? theme.palette.common.white : '#1F515B'}`,
                 pl: 1.5,
                 py: 0.5,
                 mb: 1,
                 opacity: 0.85
               }}
             >
-              <Typography
-                variant='caption'
-                sx={{ display: 'block', fontWeight: 600, color: 'inherit' }}
-              >
+              <Typography variant='caption' sx={{ display: 'block', fontWeight: 600, color: 'inherit' }}>
                 {chat.replyTo.senderName ?? 'Replied message'}
               </Typography>
               <Typography
@@ -240,101 +233,89 @@ const MessageBubble = ({
                   color: 'inherit'
                 }}
               >
-                {chat.replyTo.textPreview ||
-                  (chat.replyTo.hasAttachment ? '📎 Attachment' : 'Original message')}
+                {chat.replyTo.textPreview || (chat.replyTo.hasAttachment ? '📎 Attachment' : 'Original message')}
               </Typography>
             </Box>
           ) : null}
-          <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
-            {isSearchMatch ? highlightText(chat.msg, !!isActiveSearchMatch) : chat.msg}
-            {chat.isPinned ? (
-              <Box
-                component='span'
-                sx={{
-                  ml: 1,
-                  display: 'inline-flex',
-                  verticalAlign: 'middle',
-                  color: 'inherit',
-                  opacity: 0.85
-                }}
-                aria-label='pinned'
-              >
-                <Icon icon='mdi:pin' fontSize='0.875rem' />
-              </Box>
-            ) : null}
-            {chat.isStarred ? (
-              <Box
-                component='span'
-                sx={{
-                  ml: 1,
-                  display: 'inline-flex',
-                  verticalAlign: 'middle',
-                  color: 'inherit',
-                  opacity: 0.85
-                }}
-                aria-label='starred'
-              >
-                <Icon icon='mdi:star' fontSize='0.875rem' />
-              </Box>
-            ) : null}
-            {chat.isEdited ? (
-              <Typography
-                component='span'
-                variant='caption'
-                sx={{ ml: 1, opacity: 0.7, fontStyle: 'italic', color: 'inherit' }}
-              >
-                (edited)
+          {forwarded ? <ForwardedTag isSender={isSender} /> : null}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
+              <LinkifyText
+                text={displayText}
+                isSender={isSender}
+                renderText={isSearchMatch ? (s: string) => highlightText(s, !!isActiveSearchMatch) : undefined}
+              />
+              {chat.isPinned ? (
+                <Box
+                  component='span'
+                  sx={{
+                    ml: 1,
+                    display: 'inline-flex',
+                    verticalAlign: 'middle',
+                    color: 'inherit'
+                  }}
+                  aria-label='pinned'
+                >
+                  <Icon icon='mdi:pin' fontSize='1rem' />
+                </Box>
+              ) : null}
+              {chat.isStarred ? (
+                <Box
+                  component='span'
+                  sx={{
+                    ml: 1,
+                    display: 'inline-flex',
+                    verticalAlign: 'middle',
+                    color: 'inherit'
+                  }}
+                  aria-label='starred'
+                >
+                  <Icon icon='mdi:star' fontSize='1rem' />
+                </Box>
+              ) : null}
+              {chat.isEdited ? (
+                <Typography
+                  component='span'
+                  variant='caption'
+                  sx={{ ml: 1, opacity: 0.7, fontStyle: 'italic', color: 'inherit' }}
+                >
+                  (edited)
+                </Typography>
+              ) : null}
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                justifyContent: 'flex-end'
+              }}
+            >
+              <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}>
+                {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
               </Typography>
-            ) : null}
-          </Typography>
+              {isSender ? (
+                chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                  <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
+                    <Icon icon='mdi:check' fontSize='0.875rem' />
+                  </Box>
+                ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                  <Box
+                    component='span'
+                    sx={{
+                      display: 'inline-flex',
+                      '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                    }}
+                  >
+                    <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                  </Box>
+                ) : null
+              ) : null}
+            </Box>
+          </Box>
         </Box>
 
-        {canInteract && chat.reactions && chat.reactions.length > 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 0.5,
-              ml: isSender ? 'auto' : 0,
-              mr: isSender ? 0 : 'auto',
-              mt: 0.25
-            }}
-          >
-            {chat.reactions.map(r => {
-              const me = currentUserId != null ? String(currentUserId) : ''
-              const youReacted = !!(me && r.userIds.includes(me))
-
-              return (
-                <Chip
-                  key={r.emoji}
-                  size='small'
-                  // Click-to-toggle only when the current user can interact
-                  // with this conversation. Removed-from-group users see
-                  // existing reaction chips as static read-only labels.
-                  onClick={canInteract ? () => handleToggleReaction(r.emoji) : undefined}
-                  label={
-                    <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                      <span>{r.emoji}</span>
-                      <Typography component='span' variant='caption'>
-                        {r.count}
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{
-                    height: 22,
-                    cursor: 'pointer',
-                    borderColor: theme => (youReacted ? theme.palette.primary.main : theme.palette.divider),
-                    backgroundColor: theme =>
-                      youReacted ? theme.palette.action.selected : theme.palette.background.paper,
-                    '&:hover': { backgroundColor: theme => theme.palette.action.hover },
-                    '& .MuiChip-label': { px: 0.75 }
-                  }}
-                  variant='outlined'
-                />
-              )
-            })}
-          </Box>
-        ) : null}
+        <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
       </Box>
 
       {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}

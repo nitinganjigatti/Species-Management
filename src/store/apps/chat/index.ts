@@ -10,6 +10,8 @@ import type {
   ChatType,
   MessageType,
   MessageReplyRef,
+  ForwardingMessageRef,
+  ChatAttachmentType,
   SendMsgParamsType,
   ChatFilterType,
   ChatEntityId,
@@ -49,6 +51,8 @@ import {
 } from 'src/lib/chat/api'
 
 import { useChatStore } from '@antzsoft/chat-core'
+
+import { composeForwardedText } from 'src/lib/chat/forwardMarker'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -290,8 +294,11 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
  */
 export const addParticipantsToGroup = createAsyncThunk<
   void,
-  { groupId: ChatEntityId; userIds: ChatEntityId[] }
->('appChat/addParticipantsToGroup', async ({ groupId, userIds }, { dispatch, getState }) => {
+  // v1.1.3 — optional `role` lets the caller add new members directly
+  // as admins. Omit/undefined → server defaults to 'member'. Existing
+  // two-field callers ({ groupId, userIds }) keep working unchanged.
+  { groupId: ChatEntityId; userIds: ChatEntityId[]; role?: 'admin' | 'member' }
+>('appChat/addParticipantsToGroup', async ({ groupId, userIds, role }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client) {
     console.warn('[chat] addParticipantsToGroup: SDK not ready')
@@ -305,7 +312,7 @@ export const addParticipantsToGroup = createAsyncThunk<
   }
 
   try {
-    const conv = await apiAddParticipants(groupId, userIds.map(String))
+    const conv = await apiAddParticipants(groupId, userIds.map(String), role)
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -826,6 +833,9 @@ export const sendMsg = createAsyncThunk(
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
     // Map app-side ChatAttachmentType → SDK SendMessageAttachment (uses fileId).
+    // `duration` is forwarded for audio/video so receivers can render the
+    // length in their player UI (v1.1.3 spec). Other types leave it
+    // undefined — the SDK field is optional.
     const attachments = obj.attachments?.length
       ? obj.attachments.map(a => ({
           fileId: a.id,
@@ -834,7 +844,10 @@ export const sendMsg = createAsyncThunk(
           thumbnailUrl: a.thumbnailUrl,
           filename: a.filename,
           mimeType: a.mimeType,
-          size: a.size
+          size: a.size,
+          ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video')
+            ? { duration: a.duration }
+            : {})
         }))
       : undefined
 
@@ -889,6 +902,76 @@ export const sendMsg = createAsyncThunk(
   }
 )
 
+/**
+ * Forward an existing message into another conversation.
+ *
+ * Implemented as a client-side composition because the SDK has no
+ * forwarding primitive — we re-send the source content via the standard
+ * `sendMessageOverSocket` path with a sentinel prefix on the text so both
+ * sender and recipient render the "Forwarded" label. Attachments are
+ * forwarded by reusing the source `Attachment.id` as the destination
+ * `SendMessageAttachment.fileId`; this assumes the backend accepts an
+ * already-uploaded fileId from another conversation. If that assumption
+ * breaks, the socket ack will reject and the thunk surfaces a toast via
+ * the dispatcher.
+ *
+ * On success, optionally dispatches `selectChat(targetChatId)` so the
+ * user lands in the destination chat with the forwarded message visible.
+ */
+export const forwardMessage = createAsyncThunk<
+  void,
+  {
+    sourceMessageId: string
+    sourceText?: string
+    sourceAttachments?: ChatAttachmentType[]
+    targetChatId: ChatEntityId
+    openTargetAfter?: boolean
+  }
+>('appChat/forwardMessage', async (params, { dispatch }) => {
+  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true } = params
+  const client = getChatClientOrNull()
+  if (!client || typeof targetChatId !== 'string') {
+    throw new Error('[chat] forwardMessage requires an initialized SDK and a real target chat id')
+  }
+
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+  // Map ChatAttachmentType → SendMessageAttachment. Same shape as sendMsg.
+  const attachments = sourceAttachments?.length
+    ? sourceAttachments.map(a => ({
+        fileId: a.id,
+        type: a.type,
+        url: a.url,
+        thumbnailUrl: a.thumbnailUrl,
+        filename: a.filename,
+        mimeType: a.mimeType,
+        size: a.size
+      }))
+    : undefined
+
+  // composeForwardedText strips any existing marker on the source first,
+  // so re-forwarding an already-forwarded message never stacks markers.
+  const text = composeForwardedText(sourceText)
+
+  try {
+    await sendMessageOverSocket({
+      conversationId: targetChatId,
+      text,
+      tempId,
+      ...(attachments ? { attachments } : {})
+    })
+  } catch (err) {
+    console.error('[chat] forwardMessage send failed:', err)
+    throw err
+  }
+
+  dispatch(setForwardingMessage(null))
+
+  if (openTargetAfter) {
+    dispatch(selectChat(targetChatId))
+  }
+})
+
 // ----------------------------------------------------------------------
 // Slice
 // ----------------------------------------------------------------------
@@ -903,7 +986,10 @@ const initialState: ChatStoreType = {
   pendingFeedback: {},
   replyingTo: null,
   editingMessage: null,
-  infoMessage: null
+  infoMessage: null,
+  forwardingMessage: null,
+  selectedConversationId: null,
+  drafts: {}
 }
 
 export const appChatSlice = createSlice({
@@ -913,8 +999,22 @@ export const appChatSlice = createSlice({
     removeSelectedChat: state => {
       state.selectedChat = null
     },
+    setSelectedConversationId: (state, action: PayloadAction<string | null>) => {
+      state.selectedConversationId = action.payload
+    },
     setActiveFilter: (state, action: PayloadAction<ChatFilterType>) => {
       state.activeFilter = action.payload
+    },
+    // Per-conversation draft setter. Empty/whitespace text deletes the
+    // entry so empty drafts don't accumulate or render in the sidebar.
+    setDraft: (state, action: PayloadAction<{ conversationId: string; text: string }>) => {
+      const { conversationId, text } = action.payload
+      if (!conversationId) return
+      if (text && text.trim().length) {
+        state.drafts[conversationId] = text
+      } else {
+        delete state.drafts[conversationId]
+      }
     },
     // Synchronous "open this chat" reducer. Called by the `selectChat` thunk
     // first so the chat panel opens immediately (with whatever messages are
@@ -971,25 +1071,77 @@ export const appChatSlice = createSlice({
         state.selectedChat.contact = chatEntry
       }
     },
-    // Authoritative unread count from the server — pushed via the
-    // `unread_count_changed` socket event whenever the server recalculates
-    // the count for this user (mark-read from any device, message
-    // deletion-for-me, etc.). Replaces our local count rather than
-    // incrementing, because the server is the source of truth.
-    setUnreadCount: (
+    // Case-1 patch for the `conversation_updated` socket event — when only
+    // a new message arrived (no metadata change). Server sends a slim
+    // payload with `lastMessage` (custom event shape, NOT the SDK Message),
+    // `unreadCount`, and `updatedAt`. We patch only those fields on the
+    // matching chat and move the chat to the top of the list. Case 2
+    // (full conversation replace) goes through `addOrReplaceChat` instead.
+    patchConversationFromEvent: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; count: number }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        lastMessage?: {
+          messageId: string
+          contentPreview?: string
+          sentAt?: string
+          senderName?: string
+          hasAttachments?: boolean
+          attachmentCount?: number
+        }
+        unreadCount?: number
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, count } = action.payload
+      const { chatId, lastMessage, unreadCount } = action.payload
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
-      chatEntry.chat.unseenMsgs = count
-      if (state.selectedChat?.contact.id === chatId) {
-        state.selectedChat = {
-          chat: { ...chatEntry.chat },
-          contact: chatEntry
+
+      if (lastMessage) {
+        const existing = chatEntry.chat.lastMessage
+        // Preserve the existing attachments array if the patch is about the
+        // SAME message we already have — the event payload only signals
+        // attachment presence (`hasAttachments`/`attachmentCount`), not the
+        // per-attachment metadata (type, mimeType, filename) the sidebar
+        // needs to pick an icon. Falling back keeps the existing icon
+        // correct. For a different message id we drop the previous
+        // attachments — re-arrives via `new_message` if needed.
+        const sameMessage = existing?.id && existing.id === lastMessage.messageId
+        chatEntry.chat.lastMessage = {
+          id: lastMessage.messageId,
+          time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
+          message: lastMessage.contentPreview ?? '',
+          // senderId isn't part of the slim payload. Keep the previous one
+          // when we're talking about the same message; otherwise we can't
+          // determine it — sidebar's "You: …" prefix may be missing until
+          // a future `new_message` fills it in. Acceptable tradeoff.
+          senderId: sameMessage ? existing!.senderId : (existing?.senderId ?? ''),
+          senderName: lastMessage.senderName ?? existing?.senderName,
+          feedback: existing?.feedback ?? { isSent: true, isDelivered: false, isSeen: false },
+          attachments: sameMessage
+            ? existing?.attachments
+            : lastMessage.hasAttachments
+              ? existing?.attachments
+              : undefined
         }
+      }
+
+      if (typeof unreadCount === 'number') {
+        chatEntry.chat.unseenMsgs = unreadCount
+      }
+
+      // New activity → bubble to the top of the list, matching how
+      // `receiveMessage` already does for `new_message`-driven updates.
+      if (lastMessage) {
+        const idx = state.chats.indexOf(chatEntry)
+        if (idx > 0) {
+          state.chats.splice(idx, 1)
+          state.chats.unshift(chatEntry)
+        }
+      }
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = { chat: chatEntry.chat, contact: chatEntry }
       }
     },
     // Composer reply state — set by clicking "Reply" on a bubble, cleared by
@@ -1024,6 +1176,13 @@ export const appChatSlice = createSlice({
       >
     ) => {
       state.infoMessage = action.payload
+    },
+    // "Forward message" picker state — set by clicking "Forward" on a
+    // bubble; cleared on send-success or by the dialog's cancel button.
+    // The dialog is mounted at the chat shell root (ChatContent) so it
+    // overlays the chat panel.
+    setForwardingMessage: (state, action: PayloadAction<ForwardingMessageRef | null>) => {
+      state.forwardingMessage = action.payload
     },
     // Pin — server-broadcast on `message_pin_updated`. Visible to all
     // participants of the conversation.
@@ -1262,6 +1421,28 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // Explicit avatar clear — used after a successful
+    // `conversationsApi.removeIcon` so the sidebar / header / profile
+    // drawer drop back to the initials fallback. Necessary because
+    // `addOrReplaceChat` defensively keeps the previous avatar when the
+    // server response's `iconUrl` is undefined (a quirk of participant-
+    // mutation endpoints). This reducer overrides that protection for
+    // the explicit-removal case only.
+    clearChatAvatar: (state, action: PayloadAction<{ chatId: ChatEntityId }>) => {
+      if (!state.chats) return
+      const { chatId } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const next = { ...state.chats[idx] }
+      delete next.avatar
+      state.chats[idx] = next
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
     // Mark a participant as no longer active in a group — fires from the
     // server's `participant_left` socket event (covers both voluntary leave
     // and admin-removal). Immediately flips:
@@ -1271,12 +1452,110 @@ export const appChatSlice = createSlice({
     // Drives the composer/interaction gate (`canInteract` in ChatContent
     // and `isCurrentUserActive` in UserProfileRight) so a removed user is
     // locked out without waiting for the next `fetchChatsContacts`.
-    applyParticipantLeft: (
+    // Mirror of `applyParticipantLeft` for the `participant_joined`
+    // socket event. Fires when a user is added to a group (admin-add
+    // OR a previously-removed user being re-added). Updates:
+    //   • chat.participants — pushes a new entry OR flips an existing
+    //     soft-deleted entry's `isActive` back to true
+    //   • chat.participantIds — adds the userId (deduped)
+    //   • chat.adminIds — adds when role === 'admin'
+    //   • chat.isCurrentUserActive — flips back to true when WE were
+    //     re-added (so the composer + danger zone re-unlock)
+    //   • chat.removedBy / removedByName — cleared when WE were re-
+    //     added, so the "You were removed by …" placeholder goes away
+    applyParticipantJoined: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; userId: ChatEntityId }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        userId: ChatEntityId
+        displayName?: string
+        username?: string
+        avatarUrl?: string
+        role?: 'admin' | 'member'
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, userId } = action.payload
+      const { chatId, userId, displayName, username, avatarUrl, role } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const userIdStr = String(userId)
+      const chat = state.chats[idx]
+
+      // Participant entry — flip existing back to active or push new.
+      const existing = (chat.participants ?? []).find(p => String(p.userId) === userIdStr)
+      const updatedParticipants = existing
+        ? (chat.participants ?? []).map(p =>
+            String(p.userId) === userIdStr
+              ? {
+                  ...p,
+                  isActive: true,
+                  // Re-add can carry fresh display info; only overwrite
+                  // when the event actually provides each field.
+                  ...(displayName ? { displayName } : {}),
+                  ...(username ? { username } : {}),
+                  ...(avatarUrl ? { avatarUrl } : {}),
+                  ...(role ? { role } : {})
+                }
+              : p
+          )
+        : [
+            ...(chat.participants ?? []),
+            {
+              userId: userIdStr,
+              isActive: true,
+              role: role ?? 'member',
+              displayName,
+              username,
+              avatarUrl
+            }
+          ]
+
+      const participantIdSet = new Set((chat.participantIds ?? []).map(String))
+      participantIdSet.add(userIdStr)
+      const updatedParticipantIds = Array.from(participantIdSet)
+
+      const adminIdSet = new Set((chat.adminIds ?? []).map(String))
+      if (role === 'admin') adminIdSet.add(userIdStr)
+      const updatedAdminIds = Array.from(adminIdSet)
+
+      const meIsJoiner = String(state.userProfile?.id ?? '') === userIdStr
+
+      // Clean slate for re-added current user — drop the "removed by"
+      // snapshot so the placeholder reverts to the normal composer.
+      const nextChat: ChatsArrType = {
+        ...chat,
+        participants: updatedParticipants,
+        participantIds: updatedParticipantIds,
+        adminIds: updatedAdminIds,
+        ...(meIsJoiner ? { isCurrentUserActive: true } : {})
+      }
+      if (meIsJoiner) {
+        delete nextChat.removedBy
+        delete nextChat.removedByName
+      }
+      state.chats[idx] = nextChat
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
+    applyParticipantLeft: (
+      state,
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        userId: ChatEntityId
+        // v1.1.3 — when the leaver was kicked by an admin the socket event
+        // carries `removedBy`. Optional fields so existing single-arg
+        // callers (chatId+userId only) keep working unchanged.
+        removedBy?: ChatEntityId
+        removedByName?: string
+      }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, userId, removedBy, removedByName } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
       if (idx < 0) return
       const userIdStr = String(userId)
@@ -1292,13 +1571,22 @@ export const appChatSlice = createSlice({
       const updatedAdminIds = (chat.adminIds ?? []).filter(id => String(id) !== userIdStr)
       const meIsLeaver = String(state.userProfile?.id ?? '') === userIdStr
 
+      // Only snapshot the admin who removed us when the event is about US
+      // AND removedBy is actually present (admin-removal path). Self-exit
+      // leaves these fields untouched so the placeholder defaults to
+      // "You're no longer a member".
+      const removalFields =
+        meIsLeaver && removedBy !== undefined && removedBy !== null
+          ? { removedBy, removedByName }
+          : {}
+
       state.chats[idx] = {
         ...chat,
         participants: updatedParticipants,
         participantIds: updatedParticipantIds,
         adminIds: updatedAdminIds,
-        // Flip the current-user flag iff THIS event is about us.
-        ...(meIsLeaver ? { isCurrentUserActive: false } : {})
+        ...(meIsLeaver ? { isCurrentUserActive: false } : {}),
+        ...removalFields
       }
 
       // Mirror into selectedChat so the open chat's composer + Group info
@@ -1578,15 +1866,6 @@ export const appChatSlice = createSlice({
 
       const newMessages = [...chatEntry.chat.messages, stored]
       chatEntry.chat.messages = newMessages
-      chatEntry.chat.lastMessage = stored
-
-      // Move this chat to the top of the list so the sidebar reflects
-      // the most recent activity.
-      const idx = state.chats.indexOf(chatEntry)
-      if (idx > 0) {
-        state.chats.splice(idx, 1)
-        state.chats.unshift(chatEntry)
-      }
 
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
@@ -1597,11 +1876,12 @@ export const appChatSlice = createSlice({
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-      } else {
-        const isMine =
-          isOwn || (state.userProfile != null && message.senderId === state.userProfile.id)
-        if (!isMine) chatEntry.chat.unseenMsgs += 1
       }
+      // Note: we deliberately do NOT touch any conversation-list state here
+      // (`unseenMsgs`, `lastMessage`, or list ordering). The conversation
+      // list is driven exclusively by `conversation_updated` (handled in
+      // `patchConversationFromEvent` and `addOrReplaceChat`). `new_message`
+      // is used only to append the message to the open ChatLog.
     },
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
     // thunk after `messages.list()` resolves. Also carries the cursor
@@ -1869,6 +2149,7 @@ export const appChatSlice = createSlice({
 
 export const {
   setSelectedChat,
+  setSelectedConversationId,
   setChatMessages,
   prependChatMessages,
   setLoadingOlder,
@@ -1876,11 +2157,14 @@ export const {
   updateMessagesFeedback,
   addOrReplaceChat,
   setChatAvatarOptimistic,
+  clearChatAvatar,
   patchLastMessageSender,
   applyParticipantLeft,
+  applyParticipantJoined,
   setInfoMessage,
+  setForwardingMessage,
   updateChatFlags,
-  setUnreadCount,
+  patchConversationFromEvent,
   setReplyingTo,
   setEditingMessage,
   applyMessageUpdate,
@@ -1891,7 +2175,8 @@ export const {
   applyReactionUpdate,
   removeChatFromList,
   removeSelectedChat,
-  setActiveFilter
+  setActiveFilter,
+  setDraft
 } = appChatSlice.actions
 
 export default appChatSlice.reducer

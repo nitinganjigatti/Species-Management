@@ -51,6 +51,15 @@ export type ChatAttachmentType = {
   size: number
   isUploading?: boolean
   uploadProgress?: number
+  /**
+   * Length in seconds for audio/video attachments. v1.1.3 SDK spec says
+   * this must be supplied on `socketEmit.sendMessage` so receivers can
+   * render the duration in their player UI. Captured client-side when
+   * the user records or picks the file (storage layer doesn't keep it).
+   * Undefined for images / documents and for older messages from before
+   * this field was wired.
+   */
+  duration?: number
 }
 
 // One reaction bucket on a message — `userIds` is who reacted, `count` is its
@@ -70,6 +79,18 @@ export type MessageReplyRef = {
   senderName?: string
   textPreview: string
   hasAttachment?: boolean
+}
+
+// Snapshot of the message currently being forwarded, set when the user picks
+// "Forward" from the message-actions menu. The ForwardMessageDialog reads
+// this to render the source preview and to compose the outgoing payload.
+// Cleared on send-success or dialog cancel.
+export type ForwardingMessageRef = {
+  messageId: string
+  messageText?: string
+  attachments?: ChatAttachmentType[]
+  senderName?: string
+  senderId?: ChatEntityId
 }
 
 export type MessageType = {
@@ -194,6 +215,19 @@ export type ChatsArrType = {
    * the server doesn't surface `lastMessage` for a freshly-created group.
    */
   createdBy?: ChatEntityId
+  /** ISO timestamp when the conversation was created. Mirrors `Conversation.createdAt` from the SDK. */
+  createdAt?: string
+  /**
+   * v1.1.3 `participant_left` distinguishes self-exit from admin-removal
+   * by the presence of `removedBy` on the event payload. When the CURRENT
+   * user was kicked, we snapshot the admin's userId here so the composer's
+   * read-only placeholder can say "You were removed by …" instead of
+   * the generic "You're no longer a member" copy.
+   * Self-exit path leaves this field undefined.
+   */
+  removedBy?: ChatEntityId
+  /** Display name of the admin who removed the current user, when supplied. */
+  removedByName?: string
 }
 
 export interface CreateGroupPayload {
@@ -229,6 +263,8 @@ export type ChatStoreType = {
   selectedChat: SelectedChatType
   activeFilter: ChatFilterType
   loadingMessages: boolean
+  // Selected conversation ID — persisted across page navigation
+  selectedConversationId: string | null
   // Receipts (delivered/seen) that arrived BEFORE the corresponding message
   // landed in `chats`. Keyed by messageId. Drained in `sendMsg.fulfilled` and
   // `receiveMessage` once the message is appended.
@@ -249,6 +285,14 @@ export type ChatStoreType = {
     readBy?: Array<{ userId: string; readAt: string }>
     deliveredTo?: Array<{ userId: string; deliveredAt: string }>
   } | null
+  // The message currently being forwarded. Set by clicking "Forward" on a
+  // bubble; cleared on send-success or by the dialog's cancel button.
+  // Drives the ForwardMessageDialog mounted at the chat shell root.
+  forwardingMessage: ForwardingMessageRef | null
+  // WhatsApp-style per-conversation drafts. Keyed by conversationId.
+  // Populated when the user types in the composer and switches chats
+  // without sending; restored when they come back. Cleared on send.
+  drafts: Record<string, string>
 }
 
 export type SendMsgParamsType = {
@@ -272,6 +316,8 @@ export type ChatContentType = {
   userProfileRightOpen: boolean
   handleLeftSidebarToggle: () => void
   handleUserProfileRightSidebarToggle: () => void
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
   typingUsers?: TypingUserInfo[]
 }
 
@@ -292,6 +338,7 @@ export type ChatSidebarLeftType = {
   formatDateToMonthShort: (value: string, toTimeForCurrentDay?: boolean) => string
   handleLeftSidebarToggle: () => void
   handleUserProfileLeftSidebarToggle: () => void
+  compact?: boolean
 }
 
 export type UserProfileLeftType = {
@@ -313,6 +360,15 @@ export type UserProfileRightType = {
   sidebarWidth: number
   userProfileRightOpen: boolean
   handleUserProfileRightSidebarToggle: () => void
+  /**
+   * Optional callback to scroll the main ChatLog to a specific message
+   * id. Used by StarredMessagesDrawer (and any future "jump to" UI)
+   * to flash a bubble in the chat after the user clicks it in a list.
+   * ChatContent wires this to its `setScrollTargetMessageId`.
+   */
+  onScrollToMessage?: (messageId: string) => void
+  /** Opens the chat search drawer — wired by ChatContent to handleSearchToggle. */
+  onOpenSearch?: () => void
 }
 
 export type SendMsgComponentType = {
@@ -376,8 +432,15 @@ export type ChatLogType = {
   // on the same id.
   scrollTargetMessageId?: string | null
   onScrollToTargetDone?: () => void
+  // Fired when the user clicks a reply snippet inside a bubble. ChatContent
+  // routes this to the same `scrollTargetMessageId` flow used by the pinned
+  // bar so it works with PerfectScrollbar + paginated history.
+  onJumpToReply?: (messageId: string) => void
   // When false, per-message actions (Reply / Star / Copy / Delete) and
   // reaction toggles are suppressed. Set by ChatContent when the current
   // user has been removed from / has left a group. Defaults to true.
   canInteract?: boolean
+  // Opens the group info / members panel — wired to handleUserProfileRightSidebarToggle
+  // in ChatContent. Used by the "Add Member" button in the group-created card.
+  onAddMember?: () => void
 }

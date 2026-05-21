@@ -19,19 +19,22 @@ import {
   enrichLastMessageSenders,
   removeSelectedChat,
   receiveMessage,
-  setUnreadCount,
   applyReactionUpdate,
   applyMessageUpdate,
   applyMessageDelete,
   applyMessageDeleteForMe,
   applyMessagePin,
   applyParticipantLeft,
-  updateMessagesFeedback
+  applyParticipantJoined,
+  updateMessagesFeedback,
+  addOrReplaceChat,
+  patchConversationFromEvent
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markReadOverSocket, sdkMessageToMessage } from 'src/lib/chat/api'
+import { joinChatRoom, markReadOverSocket, sdkConversationToChat, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
+import toast from 'react-hot-toast'
 // ** Types
 import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
@@ -53,7 +56,7 @@ import ChatContent from 'src/views/apps/chat/ChatContent'
 // ** @antzsoft/chat-core smoke test — verifies the SDK can connect to the
 // backend without touching the existing Redux/mock data path. Logs to console.
 // Becomes a no-op when NEXT_PUBLIC_CHAT_API_URL is not set.
-import { getSocketStatus, onSocketStatus, tryGetSocket, type SocketStatus } from '@antzsoft/chat-core'
+import { getSocketStatus, onSocketStatus, tryGetSocket, useChatStore, type SocketStatus } from '@antzsoft/chat-core'
 import { getChatClientOrNull } from 'src/lib/chat/client'
 
 // Optional `compact` flag forces single-pane mobile-style layout regardless
@@ -62,12 +65,14 @@ import { getChatClientOrNull } from 'src/lib/chat/client'
 // two-pane layout, so we want the sidebar to act as a slide-in drawer.
 type AppChatProps = {
   compact?: boolean
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
 }
 
-const AppChat = ({ compact = false }: AppChatProps = {}) => {
+const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: AppChatProps = {}) => {
   // ** States
   const [userStatus, setUserStatus] = useState<StatusType>('online')
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(Boolean(compact))
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
 
@@ -147,7 +152,8 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   const sidebarWidth = smAbove ? 370 : 300
   // When `compact` is set, force narrow-viewport semantics so the sidebar
   // drawer auto-closes on chat select and ChatContent's hamburger appears.
-  const mdAbove = !compact && useMediaQuery(theme.breakpoints.up('md'))
+  const mdQuery = useMediaQuery(theme.breakpoints.up('md'))
+  const mdAbove = compact ? false : mdQuery
   const statusObj: StatusObjType = {
     busy: 'error',
     away: 'warning',
@@ -189,18 +195,25 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   useEffect(() => {
     if (!chatClient) return
 
-    // Fetch profile first so `fetchChatsContacts` can use its id to identify
-    // the "other" participant in direct conversations. Once the list lands,
-    // kick off `enrichLastMessageSenders` to fetch full message details for
-    // each group's lastMessage (the conv-list endpoint omits sender info,
-    // so the sidebar's "Saket: …" prefix can't resolve without this
-    // per-message lookup). Fire-and-forget; failures are silent.
+    // Bootstrap on mount: ensure profile is loaded (the adapter needs `me`
+    // to identify the other participant in DMs), fetch the conversation
+    // list only if Redux doesn't already have it (ChatLauncher may have
+    // already populated it while the user was elsewhere in the app — soft
+    // navigation should not re-hit the API; `conversation_updated` keeps
+    // the cache fresh). Then kick off `enrichLastMessageSenders` so each
+    // group's lastMessage carries `senderName` for the "Saket: …" prefix
+    // (the conv-list endpoint omits this). Fire-and-forget; failures
+    // are silent.
+    const alreadyLoaded = Boolean(store?.chats)
     const run = async () => {
       await dispatch(fetchUserProfile({ fallbackAvatarUrl }))
-      await dispatch(fetchChatsContacts())
+      if (!alreadyLoaded) await dispatch(fetchChatsContacts())
       dispatch(enrichLastMessageSenders())
     }
     run()
+    // Intentionally omit `store?.chats` from deps — we only want this to
+    // fire on initial mount / chatClient change, not on every chats mutation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatClient, dispatch, fallbackAvatarUrl])
 
   // Join every conversation's Socket.IO room so the server pushes that room's
@@ -224,69 +237,111 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     dispatch(fetchChatsContacts())
   }, [chatClient, chatConnected, dispatch])
 
-  // Auto-select conversation from query param or first on initial load
-  // Tracks the URL to handle both initial load and notification clicks
+  // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
+  // SDK's `useChatStore.onlineUsers` is normally populated by `user_online`
+  // / `user_offline` events as peers come and go — but on a fresh connect
+  // the array starts empty until peers happen to change state. Result:
+  // green dots are absent for already-online peers until they re-connect.
+  //
+  // Fix: one shot of `socketEmit.getOnlineUsers([all DM peer ids])` after
+  // socket connect + first chat list load. Merge the response into the
+  // store (don't replace — `user_online` events between connect and the
+  // batch response would otherwise get clobbered). Ref-gated so it fires
+  // exactly once per connection; reset on disconnect so a reconnect re-
+  // seeds with the latest data.
+  const seededOnlineUsersRef = useRef<boolean>(false)
+  useEffect(() => {
+    if (!chatConnected) {
+      seededOnlineUsersRef.current = false
+
+      return
+    }
+    if (seededOnlineUsersRef.current) return
+    if (!store?.chats) return
+
+    const me = String(store?.userProfile?.id ?? '')
+    const peerIds = new Set<string>()
+    store.chats.forEach(c => {
+      if (c.isGroup === true) return
+      c.participants?.forEach(p => {
+        if (p.isActive !== false && String(p.userId) !== me) peerIds.add(String(p.userId))
+      })
+    })
+    if (peerIds.size === 0) return
+
+    seededOnlineUsersRef.current = true
+    getOnlineUsersOverSocket(Array.from(peerIds))
+      .then(online => {
+        const presenceStore = useChatStore.getState()
+        // Merge instead of replace so any `user_online` events that
+        // arrived during the round-trip aren't dropped.
+        const merged = Array.from(new Set([...presenceStore.onlineUsers, ...online]))
+        presenceStore.setOnlineUsers(merged)
+      })
+      .catch(err => {
+        console.warn('[chat:presence] getOnlineUsers seed failed:', err)
+        // Allow a retry on the next connect transition.
+        seededOnlineUsersRef.current = false
+      })
+  }, [chatConnected, store?.chats, store?.userProfile?.id])
+
+  const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
+
+  // Compact mode (FAB panel): restore from Redux/localStorage only, ignore URL changes
+  const compactRestoredRef = useRef(false)
+  useEffect(() => {
+    if (!compact) return
+    if (typeof window === 'undefined') return
+    if (compactRestoredRef.current) return
+    if (!store?.chats || store.chats.length === 0) return
+
+    // If there's already a selected chat, don't override it
+    if (store?.selectedChat?.contact?.id) {
+      compactRestoredRef.current = true
+      return
+    }
+
+    const savedId = selectedConversationIdFromRedux || localStorage.getItem('selectedChatConversationId')
+    if (!savedId) return
+
+    const chatToSelect = store.chats.find(c => String(c.id) === String(savedId))
+    if (chatToSelect) {
+      dispatch(selectChat(chatToSelect.id))
+      compactRestoredRef.current = true
+    }
+  }, [compact, store?.chats, store?.selectedChat?.contact?.id, selectedConversationIdFromRedux, dispatch])
+
+  // Full page mode: auto-select conversation from URL or first on initial load
   const lastUrlRef = useRef<string | null>(null)
   const retryCountRef = useRef(0)
   useEffect(() => {
-    // Only run on client side
+    if (compact) return
     if (typeof window === 'undefined') return
     if (!searchParams) return
 
     const conversationId = searchParams.get('conversationId')
     const currentUrl = conversationId || ''
 
-    // Only proceed if URL changed (handles both initial load and notification clicks)
-    if (lastUrlRef.current === currentUrl) {
-      return
-    }
+    if (lastUrlRef.current === currentUrl) return
     lastUrlRef.current = currentUrl
     retryCountRef.current = 0
 
-    // If chats are still loading (null), wait and retry
     if (store?.chats === null) {
-      console.log('[AppChat] Chats still loading, waiting...')
       const timer = setTimeout(() => {
         retryCountRef.current++
-        if (retryCountRef.current < 10) {
-          // Force re-run by clearing the ref
-          lastUrlRef.current = null
-        }
+        if (retryCountRef.current < 10) lastUrlRef.current = null
       }, 500)
       return () => clearTimeout(timer)
     }
 
-    if (!store?.chats || store.chats.length === 0) {
-      console.log('[AppChat] No chats available')
-      return
-    }
-
-    console.log('[AppChat] URL changed, conversationId:', conversationId)
-
-    // Check if conversationId is in URL (from notification click)
-    let chatToSelect = null
+    if (!store?.chats || store.chats.length === 0) return
 
     if (conversationId) {
-      console.log('[AppChat] Looking for chat with ID:', conversationId, 'type:', typeof conversationId)
-
-      // Debug: Log all available chats with details
-      console.log('[AppChat] Total chats available:', store.chats.length)
-      store.chats.forEach(c => {
-        const matches = String(c.id) === String(conversationId)
-        console.log(`  Chat: id="${c.id}" (${typeof c.id}), name="${c.fullName}", matches=${matches}`)
-      })
-
-      // Match by chat.id (converted to string for comparison)
-      chatToSelect = store.chats.find(c =>
-        String(c.id) === String(conversationId)
-      )
+      const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
       if (chatToSelect) {
-        console.log('[AppChat] ✅ Found chat! Selecting:', chatToSelect.fullName, 'ID:', chatToSelect.id)
         dispatch(selectChat(chatToSelect.id))
         return
       } else {
-        console.log('❌ [AppChat] Chat NOT found for conversationId:', conversationId)
-        // Still wait a bit and retry in case chats are still loading
         if (retryCountRef.current < 5) {
           const timer = setTimeout(() => {
             retryCountRef.current++
@@ -297,16 +352,9 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       }
     }
 
-    // Fallback: select first conversation
     const first = store.chats?.[0]
-    if (!first) {
-      console.log('[AppChat] No chats available')
-      return
-    }
-
-    console.log('[AppChat] No conversationId in URL, selecting first chat:', first.fullName)
-    dispatch(selectChat(first.id))
-  }, [store?.chats, searchParams, dispatch])
+    if (first) dispatch(selectChat(first.id))
+  }, [compact, store?.chats, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -329,14 +377,16 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
 
     // Only update URL if the selection changed AND it's not matching the URL
     // (i.e., user clicked sidebar, not clicked a notification)
+    // Skip URL push when in compact mode (floating panel)
     if (currentConversationId && currentConversationId !== prevConversationIdRef.current && String(currentConversationId) !== urlConversationId) {
-      console.log('[AppChat] User selected chat from sidebar, updating URL to:', currentConversationId)
       prevConversationIdRef.current = currentConversationId
-      router.push(`/chat?conversationId=${currentConversationId}`)
+      if (!compact) {
+        router.replace(`/chat?conversationId=${currentConversationId}`)
+      }
     } else {
       prevConversationIdRef.current = currentConversationId
     }
-  }, [store?.selectedChat?.contact?.id, searchParams, router])
+  }, [store?.selectedChat?.contact?.id, searchParams, router, compact])
 
   // Stable ref for the current user's profile id — used inside socket handlers
   // to determine if a message is "ours" (instead of relying on tempId, which
@@ -419,6 +469,13 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         })
       )
 
+      // System messages signal structural changes (role promoted/demoted,
+      // member added/removed, group renamed). Refresh conversation metadata
+      // so adminIds / participants stay in sync without a page reload.
+      if (raw.content?.type === 'system') {
+        dispatch(fetchChatsContacts())
+      }
+
       const isOpen = selectedChatIdRef.current === raw.conversationId
       if (isOpen) {
         // Mark via socket so the server broadcasts read_receipt to the sender.
@@ -470,30 +527,39 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       )
     }
 
-    // Authoritative unread count from the server. Fires whenever the server
-    // recalculates this user's unread for a conversation — including mark-read
-    // from another device — so the sidebar badge stays consistent across
-    // tabs/devices without a REST refetch.
-    const onUnreadCountChanged = (evt: any) => {
-      const convId = evt?.conversationId
-      const count = typeof evt?.unreadCount === 'number' ? evt.unreadCount : null
-      if (!convId || count === null) return
-      dispatch(setUnreadCount({ chatId: convId, count }))
-    }
-
-    // When a conversation is updated (metadata change, pin/unpin, mute, etc.),
-    // refresh the conversation list so the sidebar reflects the change.
+    // `conversation_updated` carries one of two payload shapes per the
+    // server contract:
+    //   Case 1: new message arrived. Slim — { id, lastMessage, unreadCount,
+    //           updatedAt }. PATCH only those fields.
+    //   Case 2: metadata changed (rename/avatar/participants/role/settings).
+    //           Full Conversation object. REPLACE via sdkConversationToChat.
+    // Discriminate by `participants` + `settings` presence.
     const onConversationUpdated = (evt: any) => {
-      const convId = evt?.conversationId
+      const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
 
-      if (!knownChatIdsRef.current.has(convId)) {
-        dispatch(fetchChatsContacts()).then(() => {
+      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
+      if (isFullConversation) {
+        // Brand-new conversation surfaced via this event (rare — usually
+        // covered by `conversation_created`): we still need to join the
+        // socket room to receive future new_message events.
+        if (!knownChatIdsRef.current.has(convId)) {
           joinChatRoom(convId)
-        })
-      } else {
-        dispatch(fetchChatsContacts())
+        }
+        const myId = userProfileIdRef.current ?? ''
+        const chat = sdkConversationToChat(evt, myId)
+        dispatch(addOrReplaceChat(chat))
+
+        return
       }
+
+      dispatch(
+        patchConversationFromEvent({
+          chatId: convId,
+          lastMessage: evt?.lastMessage,
+          unreadCount: typeof evt?.unreadCount === 'number' ? evt.unreadCount : undefined
+        })
+      )
     }
 
     // Fires when a new conversation is created OR when the current user is
@@ -567,19 +633,76 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     }
 
     // Participant left or was removed from a group — fires for ALL members
-    // of the conversation (including the leaver). Payload:
-    //   { conversationId, userId, displayName, removedBy? }
+    // of the conversation. Payload (v1.1.3):
+    //   { conversationId, userId, displayName, removedBy?, removedByName? }
     // When `userId === currentUser`, the reducer flips
     // `isCurrentUserActive=false`, which the composer + interaction gates
     // (`canInteract` in ChatContent, `isCurrentUserActive` in
     // UserProfileRight) react to immediately — no refresh required.
     // For other participants, their entry's `isActive` flips to false so
     // member counts and avatars update too.
+    //
+    // v1.1.3 distinguishes self-exit from admin-removal via the optional
+    // `removedBy` field. When present AND the leaver is us, we surface
+    // a toast and the reducer snapshots the admin's id/name so the
+    // composer placeholder reads "You were removed by …" instead of the
+    // generic copy. Field names are read defensively because the server
+    // event isn't strongly typed in the SDK.
+    // New participant added to a group — mirror of `participant_left`.
+    // Payload (per v1.1.3): { conversationId, userId, displayName?,
+    // avatarUrl?, username?, role? }. Reducer flips `isActive` back to
+    // true on an existing soft-deleted entry OR pushes a new one,
+    // patches `participantIds` / `adminIds` (if role=admin), and — when
+    // the joiner is US — restores `isCurrentUserActive` and clears any
+    // prior `removedBy` snapshot so the composer unlocks instantly.
+    const onParticipantJoined = (evt: any) => {
+      const conversationId = evt?.conversationId
+      const userId = evt?.userId
+      if (!conversationId || !userId) return
+      const displayName: string | undefined = evt?.displayName ?? evt?.user?.displayName
+      const username: string | undefined = evt?.username ?? evt?.user?.username
+      const avatarUrl: string | undefined = evt?.avatarUrl ?? evt?.user?.avatarUrl
+      const role: 'admin' | 'member' | undefined =
+        evt?.role === 'admin' || evt?.role === 'member' ? evt.role : undefined
+      dispatch(
+        applyParticipantJoined({
+          chatId: conversationId,
+          userId,
+          ...(displayName ? { displayName } : {}),
+          ...(username ? { username } : {}),
+          ...(avatarUrl ? { avatarUrl } : {}),
+          ...(role ? { role } : {})
+        })
+      )
+    }
+
     const onParticipantLeft = (evt: any) => {
       const conversationId = evt?.conversationId
       const userId = evt?.userId
       if (!conversationId || !userId) return
-      dispatch(applyParticipantLeft({ chatId: conversationId, userId }))
+      const removedBy = evt?.removedBy
+      const removedByName: string | undefined =
+        evt?.removedByName ?? evt?.removedByDisplayName ?? evt?.removedBy?.displayName
+      dispatch(
+        applyParticipantLeft({
+          chatId: conversationId,
+          userId,
+          ...(removedBy !== undefined && removedBy !== null ? { removedBy } : {}),
+          ...(removedByName ? { removedByName } : {})
+        })
+      )
+
+      // Toast only when WE are the one being removed BY an admin. We
+      // read the current-user id from the same ref used by the rest of
+      // the file (kept in sync via the userProfile effect above) so the
+      // closure sees the latest value across re-renders.
+      const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
+      const leaverIsMe = me !== '' && String(userId) === me
+      if (leaverIsMe && removedBy !== undefined && removedBy !== null) {
+        toast.error(
+          removedByName ? `You were removed from this group by ${removedByName}` : 'You were removed from this group'
+        )
+      }
     }
 
     // TEMPORARY: log every server event before our specific handlers run, so
@@ -597,7 +720,6 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     chatSocket.on('message_delivered', onMessageDelivered)
     chatSocket.on('messages_delivered', onMessagesDelivered)
     chatSocket.on('read_receipt', onReadReceipt)
-    chatSocket.on('unread_count_changed', onUnreadCountChanged)
     chatSocket.on('conversation_updated', onConversationUpdated)
     chatSocket.on('conversation_created', onConversationCreated)
     chatSocket.on('conversation_deleted', onConversationDeleted)
@@ -606,6 +728,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     chatSocket.on('message_deleted', onMessageDeleted)
     chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
     chatSocket.on('message_pin_updated', onMessagePinUpdated)
+    chatSocket.on('participant_joined', onParticipantJoined)
     chatSocket.on('participant_left', onParticipantLeft)
     chatSocket.on('typing_indicator', handleTypingEvent)
 
@@ -615,7 +738,6 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       chatSocket.off('message_delivered', onMessageDelivered)
       chatSocket.off('messages_delivered', onMessagesDelivered)
       chatSocket.off('read_receipt', onReadReceipt)
-      chatSocket.off('unread_count_changed', onUnreadCountChanged)
       chatSocket.off('conversation_updated', onConversationUpdated)
       chatSocket.off('conversation_created', onConversationCreated)
       chatSocket.off('conversation_deleted', onConversationDeleted)
@@ -624,6 +746,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       chatSocket.off('message_deleted', onMessageDeleted)
       chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
       chatSocket.off('message_pin_updated', onMessagePinUpdated)
+      chatSocket.off('participant_joined', onParticipantJoined)
       chatSocket.off('participant_left', onParticipantLeft)
       chatSocket.off('typing_indicator', handleTypingEvent)
     }
@@ -665,6 +788,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         formatDateToMonthShort={formatDateToMonthShort}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+        compact={compact}
       />
       <ChatContent
         store={store}
@@ -678,6 +802,8 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         userProfileRightOpen={userProfileRightOpen}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={onToggleFullscreen}
         typingUsers={
           store?.selectedChat?.contact?.id
             ? typingUsers[String(store.selectedChat.contact.id)] ?? []

@@ -22,6 +22,13 @@ interface StarredMessagesDrawerProps {
   conversationId: ChatEntityId | null | undefined
   conversationName: string
   currentUserId: string | number
+  /**
+   * Optional callback fired when the user clicks a starred message
+   * row. Parent should scroll the main chat to that messageId (and
+   * typically close the right drawer so the user sees the chat). When
+   * omitted, rows render as before but click is a no-op.
+   */
+  onMessageClick?: (messageId: string) => void
 }
 
 const PAGE_LIMIT = 30
@@ -53,7 +60,8 @@ export default function StarredMessagesDrawer({
   onClose,
   conversationId,
   conversationName,
-  currentUserId
+  currentUserId,
+  onMessageClick
 }: StarredMessagesDrawerProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
@@ -139,8 +147,11 @@ export default function StarredMessagesDrawer({
 
               return (
                 <Box key={msg.id}>
-                  {/* Row */}
+                  {/* Row — click jumps to that message in the main chat
+                      (flash + scroll). Parent decides whether to close
+                      the drawer; we just emit the click. */}
                   <Box
+                    onClick={() => onMessageClick?.(msg.id)}
                     sx={{
                       px: 3,
                       py: 2.5,

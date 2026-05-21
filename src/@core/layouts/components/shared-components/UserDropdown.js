@@ -118,7 +118,6 @@ const UserDropdown = props => {
   }
 
   const handleEnableNotifications = async () => {
-    debugger
     try {
       setSaving(true)
       const success = await notificationService.enablePushNotifications()

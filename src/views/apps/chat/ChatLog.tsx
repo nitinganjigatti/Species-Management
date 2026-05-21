@@ -1,12 +1,15 @@
 'use client'
 
 // ** React Imports
-import { useRef, useEffect, useLayoutEffect, useCallback, useState, Ref, MouseEvent, UIEvent } from 'react'
+import { useRef, useEffect, useLayoutEffect, useCallback, useState, Fragment, Ref, MouseEvent, UIEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import { styled } from '@mui/material/styles'
+import MuiAvatar from '@mui/material/Avatar'
+import Paper from '@mui/material/Paper'
+import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Redux — for resolving sender identities in group chats. `data.contact`
@@ -15,6 +18,11 @@ import Typography from '@mui/material/Typography'
 // list populated by `fetchChatsContacts` / `extractContactsFromConversations`.
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
+
+// ** SDK last-read pointer — drives the WhatsApp-Web "N unread messages"
+// divider in the message list. Seeded by `selectChat` thunk on open via
+// `getLastRead(chatId)` → `useChatStore.setLastRead(...)`.
+import { useChatStore } from '@antzsoft/chat-core'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -28,6 +36,14 @@ import MessageBubble from 'src/views/apps/chat/MessageBubble'
 import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
+import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
+
+// ** Forward marker helpers — treat a marker-only payload as "no text"
+// so forwarded attachment-only messages route to the attachment-only
+// render path (with its own actions menu + reaction picker) and pick up
+// the <ForwardedTag /> next to the attachment column.
+import { isForwarded, hasDisplayableText } from 'src/lib/chat/forwardMarker'
 
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
@@ -90,7 +106,9 @@ const ChatLog = (props: ChatLogType) => {
     onJumpToMessage,
     scrollTargetMessageId = null,
     onScrollToTargetDone,
-    canInteract = true
+    canInteract = true,
+    onJumpToReply,
+    onAddMember
   } = props
 
   // Sender-resolution map for group chats. The avatar + name shown next to
@@ -111,6 +129,70 @@ const ChatLog = (props: ChatLogType) => {
   // ** Ref
   const chatArea = useRef(null)
   const messageRefs = useRef<Map<string, HTMLElement>>(new Map())
+
+  // ── Unread-divider anchor (WhatsApp-Web style "N unread messages") ───────
+  // We snapshot the `lastReadMessageId` from the SDK store ONCE per chat
+  // open. Doing it via a ref + state pair (not just reading the store on
+  // every render) is critical because `selectChat` thunk also dispatches
+  // `markReadOverSocket` → server responds → `useChatStore.lastRead` shifts
+  // to the latest message id. If we read live, the divider would vanish the
+  // instant the user opens the chat. Freezing the anchor at open keeps the
+  // divider stable until the user navigates away and comes back.
+  const lastReadFromSdk = useChatStore(s => s.lastRead)
+  const selectedChatId = data?.contact?.id ? String(data.contact.id) : null
+  const unreadAnchorRef = useRef<string | null>(null)
+  const lastSnapshottedChatIdRef = useRef<string | null>(null)
+  const [unreadAnchor, setUnreadAnchor] = useState<string | null>(null)
+
+  // Marks the current chat id as awaiting its initial render — consumed by
+  // the data effect below to differentiate "first sight of this chat" from
+  // "subsequent live update". Cleared once consumed; reset on chat switch.
+  const firstRenderForChatRef = useRef<string | null>(null)
+
+  // Cooldown window (ms timestamp) during which `triggerLoadOlder` is
+  // suppressed. PSB fires `onYReachStart` as a side-effect of our own
+  // smooth-scroll landing near the top of the viewport (most visible in
+  // short DMs where the unread divider sits within the first viewport);
+  // without this guard PSB auto-prepends older messages and the user sees
+  // the chat "scroll up" right after the unread-divider land.
+  const ignoreLoadOlderUntilRef = useRef<number>(0)
+  // Timestamp of the unread-scroll landing. Drives the time-windowed
+  // guard inside `doScroll` so queued bottom-scrolls from the initial
+  // mount don't yank the user past the divider, while still allowing
+  // genuine live-message / own-send scroll-to-bottom calls afterwards.
+  const unreadScrollAtRef = useRef<number>(0)
+
+  // Reset the anchor whenever the user switches to a different chat. Uses
+  // refs so the reset itself doesn't trigger an extra render cycle.
+  useEffect(() => {
+    if (lastSnapshottedChatIdRef.current !== selectedChatId) {
+      unreadAnchorRef.current = null
+      lastSnapshottedChatIdRef.current = selectedChatId
+      firstRenderForChatRef.current = selectedChatId
+      setUnreadAnchor(null)
+    }
+  }, [selectedChatId])
+
+  // Snapshot the lastRead pointer the FIRST time it appears for this chat.
+  // After that, ignore further changes — the server flipping it to "latest"
+  // mid-session must NOT erase our divider position.
+  useEffect(() => {
+    if (!selectedChatId) return
+    if (unreadAnchorRef.current) return
+    const entry = lastReadFromSdk[selectedChatId]
+    const id = entry?.messageId
+    if (id) {
+      unreadAnchorRef.current = id
+      setUnreadAnchor(id)
+      // Pre-arm the load-older cooldown. The unread-scroll smooth-scrolls
+      // the divider to the top of the viewport, and PSB can fire
+      // `onYReachStart` as a side-effect of that motion crossing near
+      // zero (most visible in short DMs). Setting the cooldown the
+      // moment we know we'll be landing near the top guarantees the
+      // ref is armed BEFORE any such event could possibly arrive.
+      ignoreLoadOlderUntilRef.current = Date.now() + 1500
+    }
+  }, [selectedChatId, lastReadFromSdk])
 
   // Pagination — surfaced via `data.chat` from Redux. ChatLog only triggers;
   // ChatContent owns the dispatch.
@@ -157,6 +239,12 @@ const ChatLog = (props: ChatLogType) => {
   }, [hidden])
 
   const triggerLoadOlder = useCallback(() => {
+    // Cooldown — PSB fires onYReachStart as a side-effect of our own
+    // smooth-scroll landing near the top (most visible in short DMs where
+    // the unread divider sits within the first viewport). Without this
+    // guard PSB auto-prepends older messages and the user sees the chat
+    // "scroll up" right after the unread-divider land.
+    if (Date.now() < ignoreLoadOlderUntilRef.current) return
     if (!onLoadOlder) return
     if (loadingOlder) return
     if (!hasMoreOlder) return
@@ -360,6 +448,121 @@ const ChatLog = (props: ChatLogType) => {
     onJumpToMessage(scrollTargetMessageId)
   }, [scrollTargetMessageId, data.chat.messages, onJumpToMessage, onScrollToTargetDone, scrollMessageIntoView])
 
+  // Pre-compute the first-unread message id + count once per
+  // (messages, anchor) change. We walk the messages array forward from
+  // the anchor and pick the first message that is (a) AFTER the anchor
+  // by index and (b) NOT sent by the current user. The "not from me"
+  // check matches WhatsApp — the divider is meaningful only when the
+  // next bubble belongs to someone else (your own send wouldn't be
+  // "unread" by definition). Needed both by the render path (divider
+  // injection) and by the auto-scroll effect below — declared here so
+  // both can see it.
+  const firstUnreadInfo = (() => {
+    if (!unreadAnchor) return { id: null as string | null, count: 0 }
+    const msgs = data?.chat?.messages ?? []
+    const anchorIdx = msgs.findIndex(m => m.id === unreadAnchor)
+    if (anchorIdx < 0) return { id: null, count: 0 }
+    const myId = String(data?.userContact?.id ?? '')
+    for (let i = anchorIdx + 1; i < msgs.length; i++) {
+      const m = msgs[i]
+      if (!m.id) continue
+      if (String(m.senderId) === myId) continue
+
+      return { id: m.id, count: msgs.length - i }
+    }
+
+    return { id: null, count: 0 }
+  })()
+
+  // ── Unread-divider auto-scroll + jump-load (WhatsApp parity) ─────────────
+  // Gap 1: when the first-unread message is in the loaded window, scroll
+  // its bubble into view so the user lands at the divider, not at bottom.
+  // Gap 2: when the lastRead anchor is OLDER than the loaded window, the
+  // anchor index returns -1 and the divider can't render. Request a jump
+  // (context window centered on the anchor) so the divider can appear in
+  // the next render cycle.
+  //
+  // Both guarded by per-anchor refs so they each fire exactly once. Reset
+  // happens via the `selectedChatId` reset effect above where the anchor
+  // itself resets — that path is already in place.
+  const scrolledToUnreadRef = useRef<string | null>(null)
+  const requestedUnreadJumpRef = useRef<string | null>(null)
+  // Direct DOM ref on the unread divider element so we scroll TO it
+  // (block: 'start') instead of centering the first-unread bubble — the
+  // bubble-centering approach pushes the divider off-screen above.
+  const unreadDividerRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!selectedChatId) return
+    if (scrolledToUnreadRef.current !== null && scrolledToUnreadRef.current !== unreadAnchor) {
+      scrolledToUnreadRef.current = null
+    }
+    if (requestedUnreadJumpRef.current !== null && requestedUnreadJumpRef.current !== unreadAnchor) {
+      requestedUnreadJumpRef.current = null
+    }
+  }, [selectedChatId, unreadAnchor])
+
+  useEffect(() => {
+    // Need an anchor to do anything.
+    if (!unreadAnchor) return
+
+    // CRITICAL: don't treat an empty messages array as "anchor not in
+    // window". On chat open the SDK calls `getLastRead` and
+    // `listMessages` in parallel — `getLastRead` can resolve first and
+    // populate `unreadAnchor` while `data.chat.messages` is still []
+    // mid-render. If we fired `jumpToMessage` here we'd replace the
+    // about-to-arrive normal page with a context window, looking to
+    // the user like the chat reloaded right after opening.
+    const msgs = data.chat.messages
+    if (msgs.length === 0) return
+
+    // Anchor not in current window → request a context-window load
+    // (Gap 2). Same pattern as the search-jump effect at line ~389:
+    // dispatch once, wait for messages to swap, effect re-runs and
+    // either finds the anchor (then Gap 1 scrolls) or gives up.
+    const anchorIdx = msgs.findIndex(m => m.id === unreadAnchor)
+    if (anchorIdx < 0) {
+      if (requestedUnreadJumpRef.current === unreadAnchor) return
+      if (!onJumpToMessage) return
+      requestedUnreadJumpRef.current = unreadAnchor
+      onJumpToMessage(unreadAnchor)
+
+      return
+    }
+
+    // Anchor IS in window. Land EXACTLY at the divider — that's the
+    // "first unread starts here" position. We scroll TO the divider's
+    // own DOM ref (not the bubble below it) so the pill sits at the
+    // top of the viewport. Without this, centering the first-unread
+    // bubble would push the divider off-screen above.
+    if (!firstUnreadInfo.id) return
+    if (scrolledToUnreadRef.current === unreadAnchor) return // already done
+
+    const dividerEl = unreadDividerRef.current
+    if (!dividerEl) return // divider not yet mounted — effect re-runs
+
+    const container = getScrollContainer()
+    if (container) {
+      const elRect = dividerEl.getBoundingClientRect()
+      const cRect = container.getBoundingClientRect()
+      const target = Math.max(0, container.scrollTop + (elRect.top - cRect.top))
+      smoothScrollTo(target)
+    } else {
+      dividerEl.scrollIntoView({ block: 'start' })
+    }
+    scrolledToUnreadRef.current = unreadAnchor
+    unreadScrollAtRef.current = Date.now()
+    // Reinforce the load-older cooldown after the actual scroll fires.
+    // The smooth-scroll animation takes ~300ms, and PSB can fire
+    // `onYReachStart` from any frame whose `scrollTop` dips near zero —
+    // extending the window past the animation settle keeps us covered.
+    ignoreLoadOlderUntilRef.current = Date.now() + 800
+
+    // Sync newest-id ref so the scroll-to-bottom effect doesn't yank us
+    // away after this one runs.
+    const lastId = data.chat.messages[data.chat.messages.length - 1]?.id
+    lastSeenNewestIdRef.current = lastId
+  }, [unreadAnchor, firstUnreadInfo.id, data.chat.messages, onJumpToMessage, getScrollContainer, smoothScrollTo])
+
   // In-page preview state for image / video / pdf / other attachments.
   // Clicking an attachment opens the dialog; close button or backdrop closes.
   // When `list` is provided, prev/next carousel is enabled in the dialog.
@@ -379,13 +582,37 @@ const ChatLog = (props: ChatLogType) => {
   }
   const closePreview = () => setPreviewState(null)
 
+  // ** Tracks whether the user is scrolled far enough from the bottom to show the FAB
+  const [showScrollFab, setShowScrollFab] = useState(false)
+
+  const checkScrollFab = useCallback(() => {
+    const c = getScrollContainer()
+    if (!c) {
+      setShowScrollFab(false)
+
+      return
+    }
+    const distFromBottom = c.scrollHeight - c.scrollTop - c.clientHeight
+    setShowScrollFab(distFromBottom > 300)
+  }, [getScrollContainer])
+
   // ** Scroll to chat bottom — runs multiple passes so late-loading content
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
   // div is `_container`. We also force a re-measure via PerfectScrollbar's
   // `update()` if available.
-  const scrollToBottom = () => {
+  //
+  // `force` bypasses the unread-divider hold so own-send always scrolls to
+  // bottom (matches WhatsApp — your own message should land in view).
+  const scrollToBottom = (force = false) => {
     const doScroll = () => {
       if (!chatArea.current) return
+      // Hold at the unread divider — `scrollToBottom` queues delayed
+      // scrolls (rAF / 120ms / 350ms); any still pending when the
+      // unread-scroll lands would yank the user back to the bottom.
+      // Time-window the block (1s) so genuine new-message scroll calls
+      // fired AFTER the divider has settled flow through. `force`
+      // (own-send) bypasses unconditionally.
+      if (!force && scrolledToUnreadRef.current && Date.now() - unreadScrollAtRef.current < 1000) return
       if (hidden) {
         // @ts-ignore — native overflow div
         chatArea.current.scrollTop = chatArea.current.scrollHeight
@@ -407,6 +634,9 @@ const ChatLog = (props: ChatLogType) => {
     // 3) after late content (images) settles
     setTimeout(doScroll, 120)
     setTimeout(doScroll, 350)
+
+    // Hide FAB once we scroll to bottom
+    setTimeout(() => setShowScrollFab(false), 400)
   }
 
   // ** Formats chat data — groups consecutive messages by sender, splits
@@ -528,8 +758,16 @@ const ChatLog = (props: ChatLogType) => {
     // ack. It is NOT true for prepended older pages or any other state mutation
     // (loadingOlder toggle, feedback flags, pin/star/edit/delete, etc.), so
     // those won't yank the user to the bottom.
-    const newestId = data.chat.messages[data.chat.messages.length - 1]?.id
+    const newest = data.chat.messages[data.chat.messages.length - 1]
+    const newestId = newest?.id
     if (newestId === lastSeenNewestIdRef.current) return
+
+    // `firstRenderForChatRef` is set to `selectedChatId` on chat switch
+    // and consumed here — the first time we see a non-empty messages
+    // array for that chat is the "initial render". Distinguishes the
+    // open-chat path (may need to hold at unread divider) from the
+    // live-update path (only follow if user is at/near bottom).
+    const isInitialRender = firstRenderForChatRef.current === selectedChatId
     lastSeenNewestIdRef.current = newestId
 
     // A `jumpToMessage` dispatch replaces the messages array with a context
@@ -538,6 +776,40 @@ const ChatLog = (props: ChatLogType) => {
     // trip and yank the user to the bottom. Skip — the search-scroll effect
     // will land us on the right bubble instead.
     if (pendingJumpForIdRef.current) return
+
+    // Own-send ALWAYS scrolls to bottom. Matches WhatsApp — your own
+    // message should land in view regardless of where you were reading.
+    // `force=true` bypasses the unread-divider hold inside `doScroll`.
+    const myId = String(data?.userContact?.id ?? '')
+    const isOwnSend = newest && String(newest.senderId) === myId
+    if (isOwnSend) {
+      firstRenderForChatRef.current = null
+      scrollToBottom(true)
+
+      return
+    }
+
+    if (isInitialRender) {
+      firstRenderForChatRef.current = null
+      // Has known unread → defer to the unread-scroll effect; it will
+      // land the user at the divider instead of the bottom.
+      if (selectedChatId) {
+        const lastReadId = lastReadFromSdk[selectedChatId]?.messageId
+        if (lastReadId && lastReadId !== newestId) return
+      }
+      scrollToBottom()
+
+      return
+    }
+
+    // Subsequent live updates — only auto-scroll if the user is at/near
+    // the bottom. Matches WhatsApp: a new message while reading older
+    // history must NOT yank you down (the FAB counter exposes it instead).
+    const c = getScrollContainer()
+    if (c) {
+      const distFromBottom = c.scrollHeight - c.scrollTop - c.clientHeight
+      if (distFromBottom > 200) return
+    }
 
     scrollToBottom()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -549,37 +821,84 @@ const ChatLog = (props: ChatLogType) => {
 
   // ** Renders user chat
   const renderChats = () => {
+    // Track whether we've already injected the group-created card so it only
+    // appears once — right after the first system message in history.
+    let groupCardInjected = false
+    // Track whether the unread divider has been rendered — `formattedChatData`
+    // groups consecutive messages from the same sender, so multiple groups may
+    // contain unread messages, but the divider should only appear once,
+    // immediately before the first-unread bubble's group.
+    let unreadDividerRendered = false
+
+    // Helper that returns the divider JSX. Centered pill styling reuses the
+    // same tokens as the date / system-message separators so the divider
+    // visually integrates with the existing chat decorations.
+    const renderUnreadDivider = () => (
+      <Box
+        key={`unread-divider-${firstUnreadInfo.id}`}
+        ref={unreadDividerRef}
+        sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
+      >
+        <Typography
+          variant='caption'
+          sx={{
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            backgroundColor: theme => theme.palette.action.hover,
+            color: 'text.secondary',
+            fontWeight: 600,
+            textAlign: 'center'
+          }}
+        >
+          {firstUnreadInfo.count === 1
+            ? '1 unread message'
+            : `${firstUnreadInfo.count} unread messages`}
+        </Typography>
+      </Box>
+    )
+
     return formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
-        return item.messages.map((chat, msgIdx) => (
-          <Box
-            key={`sys-${index}-${msgIdx}`}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 4
-            }}
-          >
-            <Typography
-              variant='caption'
-              sx={{
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                backgroundColor: theme => theme.palette.action.hover,
-                color: 'text.secondary',
-                maxWidth: '75%',
-                textAlign: 'center'
-              }}
-            >
-              {chat.msg}
-            </Typography>
-          </Box>
-        ))
+        // Show the group-created card after the "X created group Y" system
+        // message, identified by content — independent of pagination state so
+        // the card stays visible even when more messages load later.
+        const isGroupCreationMsg =
+          !groupCardInjected && groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
+        if (isGroupCreationMsg) groupCardInjected = true
+
+        // When showing the group-created card, skip the redundant system
+        // message ("X created group Y") — the card conveys the same info.
+        // Outer `.map` requires each returned element to carry a key, so
+        // use Fragment with an explicit key instead of a bare `<>`.
+        if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
+
+        return (
+          <Fragment key={`sys-grp-${index}`}>
+            {item.messages.map((chat, msgIdx) => (
+              <Box key={`sys-${index}-${msgIdx}`} sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    backgroundColor: theme => theme.palette.action.hover,
+                    color: 'text.secondary',
+                    maxWidth: '75%',
+                    textAlign: 'center'
+                  }}
+                >
+                  {chat.msg}
+                </Typography>
+              </Box>
+            ))}
+          </Fragment>
+        )
       }
 
       // Date separators — same centered pill as system messages, with a
@@ -638,50 +957,49 @@ const ChatLog = (props: ChatLogType) => {
           }}
         >
           <div>
-            <CustomAvatar
-              skin='light'
-              color={avatarColor}
-              sx={{
-                width: '2rem',
-                height: '2rem',
-                fontSize: '0.875rem',
-                ml: isSender ? 4 : undefined,
-                mr: !isSender ? 4 : undefined
-              }}
-              {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
-            >
-              {getInitials(avatarName)}
-            </CustomAvatar>
+            {isGroupChat && !isSender ? (
+              <CustomAvatar
+                skin='light'
+                color={avatarColor}
+                sx={{
+                  width: '2rem',
+                  height: '2rem',
+                  fontSize: '0.875rem',
+                  ml: isSender ? 4 : undefined,
+                  mr: !isSender ? 4 : undefined
+                }}
+                {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
+              >
+                {getInitials(avatarName)}
+              </CustomAvatar>
+            ) : (
+              <Box
+                sx={{ width: '2rem', height: '2rem', ml: isSender ? 4 : undefined, mr: !isSender ? 4 : undefined }}
+              />
+            )}
           </div>
 
           <Box className='chat-body' sx={{ maxWidth: ['calc(100% - 5.75rem)', '75%', '65%'] }}>
-            {/* Sender name label above the first bubble in a group's run of
-                messages. Only for incoming messages in a group — DMs and
-                outgoing messages don't need it (avatar already identifies
-                the sender). */}
-            {!isSender && isGroupChat ? (
-              <Typography
-                variant='caption'
-                sx={{
-                  display: 'block',
-                  mb: 0.5,
-                  ml: 0.5,
-                  fontWeight: 600,
-                  color: theme =>
-                    theme.palette[(avatarColor as 'primary') ?? 'primary']?.main ?? theme.palette.primary.main
-                }}
-              >
-                {avatarName}
-              </Typography>
-            ) : null}
             {item.messages.map((chat: ChatLogChatType, index: number) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
               const isActiveMatch = isMatch && chat.id === activeResultId
 
+              // Inject the unread divider IMMEDIATELY before the first
+              // bubble whose id matches `firstUnreadInfo.id`. Guarded
+              // by `unreadDividerRendered` so it appears exactly once
+              // across the entire render — even though sender-grouping
+              // means this loop sees every message in every group.
+              const showUnreadDivider =
+                !unreadDividerRendered &&
+                firstUnreadInfo.id !== null &&
+                chat.id === firstUnreadInfo.id
+              if (showUnreadDivider) unreadDividerRendered = true
+
               return (
+                <Fragment key={chat.id ?? `msg-${index}`}>
+                  {showUnreadDivider ? renderUnreadDivider() : null}
                 <Box
-                  key={index}
                   ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
                   data-msg-id={chat.id}
                   sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}
@@ -701,7 +1019,7 @@ const ChatLog = (props: ChatLogType) => {
                         the same as on text bubbles. Mixed (text + attachments) messages
                         keep their actions inside MessageBubble below — one menu per
                         message, not per attachment. */}
-                    {chat.attachments?.length && !chat.msg && !chat.isDeletedForEveryone ? (
+                    {chat.attachments?.length && !hasDisplayableText(chat.msg) && !chat.isDeletedForEveryone ? (
                       <Box
                         sx={{
                           display: 'flex',
@@ -716,13 +1034,24 @@ const ChatLog = (props: ChatLogType) => {
                           }
                         }}
                       >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
                         <Box
                           sx={{
                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 1,
-                            maxWidth: '280px'
+                            gap: 0,
+                            maxWidth: '280px',
+                            backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                            // Set the card text color so the time footer + filename
+                            // captions inside (which use `color: 'inherit'`) read
+                            // correctly against the dark sender bubble. Mirrors
+                            // what MessageBubble does on its text card.
+                            color: isSender ? 'common.white' : 'text.primary',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            boxShadow: 1,
+                            p: theme => theme.spacing(2)
                           }}
                         >
                           {/* Chevron lives INSIDE the attachment column,
@@ -755,6 +1084,7 @@ const ChatLog = (props: ChatLogType) => {
                               />
                             </Box>
                           ) : null}
+                          {isForwarded(chat.msg) ? <ForwardedTag isSender={isSender} /> : null}
                           {(() => {
                             const images = chat.attachments.filter(a => a.type === 'image')
                             const others = chat.attachments.filter(a => a.type !== 'image')
@@ -817,12 +1147,12 @@ const ChatLog = (props: ChatLogType) => {
                                   <Box
                                     key={att.id}
                                     sx={{
-                                      boxShadow: 1,
-                                      borderRadius: 1,
+                                      boxShadow: 'none',
+                                      borderRadius: 'none',
                                       overflow: 'hidden',
-                                      ...(i === 0 ? bubbleCorners : {}),
                                       cursor: 'zoom-in',
-                                      lineHeight: 0
+                                      lineHeight: 0,
+                                      width: '100%'
                                     }}
                                     onClick={() => openPreview(att)}
                                     onContextMenu={(e: MouseEvent) => e.preventDefault()}
@@ -833,7 +1163,13 @@ const ChatLog = (props: ChatLogType) => {
                                       alt={att.filename}
                                       loading='lazy'
                                       draggable={false}
-                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none' }}
+                                      sx={{
+                                        maxWidth: '100%',
+                                        maxHeight: 280,
+                                        display: 'block',
+                                        userSelect: 'none',
+                                        width: '100%'
+                                      }}
                                     />
                                   </Box>
                                 ))
@@ -878,13 +1214,12 @@ const ChatLog = (props: ChatLogType) => {
                                   <Box
                                     key={att.id}
                                     sx={{
-                                      boxShadow: 1,
-                                      borderRadius: 1,
+                                      boxShadow: 'none',
+                                      borderRadius: 0,
                                       overflow: 'hidden',
-                                      borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
-                                      borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
-                                      backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                      backgroundColor: 'transparent',
                                       color: isSender ? 'common.white' : 'text.primary',
+                                      width: '100%',
                                       alignSelf:
                                         att.type === 'audio' || att.type === 'video'
                                           ? isSender
@@ -963,13 +1298,63 @@ const ChatLog = (props: ChatLogType) => {
                               </>
                             )
                           })()}
+                          {/* Time footer for attachment-only bubbles. Matches the
+                              footer shown on text bubbles + the mixed attachment+text
+                              path so every message carries its send-time. Inherits
+                              the card's `color` so it's white on sender / dark on
+                              incoming without a per-isSender branch. */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              gap: 0.5,
+                              mt: 1,
+                              color: 'inherit'
+                            }}
+                          >
+                            <Typography
+                              variant='caption'
+                              sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}
+                            >
+                              {new Date(chat.time).toLocaleString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </Typography>
+                            {isSender ? (
+                              chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
+                                  <Icon icon='mdi:check' fontSize='0.875rem' />
+                                </Box>
+                              ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    display: 'inline-flex',
+                                    '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                                  }}
+                                >
+                                  <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                                </Box>
+                              ) : null
+                            ) : null}
+                          </Box>
+                        </Box>
+                          {/* Reactions chip row sits OUTSIDE the attachment card but
+                              INSIDE the inner column (same shape as MessageBubble for
+                              text bubbles) so it stacks directly below the card with
+                              the negative top margin in ReactionsRow tucking it
+                              slightly onto the card edge. */}
+                          <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
                         </Box>
                         {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                       </Box>
                     ) : null}
                     {/* Mixed (attachments + text) and text-only paths: existing inline
                         attachments map below + MessageBubble. Skipped when attachment-only. */}
-                    {chat.attachments?.length && (chat.msg || chat.isDeletedForEveryone)
+                    {chat.attachments?.length && (hasDisplayableText(chat.msg) || chat.isDeletedForEveryone)
                       ? (() => {
                           const images = chat.attachments.filter(a => a.type === 'image')
                           const others = chat.attachments.filter(a => a.type !== 'image')
@@ -1087,103 +1472,158 @@ const ChatLog = (props: ChatLogType) => {
                           }
 
                           return (
-                            <>
-                              {renderImages()}
-                              {others.map(att => (
-                                <Box
-                                  key={att.id}
-                                  sx={{
-                                    boxShadow: 1,
-                                    borderRadius: 1,
-                                    overflow: 'hidden',
-                                    borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
-                                    borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
-                                    backgroundColor: isSender ? 'primary.main' : 'background.paper',
-                                    color: isSender ? 'common.white' : 'text.primary',
-                                    alignSelf:
-                                      att.type === 'audio' || att.type === 'video'
-                                        ? isSender
-                                          ? 'flex-end'
-                                          : 'flex-start'
-                                        : undefined
-                                  }}
-                                >
-                                  {att.type === 'video' ? (
-                                    <Box
-                                      component='video'
-                                      src={att.url}
-                                      controls
-                                      controlsList='nodownload noplaybackrate'
-                                      onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
-                                      onClick={() => openPreview(att)}
-                                    />
-                                  ) : att.type === 'audio' ? (
-                                    <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: isSender ? 'row-reverse' : 'row',
+                                alignItems: 'center',
+                                gap: 1
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 0,
+                                  maxWidth: '280px',
+                                  backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                                  borderRadius: '8px',
+                                  overflow: 'hidden',
+                                  boxShadow: 1,
+                                  p: theme => theme.spacing(2)
+                                }}
+                              >
+                                {renderImages()}
+                                {others.map((att, idx) => (
+                                  <Box
+                                    key={att.id}
+                                    sx={{
+                                      boxShadow: 'none',
+                                      borderRadius: 0,
+                                      overflow: 'hidden',
+                                      backgroundColor: 'transparent',
+                                      color: isSender ? 'common.white' : 'text.primary',
+                                      borderTop: idx > 0 || imgCount > 0 ? '1px solid' : 'none',
+                                      borderColor: isSender ? 'rgba(255,255,255,0.1)' : 'divider',
+                                      alignSelf:
+                                        att.type === 'audio' || att.type === 'video'
+                                          ? isSender
+                                            ? 'flex-end'
+                                            : 'flex-start'
+                                          : 'auto'
+                                    }}
+                                  >
+                                    {att.type === 'video' ? (
                                       <Box
-                                        component='audio'
+                                        component='video'
                                         src={att.url}
                                         controls
                                         controlsList='nodownload noplaybackrate'
                                         onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                        sx={{
-                                          display: 'block',
-                                          width: '100%',
-                                          borderRadius: 1,
-                                          bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                        }}
+                                        sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                        onClick={() => openPreview(att)}
                                       />
-                                    </Box>
-                                  ) : (
-                                    (() => {
-                                      const visual = getAttachmentVisual(att.mimeType, att.filename)
-                                      return (
+                                    ) : att.type === 'audio' ? (
+                                      <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
                                         <Box
-                                          component='a'
-                                          href={att.url}
-                                          target='_blank'
-                                          rel='noopener noreferrer'
-                                          download={att.filename}
+                                          component='audio'
+                                          src={att.url}
+                                          controls
+                                          controlsList='nodownload noplaybackrate'
+                                          onContextMenu={(e: MouseEvent) => e.preventDefault()}
                                           sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                            p: theme => theme.spacing(3, 4),
-                                            color: 'inherit',
-                                            textDecoration: 'none'
+                                            display: 'block',
+                                            width: '100%',
+                                            borderRadius: 1,
+                                            bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
                                           }}
-                                        >
-                                          <Icon
-                                            icon={visual.icon}
-                                            color={isSender ? '#ffffff' : visual.color}
-                                            fontSize='2rem'
-                                          />
-                                          <Box sx={{ minWidth: 0 }}>
-                                            <Typography
-                                              variant='caption'
-                                              sx={{ display: 'block', color: 'inherit' }}
-                                              noWrap
-                                            >
-                                              {att.filename}
-                                            </Typography>
-                                            <Typography
-                                              variant='caption'
-                                              sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
-                                            >
-                                              {(att.size / 1024).toFixed(0)} KB
-                                            </Typography>
+                                        />
+                                      </Box>
+                                    ) : (
+                                      (() => {
+                                        const visual = getAttachmentVisual(att.mimeType, att.filename)
+                                        return (
+                                          <Box
+                                            component='a'
+                                            href={att.url}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            download={att.filename}
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 2,
+                                              p: theme => theme.spacing(3, 4),
+                                              color: 'inherit',
+                                              textDecoration: 'none'
+                                            }}
+                                          >
+                                            <Icon
+                                              icon={visual.icon}
+                                              color={isSender ? '#ffffff' : visual.color}
+                                              fontSize='2rem'
+                                            />
+                                            <Box sx={{ minWidth: 0 }}>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit' }}
+                                                noWrap
+                                              >
+                                                {att.filename}
+                                              </Typography>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                              >
+                                                {(att.size / 1024).toFixed(0)} KB
+                                              </Typography>
+                                            </Box>
                                           </Box>
-                                        </Box>
-                                      )
-                                    })()
-                                  )}
-                                </Box>
-                              ))}
-                            </>
+                                        )
+                                      })()
+                                    )}
+                                  </Box>
+                                ))}
+                                {(imgCount > 0 || others.length > 0) && (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5,
+                                      justifyContent: 'flex-end',
+                                      p: theme => theme.spacing(1, 2),
+                                      borderTop: '1px solid',
+                                      borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
+                                      backgroundColor: 'inherit',
+                                      color: 'inherit',
+                                      width: '100%',
+                                      boxSizing: 'border-box'
+                                    }}
+                                  >
+                                    <Typography
+                                      variant='caption'
+                                      sx={{
+                                        fontSize: '0.75rem',
+                                        opacity: 1,
+                                        color: isSender ? 'common.white' : 'text.primary'
+                                      }}
+                                    >
+                                      {new Date(chat.time).toLocaleString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                              {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
+                            </Box>
                           )
                         })()
                       : null}
-                    {chat.msg || chat.isDeletedForEveryone ? (
+                    {hasDisplayableText(chat.msg) || chat.isDeletedForEveryone ? (
                       <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
                         <MessageBubble
                           chat={chat}
@@ -1204,35 +1644,13 @@ const ChatLog = (props: ChatLogType) => {
                           isActiveSearchMatch={isActiveMatch}
                           searchQuery={searchQuery}
                           canInteract={canInteract}
+                          onJumpToReply={onJumpToReply}
                         />
                       </Box>
                     ) : null}
                   </Box>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: isSender ? 'flex-end' : 'flex-start'
-                    }}
-                  >
-                    {/* Feedback ticks per message — matches WhatsApp:
-                        • single grey ✓ → isSent (server acked)
-                        • double grey ✓✓ → isDelivered (recipient online / received)
-                        • double green ✓✓ → isSeen (recipient opened the chat)
-                        The data flows in from two paths that are kept in sync:
-                        (1) REST `listMessages` → adapter reads `msg.deliveryStatus`
-                            ('sent'|'delivered'|'read') and maps to the three flags;
-                        (2) Live `message_delivered` / `read_receipt` socket events
-                            patch flags via `updateMessagesFeedback`. */}
-                    {renderMsgFeedback(isSender, chat.feedback)}
-                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                      {time
-                        ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-                        : null}
-                    </Typography>
-                  </Box>
                 </Box>
+                </Fragment>
               )
             })}
           </Box>
@@ -1249,6 +1667,9 @@ const ChatLog = (props: ChatLogType) => {
       const prevTop = lastNativeScrollTopRef.current
       lastNativeScrollTopRef.current = el.scrollTop
 
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      setShowScrollFab(distFromBottom > 300)
+
       // Only act on UPWARD motion (current < previous) AND when near the top.
       if (el.scrollTop >= prevTop) return
       if (el.scrollTop > 80) return
@@ -1257,9 +1678,95 @@ const ChatLog = (props: ChatLogType) => {
     [triggerLoadOlder]
   )
 
-  // Top-of-list status row — spinner while loading, optional "start of
-  // conversation" caption once we've exhausted history. Rendered INSIDE the
-  // scroll container so it participates in scroll geometry.
+  // Top-of-list status row — spinner while loading, or "start of conversation"
+  // marker once history is exhausted. For groups we render a rich card showing
+  // the icon, creator, member count, creation date, and an Add Member button.
+  const groupCreatedCard = (() => {
+    if (!isGroupChat || !data.contact.createdAt) return null
+    const me = String(data.userContact.id ?? '')
+    const isAdmin = (data.contact.adminIds?.map(String) ?? []).includes(me)
+    const creator = String(data.contact.createdBy ?? '')
+    const creatorLabel =
+      creator === me
+        ? 'You created this group'
+        : (() => {
+            const found = data.contact.participants?.find(p => String(p.userId) === creator)
+            const name = found?.displayName || found?.username
+            return name ? `${name} created this group` : 'Group created'
+          })()
+    const memberCount =
+      data.contact.participants?.filter(p => p.isActive).length ?? data.contact.participantIds?.length ?? 0
+    const creationDate = new Date(data.contact.createdAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', px: 4, mb: 4 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 6,
+            py: 5,
+            borderRadius: '8px',
+            backgroundColor: 'background.paper',
+            border: theme => `1px solid ${theme.palette.divider}`,
+            maxWidth: 360,
+            width: '100%'
+          }}
+        >
+          {data.contact.avatar ? (
+            <MuiAvatar src={data.contact.avatar} alt={data.contact.fullName} sx={{ width: 72, height: 72 }} />
+          ) : (
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: theme =>
+                  `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Icon icon='mdi:account-group' fontSize='2rem' style={{ color: '#fff' }} />
+            </Box>
+          )}
+          <Typography variant='subtitle2' sx={{ fontWeight: 700, textAlign: 'center', color: 'text.primary' }}>
+            {creatorLabel}
+          </Typography>
+          <Typography variant='caption' sx={{ color: 'text.secondary', textAlign: 'center' }}>
+            {memberCount} {memberCount === 1 ? 'member' : 'members'} &bull; Group created on {creationDate}
+          </Typography>
+          {isAdmin && (
+            <Button
+              variant='text'
+              startIcon={<Icon icon='mdi:account-plus-outline' />}
+              onClick={onAddMember}
+              sx={{
+                mt: 0.5,
+                width: '100%',
+                borderRadius: 2,
+                backgroundColor: 'customColors.Surface',
+                color: 'primary.main',
+                fontWeight: 600,
+                '&:hover': { backgroundColor: 'customColors.OnBackground' }
+              }}
+            >
+              Add Member
+            </Button>
+          )}
+        </Paper>
+      </Box>
+    )
+  })()
+
   const topStatus = (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 24, mb: 2 }}>
       {loadingOlder ? (
@@ -1279,8 +1786,14 @@ const ChatLog = (props: ChatLogType) => {
   // causes a visible flash-to-top on send / receipt updates. Keeping the
   // conditional inline means React sees the same `<PerfectScrollbar />`
   // element across renders and reuses the instance.
+  const handleFabClick = useCallback(() => {
+    const c = getScrollContainer()
+    if (c) smoothScrollTo(c.scrollHeight, 350)
+    setShowScrollFab(false)
+  }, [getScrollContainer, smoothScrollTo])
+
   return (
-    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
+    <Box sx={{ position: 'relative', flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
       {hidden ? (
         <Box
           ref={chatArea}
@@ -1291,7 +1804,13 @@ const ChatLog = (props: ChatLogType) => {
           {renderChats()}
         </Box>
       ) : (
-        <PerfectScrollbar ref={chatArea} options={{ wheelPropagation: false }} onYReachStart={triggerLoadOlder}>
+        <PerfectScrollbar
+          ref={chatArea}
+          options={{ wheelPropagation: false }}
+          onYReachStart={triggerLoadOlder}
+          onScrollY={checkScrollFab}
+          onYReachEnd={() => setShowScrollFab(false)}
+        >
           {topStatus}
           {renderChats()}
         </PerfectScrollbar>
@@ -1303,6 +1822,37 @@ const ChatLog = (props: ChatLogType) => {
         open={previewState !== null}
         onClose={closePreview}
       />
+
+      {/* Scroll-to-bottom FAB */}
+      {showScrollFab && (
+        <Box
+          onClick={handleFabClick}
+          sx={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            zIndex: 10,
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            backgroundColor: '#1F515B',
+            color: 'common.white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(31, 81, 91, 0.4)',
+            transition: 'transform 0.15s, background-color 0.15s',
+            '&:hover': {
+              backgroundColor: '#1a3f47',
+              transform: 'scale(1.08)'
+            },
+            '&:active': { transform: 'scale(0.94)' }
+          }}
+        >
+          <Icon icon='mdi:chevron-down' fontSize='1.375rem' />
+        </Box>
+      )}
     </Box>
   )
 }

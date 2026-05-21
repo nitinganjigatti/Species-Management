@@ -64,6 +64,8 @@ import {
   onSocketStatus as sdkOnSocketStatus,
   reconnectSocket as sdkReconnectSocket,
   refreshSocketAuth as sdkRefreshSocketAuth,
+  appConfigApi as sdkAppConfigApi,
+  type AppConfig,
   type SocketStatus
 } from '@antzsoft/chat-core'
 
@@ -288,6 +290,23 @@ export function syncAvatar(source: { url?: string; base64?: string }): Promise<{
   return requireClient('syncAvatar').auth.syncAvatar(source)
 }
 
+// App-wide tenant config — exposes server-enforced limits like
+// `maxPinnedConversations`. The result is stable per tenant, so we
+// cache it at module level after the first successful fetch. Callers
+// receive the cached value synchronously on subsequent calls without
+// hitting the network. SDK doc notes its own `['app-config']` cache
+// with `staleTime: Infinity`; this local cache adds zero-cost reuse
+// for non-React callers and a deterministic fallback when offline.
+let cachedAppConfig: AppConfig | null = null
+export async function getAppConfig(): Promise<AppConfig> {
+  if (cachedAppConfig) return cachedAppConfig
+  requireClient('getAppConfig')
+  const config = await sdkAppConfigApi.get()
+  cachedAppConfig = config
+
+  return config
+}
+
 // Builtin auth mode only — uploads a binary avatar file. We use external SSO
 // so this is unused today, but exposed for completeness.
 export function uploadAvatar(file: File | Blob, mimeType?: string): Promise<{ avatarUrl: string }> {
@@ -322,8 +341,19 @@ export function deleteConversation(conversationId: string): Promise<void> {
   return requireClient('deleteConversation').conversations.delete(conversationId)
 }
 
-export function addParticipants(conversationId: string, userIds: string[]): Promise<Conversation> {
-  return requireClient('addParticipants').conversations.addParticipants(conversationId, userIds)
+export function addParticipants(
+  conversationId: string,
+  userIds: string[],
+  role?: ParticipantRole
+): Promise<Conversation> {
+  // v1.1.3 — server accepts an optional `role` argument so admins can be
+  // promoted on the same call (default = 'member'). Forwarded only when
+  // provided so existing two-arg callers keep working unchanged.
+  return requireClient('addParticipants').conversations.addParticipants(
+    conversationId,
+    userIds,
+    ...(role ? [role] as const : [])
+  )
 }
 
 export function removeParticipant(conversationId: string, userId: string): Promise<Conversation> {
@@ -358,6 +388,17 @@ export function leaveConversation(conversationId: string): Promise<void> {
   return requireClient('leaveConversation').conversations.leave(conversationId)
 }
 
+// v1.1.3 atomic "Exit and Delete" — server exits the group AND removes the
+// conversation from the caller's list in a single write. Distinct from
+// `leaveConversation` (stays in list, read-only) and `deleteConversation`
+// (only valid after the user has already exited). The SDK's `conversations.leave`
+// accepts an optional second boolean for this atomic path; passing `true`
+// opts in. Other callers of `leaveConversation` stay on the single-arg
+// path untouched.
+export function leaveAndDeleteConversation(conversationId: string): Promise<void> {
+  return requireClient('leaveAndDeleteConversation').conversations.leave(conversationId, true)
+}
+
 export function getConversationMembers(conversationId: string): Promise<Participant[]> {
   return requireClient('getConversationMembers').conversations.getMembers(conversationId)
 }
@@ -378,6 +419,14 @@ export function getUnreadSummary(): Promise<UnreadSummary> {
 // comes from `uploadChatFiles()` — same pipeline as message attachments.
 export function uploadConversationIcon(conversationId: string, fileId: string): Promise<Conversation> {
   return requireClient('uploadConversationIcon').conversations.uploadIcon(conversationId, fileId)
+}
+
+// Remove the group icon (admin only). Server deletes the stored asset and
+// clears `iconMeta`; the returned Conversation has `iconUrl: undefined`,
+// which the adapter maps onto `chat.avatar = undefined` so the sidebar /
+// header / profile drawer fall back to the initials avatar.
+export function removeConversationIcon(conversationId: string): Promise<Conversation> {
+  return requireClient('removeConversationIcon').conversations.removeIcon(conversationId)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -828,6 +877,7 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     // Creator id — used by the sidebar to resolve the creator's display
     // name from `state.chat.contacts` when no real lastMessage exists.
     createdBy: conv.createdBy,
+    createdAt: conv.createdAt,
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,

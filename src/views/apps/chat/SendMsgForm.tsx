@@ -1,15 +1,23 @@
 'use client'
 
 import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent } from 'react'
+import dynamic from 'next/dynamic'
 
-import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
+import Paper from '@mui/material/Paper'
+import Popper from '@mui/material/Popper'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
+
+import data from '@emoji-mart/data'
+
+const EmojiPicker = dynamic(() => import('@emoji-mart/react').then(m => m.default ?? m), { ssr: false })
 
 import Icon from 'src/@core/components/icon'
 
@@ -19,21 +27,25 @@ import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
-import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setDraft } from 'src/store/apps/chat'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
-  borderRadius: 8,
+  flexGrow: 1,
+  borderRadius: 34,
   alignItems: 'center',
   boxShadow: theme.shadows[1],
-  padding: theme.spacing(1.25, 4),
-  justifyContent: 'space-between',
+  paddingTop: '8px',
+  paddingRight: '12px',
+  paddingLeft: '12px',
+  paddingBottom: '8px',
+  gap: '4px',
   backgroundColor: theme.palette.background.paper
 }))
 
 const Form = styled('form')(({ theme }) => ({
-  padding: theme.spacing(0, 5, 5)
+  padding: theme.spacing(2, 5, 6)
 }))
 
 const PreviewStrip = styled(Box)(({ theme }) => ({
@@ -60,6 +72,11 @@ type PendingFile = {
   file: File
   previewUrl: string
   kind: 'image' | 'video' | 'audio' | 'document'
+  // Length in seconds — only set for audio/video. Captured via
+  // MediaRecorder for voice notes and via a hidden <audio>/<video>
+  // element's `loadedmetadata` event for picked files. Forwarded to
+  // the SDK on `sendMessage` so receivers can render a player UI.
+  durationSec?: number
 }
 
 const inferKind = (mime: string): PendingFile['kind'] => {
@@ -70,19 +87,40 @@ const inferKind = (mime: string): PendingFile['kind'] => {
   return 'document'
 }
 
-// Attachment limits — matches the SDK's documented defaults so we surface
-// the same rules client-side BEFORE the upload. SDK exposes these on
-// `UploadConfig` (`maxFilesPerMessage`, `maxFileSizeMB`) but doesn't
-// actually enforce them in `uploadBatch`; without this guard, the user
-// would only learn after pressing Send. Tune if the backend ever caps
-// differently than the SDK defaults.
+// Probe an audio/video file for its playback length. Returns the
+// duration in seconds (rounded to 1 decimal) or `undefined` if the
+// browser can't decode the file's metadata — we never want to block
+// the send flow on a missing duration. Resolves on `loadedmetadata`
+// or after a 3s safety timeout.
+const probeMediaDuration = (file: File, kind: 'audio' | 'video'): Promise<number | undefined> =>
+  new Promise(resolve => {
+    let settled = false
+    const finish = (value: number | undefined) => {
+      if (settled) return
+      settled = true
+      URL.revokeObjectURL(objectUrl)
+      resolve(value)
+    }
+    const objectUrl = URL.createObjectURL(file)
+    const el = document.createElement(kind)
+    el.preload = 'metadata'
+    el.muted = true
+    el.src = objectUrl
+    el.onloadedmetadata = () => {
+      const seconds = Number.isFinite(el.duration) ? Math.round(el.duration * 10) / 10 : undefined
+      finish(seconds && seconds > 0 ? seconds : undefined)
+    }
+    el.onerror = () => finish(undefined)
+    // Safety net — some codecs (or large remote files) never fire
+    // `loadedmetadata` on the first attempt. Resolve with undefined so
+    // the upload still proceeds.
+    window.setTimeout(() => finish(undefined), 3000)
+  })
+
+// Attachment count cap surfaced to the user before send. We don't apply
+// a client-side per-file size check anymore — the SDK / server is the
+// authoritative gate.
 const MAX_FILES_PER_MESSAGE = 10
-const MAX_FILE_SIZE_MB: Record<PendingFile['kind'], number> = {
-  image: 5,
-  video: 25,
-  audio: 10,
-  document: 10
-}
 
 const kindMediaIcon: Record<'video' | 'audio', string> = {
   video: 'mdi:video-outline',
@@ -97,6 +135,29 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [uploading, setUploading] = useState(false)
   const [processingFiles, setProcessingFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const textInputRef = useRef<HTMLInputElement | null>(null)
+  const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const emojiOpen = Boolean(emojiAnchorEl)
+
+  const handleEmojiSelect = (emoji: { native: string }) => {
+    const input = textInputRef.current
+    const native = emoji.native
+    if (!input) {
+      setMsg(prev => prev + native)
+
+      return
+    }
+    const start = input.selectionStart ?? msg.length
+    const end = input.selectionEnd ?? msg.length
+    const next = msg.slice(0, start) + native + msg.slice(end)
+    setMsg(next)
+    // Restore cursor after the inserted emoji on next tick
+    requestAnimationFrame(() => {
+      input.focus()
+      const pos = start + native.length
+      input.setSelectionRange(pos, pos)
+    })
+  }
 
   // ── Audio recording ────────────────────────────────────────────────────────
   // Click 🎤 → recording overlay (timer + stop/cancel). Click ⏹ → blob lands
@@ -195,13 +256,19 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       const filename = `voice-${Date.now()}.${ext}`
       const file = new File([blob], filename, { type: finalMime })
       const previewUrl = URL.createObjectURL(blob)
+      // Duration captured from the running timer — more reliable than
+      // probing the blob (some browsers report `Infinity` for blob
+      // durations until the audio finishes playing once). Convert ms
+      // → seconds with 1-decimal precision.
+      const recordedDurationSec = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 100) / 10)
       setPending(prev => [
         ...prev,
         {
           key: `voice-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           file,
           previewUrl,
-          kind: 'audio'
+          kind: 'audio',
+          durationSec: recordedDurationSec
         }
       ])
     }
@@ -258,6 +325,64 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTypingRef = useRef(false)
 
+  // Mirror the latest `msg` into a ref so the chat-switch effect can read
+  // the most recent text WITHOUT listing `msg` in its deps (which would
+  // refire on every keystroke and wipe the input mid-typing).
+  const msgRef = useRef<string>('')
+  useEffect(() => {
+    msgRef.current = msg
+  }, [msg])
+
+  // Remembers the conversation the composer was attached to BEFORE the
+  // most recent switch — so we can save the typed text as a draft for
+  // THAT conversation, not the new one.
+  const prevConvIdRef = useRef<string | null>(null)
+
+  // WhatsApp-style drafts. State lives in Redux (keyed by conversationId)
+  // and is written ONLY at the chat-switch boundary — never on each
+  // keystroke — so live typing in the composer doesn't churn the store
+  // or trigger sidebar re-renders. Cleared explicitly on send.
+  const activeConversationId =
+    store?.selectedChat?.contact?.id !== undefined && store?.selectedChat?.contact?.id !== null
+      ? String(store.selectedChat.contact.id)
+      : null
+  const drafts = store?.drafts ?? {}
+
+  // On chat switch: save the previous chat's typed text as a draft (or
+  // clear it if the user emptied the input), then restore the new chat's
+  // draft into the composer. Also clears attachment chips and cancels
+  // any in-progress typing indicator. `setDraft` deletes empty entries,
+  // so "clear text → switch" properly removes the draft from the
+  // sidebar preview.
+  useEffect(() => {
+    const prevId = prevConvIdRef.current
+    const switched = !!prevId && prevId !== activeConversationId
+    if (switched) {
+      dispatch(setDraft({ conversationId: prevId, text: msgRef.current }))
+      // A reply / edit reference points at a specific message inside
+      // the chat the user just left, so it must NOT leak into the new
+      // chat's composer. Cleared only on an actual switch — clearing
+      // unconditionally on mount would wipe state mid-render if a user
+      // landed directly on a chat with one of these states active.
+      dispatch(setReplyingTo(null))
+      dispatch(setEditingMessage(null))
+    }
+
+    const incomingDraft = activeConversationId ? drafts[activeConversationId] ?? '' : ''
+    setMsg(incomingDraft)
+
+    setPending(prev => {
+      prev.forEach(p => URL.revokeObjectURL(p.previewUrl))
+
+      return []
+    })
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    isTypingRef.current = false
+
+    prevConvIdRef.current = activeConversationId
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeConversationId])
+
   const emitTyping = () => {
     const conversationId = store?.selectedChat?.contact?.id
     if (!conversationId || typeof conversationId !== 'string') return
@@ -290,28 +415,11 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (!files.length) return
 
-    // Per-file size validation. Reject files whose size exceeds the
-    // per-kind limit BEFORE adding them to the pending strip — gives
-    // immediate feedback instead of failing silently on send.
-    const sized = files.filter(f => {
-      const kind = inferKind(f.type)
-      const limitMb = MAX_FILE_SIZE_MB[kind]
-      const fileMb = f.size / (1024 * 1024)
-      if (fileMb > limitMb) {
-        toast.error(`${f.name} is ${fileMb.toFixed(1)} MB — ${kind} limit is ${limitMb} MB`)
-
-        return false
-      }
-
-      return true
-    })
-    if (!sized.length) return
-
     // Count-based UX: KEEP all files in the pending strip (better than
     // silently dropping the user's picks), but raise a warning toast and
     // let the Send button's disabled state (driven by pending.length) be
     // the gate. User decides which to remove via the ✕ chip.
-    const projected = pending.length + sized.length
+    const projected = pending.length + files.length
     if (projected > MAX_FILES_PER_MESSAGE) {
       const excess = projected - MAX_FILES_PER_MESSAGE
       toast.error(`${MAX_FILES_PER_MESSAGE}-file limit — remove ${excess} attachment${excess === 1 ? '' : 's'} to send`)
@@ -319,13 +427,25 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
     setProcessingFiles(true)
     try {
-      const processed = await Promise.all(sized.map(f => maybeCompressImage(f)))
-      const next: PendingFile[] = processed.map(f => ({
-        key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
-        file: f,
-        previewUrl: URL.createObjectURL(f),
-        kind: inferKind(f.type)
-      }))
+      const processed = await Promise.all(files.map(f => maybeCompressImage(f)))
+      // Build pending entries in parallel — duration probe for audio/
+      // video runs alongside the compression pipeline. Helper resolves
+      // with `undefined` on timeout or decode failure, so a single bad
+      // file never blocks the rest of the batch.
+      const next: PendingFile[] = await Promise.all(
+        processed.map(async f => {
+          const kind = inferKind(f.type)
+          const durationSec = kind === 'audio' || kind === 'video' ? await probeMediaDuration(f, kind) : undefined
+
+          return {
+            key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+            file: f,
+            previewUrl: URL.createObjectURL(f),
+            kind,
+            ...(durationSec ? { durationSec } : {})
+          }
+        })
+      )
       setPending(prev => [...prev, ...next])
     } finally {
       setProcessingFiles(false)
@@ -405,15 +525,26 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
           return
         }
-        uploaded = result.attachments.map(a => ({
-          id: a.fileId,
-          type: a.type,
-          url: a.url,
-          thumbnailUrl: a.thumbnailUrl,
-          filename: a.filename,
-          mimeType: a.mimeType,
-          size: a.size
-        }))
+        // Match each returned attachment back to its pending entry by
+        // filename + size so we can carry forward the duration captured
+        // at pick/record time. The storage layer (FileResponse) doesn't
+        // persist duration; without this match it would be lost on the
+        // way to `socketEmit.sendMessage`.
+        uploaded = result.attachments.map(a => {
+          const match = pending.find(p => p.file.name === a.filename && p.file.size === a.size)
+          const carryDuration = (a.type === 'audio' || a.type === 'video') && match?.durationSec
+
+          return {
+            id: a.fileId,
+            type: a.type,
+            url: a.url,
+            thumbnailUrl: a.thumbnailUrl,
+            filename: a.filename,
+            mimeType: a.mimeType,
+            size: a.size,
+            ...(carryDuration ? { duration: match!.durationSec } : {})
+          }
+        })
       } catch (err) {
         console.error('[chat] attachment upload failed:', err)
         toast.error('Failed to upload attachments')
@@ -435,6 +566,11 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     setPending([])
     setMsg('')
+    // Sent successfully → drop the draft for this conversation so it
+    // doesn't reappear in the sidebar preview or composer on re-entry.
+    if (typeof conversationId === 'string') {
+      dispatch(setDraft({ conversationId, text: '' }))
+    }
     stopTyping()
   }
 
@@ -573,67 +709,96 @@ const SendMsgForm = (props: SendMsgComponentType) => {
         </PreviewStrip>
       )}
 
-      <ChatFormWrapper>
-        {recording ? (
-          // Recording overlay — replaces the text input until the user stops
-          // or cancels. The recorded blob then drops into the pending strip
-          // and the form returns to its normal state.
-          <>
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  bgcolor: 'error.main',
-                  animation: 'msg-rec-pulse 1s ease-in-out infinite',
-                  '@keyframes msg-rec-pulse': {
-                    '0%, 100%': { opacity: 1 },
-                    '50%': { opacity: 0.35 }
-                  }
-                }}
-              />
-              <Typography variant='body2' sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                Recording · {formatElapsed(elapsedMs)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <ChatFormWrapper onClick={() => textInputRef.current?.focus()}>
+          {recording ? (
+            // Recording overlay — replaces the text input until the user stops
+            // or cancels. The recorded blob then drops into the pending strip
+            // and the form returns to its normal state.
+            <>
+              <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    bgcolor: 'error.main',
+                    animation: 'msg-rec-pulse 1s ease-in-out infinite',
+                    '@keyframes msg-rec-pulse': {
+                      '0%, 100%': { opacity: 1 },
+                      '50%': { opacity: 0.35 }
+                    }
+                  }}
+                />
+                <Typography variant='body2' sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  Recording · {formatElapsed(elapsedMs)}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <IconButton
+                  size='small'
+                  aria-label='Cancel recording'
+                  onClick={cancelRecording}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <Icon icon='mdi:close' fontSize='1.375rem' />
+                </IconButton>
+                <IconButton
+                  size='small'
+                  aria-label='Stop recording'
+                  onClick={stopRecording}
+                  sx={{ color: 'error.main' }}
+                >
+                  <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
+                </IconButton>
+              </Box>
+            </>
+          ) : (
+            <>
+              {/* Emoji picker button — left side of input box */}
               <IconButton
                 size='small'
-                aria-label='Cancel recording'
-                onClick={cancelRecording}
-                sx={{ color: 'text.secondary' }}
+                aria-label='Open emoji picker'
+                onClick={e => setEmojiAnchorEl(e.currentTarget)}
+                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
               >
-                <Icon icon='mdi:close' fontSize='1.375rem' />
+                <Icon icon='mdi:emoticon-happy-outline' fontSize='1.375rem' />
               </IconButton>
-              <IconButton size='small' aria-label='Stop recording' onClick={stopRecording} sx={{ color: 'error.main' }}>
-                <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
-              </IconButton>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
               <TextField
                 fullWidth
                 value={msg}
                 size='small'
+                inputRef={textInputRef}
                 placeholder='Type your message here…'
                 onChange={e => {
                   setMsg(e.target.value)
                   if (e.target.value.trim()) emitTyping()
                 }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMsg(e as any)
+                  }
+                }}
                 disabled={uploading}
-                sx={{ '& .MuiOutlinedInput-input': { pl: 0 }, '& fieldset': { border: '0 !important' } }}
+                multiline
+                maxRows={4}
+                sx={{
+                  flex: 1,
+                  alignSelf: 'center',
+                  ml: 1,
+                  '& .MuiOutlinedInput-input': { pl: 0, fontSize: '0.8125rem' },
+                  '& fieldset': { border: '0 !important' },
+                  '& .MuiInputBase-root': { p: 0, alignItems: 'center', fontSize: '0.8125rem' }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {/* Attachment button — inside the input box, right side */}
               <IconButton
                 size='small'
                 component='label'
                 htmlFor='chat-attachment-input'
                 disabled={uploading || processingFiles}
-                sx={{ mr: 1.5, color: 'text.primary' }}
+                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
               >
                 {processingFiles ? (
                   <CircularProgress size={18} color='inherit' />
@@ -649,38 +814,95 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   onChange={handleFiles}
                 />
               </IconButton>
-              {hasContent ? (
-                <Button
-                  type='submit'
-                  variant='contained'
-                  disabled={uploading || processingFiles || exceedsAttachmentCap}
-                  startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
-                  sx={{ ml: 1.25 }}
-                  title={
-                    exceedsAttachmentCap
-                      ? `Remove ${pending.length - MAX_FILES_PER_MESSAGE} attachment${
-                          pending.length - MAX_FILES_PER_MESSAGE === 1 ? '' : 's'
-                        } to send (${MAX_FILES_PER_MESSAGE}-file limit per message)`
-                      : undefined
-                  }
-                >
-                  {uploading ? 'Sending…' : 'Send'}
-                </Button>
+            </>
+          )}
+        </ChatFormWrapper>
+
+        {/* Send / mic button — OUTSIDE the input box */}
+        {!recording &&
+          (hasContent ? (
+            <IconButton
+              type='submit'
+              aria-label='Send message'
+              disabled={uploading || processingFiles || exceedsAttachmentCap}
+              title={
+                exceedsAttachmentCap
+                  ? `Remove ${pending.length - MAX_FILES_PER_MESSAGE} attachment${
+                      pending.length - MAX_FILES_PER_MESSAGE === 1 ? '' : 's'
+                    } to send (${MAX_FILES_PER_MESSAGE}-file limit per message)`
+                  : undefined
+              }
+              sx={{
+                flexShrink: 0,
+                width: 42,
+                height: 42,
+                borderRadius: '50%',
+                backgroundColor: 'primary.main',
+                color: 'common.white',
+                transition: 'background-color 0.15s, transform 0.15s',
+                '&:hover': { backgroundColor: 'primary.dark', transform: 'scale(1.06)' },
+                '&:active': { transform: 'scale(0.94)' },
+                '&.Mui-disabled': { backgroundColor: 'action.disabledBackground', color: 'action.disabled' }
+              }}
+            >
+              {uploading ? (
+                <CircularProgress size={18} color='inherit' />
               ) : (
-                <IconButton
-                  size='small'
-                  aria-label='Record voice message'
-                  onClick={startRecording}
-                  disabled={uploading}
-                  sx={{ ml: 1.25, color: 'text.primary' }}
-                >
-                  <Icon icon='mdi:microphone' fontSize='1.375rem' />
-                </IconButton>
+                <Icon icon='mdi:send' fontSize='1.125rem' />
               )}
-            </Box>
-          </>
+            </IconButton>
+          ) : (
+            <IconButton
+              size='small'
+              aria-label='Record voice message'
+              onClick={startRecording}
+              disabled={uploading}
+              sx={{
+                flexShrink: 0,
+                width: 42,
+                height: 42,
+                color: 'text.secondary',
+                transition: 'color 0.15s',
+                '&:hover': { color: 'primary.main' }
+              }}
+            >
+              <Icon icon='mdi:microphone' fontSize='1.375rem' />
+            </IconButton>
+          ))}
+      </Box>
+
+      {/* Emoji picker — Popper with flip disabled so it always opens upward */}
+      <Popper
+        open={emojiOpen}
+        anchorEl={emojiAnchorEl}
+        placement='top-start'
+        transition
+        modifiers={[
+          { name: 'flip', enabled: false },
+          { name: 'offset', options: { offset: [0, 8] } }
+        ]}
+        sx={{ zIndex: theme => theme.zIndex.modal }}
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={150}>
+            <Paper elevation={4} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <ClickAwayListener onClickAway={() => setEmojiAnchorEl(null)}>
+                <div>
+                  {emojiOpen && (
+                    <EmojiPicker
+                      data={data}
+                      onEmojiSelect={handleEmojiSelect}
+                      theme='light'
+                      previewPosition='none'
+                      skinTonePosition='none'
+                    />
+                  )}
+                </div>
+              </ClickAwayListener>
+            </Paper>
+          </Fade>
         )}
-      </ChatFormWrapper>
+      </Popper>
     </Form>
   )
 }
