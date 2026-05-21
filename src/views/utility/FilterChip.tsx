@@ -37,7 +37,6 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
         height: size,
         minHeight: size,
         borderRadius: 9999,
-        px: 1.5,
         py: 0.5,
         fontWeight: 500,
         fontSize: '0.8125rem',
@@ -61,6 +60,7 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
               backgroundColor: 'transparent',
               color: 'text.secondary',
               borderColor: 'text.secondary',
+              px: 1.5,
               '&:hover': {
                 backgroundColor: 'rgba(31, 81, 91, 0.08)',
                 borderColor: 'text.primary',
