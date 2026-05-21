@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Badge from '@mui/material/Badge'
@@ -466,24 +466,27 @@ const ChatContent = (props: ChatContentType) => {
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {mdAbove ? (
+                {/* Call & video call hidden — re-enable when needed */}
+                {/* {mdAbove ? (
                   <Fragment>
-                    {/* Call & video call hidden — re-enable when needed */}
-                    {/* <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:phone-outline' />
                     </IconButton>
                     <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:video-outline' fontSize='1.5rem' />
-                    </IconButton> */}
-                    <IconButton
-                      size='small'
-                      sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
-                      onClick={handleSearchToggle}
-                    >
-                      <Icon icon='mdi:magnify' />
                     </IconButton>
                   </Fragment>
-                ) : null}
+                ) : null} */}
+                {/* Search icon — always visible (was previously gated
+                    behind `mdAbove`, which hid it on phone/tablet sizes
+                    even though messages search is just as useful there). */}
+                <IconButton
+                  size='small'
+                  sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
+                  onClick={handleSearchToggle}
+                >
+                  <Icon icon='mdi:magnify' />
+                </IconButton>
 
                 {/* 3-dot menu hidden — re-enable when needed */}
                 {/* <OptionsMenu
