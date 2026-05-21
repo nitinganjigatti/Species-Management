@@ -1,14 +1,13 @@
 'use client'
 
 // ** React Imports
-import { ChangeEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, ReactNode, useEffect, useState } from 'react'
 
 // ** Redux Imports
 import { useDispatch } from 'react-redux'
 import type { AppDispatch } from 'src/store'
 import {
   addParticipantsToGroup,
-  leaveGroupChat,
   deleteConversation,
   muteConversation,
   unmuteConversation,
@@ -17,16 +16,30 @@ import {
   updateGroupChat,
   removeParticipantFromGroup,
   updateParticipantRoleInGroup,
-  uploadGroupIcon,
-  selectChat
+  selectChat,
+  removeChatFromList,
+  addOrReplaceChat,
+  fetchChatsContacts
 } from 'src/store/apps/chat'
 import toast from 'react-hot-toast'
 
 // ** Chat SDK
 import { getChatClientOrNull } from 'src/lib/chat/client'
-import { searchUsers, sdkUserToContact, getUserById } from 'src/lib/chat/api'
+import {
+  searchUsers,
+  sdkUserToContact,
+  getUserById,
+  leaveConversation,
+  leaveAndDeleteConversation,
+  getConversation,
+  sdkConversationToChat,
+  getAppConfig,
+  getUserLastSeen
+} from 'src/lib/chat/api'
+
+// ** SDK presence store — auto-updates from `user_online` / `user_offline`.
+import { useChatStore } from '@antzsoft/chat-core'
 import type { User } from 'src/lib/chat/api'
-import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -61,6 +74,7 @@ import Sidebar from 'src/@core/components/sidebar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MediaLinksDocsDrawer from 'src/views/apps/chat/MediaLinksDocsDrawer'
+import GroupIconEditor from 'src/views/apps/chat/GroupIconEditor'
 import StarredMessagesDrawer from 'src/views/apps/chat/StarredMessagesDrawer'
 
 const UserProfileRight = (props: UserProfileRightType) => {
@@ -71,7 +85,9 @@ const UserProfileRight = (props: UserProfileRightType) => {
     getInitials,
     sidebarWidth,
     userProfileRightOpen,
-    handleUserProfileRightSidebarToggle
+    handleUserProfileRightSidebarToggle,
+    onScrollToMessage,
+    onOpenSearch
   } = props
 
   const ScrollWrapper = ({ children }: { children: ReactNode }) => {
@@ -87,25 +103,44 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // mute/unmute/pin/unpin thunk which patches local state on success.
   const isMuted = store?.selectedChat?.contact.isMuted === true
   const isPinned = store?.selectedChat?.contact.isPinned === true
+
+  // v1.1.3 enforces a per-user cap on pinned conversations (5 by default).
+  // We fetch `maxPinnedConversations` from `appConfigApi` once and use it
+  // to gate the Pin-to-top Switches client-side, avoiding the server-
+  // rejected 6th-pin attempt. Default fallback of 5 matches the SDK's
+  // documented default, so the gate is sane even if the config call fails
+  // or hasn't resolved yet.
+  const [maxPinned, setMaxPinned] = useState<number>(5)
+  useEffect(() => {
+    let cancelled = false
+    getAppConfig()
+      .then(c => {
+        if (!cancelled && typeof c.maxPinnedConversations === 'number') {
+          setMaxPinned(c.maxPinnedConversations)
+        }
+      })
+      .catch(err => {
+        console.warn('[chat] getAppConfig failed — falling back to default pin cap:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
   // Hide the "Leave group" affordance once the current user is no longer
   // an active participant (server flipped their `participants[].isActive`
   // to false after a successful leave). Pin-to-top stays available so the
   // user can keep the chat at the top of their sidebar after leaving.
   const isCurrentUserActive = store?.selectedChat?.contact.isCurrentUserActive !== false
 
-  // Group icon upload — admin only. SDK's `client.uploadIcon` does
-  // presigned-url + S3 upload + setIcon in one shot; the thunk pipes the
-  // returned Conversation through the adapter + `addOrReplaceChat` so the
-  // sidebar / header / profile drawer all pick up the new iconUrl in one
-  // Redux tick. Other group members get it via the `conversation_updated`
-  // socket broadcast (handled in AppChat).
-  const iconFileInputRef = useRef<HTMLInputElement | null>(null)
-  const [uploadingIcon, setUploadingIcon] = useState<boolean>(false)
-
   // Add-members flow state
   const dispatch = useDispatch<AppDispatch>()
   const [addingMembers, setAddingMembers] = useState<boolean>(false)
   const [addQuery, setAddQuery] = useState<string>('')
+  // v1.1.3 — admin can add new members straight as admins (instead of
+  // adding as member first and then calling `updateParticipantRole`).
+  // Defaults to false → existing "member" behavior unchanged.
+  const [addAsAdmin, setAddAsAdmin] = useState<boolean>(false)
   const [selectedToAdd, setSelectedToAdd] = useState<Set<ChatEntityId>>(new Set())
   const [addableContacts, setAddableContacts] = useState<ContactType[]>([])
   const [searching, setSearching] = useState<boolean>(false)
@@ -147,6 +182,56 @@ const UserProfileRight = (props: UserProfileRightType) => {
       .then(user => setContactUser(user))
       .catch(() => setContactUser(null))
   }, [userProfileRightOpen, contactId, isGroup])
+
+  // Live presence subscription for DM profile. ChatContent already
+  // seeds `lastSeen` when the DM opens; we mirror it here so a deep-link
+  // straight into the profile drawer (without first viewing the chat)
+  // still shows the right "last seen" text. Idempotent: the effect skips
+  // the fetch if the store already has a value.
+  const presenceOnlineUsers = useChatStore(s => s.onlineUsers)
+  const presenceLastSeenMap = useChatStore(s => s.lastSeen)
+  const dmPeerIdStr = dmOtherUserId ? String(dmOtherUserId) : null
+  useEffect(() => {
+    if (!dmPeerIdStr || !userProfileRightOpen) return
+    if (presenceLastSeenMap[dmPeerIdStr]) return
+    let cancelled = false
+    getUserLastSeen(dmPeerIdStr)
+      .then(res => {
+        if (cancelled || !res?.lastSeenAt) return
+        useChatStore.getState().setLastSeen(dmPeerIdStr, res.lastSeenAt)
+      })
+      .catch(err => console.warn('[chat:presence] getUserLastSeen failed (profile):', err))
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dmPeerIdStr, userProfileRightOpen])
+
+  // Same formatter as ChatContent — duplicated to avoid coupling the
+  // two files. Returns null when ISO is missing/invalid so the caller
+  // can fall back to other copy.
+  const formatLastSeen = (iso?: string): string | null => {
+    if (!iso) return null
+    const seen = new Date(iso)
+    if (Number.isNaN(seen.getTime())) return null
+    const now = new Date()
+    const sameDay =
+      seen.getFullYear() === now.getFullYear() &&
+      seen.getMonth() === now.getMonth() &&
+      seen.getDate() === now.getDate()
+    const yesterday = new Date(now)
+    yesterday.setDate(now.getDate() - 1)
+    const isYesterday =
+      seen.getFullYear() === yesterday.getFullYear() &&
+      seen.getMonth() === yesterday.getMonth() &&
+      seen.getDate() === yesterday.getDate()
+    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (sameDay) return `last seen today at ${time}`
+    if (isYesterday) return `last seen yesterday at ${time}`
+
+    return `last seen ${seen.toLocaleDateString()} at ${time}`
+  }
 
   const currentUserId = store?.userProfile?.id ?? 11
   const currentGroupId = store?.selectedChat?.contact?.id ?? null
@@ -210,11 +295,20 @@ const UserProfileRight = (props: UserProfileRightType) => {
     setAddingMembers(false)
     setSelectedToAdd(new Set())
     setAddQuery('')
+    setAddAsAdmin(false)
   }
 
   const confirmAddMembers = () => {
     if (currentGroupId === null || selectedToAdd.size === 0) return
-    dispatch(addParticipantsToGroup({ groupId: currentGroupId, userIds: Array.from(selectedToAdd) }))
+    dispatch(
+      addParticipantsToGroup({
+        groupId: currentGroupId,
+        userIds: Array.from(selectedToAdd),
+        // Only pass `role` when admin-toggle is on — keeps the wire
+        // shape identical for the default "add as member" path.
+        ...(addAsAdmin ? { role: 'admin' as const } : {})
+      })
+    )
     cancelAddMembers()
   }
 
@@ -223,7 +317,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // `ConfirmationDialog` component for visual consistency with the rest of
   // the app (hospital / lab / diet modules use the same pattern).
   type ConfirmAction =
-    | { type: 'leave' }
+    | { type: 'exit' }
+    | { type: 'exitAndDelete' }
     | { type: 'delete' }
     | { type: 'deleteChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
@@ -231,9 +326,24 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const closeConfirm = () => setConfirmAction(null)
 
-  const handleLeaveGroup = () => {
+  // v1.1.3 — "Exit Group" (stay in list as read-only). Different from
+  // legacy `leaveGroupChat` thunk which also removed the row from the
+  // sidebar. New flow: server flips `participants[].isActive = false`,
+  // `participant_left` event mirrors that locally — composer hides via
+  // `canInteract` gate but the chat stays visible / scrollable.
+  const handleExitGroup = () => {
     if (currentGroupId === null) return
-    setConfirmAction({ type: 'leave' })
+    setConfirmAction({ type: 'exit' })
+  }
+
+  // v1.1.3 — "Exit and Delete" (atomic). Server exits AND removes from
+  // caller's conversation list in a single write. We also dispatch
+  // `removeChatFromList` locally so the sidebar updates without waiting
+  // for `conversation_deleted` (server may or may not emit one for this
+  // path — local removal is idempotent with the listener).
+  const handleExitAndDelete = () => {
+    if (currentGroupId === null) return
+    setConfirmAction({ type: 'exitAndDelete' })
   }
 
   const handleDeleteGroup = () => {
@@ -241,66 +351,71 @@ const UserProfileRight = (props: UserProfileRightType) => {
     setConfirmAction({ type: 'delete' })
   }
 
-  const handleOpenIconPicker = () => {
-    if (uploadingIcon) return
-    iconFileInputRef.current?.click()
-  }
-
-  const handleIconFileSelected = async (e: ChangeEvent<HTMLInputElement>) => {
-    const picked = e.target.files?.[0]
-    // Reset value so re-picking the same file fires onChange again.
-    e.target.value = ''
-    if (!picked) return
-    if (currentGroupId === null || typeof currentGroupId !== 'string') {
-      toast.error('Cannot upload icon — invalid group')
-
-      return
-    }
-    if (!picked.type.startsWith('image/')) {
-      toast.error('Please pick an image file')
-
-      return
-    }
-
-    setUploadingIcon(true)
-    const file = await maybeCompressImage(picked, ICON_COMPRESS_OPTIONS)
-
-    // SDK expects an `UploadableFile` shape (`{ uri, name, type, size }`).
-    // Without `name` the presigned-url request returns 400. Wrap via a blob
-    // URL — same pattern SendMsgForm uses for attachments.
-    const previewUrl = URL.createObjectURL(file)
-    const uploadable = {
-      uri: previewUrl,
-      name: file.name,
-      type: file.type,
-      size: file.size
-    }
-
-    try {
-      await dispatch(uploadGroupIcon({ chatId: currentGroupId, file: uploadable })).unwrap()
-      toast.success('Group icon updated')
-    } catch (err) {
-      console.error('[chat] uploadGroupIcon failed:', err)
-      toast.error('Failed to update group icon')
-    } finally {
-      setUploadingIcon(false)
-      URL.revokeObjectURL(previewUrl)
-    }
-  }
-
   const runConfirmedAction = () => {
     if (!confirmAction) return
     const chatId = store?.selectedChat?.contact?.id ?? null
     if (chatId === null) return
 
-    if (confirmAction.type === 'leave') {
-      dispatch(leaveGroupChat(chatId))
+    if (confirmAction.type === 'exit') {
+      // v1.1.3 — Exit Group, stays in list as read-only. Direct SDK
+      // call (no Redux thunk) so the legacy `leaveGroupChat` flow stays
+      // untouched. The server emits `participant_left` to OTHER members
+      // but does NOT broadcast it back to the leaver's own socket (the
+      // server removes the leaver from the room before broadcasting),
+      // so the leaver's UI wouldn't refresh from the socket alone.
+      //
+      // Fix: refetch the conversation via REST after the leave API
+      // succeeds — the response carries the updated participants array
+      // with our `isActive=false`. We feed it through the same adapter
+      // + `addOrReplaceChat` reducer that the rest of the app uses, so
+      // the sidebar row, header, and Group info panel all re-render
+      // with the read-only state. No local reducer patching — the
+      // server is the source of truth.
+      if (typeof chatId === 'string') {
+        const idForLeave = chatId
+        const myId = store?.userProfile?.id ?? ''
+        leaveConversation(idForLeave)
+          .then(() => getConversation(idForLeave))
+          .then(conv => {
+            dispatch(addOrReplaceChat(sdkConversationToChat(conv, String(myId))))
+          })
+          .catch(err => {
+            console.error('[chat] exitGroup failed:', err)
+            toast.error('Failed to exit group')
+          })
+      }
+      handleUserProfileRightSidebarToggle()
+    } else if (confirmAction.type === 'exitAndDelete') {
+      // v1.1.3 — atomic Exit + Delete. Server exits AND removes from
+      // caller's conversation list in a single write. We optimistically
+      // drop the row from local state right away so the UI feels snappy,
+      // then refetch the full conversation list from the server as a
+      // safety net — same effect as a page refresh. Refetching a single
+      // conversation isn't viable here (the chat is gone, the GET would
+      // 404), so the list refetch is the correct equivalent.
+      if (typeof chatId === 'string') {
+        const idForRemoval = chatId
+        leaveAndDeleteConversation(idForRemoval)
+          .then(() => {
+            dispatch(removeChatFromList(idForRemoval))
+            dispatch(fetchChatsContacts())
+          })
+          .catch(err => {
+            console.error('[chat] exitAndDelete failed:', err)
+            toast.error('Failed to exit and delete group')
+          })
+      }
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'delete') {
       dispatch(deleteConversation(chatId))
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'deleteChat') {
+      // DM "Delete chat" — same SDK thunk as the group "Delete group"
+      // path, just different user-facing copy + a success toast so the
+      // local-only hide doesn't feel silent. Reappear-on-new-message is
+      // handled by the existing `conversation_created` listener.
       dispatch(deleteConversation(chatId))
+      toast.success('Chat deleted')
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
       if (currentGroupId === null) return
@@ -314,26 +429,39 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const confirmCopy = (() => {
     if (!confirmAction) return null
     switch (confirmAction.type) {
-      case 'leave':
+      case 'exit':
         return {
-          title: `Leave "${chatName}"?`,
-          description: "You won't receive new messages.",
-          confirmText: 'Leave group',
+          title: `Exit "${chatName}"?`,
+          description:
+            "The group will stay in your chat list as read-only — you can scroll history but can't send messages.",
+          confirmText: 'Exit group',
           icon: 'mdi:exit-to-app',
+          iconColor: '#ff3838'
+        }
+      case 'exitAndDelete':
+        return {
+          title: `Exit and delete "${chatName}"?`,
+          description: 'You will exit the group and remove it from your chat list. This cannot be undone.',
+          confirmText: 'Exit and delete',
+          icon: 'mdi:exit-run',
           iconColor: '#ff3838'
         }
       case 'delete':
         return {
           title: `Delete "${chatName}"?`,
-          description: 'This cannot be undone.',
+          description: 'This removes the group from your chat list. Nobody else is affected.',
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
         }
       case 'deleteChat':
+        // v1.1.3 — DM delete is local-only (hides from caller's list).
+        // The other person is unaffected; the chat reappears when they
+        // message again via the `conversation_created` socket event.
         return {
           title: `Delete chat with "${chatName}"?`,
-          description: 'This will permanently delete the conversation. This cannot be undone.',
+          description:
+            "This removes the chat from your list. The other person is not affected. If they message you again, the chat will reappear.",
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
@@ -487,6 +615,12 @@ const UserProfileRight = (props: UserProfileRightType) => {
           conversationId={contactId}
           conversationName={store.selectedChat.contact.fullName}
           currentUserId={store.userProfile?.id ?? ''}
+          // Click on a starred row → scroll + flash the message in the
+          // main ChatLog behind the drawer. Drawer stays open so the
+          // user can click further starred messages without re-opening
+          // — matches WhatsApp Web's behavior. User explicitly closes
+          // via the back arrow when done browsing.
+          onMessageClick={messageId => onScrollToMessage?.(messageId)}
         />
       ) : store && store.selectedChat && isGroup && addingMembers ? (
         <Fragment>
@@ -629,6 +763,32 @@ const UserProfileRight = (props: UserProfileRightType) => {
               </Box>
             </Box>
 
+            {/* Add-as-admin toggle — only visible when at least one
+                contact is selected, mirrors WhatsApp's "Add as admin"
+                option that appears AFTER you have someone to add. */}
+            {selectedToAdd.size > 0 ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  px: 4,
+                  py: 1.5,
+                  borderTop: theme => `1px solid ${theme.palette.divider}`
+                }}
+              >
+                <Icon icon='mdi:shield-account-outline' fontSize='1.25rem' color='customColors.Outline' />
+                <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                  Add as admin
+                </Typography>
+                <Switch
+                  size='small'
+                  checked={addAsAdmin}
+                  onChange={e => setAddAsAdmin(e.target.checked)}
+                />
+              </Box>
+            ) : null}
+
             {/* Footer */}
             <Box
               sx={{
@@ -671,48 +831,22 @@ const UserProfileRight = (props: UserProfileRightType) => {
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
             {/* ── Avatar (centered) ── */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4, pb: 3, px: 4 }}>
-              <Box sx={{ position: 'relative', mb: 2 }}>
-                {store.selectedChat.contact.avatar ? (
-                  <MuiAvatar
-                    src={store.selectedChat.contact.avatar}
-                    alt={store.selectedChat.contact.fullName}
-                    sx={{ width: 90, height: 90 }}
-                  />
-                ) : (
-                  <CustomAvatar skin='light' color='primary' sx={{ width: 90, height: 90, fontSize: '2rem' }}>
-                    {getInitials(store.selectedChat.contact.fullName)}
-                  </CustomAvatar>
-                )}
-                {isCurrentUserAdmin && (
-                  <>
-                    <IconButton
-                      size='small'
-                      onClick={handleOpenIconPicker}
-                      disabled={uploadingIcon}
-                      sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        width: 28,
-                        height: 28,
-                        backgroundColor: 'primary.main',
-                        color: 'common.white',
-                        border: '2px solid white',
-                        '&:hover': { backgroundColor: 'primary.dark' },
-                        '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
-                      }}
-                    >
-                      <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
-                    </IconButton>
-                    <input
-                      ref={iconFileInputRef}
-                      type='file'
-                      accept='image/*'
-                      onChange={handleIconFileSelected}
-                      style={{ display: 'none' }}
-                    />
-                  </>
-                )}
+              {/* WhatsApp-Web style group icon UI — extracted into its
+                  own component so this file stays focused on group info
+                  layout rather than icon plumbing. Owns: hover overlay,
+                  click menu (View / Upload / Remove), file input, upload
+                  via `uploadGroupIcon` thunk, remove via REST + reducer
+                  override, and the photo viewer + remove confirm dialog. */}
+              <Box sx={{ mb: 2 }}>
+                <GroupIconEditor
+                  chatId={String(store.selectedChat.contact.id)}
+                  avatar={store.selectedChat.contact.avatar}
+                  fullName={store.selectedChat.contact.fullName}
+                  isAdmin={isCurrentUserAdmin}
+                  currentUserId={store.userProfile?.id ?? ''}
+                  size={90}
+                  getInitials={getInitials}
+                />
               </Box>
 
               {/* Name + member count */}
@@ -882,6 +1016,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </Box>
                 )}
                 <Box
+                  onClick={onOpenSearch}
                   sx={{
                     flex: 1,
                     display: 'flex',
@@ -976,8 +1111,20 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 checked={isPinned}
                 onChange={e => {
                   if (currentGroupId === null) return
-                  if (e.target.checked) dispatch(pinConversation(currentGroupId))
-                  else dispatch(unpinConversation(currentGroupId))
+                  if (e.target.checked) {
+                    // Block the 6th-pin BEFORE the network call — server
+                    // returns 400 once the cap is hit. Always allow unpin
+                    // (frees a slot), so the gate runs only on the pin path.
+                    const pinnedCount = store?.chats?.filter(c => c.isPinned).length ?? 0
+                    if (pinnedCount >= maxPinned) {
+                      toast.error(`You can pin up to ${maxPinned} chats. Unpin one first.`)
+
+                      return
+                    }
+                    dispatch(pinConversation(currentGroupId))
+                  } else {
+                    dispatch(unpinConversation(currentGroupId))
+                  }
                 }}
               />
             </Box>
@@ -1089,18 +1236,40 @@ const UserProfileRight = (props: UserProfileRightType) => {
             <Divider sx={{ mx: '5%', mt: 1 }} />
 
             {/* ── Danger zone ── */}
+            {/* v1.1.3 three-tier exit/delete flow:
+                  · Exit Group       → leave, stay in list as read-only
+                  · Exit and Delete  → atomic exit + remove from list
+                  · Delete Group     → admin-only, tears down for everyone
+                Legacy `handleLeaveGroup` / `leaveGroupChat` thunk is no
+                longer wired into the UI but kept in code so any external
+                callers continue to work unchanged. */}
             <List dense sx={{ p: 0, mb: 2 }}>
               {isCurrentUserActive && (
                 <ListItem disablePadding>
-                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleLeaveGroup}>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleExitGroup}>
                     <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
                     <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
-                      Leave group
+                      Exit group
                     </Typography>
                   </ListItemButton>
                 </ListItem>
               )}
-              {isCurrentUserAdmin && (
+              {isCurrentUserActive && (
+                <ListItem disablePadding>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleExitAndDelete}>
+                    <Icon icon='mdi:exit-run' fontSize='1.25rem' />
+                    <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
+                      Exit and delete
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {/* "Delete group" is available ONLY after the user has exited
+                  (server-enforced in v1.1.3 — calling delete on an active
+                  participant returns 400). Removes the row from this user's
+                  list only; nobody else is affected. No admin role needed,
+                  any exited participant can use it. */}
+              {!isCurrentUserActive && (
                 <ListItem disablePadding>
                   <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleDeleteGroup}>
                     <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
@@ -1181,6 +1350,24 @@ const UserProfileRight = (props: UserProfileRightType) => {
               >
                 {store.selectedChat.contact.role}
               </Typography>
+            ) : null}
+            {/* DM live-presence line: green "online" or grey "last seen X".
+                Renders only for DMs that have an identified peer userId;
+                hidden for groups (no presence) and for DMs where the peer
+                cannot be resolved (preserves the existing layout). */}
+            {dmPeerIdStr ? (
+              presenceOnlineUsers.includes(dmPeerIdStr) ? (
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'success.main', mt: 0.5, fontWeight: 500 }}
+                >
+                  online
+                </Typography>
+              ) : formatLastSeen(presenceLastSeenMap[dmPeerIdStr]) ? (
+                <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary', mt: 0.5 }}>
+                  {formatLastSeen(presenceLastSeenMap[dmPeerIdStr])}
+                </Typography>
+              ) : null
             ) : null}
           </Box>
 
@@ -1302,8 +1489,19 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     checked={isPinned}
                     onChange={e => {
                       if (!contactId) return
-                      if (e.target.checked) dispatch(pinConversation(contactId))
-                      else dispatch(unpinConversation(contactId))
+                      if (e.target.checked) {
+                        // Same gate as the group pin switch — block before
+                        // the server returns 400 on the 6th pinned chat.
+                        const pinnedCount = store?.chats?.filter(c => c.isPinned).length ?? 0
+                        if (pinnedCount >= maxPinned) {
+                          toast.error(`You can pin up to ${maxPinned} chats. Unpin one first.`)
+
+                          return
+                        }
+                        dispatch(pinConversation(contactId))
+                      } else {
+                        dispatch(unpinConversation(contactId))
+                      }
                     }}
                   />
                 </Box>
@@ -1368,8 +1566,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </>
                 ) : null}
 
-                {/* Delete conversation */}
-                {/* <Box
+                {/* Delete chat — DM only. v1.1.3 semantics: local-only
+                    hide. Server marks the conversation hidden for the
+                    caller; the other person is unaffected. Chat reappears
+                    automatically via `conversation_created` socket event
+                    when the peer sends a new message — listener in
+                    AppChat handles that path. */}
+                <Box
                   onClick={() => setConfirmAction({ type: 'deleteChat' })}
                   sx={{
                     display: 'flex',
@@ -1384,9 +1587,9 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 >
                   <Icon icon='mdi:delete-outline' fontSize='1.25rem' color='customColors.Tertiary' />
                   <Typography variant='body2' sx={{ color: 'customColors.Tertiary', fontWeight: 500 }}>
-                    Delete conversation
+                    Delete chat
                   </Typography>
-                </Box> */}
+                </Box>
               </Box>
             </ScrollWrapper>
           </Box>
@@ -1423,6 +1626,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
         ConfirmationText={confirmCopy?.confirmText}
         cancelText='Cancel'
       />
+
     </Sidebar>
   )
 }

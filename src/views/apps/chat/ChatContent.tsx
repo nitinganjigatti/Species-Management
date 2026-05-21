@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Badge from '@mui/material/Badge'
@@ -11,7 +11,6 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import InputBase from '@mui/material/InputBase'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -23,13 +22,20 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
+import ForwardMessageDialog from 'src/views/apps/chat/ForwardMessageDialog'
 import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
+import SearchMessagesDrawer from 'src/views/apps/chat/SearchMessagesDrawer'
+import type { SearchResultItem } from 'src/views/apps/chat/SearchMessagesDrawer'
+import AddMembersDrawer from 'src/views/apps/chat/AddMembersDrawer'
 
 // ** Chat API
-import { searchMessages } from 'src/lib/chat/api'
+import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
+
+// ** SDK presence store — auto-updates from `user_online` / `user_offline`.
+import { useChatStore } from '@antzsoft/chat-core'
 
 // ** Store
-import { loadOlderMessages, jumpToMessage, selectChat } from 'src/store/apps/chat'
+import { loadOlderMessages, jumpToMessage } from 'src/store/apps/chat'
 
 // ** Types
 import { ChatContentType } from 'src/types/apps/chatTypes'
@@ -60,6 +66,8 @@ const ChatContent = (props: ChatContentType) => {
     userProfileRightOpen,
     handleLeftSidebarToggle,
     handleUserProfileRightSidebarToggle,
+    isFullscreen = false,
+    onToggleFullscreen,
     typingUsers = []
   } = props
 
@@ -68,19 +76,87 @@ const ChatContent = (props: ChatContentType) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeMatchIndex, setActiveMatchIndex] = useState(0)
   const [searchResultIds, setSearchResultIds] = useState<string[]>([])
+  // Full search results — required by the new SearchMessagesDrawer so
+  // each row can show sender + snippet + time. `searchResultIds` (above)
+  // is kept in sync and continues to drive ChatLog's in-bubble highlight.
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchTotal, setSearchTotal] = useState(0)
   const [scrollTargetMessageId, setScrollTargetMessageId] = useState<string | null>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Debounced API search
+  // Live presence for the chat header (DMs only). SDK auto-fills
+  // `onlineUsers` + `lastSeen` from socket events; we just subscribe
+  // and seed `lastSeen` once per DM open for cold-start cases.
+  const onlineUsers = useChatStore(s => s.onlineUsers)
+  const lastSeenMap = useChatStore(s => s.lastSeen)
+  const peerUserId = (() => {
+    const sc = store?.selectedChat
+    if (!sc || sc.contact.isGroup === true) return null
+    const meIdStr = String(store?.userProfile?.id ?? '')
+    const peer = sc.contact.participants?.find(p => String(p.userId) !== meIdStr)
+
+    return peer?.userId ? String(peer.userId) : null
+  })()
+  useEffect(() => {
+    if (!peerUserId) return
+    // Skip if we already have a snapshot — the store auto-refreshes via
+    // `user_offline` events while the socket is connected, so refetching
+    // on every DM re-open would be wasted network.
+    if (lastSeenMap[peerUserId]) return
+    let cancelled = false
+    getUserLastSeen(peerUserId)
+      .then(res => {
+        if (cancelled || !res?.lastSeenAt) return
+        useChatStore.getState().setLastSeen(peerUserId, res.lastSeenAt)
+      })
+      .catch(err => {
+        console.warn('[chat:presence] getUserLastSeen failed:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerUserId])
+
+  // Format a last-seen ISO string into WhatsApp-style copy:
+  //   "last seen today at 14:30"
+  //   "last seen yesterday at 14:30"
+  //   "last seen 12/04/2026 at 14:30"
+  // Returns null when there's no valid date — caller falls back to the
+  // generic contact role label.
+  const formatLastSeen = (iso?: string): string | null => {
+    if (!iso) return null
+    const seen = new Date(iso)
+    if (Number.isNaN(seen.getTime())) return null
+    const now = new Date()
+    const sameDay =
+      seen.getFullYear() === now.getFullYear() && seen.getMonth() === now.getMonth() && seen.getDate() === now.getDate()
+    const yesterday = new Date(now)
+    yesterday.setDate(now.getDate() - 1)
+    const isYesterday =
+      seen.getFullYear() === yesterday.getFullYear() &&
+      seen.getMonth() === yesterday.getMonth() &&
+      seen.getDate() === yesterday.getDate()
+    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (sameDay) return `last seen today at ${time}`
+    if (isYesterday) return `last seen yesterday at ${time}`
+
+    return `last seen ${seen.toLocaleDateString()} at ${time}`
+  }
+
+  // Debounced API search. Populates BOTH `searchResults` (full rows for
+  // the drawer's preview list) and `searchResultIds` (id-only array
+  // consumed by ChatLog for in-bubble highlighting). Keeping the two in
+  // sync from one effect avoids drift.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     const conversationId = store?.selectedChat?.contact?.id
     if (!searchQuery.trim() || !conversationId) {
       setSearchResultIds([])
+      setSearchResults([])
       setSearchTotal(0)
       setSearchLoading(false)
 
@@ -91,12 +167,24 @@ const ChatContent = (props: ChatContentType) => {
     debounceRef.current = setTimeout(() => {
       searchMessages({ query: searchQuery, conversationId: String(conversationId), limit: 50 })
         .then(res => {
-          setSearchResultIds(res.data.map(m => m.id))
+          // Adapt SDK Message → SearchResultItem for the drawer rows.
+          const rows: SearchResultItem[] = res.data.map((m: any) => ({
+            id: m.id,
+            text: m?.content?.text ?? '',
+            senderId: m?.senderId,
+            senderName:
+              m?.sender?.displayName ?? m?.sender?.username ?? (m?.senderId ? String(m.senderId) : undefined),
+            sentAt: m?.sentAt ?? m?.createdAt,
+            hasAttachment: Array.isArray(m?.content?.attachments) && m.content.attachments.length > 0
+          }))
+          setSearchResults(rows)
+          setSearchResultIds(rows.map(r => r.id))
           setSearchTotal(res.meta.total)
           setActiveMatchIndex(0)
         })
         .catch(() => {
           setSearchResultIds([])
+          setSearchResults([])
           setSearchTotal(0)
         })
         .finally(() => setSearchLoading(false))
@@ -112,14 +200,16 @@ const ChatContent = (props: ChatContentType) => {
     setSearchOpen(false)
     setSearchQuery('')
     setSearchResultIds([])
+    setSearchResults([])
     setSearchTotal(0)
   }, [store?.selectedChat?.contact?.id])
 
   const handleSearchToggle = useCallback(() => {
     setSearchOpen(prev => {
-      if (!prev) {
-        setTimeout(() => searchInputRef.current?.focus(), 100)
-      } else {
+      // Drawer's `autoFocus` on its own InputBase handles focusing —
+      // no need to reach into a ref. When closing, clear the query so
+      // ChatLog drops its in-bubble highlight at the same time.
+      if (prev) {
         setSearchQuery('')
       }
 
@@ -131,36 +221,34 @@ const ChatContent = (props: ChatContentType) => {
     setSearchOpen(false)
     setSearchQuery('')
     setSearchResultIds([])
+    setSearchResults([])
     setSearchTotal(0)
+    // No chat reload on close — matches WhatsApp Web. If the user
+    // jumped to a historical message via a result, they stay there;
+    // they can scroll back down or reopen the chat manually.
+  }, [])
 
-    // If the user jumped to a historical message via search, the loaded
-    // message window is sitting in the middle of history — reopen the chat
-    // to snap back to the latest 50 messages so live updates resume.
-    const chatId = store?.selectedChat?.contact?.id
-    if (chatId) dispatch(selectChat(chatId) as any)
-  }, [dispatch, store?.selectedChat?.contact?.id])
+  // Add Members drawer (group-created card's "Add members" button).
+  // Standalone right-side drawer that uses the same SDK call as the
+  // existing in-UserProfileRight Add Members panel. Independent state,
+  // independent mount — opening this drawer does NOT touch the
+  // UserProfileRight `addingMembers` state at all.
+  const [addMembersDrawerOpen, setAddMembersDrawerOpen] = useState<boolean>(false)
+  const handleAddMembersFromCard = useCallback(() => {
+    setAddMembersDrawerOpen(true)
+  }, [])
 
-  const handleSearchPrev = useCallback(() => {
-    setActiveMatchIndex(prev => (prev > 0 ? prev - 1 : searchResultIds.length - 1))
-  }, [searchResultIds.length])
-
-  const handleSearchNext = useCallback(() => {
-    setActiveMatchIndex(prev => (prev < searchResultIds.length - 1 ? prev + 1 : 0))
-  }, [searchResultIds.length])
-
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          handleSearchPrev()
-        } else {
-          handleSearchNext()
-        }
-      } else if (e.key === 'Escape') {
-        handleSearchClose()
-      }
+  // Drawer click → scroll the main ChatLog to the chosen message and
+  // mark it as the "active match" so the existing flash + focus styles
+  // in ChatLog kick in.
+  const handleSearchResultClick = useCallback(
+    (messageId: string) => {
+      const idx = searchResultIds.indexOf(messageId)
+      if (idx >= 0) setActiveMatchIndex(idx)
+      setScrollTargetMessageId(null)
+      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
     },
-    [handleSearchNext, handleSearchPrev, handleSearchClose]
+    [searchResultIds]
   )
 
   const handleStartConversation = () => {
@@ -234,7 +322,10 @@ const ChatContent = (props: ChatContentType) => {
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: 'action.hover'
+              backgroundColor: 'action.hover',
+              backgroundImage: 'url(/images/chat/chat-backgroud.svg)',
+              backgroundRepeat: 'repeat',
+              backgroundSize: 'auto'
             }}
           >
             <Box
@@ -244,18 +335,19 @@ const ChatContent = (props: ChatContentType) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: theme => `1px solid ${theme.palette.divider}`
+                borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                backgroundColor: 'background.paper'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                 {mdAbove ? null : (
-                  <IconButton onClick={handleLeftSidebarToggle} sx={{ mr: 2 }}>
+                  <IconButton onClick={handleLeftSidebarToggle} sx={{ mr: 2, flexShrink: 0 }}>
                     <Icon icon='mdi:menu' />
                   </IconButton>
                 )}
                 <Box
                   onClick={handleUserProfileRightSidebarToggle}
-                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', minWidth: 0, overflow: 'hidden' }}
                 >
                   {selectedChat.contact.isGroup ? (
                     // Group: prefer the uploaded `iconUrl` (mapped to
@@ -273,25 +365,12 @@ const ChatContent = (props: ChatContentType) => {
                       </CustomAvatar>
                     )
                   ) : (
-                    <Badge
-                      overlap='circular'
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      sx={{ mr: 4.5 }}
-                      badgeContent={
-                        <Box
-                          component='span'
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            color: `${statusObj[selectedChat.contact.status]}.main`,
-                            boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
-                            backgroundColor: `${statusObj[selectedChat.contact.status]}.main`
-                          }}
-                        />
-                      }
-                    >
-                      {selectedChat.contact.avatar ? (
+                    (() => {
+                      // DM presence — green dot only when peer is in
+                      // live `useChatStore.onlineUsers`. Hides the badge
+                      // entirely otherwise (matches WhatsApp Web).
+                      const isPeerOnline = peerUserId ? onlineUsers.includes(peerUserId) : false
+                      const peerAvatar = selectedChat.contact.avatar ? (
                         <MuiAvatar
                           src={selectedChat.contact.avatar}
                           alt={selectedChat.contact.fullName}
@@ -305,16 +384,84 @@ const ChatContent = (props: ChatContentType) => {
                         >
                           {getInitials(selectedChat.contact.fullName)}
                         </CustomAvatar>
-                      )}
-                    </Badge>
+                      )
+
+                      return isPeerOnline ? (
+                        <Badge
+                          overlap='circular'
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                          sx={{ mr: 4.5 }}
+                          badgeContent={
+                            <Box
+                              component='span'
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                color: 'success.main',
+                                boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
+                                backgroundColor: 'success.main'
+                              }}
+                            />
+                          }
+                        >
+                          {peerAvatar}
+                        </Badge>
+                      ) : (
+                        <Box sx={{ mr: 4.5, display: 'inline-flex' }}>{peerAvatar}</Box>
+                      )
+                    })()
                   )}
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <Typography sx={{ color: '#1F515B', fontWeight: 600 }}>
                       {selectedChat.contact.fullName}
                     </Typography>
-                    <Typography variant='body2' sx={{ color: 'text.disabled' }}>
+                    {/* Status line — WhatsApp-Web style.
+                          DM     → green "online" / grey "last seen X" /
+                                   fallback to contact role label.
+                          Group  → comma-separated member names with
+                                   "You" for the current user, CSS-
+                                   truncated when the row is too narrow.
+                                   This matches the WhatsApp Web header
+                                   ("You, Alice, Bob …") instead of the
+                                   previous bare "<N> members" count. */}
+                    <Typography
+                      variant='body2'
+                      noWrap
+                      sx={{
+                        maxWidth: 480,
+                        fontSize: '12px',
+                        color:
+                          !selectedChat.contact.isGroup && peerUserId && onlineUsers.includes(peerUserId)
+                            ? 'success.main'
+                            : 'text.disabled'
+                      }}
+                    >
                       {selectedChat.contact.isGroup
-                        ? `${selectedChat.contact.participantIds?.length ?? 0} members`
+                        ? (() => {
+                            const me = String(store?.userProfile?.id ?? '')
+                            const names = (selectedChat.contact.participants ?? [])
+                              .filter(p => p.isActive !== false)
+                              .map(p => (String(p.userId) === me ? 'You' : p.displayName || p.username || 'Unknown'))
+
+                            // Order: "You" first if present, matching
+                            // WhatsApp's convention; rest in their
+                            // existing participants order so it stays
+                            // stable across renders.
+                            const youIdx = names.indexOf('You')
+                            if (youIdx > 0) {
+                              names.splice(youIdx, 1)
+                              names.unshift('You')
+                            }
+
+                            return names.length
+                              ? names.join(', ')
+                              : `${selectedChat.contact.participantIds?.length ?? 0} members`
+                          })()
+                        : peerUserId && onlineUsers.includes(peerUserId)
+                        ? 'online'
+                        : peerUserId && formatLastSeen(lastSeenMap[peerUserId])
+                        ? formatLastSeen(lastSeenMap[peerUserId])
                         : selectedChat.contact.role}
                     </Typography>
                   </Box>
@@ -322,24 +469,38 @@ const ChatContent = (props: ChatContentType) => {
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {mdAbove ? (
+                {/* Call & video call hidden — re-enable when needed */}
+                {/* {mdAbove ? (
                   <Fragment>
-                    {/* Call & video call hidden — re-enable when needed */}
-                    {/* <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:phone-outline' />
                     </IconButton>
                     <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:video-outline' fontSize='1.5rem' />
-                    </IconButton> */}
-                    <IconButton
-                      size='small'
-                      sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
-                      onClick={handleSearchToggle}
-                    >
-                      <Icon icon='mdi:magnify' />
                     </IconButton>
                   </Fragment>
-                ) : null}
+                ) : null} */}
+                {/* Search icon — always visible (was previously gated
+                    behind `mdAbove`, which hid it on phone/tablet sizes
+                    even though messages search is just as useful there). */}
+                <IconButton
+                  size='small'
+                  sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
+                  onClick={handleSearchToggle}
+                >
+                  <Icon icon='mdi:magnify' />
+                </IconButton>
+
+                {onToggleFullscreen && (
+                  <IconButton
+                    size='small'
+                    sx={{ color: 'text.secondary' }}
+                    onClick={onToggleFullscreen}
+                    title={isFullscreen ? 'Minimize' : 'Maximize'}
+                  >
+                    <Icon icon={isFullscreen ? 'teenyicons:minimise-alt-solid' : 'akar-icons:enlarge'} />
+                  </IconButton>
+                )}
 
                 {/* 3-dot menu hidden — re-enable when needed */}
                 {/* <OptionsMenu
@@ -351,47 +512,8 @@ const ChatContent = (props: ChatContentType) => {
               </Box>
             </Box>
 
-            {searchOpen && (
-              <Box
-                sx={{
-                  px: 4,
-                  py: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                  backgroundColor: 'background.paper'
-                }}
-              >
-                <Icon icon='mdi:magnify' fontSize='1.25rem' />
-                <InputBase
-                  inputRef={searchInputRef}
-                  placeholder='Search messages...'
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  sx={{ flex: 1, fontSize: '0.875rem' }}
-                  autoFocus
-                />
-                {searchQuery.trim() &&
-                  (searchLoading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Typography variant='caption' sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                      {searchTotal > 0 ? `${activeMatchIndex + 1} of ${searchTotal}` : 'No results'}
-                    </Typography>
-                  ))}
-                <IconButton size='small' onClick={handleSearchPrev} disabled={searchResultIds.length === 0}>
-                  <Icon icon='mdi:chevron-up' fontSize='1.25rem' />
-                </IconButton>
-                <IconButton size='small' onClick={handleSearchNext} disabled={searchResultIds.length === 0}>
-                  <Icon icon='mdi:chevron-down' fontSize='1.25rem' />
-                </IconButton>
-                <IconButton size='small' onClick={handleSearchClose}>
-                  <Icon icon='mdi:close' fontSize='1.25rem' />
-                </IconButton>
-              </Box>
-            )}
+            {/* Search UI lives in the SearchMessagesDrawer mounted near
+                the bottom of this component, alongside UserProfileRight. */}
 
             {selectedChat && store.userProfile ? (
               store.loadingMessages ? (
@@ -436,7 +558,14 @@ const ChatContent = (props: ChatContentType) => {
                     }}
                     scrollTargetMessageId={scrollTargetMessageId}
                     onScrollToTargetDone={() => setScrollTargetMessageId(null)}
+                    onJumpToReply={(messageId: string) => {
+                      // Clear first so re-clicking the same reply re-fires
+                      // the ChatLog effect (which dedupes on prop value).
+                      setScrollTargetMessageId(null)
+                      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+                    }}
                     canInteract={canInteract}
+                    onAddMember={handleAddMembersFromCard}
                   />
                 </>
               )
@@ -494,8 +623,18 @@ const ChatContent = (props: ChatContentType) => {
                   backgroundColor: 'customColors.Surface'
                 }}
               >
+                {/* v1.1.3 — when the chat carries `removedBy`, the current
+                    user was kicked by an admin (not a self-exit). Surface
+                    that distinction in the read-only placeholder so the
+                    user understands why they can't message. Defaults to
+                    the generic "no longer a member" copy when removedBy
+                    is absent (covers self-exit and legacy/refresh cases). */}
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                  You&apos;re no longer a member of this group.
+                  {selectedChat.contact.removedBy
+                    ? selectedChat.contact.removedByName
+                      ? `You were removed from this group by ${selectedChat.contact.removedByName}.`
+                      : 'You were removed from this group.'
+                    : "You're no longer a member of this group."}
                 </Typography>
               </Box>
             )}
@@ -508,12 +647,57 @@ const ChatContent = (props: ChatContentType) => {
               sidebarWidth={sidebarWidth}
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+              onScrollToMessage={(messageId: string) => {
+                setScrollTargetMessageId(null)
+                requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+              }}
+              onOpenSearch={() => {
+                handleUserProfileRightSidebarToggle()
+                handleSearchToggle()
+              }}
             />
+            {/* WhatsApp-Web-style right-side search drawer. Gated on
+                `searchOpen` so the Sidebar primitive doesn't mount /
+                stay-mounted-but-offscreen on every chat — keeps the
+                initial render path clean for chats that never search. */}
+            {searchOpen && (
+              <SearchMessagesDrawer
+                open={searchOpen}
+                onClose={handleSearchClose}
+                peerName={selectedChat.contact.fullName}
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
+                results={searchResults}
+                loading={searchLoading}
+                onResultClick={handleSearchResultClick}
+                activeMessageId={searchResultIds[activeMatchIndex] ?? null}
+                width={sidebarWidth}
+              />
+            )}
+            {/* Standalone Add Members drawer — triggered by the group-
+                created card. Gated on open so it doesn't mount until
+                needed. Independent of UserProfileRight; uses the same
+                `addParticipantsToGroup` thunk so behavior matches the
+                existing in-profile Add Members panel. */}
+            {addMembersDrawerOpen && selectedChat.contact.isGroup && (
+              <AddMembersDrawer
+                open={addMembersDrawerOpen}
+                onClose={() => setAddMembersDrawerOpen(false)}
+                groupId={typeof selectedChat.contact.id === 'string' ? selectedChat.contact.id : null}
+                existingParticipantIds={selectedChat.contact.participantIds ?? []}
+                currentUserId={store.userProfile?.id ?? ''}
+                width={sidebarWidth}
+              />
+            )}
             {/* Mounted once at the chat shell root — driven by Redux
                 `state.chat.infoMessage`. Any bubble's "Info" menu item
                 dispatches `setInfoMessage(...)` and the drawer slides in
                 using the same `Sidebar` primitive as UserProfileRight. */}
             <MessageInfoDialog />
+            {/* Forward-message picker — driven by Redux `state.chat.forwardingMessage`.
+                The 3-dot menu's "Forward" item dispatches `setForwardingMessage(...)`
+                with a snapshot of the source bubble. */}
+            <ForwardMessageDialog />
           </Box>
         )
       }

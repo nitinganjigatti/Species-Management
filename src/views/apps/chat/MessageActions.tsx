@@ -12,7 +12,13 @@ import toast from 'react-hot-toast'
 
 // ** Redux
 import { useDispatch, useSelector } from 'react-redux'
-import { setReplyingTo, setEditingMessage, setMessageStarred, setInfoMessage } from 'src/store/apps/chat'
+import {
+  setReplyingTo,
+  setEditingMessage,
+  setMessageStarred,
+  setInfoMessage,
+  setForwardingMessage
+} from 'src/store/apps/chat'
 import type { AppDispatch, RootState } from 'src/store'
 
 // ** SDK
@@ -123,6 +129,20 @@ const MessageActions = ({
     )
   }
 
+  const handleForward = () => {
+    handleMenuClose()
+    if (!chat.id) return
+    dispatch(
+      setForwardingMessage({
+        messageId: chat.id,
+        messageText: chat.msg,
+        attachments: chat.attachments,
+        senderName,
+        senderId
+      })
+    )
+  }
+
   const handleEdit = () => {
     handleMenuClose()
     if (!chat.id || !chat.msg) return
@@ -222,9 +242,15 @@ const MessageActions = ({
           </ListItemIcon>
           <ListItemText>Reply</ListItemText>
         </MenuItem>
+        <MenuItem onClick={handleForward} disabled={!chat.id}>
+          <ListItemIcon>
+            <Icon icon='mdi:share-outline' fontSize='1rem' />
+          </ListItemIcon>
+          <ListItemText>Forward</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleToggleStar} disabled={!chat.id}>
           <ListItemIcon>
-            <Icon icon={chat.isStarred ? 'mdi:star' : 'mdi:star-outline'} fontSize='1rem' />
+            <Icon icon={chat.isStarred ? 'mdi:star-off-outline' : 'mdi:star-outline'} fontSize='1rem' />
           </ListItemIcon>
           <ListItemText>{chat.isStarred ? 'Unstar' : 'Star'}</ListItemText>
         </MenuItem>

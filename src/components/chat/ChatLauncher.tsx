@@ -23,10 +23,17 @@ import AppChat from 'src/views/apps/chat/AppChat'
 
 // ** Store
 import type { RootState, AppDispatch } from 'src/store'
-import { fetchChatsContacts, fetchUserProfile, receiveMessage, setUnreadCount } from 'src/store/apps/chat'
+import {
+  fetchChatsContacts,
+  fetchUserProfile,
+  receiveMessage,
+  setSelectedConversationId,
+  addOrReplaceChat,
+  patchConversationFromEvent
+} from 'src/store/apps/chat'
 
 // ** Chat API
-import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
+import { getChatSocket, sdkConversationToChat, sdkMessageToMessage } from 'src/lib/chat/api'
 
 // Floating chat launcher: a FAB anchored at the bottom-right of every
 // authenticated page. Clicking it pops a compact panel that hosts the full
@@ -34,11 +41,12 @@ import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
 // (sidebar collapses below `lg`) to make the layout fit the narrow panel.
 //
 // To keep the FAB's unread badge live even when the panel is closed, we
-// subscribe to the two socket events that affect the badge (`new_message` and
-// `unread_count_changed`) and dispatch into the same Redux reducers AppChat
-// uses. AppChat owns the rest of the event surface (typing, receipts, pin,
-// edit, delete, etc.) — duplicating only the unread-count path avoids any
-// reducer-double-fire risk and stays minimal.
+// subscribe to `new_message` (so the open chat can render new arrivals)
+// and `conversation_updated` (the single source of truth for sidebar
+// lastMessage + unread-count updates, including cross-device read syncs).
+// AppChat owns the rest of the event surface (typing, receipts, pin,
+// edit, delete, etc.) — duplicating only the badge-affecting paths avoids
+// any reducer-double-fire risk and stays minimal.
 //
 // We hide the launcher entirely on the dedicated `/chat` route because
 // AppChat is already mounted there; rendering a second AppChat inside the
@@ -55,9 +63,15 @@ const ChatLauncher = () => {
   const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH)
+  const [panelHeight, setPanelHeight] = useState(PANEL_HEIGHT)
+  const [isResizing, setIsResizing] = useState(false)
 
   const chats = useSelector((state: RootState) => state.chat.chats)
   const userProfileId = useSelector((state: RootState) => state.chat.userProfile?.id)
+  const selectedChat = useSelector((state: RootState) => state.chat.selectedChat)
+  const selectedConversationId = useSelector((state: RootState) => state.chat.selectedConversationId)
 
   // Total unread across all conversations — sum-reduce in a memo so we don't
   // create a fresh number identity on every render and trigger Badge re-renders.
@@ -67,14 +81,37 @@ const ChatLauncher = () => {
     return chats.reduce((sum, c) => sum + (c.chat?.unseenMsgs || 0), 0)
   }, [chats])
 
+  // Restore selected conversation from localStorage on app load
+  useEffect(() => {
+    if (!enableChatModule) return
+    const savedConversationId = localStorage.getItem('selectedChatConversationId')
+    if (savedConversationId) {
+      dispatch(setSelectedConversationId(savedConversationId))
+    }
+  }, [dispatch, enableChatModule])
+
+  // Sync selectedChat to Redux and localStorage
+  useEffect(() => {
+    if (!selectedChat?.contact?.id) return
+    const conversationId = String(selectedChat.contact.id)
+    if (conversationId !== selectedConversationId) {
+      dispatch(setSelectedConversationId(conversationId))
+    }
+    localStorage.setItem('selectedChatConversationId', conversationId)
+  }, [selectedChat?.contact?.id, selectedConversationId, dispatch])
+
   // Bootstrap the user's profile + conversation list once, so the FAB badge
-  // can show the right number even before the user opens the panel. Skip
-  // entirely when chat is disabled for this tenant.
+  // can show the right number even before the user opens the panel. The
+  // chat list is kept fresh via the `conversation_updated` socket event
+  // after this initial load, so we don't refetch on every remount (e.g.
+  // when the user navigates between /chat and other module routes).
+  // Skip entirely when chat is disabled for this tenant.
+  const chatsLoaded = useSelector((s: RootState) => Boolean(s.chat?.chats))
   useEffect(() => {
     if (!enableChatModule) return
     dispatch(fetchUserProfile())
-    dispatch(fetchChatsContacts())
-  }, [dispatch, enableChatModule])
+    if (!chatsLoaded) dispatch(fetchChatsContacts())
+  }, [dispatch, enableChatModule, chatsLoaded])
 
   // Subscribe to the two socket events that affect unread counts. AppChat
   // owns the full event surface on /chat — we hide there to avoid overlap,
@@ -99,19 +136,40 @@ const ChatLauncher = () => {
       )
     }
 
-    const onUnreadCountChanged = (evt: any) => {
-      const convId = evt?.conversationId
-      const count = typeof evt?.unreadCount === 'number' ? evt.unreadCount : null
-      if (!convId || count === null) return
-      dispatch(setUnreadCount({ chatId: convId, count }))
+    // Conversation update — server uses ONE event for two payload shapes:
+    //   Case 1: new message arrived. Slim payload — { id, lastMessage,
+    //           unreadCount, updatedAt }. PATCH only those fields.
+    //   Case 2: metadata changed (rename/avatar/participants/role/settings).
+    //           Full Conversation object. REPLACE the whole entry.
+    // Detection rule per server contract: if the payload carries
+    // `participants` AND `settings` → Case 2; otherwise Case 1.
+    const onConversationUpdated = (evt: any) => {
+      const convId = evt?.id ?? evt?.conversationId
+      if (!convId) return
+
+      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
+      if (isFullConversation) {
+        const chat = sdkConversationToChat(evt, userProfileId ?? '')
+        dispatch(addOrReplaceChat(chat))
+
+        return
+      }
+
+      dispatch(
+        patchConversationFromEvent({
+          chatId: convId,
+          lastMessage: evt?.lastMessage,
+          unreadCount: typeof evt?.unreadCount === 'number' ? evt.unreadCount : undefined
+        })
+      )
     }
 
     socket.on('new_message', onNewMessage)
-    socket.on('unread_count_changed', onUnreadCountChanged)
+    socket.on('conversation_updated', onConversationUpdated)
 
     return () => {
       socket.off('new_message', onNewMessage)
-      socket.off('unread_count_changed', onUnreadCountChanged)
+      socket.off('conversation_updated', onConversationUpdated)
     }
   }, [dispatch, userProfileId, enableChatModule])
 
@@ -125,50 +183,158 @@ const ChatLauncher = () => {
 
   const toggleOpen = () => setOpen(o => !o)
 
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const startX = e.clientX
+    const startY = e.clientY
+    const startWidth = panelWidth
+    const startHeight = panelHeight
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX
+      const deltaY = moveEvent.clientY - startY
+      setPanelWidth(Math.max(320, startWidth + deltaX))
+      setPanelHeight(Math.max(400, startHeight + deltaY))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleLeftResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const startX = e.clientX
+    const startWidth = panelWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX
+      setPanelWidth(Math.max(320, startWidth - deltaX))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
   return (
     <>
       <Zoom in={open} unmountOnExit>
         <Box
           sx={{
             position: 'fixed',
-            bottom: 96,
-            right: 24,
-            width: { xs: 'calc(100vw - 32px)', sm: PANEL_WIDTH },
-            height: { xs: 'calc(100vh - 120px)', sm: `min(${PANEL_HEIGHT}px, calc(100vh - 120px))` },
-            borderRadius: 2,
+            ...(isFullscreen
+              ? {
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  borderRadius: 0
+                }
+              : {
+                  bottom: 120,
+                  right: 24,
+                  width: { xs: 'calc(100vw - 32px)', sm: `${panelWidth}px` },
+                  height: { xs: 'calc(100vh - 140px)', sm: `min(${panelHeight}px, calc(100vh - 140px))` },
+                  borderRadius: 2
+                }),
             overflow: 'hidden',
             boxShadow: theme => theme.shadows[10],
             zIndex: 1200,
             backgroundColor: 'background.paper',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            userSelect: isResizing ? 'none' : 'auto'
           }}
         >
-          <AppChat compact />
+          <AppChat
+            compact={!isFullscreen}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+          />
+
+          {!isFullscreen && (
+            <>
+              {/* Resize handle on left side */}
+              <Box
+                onMouseDown={handleLeftResizeMouseDown}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '8px',
+                  height: '100%',
+                  cursor: 'ew-resize',
+                  backgroundColor: 'primary.main',
+                  opacity: 0.4,
+                  '&:hover': {
+                    opacity: 0.8
+                  },
+                  transition: 'opacity 0.2s'
+                }}
+              />
+
+              {/* Resize handle in bottom-right corner */}
+              <Box
+                onMouseDown={handleResizeMouseDown}
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: '20px',
+                  height: '20px',
+                  cursor: 'nwse-resize',
+                  backgroundColor: 'primary.main',
+                  borderRadius: '2px 0 0 0',
+                  opacity: 0.6,
+                  '&:hover': {
+                    opacity: 1
+                  },
+                  transition: 'opacity 0.2s'
+                }}
+              />
+            </>
+          )}
         </Box>
       </Zoom>
 
-      <Fab
-        color='primary'
-        onClick={toggleOpen}
-        aria-label={open ? 'Close chat' : 'Open chat'}
-        sx={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 1201
-        }}
-      >
-        <Badge
-          color='error'
-          max={99}
-          badgeContent={totalUnread}
-          invisible={open || totalUnread === 0}
-          overlap='circular'
+      {!isFullscreen && (
+        <Fab
+          color='primary'
+          onClick={toggleOpen}
+          aria-label={open ? 'Close chat' : 'Open chat'}
+          sx={{
+            position: 'fixed',
+            bottom: '40px',
+            right: '24px',
+            zIndex: 1201
+          }}
         >
-          <Icon icon={open ? 'mdi:close' : 'mdi:chat'} fontSize='1.5rem' />
-        </Badge>
-      </Fab>
+          <Badge
+            color='error'
+            max={99}
+            badgeContent={totalUnread}
+            invisible={open || totalUnread === 0}
+            overlap='circular'
+          >
+            <Icon icon={open ? 'mdi:close' : 'mdi:chat'} fontSize='1.5rem' />
+          </Badge>
+        </Fab>
+      )}
     </>
   )
 }

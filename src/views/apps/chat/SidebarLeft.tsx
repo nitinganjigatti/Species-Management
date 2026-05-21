@@ -52,6 +52,15 @@ import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
 
+// ** SDK presence store — `onlineUsers` auto-tracks `user_online` /
+// `user_offline` socket events inside the SDK. We just subscribe.
+import { useChatStore } from '@antzsoft/chat-core'
+
+// ** Server-side conversation search (v1.1.3) — uses MongoDB text index
+// on name + description, finds broader matches than the previous local
+// `fullName.includes(query)` filter.
+import { listConversations, sdkConversationToChat } from 'src/lib/chat/api'
+
 const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: boolean }) => {
   if (hidden) {
     return <Box sx={{ height: '100%', overflow: 'auto' }}>{children}</Box>
@@ -84,7 +93,8 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     userProfileLeftOpen,
     formatDateToMonthShort,
     handleLeftSidebarToggle,
-    handleUserProfileLeftSidebarToggle
+    handleUserProfileLeftSidebarToggle,
+    compact
   } = props
 
   // ** Local UI state
@@ -101,6 +111,56 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   // effect in AppChat, programmatic `dispatch(selectChat(...))`, or any other
   // path. Single source of truth: state.chat.selectedChat.contact.id.
   const selectedChatId = store?.selectedChat?.contact?.id ?? null
+
+  // Live presence — drives the green dot on DM avatars. SDK auto-updates
+  // `onlineUsers` from `user_online` / `user_offline` socket events; we
+  // just subscribe. Selector returns the same array reference between
+  // renders when membership is unchanged, so unrelated state changes
+  // don't trigger a re-render of every chat row.
+  const onlineUsers = useChatStore(s => s.onlineUsers)
+  const currentUserIdForPresence = String(store?.userProfile?.id ?? '')
+
+  // Server-side search state. Lives ONLY for the lifetime of a non-empty
+  // query — when the user clears the search input we fall back to the
+  // Redux `store.chats` source so all the live socket-driven updates
+  // (new message, read receipts, etc.) keep flowing through the normal
+  // path. Local state on purpose: we don't want to overwrite the cached
+  // full conversation list with a filtered subset.
+  const [searchResults, setSearchResults] = useState<ChatsArrType[] | null>(null)
+  const [searching, setSearching] = useState<boolean>(false)
+
+  // Debounced server search. 300ms idle — matches what we use for
+  // message search in ChatContent. Empty query clears local state and
+  // falls back to the client-side filter on `store.chats`.
+  useEffect(() => {
+    const q = query.trim()
+    if (!q) {
+      setSearchResults(null)
+      setSearching(false)
+
+      return
+    }
+    setSearching(true)
+    const timer = setTimeout(() => {
+      const me = String(store?.userProfile?.id ?? '')
+      listConversations({ search: q })
+        .then(res => {
+          const data = (res?.data ?? []) as Parameters<typeof sdkConversationToChat>[0][]
+          setSearchResults(data.map(c => sdkConversationToChat(c, me)))
+        })
+        .catch(err => {
+          console.warn('[chat:search] listConversations failed:', err)
+          // Render an empty array rather than null so the "No Chats
+          // Found" empty state shows instead of falling back to the
+          // full unfiltered list — matches WhatsApp's behavior.
+          setSearchResults([])
+        })
+        .finally(() => setSearching(false))
+    }, 300)
+
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
 
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
@@ -152,19 +212,29 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   }
 
   // Clear the open chat on route change (when navigating away from /chat).
-  // The "highlight" follows Redux selectedChat naturally — no local state to
-  // reset here.
+  // Skip in compact (FAB) mode — we want the conversation to persist across navigation.
   useEffect(() => {
+    if (compact) return
     return () => {
       dispatch(removeSelectedChat())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
+  }, [pathname, compact])
 
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
-    if (!store?.chats) return []
-    let list = store.chats
+    // Source list:
+    //   • query non-empty + server results received → use those
+    //     (server already applied text-index search across name +
+    //     description; broader than the previous local substring)
+    //   • otherwise → full Redux list (today's path)
+    // Tabs (Unread / Groups / etc.) still filter client-side on top of
+    // whichever source we picked, so the search behavior composes
+    // naturally with the existing tab UI.
+    const baseList: ChatsArrType[] | null =
+      query.trim().length && searchResults !== null ? searchResults : store?.chats ?? null
+    if (!baseList) return []
+    let list = baseList
 
     // Tab filter
     if (activeFilter === 'unread') {
@@ -173,12 +243,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       list = list.filter(c => c.isFavourite === true)
     } else if (activeFilter === 'groups') {
       list = list.filter(c => c.isGroup === true)
-    }
-
-    // Search filter on top of tab filter
-    if (query.trim().length) {
-      const q = query.trim().toLowerCase()
-      list = list.filter(c => c.fullName.toLowerCase().includes(q))
     }
 
     // Pinned conversations float to the top
@@ -298,7 +362,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
               width: '100%',
               borderRadius: 1,
               alignItems: 'flex-start',
-              ...(activeCondition && { backgroundColor: theme => `${theme.palette.primary.main} !important` })
+              ...(activeCondition && { backgroundColor: '#1F515B !important' })
             }}
           >
             <ListItemAvatar sx={{ m: 0 }}>
@@ -318,25 +382,16 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   </CustomAvatar>
                 )
               ) : (
-                <Badge
-                  overlap='circular'
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  badgeContent={
-                    <Box
-                      component='span'
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        color: `${statusObj[chat.status]}.main`,
-                        backgroundColor: `${statusObj[chat.status]}.main`,
-                        boxShadow: theme =>
-                          `0 0 0 2px ${!activeCondition ? theme.palette.background.paper : theme.palette.common.white}`
-                      }}
-                    />
-                  }
-                >
-                  {chat.avatar ? (
+                // DM peer userId — the participant that isn't the current
+                // user. If the participants array is missing (legacy data /
+                // mid-fetch state) we fall back to no peer id so the badge
+                // simply hides instead of showing a misleading dot.
+                (() => {
+                  const peerUserId = chat.participants?.find(
+                    p => String(p.userId) !== currentUserIdForPresence
+                  )?.userId
+                  const isPeerOnline = Boolean(peerUserId) && onlineUsers.includes(String(peerUserId))
+                  const avatarEl = chat.avatar ? (
                     <MuiAvatar src={chat.avatar} alt={chat.fullName} sx={{ width: 40, height: 40 }} />
                   ) : (
                     <CustomAvatar
@@ -346,8 +401,37 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       {getInitials(chat.fullName)}
                     </CustomAvatar>
-                  )}
-                </Badge>
+                  )
+
+                  // Show the badge ONLY when the peer is actually online
+                  // (matches WhatsApp). Hiding the dot when offline avoids
+                  // the previous always-on dot driven by the static
+                  // `chat.status` default from the adapter.
+                  return isPeerOnline ? (
+                    <Badge
+                      overlap='circular'
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      badgeContent={
+                        <Box
+                          component='span'
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            color: 'success.main',
+                            backgroundColor: 'success.main',
+                            boxShadow: theme =>
+                              `0 0 0 2px ${!activeCondition ? theme.palette.background.paper : theme.palette.common.white}`
+                          }}
+                        />
+                      }
+                    >
+                      {avatarEl}
+                    </Badge>
+                  ) : (
+                    avatarEl
+                  )
+                })()
               )}
             </ListItemAvatar>
 
@@ -372,7 +456,23 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 </Typography>
               }
               secondary={
-                lastMessage ? (
+                // WhatsApp-style: a stored draft for THIS chat overrides
+                // the normal lastMessage preview. Coloured red + bold
+                // "Draft:" prefix so it's immediately distinguishable
+                // from a regular sender prefix.
+                chat.id && store?.drafts?.[String(chat.id)] ? (
+                  <Typography
+                    component='span'
+                    noWrap
+                    variant='body2'
+                    sx={{ display: 'block', color: 'error.main' }}
+                  >
+                    <Box component='span' sx={{ fontWeight: 600 }}>
+                      Draft:{' '}
+                    </Box>
+                    {store.drafts[String(chat.id)]}
+                  </Typography>
+                ) : lastMessage ? (
                   // Tombstone preview — matches WhatsApp's sidebar behavior
                   // when the last message has been deleted-for-everyone.
                   // Renders italic placeholder so it reads distinct from
@@ -623,7 +723,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   onClick={handleComposeOpen}
                   sx={{
                     color: 'customColors.OnSurfaceVariant',
-                    '&:hover': { backgroundColor: 'primary.main', color: 'common.white' }
+                    '&:hover': { backgroundColor: '#1F515B', color: 'common.white' }
                   }}
                   title='New chat'
                 >
@@ -645,7 +745,23 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 value={query}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                 placeholder='Search'
-                sx={{ '& .MuiInputBase-root': { borderRadius: 5 } }}
+                sx={{
+                  '& .MuiInputBase-root': { borderRadius: 5 },
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    }
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position='start'>
