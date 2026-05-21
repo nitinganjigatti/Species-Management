@@ -8,7 +8,6 @@ import { useDispatch } from 'react-redux'
 import type { AppDispatch } from 'src/store'
 import {
   addParticipantsToGroup,
-  leaveGroupChat,
   deleteConversation,
   muteConversation,
   unmuteConversation,
@@ -18,13 +17,24 @@ import {
   removeParticipantFromGroup,
   updateParticipantRoleInGroup,
   uploadGroupIcon,
-  selectChat
+  selectChat,
+  removeChatFromList,
+  addOrReplaceChat,
+  fetchChatsContacts
 } from 'src/store/apps/chat'
 import toast from 'react-hot-toast'
 
 // ** Chat SDK
 import { getChatClientOrNull } from 'src/lib/chat/client'
-import { searchUsers, sdkUserToContact, getUserById } from 'src/lib/chat/api'
+import {
+  searchUsers,
+  sdkUserToContact,
+  getUserById,
+  leaveConversation,
+  leaveAndDeleteConversation,
+  getConversation,
+  sdkConversationToChat
+} from 'src/lib/chat/api'
 import type { User } from 'src/lib/chat/api'
 import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
 
@@ -223,7 +233,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // `ConfirmationDialog` component for visual consistency with the rest of
   // the app (hospital / lab / diet modules use the same pattern).
   type ConfirmAction =
-    | { type: 'leave' }
+    | { type: 'exit' }
+    | { type: 'exitAndDelete' }
     | { type: 'delete' }
     | { type: 'deleteChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
@@ -231,9 +242,24 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const closeConfirm = () => setConfirmAction(null)
 
-  const handleLeaveGroup = () => {
+  // v1.1.3 — "Exit Group" (stay in list as read-only). Different from
+  // legacy `leaveGroupChat` thunk which also removed the row from the
+  // sidebar. New flow: server flips `participants[].isActive = false`,
+  // `participant_left` event mirrors that locally — composer hides via
+  // `canInteract` gate but the chat stays visible / scrollable.
+  const handleExitGroup = () => {
     if (currentGroupId === null) return
-    setConfirmAction({ type: 'leave' })
+    setConfirmAction({ type: 'exit' })
+  }
+
+  // v1.1.3 — "Exit and Delete" (atomic). Server exits AND removes from
+  // caller's conversation list in a single write. We also dispatch
+  // `removeChatFromList` locally so the sidebar updates without waiting
+  // for `conversation_deleted` (server may or may not emit one for this
+  // path — local removal is idempotent with the listener).
+  const handleExitAndDelete = () => {
+    if (currentGroupId === null) return
+    setConfirmAction({ type: 'exitAndDelete' })
   }
 
   const handleDeleteGroup = () => {
@@ -293,8 +319,55 @@ const UserProfileRight = (props: UserProfileRightType) => {
     const chatId = store?.selectedChat?.contact?.id ?? null
     if (chatId === null) return
 
-    if (confirmAction.type === 'leave') {
-      dispatch(leaveGroupChat(chatId))
+    if (confirmAction.type === 'exit') {
+      // v1.1.3 — Exit Group, stays in list as read-only. Direct SDK
+      // call (no Redux thunk) so the legacy `leaveGroupChat` flow stays
+      // untouched. The server emits `participant_left` to OTHER members
+      // but does NOT broadcast it back to the leaver's own socket (the
+      // server removes the leaver from the room before broadcasting),
+      // so the leaver's UI wouldn't refresh from the socket alone.
+      //
+      // Fix: refetch the conversation via REST after the leave API
+      // succeeds — the response carries the updated participants array
+      // with our `isActive=false`. We feed it through the same adapter
+      // + `addOrReplaceChat` reducer that the rest of the app uses, so
+      // the sidebar row, header, and Group info panel all re-render
+      // with the read-only state. No local reducer patching — the
+      // server is the source of truth.
+      if (typeof chatId === 'string') {
+        const idForLeave = chatId
+        const myId = store?.userProfile?.id ?? ''
+        leaveConversation(idForLeave)
+          .then(() => getConversation(idForLeave))
+          .then(conv => {
+            dispatch(addOrReplaceChat(sdkConversationToChat(conv, String(myId))))
+          })
+          .catch(err => {
+            console.error('[chat] exitGroup failed:', err)
+            toast.error('Failed to exit group')
+          })
+      }
+      handleUserProfileRightSidebarToggle()
+    } else if (confirmAction.type === 'exitAndDelete') {
+      // v1.1.3 — atomic Exit + Delete. Server exits AND removes from
+      // caller's conversation list in a single write. We optimistically
+      // drop the row from local state right away so the UI feels snappy,
+      // then refetch the full conversation list from the server as a
+      // safety net — same effect as a page refresh. Refetching a single
+      // conversation isn't viable here (the chat is gone, the GET would
+      // 404), so the list refetch is the correct equivalent.
+      if (typeof chatId === 'string') {
+        const idForRemoval = chatId
+        leaveAndDeleteConversation(idForRemoval)
+          .then(() => {
+            dispatch(removeChatFromList(idForRemoval))
+            dispatch(fetchChatsContacts())
+          })
+          .catch(err => {
+            console.error('[chat] exitAndDelete failed:', err)
+            toast.error('Failed to exit and delete group')
+          })
+      }
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'delete') {
       dispatch(deleteConversation(chatId))
@@ -314,18 +387,27 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const confirmCopy = (() => {
     if (!confirmAction) return null
     switch (confirmAction.type) {
-      case 'leave':
+      case 'exit':
         return {
-          title: `Leave "${chatName}"?`,
-          description: "You won't receive new messages.",
-          confirmText: 'Leave group',
+          title: `Exit "${chatName}"?`,
+          description:
+            "The group will stay in your chat list as read-only — you can scroll history but can't send messages.",
+          confirmText: 'Exit group',
           icon: 'mdi:exit-to-app',
+          iconColor: '#ff3838'
+        }
+      case 'exitAndDelete':
+        return {
+          title: `Exit and delete "${chatName}"?`,
+          description: 'You will exit the group and remove it from your chat list. This cannot be undone.',
+          confirmText: 'Exit and delete',
+          icon: 'mdi:exit-run',
           iconColor: '#ff3838'
         }
       case 'delete':
         return {
           title: `Delete "${chatName}"?`,
-          description: 'This cannot be undone.',
+          description: 'This removes the group from your chat list. Nobody else is affected.',
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
@@ -1089,18 +1171,40 @@ const UserProfileRight = (props: UserProfileRightType) => {
             <Divider sx={{ mx: '5%', mt: 1 }} />
 
             {/* ── Danger zone ── */}
+            {/* v1.1.3 three-tier exit/delete flow:
+                  · Exit Group       → leave, stay in list as read-only
+                  · Exit and Delete  → atomic exit + remove from list
+                  · Delete Group     → admin-only, tears down for everyone
+                Legacy `handleLeaveGroup` / `leaveGroupChat` thunk is no
+                longer wired into the UI but kept in code so any external
+                callers continue to work unchanged. */}
             <List dense sx={{ p: 0, mb: 2 }}>
               {isCurrentUserActive && (
                 <ListItem disablePadding>
-                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleLeaveGroup}>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleExitGroup}>
                     <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
                     <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
-                      Leave group
+                      Exit group
                     </Typography>
                   </ListItemButton>
                 </ListItem>
               )}
-              {isCurrentUserAdmin && (
+              {isCurrentUserActive && (
+                <ListItem disablePadding>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleExitAndDelete}>
+                    <Icon icon='mdi:exit-run' fontSize='1.25rem' />
+                    <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
+                      Exit and delete
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {/* "Delete group" is available ONLY after the user has exited
+                  (server-enforced in v1.1.3 — calling delete on an active
+                  participant returns 400). Removes the row from this user's
+                  list only; nobody else is affected. No admin role needed,
+                  any exited participant can use it. */}
+              {!isCurrentUserActive && (
                 <ListItem disablePadding>
                   <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleDeleteGroup}>
                     <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />

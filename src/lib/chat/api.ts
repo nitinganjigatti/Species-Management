@@ -358,6 +358,17 @@ export function leaveConversation(conversationId: string): Promise<void> {
   return requireClient('leaveConversation').conversations.leave(conversationId)
 }
 
+// v1.1.3 atomic "Exit and Delete" — server exits the group AND removes the
+// conversation from the caller's list in a single write. Distinct from
+// `leaveConversation` (stays in list, read-only) and `deleteConversation`
+// (only valid after the user has already exited). The SDK's `conversations.leave`
+// accepts an optional second boolean for this atomic path; passing `true`
+// opts in. Other callers of `leaveConversation` stay on the single-arg
+// path untouched.
+export function leaveAndDeleteConversation(conversationId: string): Promise<void> {
+  return requireClient('leaveAndDeleteConversation').conversations.leave(conversationId, true)
+}
+
 export function getConversationMembers(conversationId: string): Promise<Participant[]> {
   return requireClient('getConversationMembers').conversations.getMembers(conversationId)
 }
