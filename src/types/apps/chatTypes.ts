@@ -215,6 +215,8 @@ export type ChatsArrType = {
    * the server doesn't surface `lastMessage` for a freshly-created group.
    */
   createdBy?: ChatEntityId
+  /** ISO timestamp when the conversation was created. Mirrors `Conversation.createdAt` from the SDK. */
+  createdAt?: string
   /**
    * v1.1.3 `participant_left` distinguishes self-exit from admin-removal
    * by the presence of `removedBy` on the event payload. When the CURRENT
@@ -427,4 +429,7 @@ export type ChatLogType = {
   // reaction toggles are suppressed. Set by ChatContent when the current
   // user has been removed from / has left a group. Defaults to true.
   canInteract?: boolean
+  // Opens the group info / members panel — wired to handleUserProfileRightSidebarToggle
+  // in ChatContent. Used by the "Add Member" button in the group-created card.
+  onAddMember?: () => void
 }

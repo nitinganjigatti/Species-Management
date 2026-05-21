@@ -235,7 +235,10 @@ const ChatContent = (props: ChatContentType) => {
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: 'action.hover'
+              backgroundColor: 'action.hover',
+              backgroundImage: 'url(/images/chat/chat-backgroud.svg)',
+              backgroundRepeat: 'repeat',
+              backgroundSize: 'auto'
             }}
           >
             <Box
@@ -245,18 +248,19 @@ const ChatContent = (props: ChatContentType) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: theme => `1px solid ${theme.palette.divider}`
+                borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                backgroundColor: 'background.paper'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                 {mdAbove ? null : (
-                  <IconButton onClick={handleLeftSidebarToggle} sx={{ mr: 2 }}>
+                  <IconButton onClick={handleLeftSidebarToggle} sx={{ mr: 2, flexShrink: 0 }}>
                     <Icon icon='mdi:menu' />
                   </IconButton>
                 )}
                 <Box
                   onClick={handleUserProfileRightSidebarToggle}
-                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', minWidth: 0, overflow: 'hidden' }}
                 >
                   {selectedChat.contact.isGroup ? (
                     // Group: prefer the uploaded `iconUrl` (mapped to
@@ -309,13 +313,30 @@ const ChatContent = (props: ChatContentType) => {
                       )}
                     </Badge>
                   )}
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                     <Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
                       {selectedChat.contact.fullName}
                     </Typography>
-                    <Typography variant='body2' sx={{ color: 'text.disabled' }}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.disabled',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
                       {selectedChat.contact.isGroup
-                        ? `${selectedChat.contact.participantIds?.length ?? 0} members`
+                        ? (() => {
+                            const me = String(store.userProfile?.id ?? '')
+                            const active = selectedChat.contact.participants?.filter(p => p.isActive) ?? []
+                            if (!active.length) return `${selectedChat.contact.participantIds?.length ?? 0} members`
+
+                            return active
+                              .sort((a, b) => (String(a.userId) === me ? -1 : String(b.userId) === me ? 1 : 0))
+                              .map(p => (String(p.userId) === me ? 'You' : p.displayName || p.username || 'Unknown'))
+                              .join(', ')
+                          })()
                         : selectedChat.contact.role}
                     </Typography>
                   </Box>
@@ -444,6 +465,7 @@ const ChatContent = (props: ChatContentType) => {
                       requestAnimationFrame(() => setScrollTargetMessageId(messageId))
                     }}
                     canInteract={canInteract}
+                    onAddMember={handleUserProfileRightSidebarToggle}
                   />
                 </>
               )

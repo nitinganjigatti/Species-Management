@@ -409,6 +409,13 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         })
       )
 
+      // System messages signal structural changes (role promoted/demoted,
+      // member added/removed, group renamed). Refresh conversation metadata
+      // so adminIds / participants stay in sync without a page reload.
+      if (raw.content?.type === 'system') {
+        dispatch(fetchChatsContacts())
+      }
+
       const isOpen = selectedChatIdRef.current === raw.conversationId
       if (isOpen) {
         // Mark via socket so the server broadcasts read_receipt to the sender.

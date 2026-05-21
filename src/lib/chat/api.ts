@@ -877,6 +877,7 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     // Creator id — used by the sidebar to resolve the creator's display
     // name from `state.chat.contacts` when no real lastMessage exists.
     createdBy: conv.createdBy,
+    createdAt: conv.createdAt,
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,

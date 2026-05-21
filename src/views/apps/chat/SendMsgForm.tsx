@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent } from 'react'
 
-import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
@@ -24,16 +23,19 @@ import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
-  borderRadius: 8,
+  flexGrow: 1,
+  borderRadius: 24,
   alignItems: 'center',
   boxShadow: theme.shadows[1],
-  padding: theme.spacing(1.25, 4),
+  padding: '12px',
+  paddingRight: '8px',
+  paddingLeft: '20px',
   justifyContent: 'space-between',
   backgroundColor: theme.palette.background.paper
 }))
 
 const Form = styled('form')(({ theme }) => ({
-  padding: theme.spacing(0, 5, 5)
+  padding: theme.spacing(2, 5, 6)
 }))
 
 const PreviewStrip = styled(Box)(({ theme }) => ({
@@ -700,47 +702,52 @@ const SendMsgForm = (props: SendMsgComponentType) => {
         </PreviewStrip>
       )}
 
-      <ChatFormWrapper>
-        {recording ? (
-          // Recording overlay — replaces the text input until the user stops
-          // or cancels. The recorded blob then drops into the pending strip
-          // and the form returns to its normal state.
-          <>
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  bgcolor: 'error.main',
-                  animation: 'msg-rec-pulse 1s ease-in-out infinite',
-                  '@keyframes msg-rec-pulse': {
-                    '0%, 100%': { opacity: 1 },
-                    '50%': { opacity: 0.35 }
-                  }
-                }}
-              />
-              <Typography variant='body2' sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                Recording · {formatElapsed(elapsedMs)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                size='small'
-                aria-label='Cancel recording'
-                onClick={cancelRecording}
-                sx={{ color: 'text.secondary' }}
-              >
-                <Icon icon='mdi:close' fontSize='1.375rem' />
-              </IconButton>
-              <IconButton size='small' aria-label='Stop recording' onClick={stopRecording} sx={{ color: 'error.main' }}>
-                <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
-              </IconButton>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <ChatFormWrapper>
+          {recording ? (
+            // Recording overlay — replaces the text input until the user stops
+            // or cancels. The recorded blob then drops into the pending strip
+            // and the form returns to its normal state.
+            <>
+              <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    bgcolor: 'error.main',
+                    animation: 'msg-rec-pulse 1s ease-in-out infinite',
+                    '@keyframes msg-rec-pulse': {
+                      '0%, 100%': { opacity: 1 },
+                      '50%': { opacity: 0.35 }
+                    }
+                  }}
+                />
+                <Typography variant='body2' sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  Recording · {formatElapsed(elapsedMs)}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <IconButton
+                  size='small'
+                  aria-label='Cancel recording'
+                  onClick={cancelRecording}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <Icon icon='mdi:close' fontSize='1.375rem' />
+                </IconButton>
+                <IconButton
+                  size='small'
+                  aria-label='Stop recording'
+                  onClick={stopRecording}
+                  sx={{ color: 'error.main' }}
+                >
+                  <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
+                </IconButton>
+              </Box>
+            </>
+          ) : (
+            <>
               <TextField
                 fullWidth
                 value={msg}
@@ -750,17 +757,28 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   setMsg(e.target.value)
                   if (e.target.value.trim()) emitTyping()
                 }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMsg(e as any)
+                  }
+                }}
                 disabled={uploading}
-                sx={{ '& .MuiOutlinedInput-input': { pl: 0 }, '& fieldset': { border: '0 !important' } }}
+                multiline
+                maxRows={4}
+                sx={{
+                  '& .MuiOutlinedInput-input': { pl: 0, fontSize: '0.8125rem' },
+                  '& fieldset': { border: '0 !important' },
+                  '& .MuiInputBase-root': { p: 0, alignItems: 'center', fontSize: '0.8125rem' }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {/* Attachment button — inside the input box, right side */}
               <IconButton
                 size='small'
                 component='label'
                 htmlFor='chat-attachment-input'
                 disabled={uploading || processingFiles}
-                sx={{ mr: 1.5, color: 'text.primary' }}
+                sx={{ ml: 1, flexShrink: 0, color: 'text.secondary' }}
               >
                 {processingFiles ? (
                   <CircularProgress size={18} color='inherit' />
@@ -776,38 +794,62 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   onChange={handleFiles}
                 />
               </IconButton>
-              {hasContent ? (
-                <Button
-                  type='submit'
-                  variant='contained'
-                  disabled={uploading || processingFiles || exceedsAttachmentCap}
-                  startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
-                  sx={{ ml: 1.25 }}
-                  title={
-                    exceedsAttachmentCap
-                      ? `Remove ${pending.length - MAX_FILES_PER_MESSAGE} attachment${
-                          pending.length - MAX_FILES_PER_MESSAGE === 1 ? '' : 's'
-                        } to send (${MAX_FILES_PER_MESSAGE}-file limit per message)`
-                      : undefined
-                  }
-                >
-                  {uploading ? 'Sending…' : 'Send'}
-                </Button>
+            </>
+          )}
+        </ChatFormWrapper>
+
+        {/* Send / mic button — OUTSIDE the input box */}
+        {!recording &&
+          (hasContent ? (
+            <IconButton
+              type='submit'
+              aria-label='Send message'
+              disabled={uploading || processingFiles || exceedsAttachmentCap}
+              title={
+                exceedsAttachmentCap
+                  ? `Remove ${pending.length - MAX_FILES_PER_MESSAGE} attachment${
+                      pending.length - MAX_FILES_PER_MESSAGE === 1 ? '' : 's'
+                    } to send (${MAX_FILES_PER_MESSAGE}-file limit per message)`
+                  : undefined
+              }
+              sx={{
+                flexShrink: 0,
+                width: 42,
+                height: 42,
+                borderRadius: '50%',
+                backgroundColor: 'primary.main',
+                color: 'common.white',
+                transition: 'background-color 0.15s, transform 0.15s',
+                '&:hover': { backgroundColor: 'primary.dark', transform: 'scale(1.06)' },
+                '&:active': { transform: 'scale(0.94)' },
+                '&.Mui-disabled': { backgroundColor: 'action.disabledBackground', color: 'action.disabled' }
+              }}
+            >
+              {uploading ? (
+                <CircularProgress size={18} color='inherit' />
               ) : (
-                <IconButton
-                  size='small'
-                  aria-label='Record voice message'
-                  onClick={startRecording}
-                  disabled={uploading}
-                  sx={{ ml: 1.25, color: 'text.primary' }}
-                >
-                  <Icon icon='mdi:microphone' fontSize='1.375rem' />
-                </IconButton>
+                <Icon icon='mdi:send' fontSize='1.125rem' />
               )}
-            </Box>
-          </>
-        )}
-      </ChatFormWrapper>
+            </IconButton>
+          ) : (
+            <IconButton
+              size='small'
+              aria-label='Record voice message'
+              onClick={startRecording}
+              disabled={uploading}
+              sx={{
+                flexShrink: 0,
+                width: 42,
+                height: 42,
+                color: 'text.secondary',
+                transition: 'color 0.15s',
+                '&:hover': { color: 'primary.main' }
+              }}
+            >
+              <Icon icon='mdi:microphone' fontSize='1.375rem' />
+            </IconButton>
+          ))}
+      </Box>
     </Form>
   )
 }

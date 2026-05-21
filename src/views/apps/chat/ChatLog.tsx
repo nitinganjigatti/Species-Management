@@ -5,8 +5,11 @@ import { useRef, useEffect, useLayoutEffect, useCallback, useState, Ref, MouseEv
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import { styled } from '@mui/material/styles'
+import MuiAvatar from '@mui/material/Avatar'
+import Paper from '@mui/material/Paper'
+import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Redux — for resolving sender identities in group chats. `data.contact`
@@ -98,7 +101,8 @@ const ChatLog = (props: ChatLogType) => {
     scrollTargetMessageId = null,
     onScrollToTargetDone,
     canInteract = true,
-    onJumpToReply
+    onJumpToReply,
+    onAddMember
   } = props
 
   // Sender-resolution map for group chats. The avatar + name shown next to
@@ -574,37 +578,54 @@ const ChatLog = (props: ChatLogType) => {
 
   // ** Renders user chat
   const renderChats = () => {
+    // Track whether we've already injected the group-created card so it only
+    // appears once — right after the first system message in history.
+    let groupCardInjected = false
+
     return formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
-        return item.messages.map((chat, msgIdx) => (
-          <Box
-            key={`sys-${index}-${msgIdx}`}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 4
-            }}
-          >
-            <Typography
-              variant='caption'
-              sx={{
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                backgroundColor: theme => theme.palette.action.hover,
-                color: 'text.secondary',
-                maxWidth: '75%',
-                textAlign: 'center'
-              }}
-            >
-              {chat.msg}
-            </Typography>
-          </Box>
-        ))
+        // Show the group-created card after the "X created group Y" system
+        // message, identified by content — independent of pagination state so
+        // the card stays visible even when more messages load later.
+        const isGroupCreationMsg =
+          !groupCardInjected &&
+          groupCreatedCard !== null &&
+          item.messages.some(m => /created group/i.test(m.msg))
+        if (isGroupCreationMsg) groupCardInjected = true
+
+        // When showing the group-created card, skip the redundant system
+        // message ("X created group Y") — the card conveys the same info.
+        if (isGroupCreationMsg) return <>{groupCreatedCard}</>
+
+        return (
+          <>
+            {item.messages.map((chat, msgIdx) => (
+              <Box
+                key={`sys-${index}-${msgIdx}`}
+                sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
+              >
+                <Typography
+                  variant='caption'
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    backgroundColor: theme => theme.palette.action.hover,
+                    color: 'text.secondary',
+                    maxWidth: '75%',
+                    textAlign: 'center'
+                  }}
+                >
+                  {chat.msg}
+                </Typography>
+              </Box>
+            ))}
+          </>
+        )
       }
 
       // Date separators — same centered pill as system messages, with a
@@ -1287,9 +1308,91 @@ const ChatLog = (props: ChatLogType) => {
     [triggerLoadOlder]
   )
 
-  // Top-of-list status row — spinner while loading, optional "start of
-  // conversation" caption once we've exhausted history. Rendered INSIDE the
-  // scroll container so it participates in scroll geometry.
+  // Top-of-list status row — spinner while loading, or "start of conversation"
+  // marker once history is exhausted. For groups we render a rich card showing
+  // the icon, creator, member count, creation date, and an Add Member button.
+  const groupCreatedCard = (() => {
+    if (!isGroupChat || !data.contact.createdAt) return null
+    const me = String(data.userContact.id ?? '')
+    const isAdmin = (data.contact.adminIds?.map(String) ?? []).includes(me)
+    const creator = String(data.contact.createdBy ?? '')
+    const creatorLabel =
+      creator === me
+        ? 'You created this group'
+        : (() => {
+            const found = data.contact.participants?.find(p => String(p.userId) === creator)
+            const name = found?.displayName || found?.username
+            return name ? `${name} created this group` : 'Group created'
+          })()
+    const memberCount = data.contact.participants?.filter(p => p.isActive).length ?? data.contact.participantIds?.length ?? 0
+    const creationDate = new Date(data.contact.createdAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', px: 4, mb: 4 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 6,
+            py: 5,
+            borderRadius: '8px',
+            backgroundColor: 'background.paper',
+            border: theme => `1px solid ${theme.palette.divider}`,
+            maxWidth: 360,
+            width: '100%'
+          }}
+        >
+          {data.contact.avatar ? (
+            <MuiAvatar src={data.contact.avatar} alt={data.contact.fullName} sx={{ width: 72, height: 72 }} />
+          ) : (
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: theme => `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Icon icon='mdi:account-group' fontSize='2rem' style={{ color: '#fff' }} />
+            </Box>
+          )}
+          <Typography variant='subtitle2' sx={{ fontWeight: 700, textAlign: 'center', color: 'text.primary' }}>
+            {creatorLabel}
+          </Typography>
+          <Typography variant='caption' sx={{ color: 'text.secondary', textAlign: 'center' }}>
+            {memberCount} {memberCount === 1 ? 'member' : 'members'} &bull; Group created on {creationDate}
+          </Typography>
+          {isAdmin && <Button
+            variant='text'
+            startIcon={<Icon icon='mdi:account-plus-outline' />}
+            onClick={onAddMember}
+            sx={{
+              mt: 0.5,
+              width: '100%',
+              borderRadius: 2,
+              backgroundColor: 'customColors.Surface',
+              color: 'primary.main',
+              fontWeight: 600,
+              '&:hover': { backgroundColor: 'customColors.OnBackground' }
+            }}
+          >
+            Add Member
+          </Button>}
+        </Paper>
+      </Box>
+    )
+  })()
+
   const topStatus = (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 24, mb: 2 }}>
       {loadingOlder ? (
