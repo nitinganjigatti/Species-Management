@@ -52,13 +52,13 @@ export const reallocate = async body => {
 }
 
 export const createReviewFlag = async body => {
-  const response = await axiosPost({ url: `${POST_COMPLIANCE_REVIEW_FLAGS}/`, body })
+  const response = await axiosPost({ url: `${POST_COMPLIANCE_REVIEW_FLAGS}`, body })
   return response.data
 }
 
 export const clearReviewFlag = async ({ flag_id, cleared_note }) => {
   const response = await axiosPost({
-    url: `${POST_COMPLIANCE_REVIEW_FLAGS}/${flag_id}/clear/`,
+    url: `${POST_COMPLIANCE_REVIEW_FLAGS}/${flag_id}/clear`,
     body: cleared_note ? { cleared_note } : {}
   })
   return response.data
