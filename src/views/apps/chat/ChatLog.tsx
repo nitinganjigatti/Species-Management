@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useRef, useEffect, useLayoutEffect, useCallback, useState, Ref, MouseEvent, UIEvent } from 'react'
+import { useRef, useEffect, useLayoutEffect, useCallback, useState, Fragment, Ref, MouseEvent, UIEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -599,10 +599,12 @@ const ChatLog = (props: ChatLogType) => {
 
         // When showing the group-created card, skip the redundant system
         // message ("X created group Y") — the card conveys the same info.
-        if (isGroupCreationMsg) return <>{groupCreatedCard}</>
+        // Outer `.map` requires each returned element to carry a key, so
+        // use Fragment with an explicit key instead of a bare `<>`.
+        if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
 
         return (
-          <>
+          <Fragment key={`sys-grp-${index}`}>
             {item.messages.map((chat, msgIdx) => (
               <Box
                 key={`sys-${index}-${msgIdx}`}
@@ -624,7 +626,7 @@ const ChatLog = (props: ChatLogType) => {
                 </Typography>
               </Box>
             ))}
-          </>
+          </Fragment>
         )
       }
 

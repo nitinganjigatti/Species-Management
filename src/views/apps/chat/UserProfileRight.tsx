@@ -408,7 +408,12 @@ const UserProfileRight = (props: UserProfileRightType) => {
       dispatch(deleteConversation(chatId))
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'deleteChat') {
+      // DM "Delete chat" — same SDK thunk as the group "Delete group"
+      // path, just different user-facing copy + a success toast so the
+      // local-only hide doesn't feel silent. Reappear-on-new-message is
+      // handled by the existing `conversation_created` listener.
       dispatch(deleteConversation(chatId))
+      toast.success('Chat deleted')
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
       if (currentGroupId === null) return
@@ -448,9 +453,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
           iconColor: '#ff3838'
         }
       case 'deleteChat':
+        // v1.1.3 — DM delete is local-only (hides from caller's list).
+        // The other person is unaffected; the chat reappears when they
+        // message again via the `conversation_created` socket event.
         return {
           title: `Delete chat with "${chatName}"?`,
-          description: 'This will permanently delete the conversation. This cannot be undone.',
+          description:
+            "This removes the chat from your list. The other person is not affected. If they message you again, the chat will reappear.",
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
@@ -1548,8 +1557,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </>
                 ) : null}
 
-                {/* Delete conversation */}
-                {/* <Box
+                {/* Delete chat — DM only. v1.1.3 semantics: local-only
+                    hide. Server marks the conversation hidden for the
+                    caller; the other person is unaffected. Chat reappears
+                    automatically via `conversation_created` socket event
+                    when the peer sends a new message — listener in
+                    AppChat handles that path. */}
+                <Box
                   onClick={() => setConfirmAction({ type: 'deleteChat' })}
                   sx={{
                     display: 'flex',
@@ -1564,9 +1578,9 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 >
                   <Icon icon='mdi:delete-outline' fontSize='1.25rem' color='customColors.Tertiary' />
                   <Typography variant='body2' sx={{ color: 'customColors.Tertiary', fontWeight: 500 }}>
-                    Delete conversation
+                    Delete chat
                   </Typography>
-                </Box> */}
+                </Box>
               </Box>
             </ScrollWrapper>
           </Box>
