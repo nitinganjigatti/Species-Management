@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent } from 'react'
+import dynamic from 'next/dynamic'
 
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
@@ -8,7 +9,12 @@ import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
+import Popover from '@mui/material/Popover'
 import toast from 'react-hot-toast'
+
+import data from '@emoji-mart/data'
+
+const EmojiPicker = dynamic(() => import('@emoji-mart/react').then(m => m.default ?? m), { ssr: false })
 
 import Icon from 'src/@core/components/icon'
 
@@ -28,10 +34,10 @@ const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   alignItems: 'center',
   boxShadow: theme.shadows[1],
   paddingTop: '8px',
-  paddingRight: '20px',
-  paddingLeft: '20px',
+  paddingRight: '12px',
+  paddingLeft: '12px',
   paddingBottom: '8px',
-  justifyContent: 'space-between',
+  gap: '4px',
   backgroundColor: theme.palette.background.paper
 }))
 
@@ -136,6 +142,28 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [processingFiles, setProcessingFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const textInputRef = useRef<HTMLInputElement | null>(null)
+  const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const emojiOpen = Boolean(emojiAnchorEl)
+
+  const handleEmojiSelect = (emoji: { native: string }) => {
+    const input = textInputRef.current
+    const native = emoji.native
+    if (!input) {
+      setMsg(prev => prev + native)
+
+      return
+    }
+    const start = input.selectionStart ?? msg.length
+    const end = input.selectionEnd ?? msg.length
+    const next = msg.slice(0, start) + native + msg.slice(end)
+    setMsg(next)
+    // Restore cursor after the inserted emoji on next tick
+    requestAnimationFrame(() => {
+      input.focus()
+      const pos = start + native.length
+      input.setSelectionRange(pos, pos)
+    })
+  }
 
   // ── Audio recording ────────────────────────────────────────────────────────
   // Click 🎤 → recording overlay (timer + stop/cancel). Click ⏹ → blob lands
@@ -750,6 +778,15 @@ const SendMsgForm = (props: SendMsgComponentType) => {
             </>
           ) : (
             <>
+              {/* Emoji picker button — left side of input box */}
+              <IconButton
+                size='small'
+                aria-label='Open emoji picker'
+                onClick={e => setEmojiAnchorEl(e.currentTarget)}
+                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
+              >
+                <Icon icon='mdi:emoticon-happy-outline' fontSize='1.375rem' />
+              </IconButton>
               <TextField
                 fullWidth
                 value={msg}
@@ -770,6 +807,9 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 multiline
                 maxRows={4}
                 sx={{
+                  flex: 1,
+                  alignSelf: 'center',
+                  ml: 1,
                   '& .MuiOutlinedInput-input': { pl: 0, fontSize: '0.8125rem' },
                   '& fieldset': { border: '0 !important' },
                   '& .MuiInputBase-root': { p: 0, alignItems: 'center', fontSize: '0.8125rem' }
@@ -781,7 +821,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 component='label'
                 htmlFor='chat-attachment-input'
                 disabled={uploading || processingFiles}
-                sx={{ ml: 1, flexShrink: 0, color: 'text.secondary' }}
+                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
               >
                 {processingFiles ? (
                   <CircularProgress size={18} color='inherit' />
@@ -853,6 +893,25 @@ const SendMsgForm = (props: SendMsgComponentType) => {
             </IconButton>
           ))}
       </Box>
+
+      <Popover
+        open={emojiOpen}
+        anchorEl={emojiAnchorEl}
+        onClose={() => setEmojiAnchorEl(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        PaperProps={{ sx: { boxShadow: 3, borderRadius: 2, overflow: 'hidden' } }}
+      >
+        {emojiOpen && (
+          <EmojiPicker
+            data={data}
+            onEmojiSelect={handleEmojiSelect}
+            theme='light'
+            previewPosition='none'
+            skinTonePosition='none'
+          />
+        )}
+      </Popover>
     </Form>
   )
 }
