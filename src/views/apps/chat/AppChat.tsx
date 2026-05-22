@@ -341,19 +341,17 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
 
   const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
 
-  // Compact mode (FAB panel): restore from Redux/localStorage only, ignore URL changes
-  const compactRestoredRef = useRef(false)
+  // Compact mode (FAB panel): hydrate selectedChat from Redux/localStorage
+  // whenever it's missing — runs on every panel open, on chats arriving
+  // after the ID was already restored, and after anything that clears
+  // selectedChat. URL changes are ignored in compact mode.
   useEffect(() => {
     if (!compact) return
     if (typeof window === 'undefined') return
-    if (compactRestoredRef.current) return
     if (!store?.chats || store.chats.length === 0) return
 
-    // If there's already a selected chat, don't override it
-    if (store?.selectedChat?.contact?.id) {
-      compactRestoredRef.current = true
-      return
-    }
+    // selectedChat already hydrated — nothing to do.
+    if (store?.selectedChat?.contact?.id) return
 
     const savedId = selectedConversationIdFromRedux || localStorage.getItem('selectedChatConversationId')
     if (!savedId) return
@@ -361,82 +359,37 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     const chatToSelect = store.chats.find(c => String(c.id) === String(savedId))
     if (chatToSelect) {
       dispatch(selectChat(chatToSelect.id))
-      compactRestoredRef.current = true
     }
   }, [compact, store?.chats, store?.selectedChat?.contact?.id, selectedConversationIdFromRedux, dispatch])
 
-  // Full page mode: auto-select conversation from URL or first on initial load
-  const lastUrlRef = useRef<string | null>(null)
-  const retryCountRef = useRef(0)
-  const selectedForUrlRef = useRef<string | null>(null)
+  // Full-page mode: hydrate selectedChat whenever it's missing.
+  // Source priority: URL `?conversationId=` → first chat in the list.
+  // No refs / once-only guards — re-runs whenever selectedChat clears so
+  // any path that wipes it (removeChatFromList, race with route cleanup,
+  // etc.) self-heals on the next render. URL → selectedChat sync is the
+  // job of the URL-update effect below, so we don't fight it here when
+  // selectedChat is already set.
   useEffect(() => {
     if (compact) return
     if (typeof window === 'undefined') return
     if (!searchParams) return
+    if (!store?.chats || store.chats.length === 0) return
 
-    let isMounted = true
+    if (store?.selectedChat?.contact?.id) return
 
-    const selectConversation = async () => {
-      const conversationId = searchParams.get('conversationId')
-      const currentUrl = conversationId || ''
+    const conversationId = searchParams.get('conversationId')
+    if (conversationId) {
+      const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
+      if (chatToSelect) {
+        dispatch(selectChat(chatToSelect.id))
 
-      if (lastUrlRef.current === currentUrl) return
-      lastUrlRef.current = currentUrl
-      retryCountRef.current = 0
-
-      if (store?.chats === null) {
-        const timer = setTimeout(() => {
-          if (isMounted) {
-            retryCountRef.current++
-            if (retryCountRef.current < 10) lastUrlRef.current = null
-          }
-        }, 500)
-        return () => clearTimeout(timer)
-      }
-
-      if (!store?.chats || store.chats.length === 0) return
-
-      if (conversationId) {
-        if (selectedForUrlRef.current === conversationId) return
-        if (String(store?.selectedChat?.contact?.id) === String(conversationId)) {
-          selectedForUrlRef.current = conversationId
-          return
-        }
-
-        const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
-        if (chatToSelect) {
-          selectedForUrlRef.current = conversationId
-          lastUrlRef.current = currentUrl
-          if (isMounted) {
-            // Await selectChat so getLastRead completes before rendering
-            await dispatch(selectChat(chatToSelect.id))
-          }
-          return
-        } else {
-          if (retryCountRef.current < 5) {
-            const timer = setTimeout(() => {
-              if (isMounted) {
-                retryCountRef.current++
-                lastUrlRef.current = null
-              }
-            }, 500)
-            return () => clearTimeout(timer)
-          }
-        }
-      }
-
-      const first = store.chats?.[0]
-      if (first && isMounted) {
-        await dispatch(selectChat(first.id))
+        return
       }
     }
 
-    selectConversation()
-
-    return () => {
-      isMounted = false
-    }
-  }, [compact, !!store?.chats, searchParams, dispatch])
+    const first = store.chats[0]
+    if (first) dispatch(selectChat(first.id))
+  }, [compact, store?.chats, store?.selectedChat?.contact?.id, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -466,7 +419,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       String(currentConversationId) !== urlConversationId
     ) {
       prevConversationIdRef.current = currentConversationId
-      if (!compact) {
+      if (!compact && !isFullscreen) {
         router.replace(`/chat?conversationId=${currentConversationId}`)
       }
     } else {

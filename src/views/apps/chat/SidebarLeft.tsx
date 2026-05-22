@@ -88,11 +88,6 @@ import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/app
 // `user_offline` socket events inside the SDK. We just subscribe.
 import { useChatStore } from '@antzsoft/chat-core'
 
-// ** Server-side conversation search (v1.1.3) — uses MongoDB text index
-// on name + description, finds broader matches than the previous local
-// `fullName.includes(query)` filter.
-import { listConversations, sdkConversationToChat } from 'src/lib/chat/api'
-
 const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: boolean }) => {
   if (hidden) {
     return <Box sx={{ height: '100%', overflow: 'auto' }}>{children}</Box>
@@ -159,48 +154,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   // don't trigger a re-render of every chat row.
   const onlineUsers = useChatStore(s => s.onlineUsers)
   const currentUserIdForPresence = String(store?.userProfile?.id ?? '')
-
-  // Server-side search state. Lives ONLY for the lifetime of a non-empty
-  // query — when the user clears the search input we fall back to the
-  // Redux `store.chats` source so all the live socket-driven updates
-  // (new message, read receipts, etc.) keep flowing through the normal
-  // path. Local state on purpose: we don't want to overwrite the cached
-  // full conversation list with a filtered subset.
-  const [searchResults, setSearchResults] = useState<ChatsArrType[] | null>(null)
-  const [searching, setSearching] = useState<boolean>(false)
-
-  // Debounced server search. 300ms idle — matches what we use for
-  // message search in ChatContent. Empty query clears local state and
-  // falls back to the client-side filter on `store.chats`.
-  useEffect(() => {
-    const q = query.trim()
-    if (!q) {
-      setSearchResults(null)
-      setSearching(false)
-
-      return
-    }
-    setSearching(true)
-    const timer = setTimeout(() => {
-      const me = String(store?.userProfile?.id ?? '')
-      listConversations({ search: q })
-        .then(res => {
-          const data = (res?.data ?? []) as Parameters<typeof sdkConversationToChat>[0][]
-          setSearchResults(data.map(c => sdkConversationToChat(c, me)))
-        })
-        .catch(err => {
-          console.warn('[chat:search] listConversations failed:', err)
-          // Render an empty array rather than null so the "No Chats
-          // Found" empty state shows instead of falling back to the
-          // full unfiltered list — matches WhatsApp's behavior.
-          setSearchResults([])
-        })
-        .finally(() => setSearching(false))
-    }, 300)
-
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query])
 
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
@@ -283,18 +236,19 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
-    // Source list:
-    //   • query non-empty + server results received → use those
-    //     (server already applied text-index search across name +
-    //     description; broader than the previous local substring)
-    //   • otherwise → full Redux list (today's path)
-    // Tabs (Unread / Groups / etc.) still filter client-side on top of
-    // whichever source we picked, so the search behavior composes
-    // naturally with the existing tab UI.
-    const baseList: ChatsArrType[] | null =
-      query.trim().length && searchResults !== null ? searchResults : store?.chats ?? null
-    if (!baseList) return []
-    let list = baseList
+    if (!store?.chats) return []
+    let list: ChatsArrType[] = store.chats
+
+    // Search filter — match against name + description, case-insensitive.
+    const q = query.trim().toLowerCase()
+    if (q) {
+      list = list.filter(c => {
+        const name = (c.fullName ?? '').toLowerCase()
+        const desc = (c.description ?? '').toLowerCase()
+
+        return name.includes(q) || desc.includes(q)
+      })
+    }
 
     // Tab filter
     if (activeFilter === 'unread') {
@@ -690,7 +644,15 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   ? formatDateToMonthShort(lastMessage.time as string, true)
                   : ''}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  mt: 0.5,
+                  ...(activeCondition && { color: 'common.white' })
+                }}
+              >
                 {chat.isMuted === true ? (
                   <Icon
                     icon='mdi:bell-off-outline'

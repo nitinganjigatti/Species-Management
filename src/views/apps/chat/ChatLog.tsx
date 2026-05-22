@@ -1634,7 +1634,7 @@ const ChatLog = (props: ChatLogType) => {
             position: 'absolute',
             bottom: 16,
             right: 16,
-            zIndex: 10,
+            zIndex: 5,
             width: 36,
             height: 36,
             borderRadius: '50%',
