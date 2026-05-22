@@ -43,7 +43,7 @@ import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
 // so forwarded attachment-only messages route to the attachment-only
 // render path (with its own actions menu + reaction picker) and pick up
 // the <ForwardedTag /> next to the attachment column.
-import { isForwarded, hasDisplayableText } from 'src/lib/chat/forwardMarker'
+import { isForwarded, hasDisplayableText, stripForwardMarker } from 'src/lib/chat/forwardMarker'
 
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
@@ -1019,7 +1019,7 @@ const ChatLog = (props: ChatLogType) => {
                         the same as on text bubbles. Mixed (text + attachments) messages
                         keep their actions inside MessageBubble below — one menu per
                         message, not per attachment. */}
-                    {chat.attachments?.length && !hasDisplayableText(chat.msg) && !chat.isDeletedForEveryone ? (
+                    {chat.attachments?.length && !chat.isDeletedForEveryone ? (
                       <Box
                         sx={{
                           display: 'flex',
@@ -1086,6 +1086,8 @@ const ChatLog = (props: ChatLogType) => {
                           ) : null}
                           {isForwarded(chat.msg) ? <ForwardedTag isSender={isSender} /> : null}
                           {(() => {
+                            // All images are grouped first as a single grid, then non-image
+                            // attachments (video / audio / document) follow in their original order.
                             const images = chat.attachments.filter(a => a.type === 'image')
                             const others = chat.attachments.filter(a => a.type !== 'image')
                             const imgCount = images.length
@@ -1094,7 +1096,7 @@ const ChatLog = (props: ChatLogType) => {
                               borderTopRightRadius: isSender ? 0 : undefined
                             }
 
-                            const imgCell = (att: any, cellH: number, extraCount = 0) => (
+                            const imgCell = (att: ChatAttachmentType, cellH: number, extraCount = 0) => (
                               <Box
                                 sx={{
                                   position: 'relative',
@@ -1113,6 +1115,9 @@ const ChatLog = (props: ChatLogType) => {
                                   alt={att.filename}
                                   loading='lazy'
                                   draggable={false}
+                                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                    e.currentTarget.style.display = 'none'
+                                  }}
                                   sx={{
                                     width: '100%',
                                     height: cellH,
@@ -1143,36 +1148,44 @@ const ChatLog = (props: ChatLogType) => {
                             const renderImages = () => {
                               if (imgCount === 0) return null
                               if (imgCount <= 2) {
-                                return images.map((att, i) => (
-                                  <Box
-                                    key={att.id}
-                                    sx={{
-                                      boxShadow: 'none',
-                                      borderRadius: 'none',
-                                      overflow: 'hidden',
-                                      cursor: 'zoom-in',
-                                      lineHeight: 0,
-                                      width: '100%'
-                                    }}
-                                    onClick={() => openPreview(att)}
-                                    onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                  >
-                                    <Box
-                                      component='img'
-                                      src={att.thumbnailUrl ?? att.url}
-                                      alt={att.filename}
-                                      loading='lazy'
-                                      draggable={false}
-                                      sx={{
-                                        maxWidth: '100%',
-                                        maxHeight: 280,
-                                        display: 'block',
-                                        userSelect: 'none',
-                                        width: '100%'
-                                      }}
-                                    />
+                                return (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {images.map(att => (
+                                      <Box
+                                        key={att.id}
+                                        sx={{
+                                          boxShadow: 'none',
+                                          borderRadius: 'none',
+                                          overflow: 'hidden',
+                                          cursor: 'zoom-in',
+                                          lineHeight: 0,
+                                          width: '100%'
+                                        }}
+                                        onClick={() => openPreview(att)}
+                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                      >
+                                        <Box
+                                          component='img'
+                                          src={att.thumbnailUrl ?? att.url}
+                                          alt={att.filename}
+                                          loading='lazy'
+                                          draggable={false}
+                                          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                            const wrapper = e.currentTarget.parentElement
+                                            if (wrapper) wrapper.style.display = 'none'
+                                          }}
+                                          sx={{
+                                            maxWidth: '100%',
+                                            maxHeight: 280,
+                                            display: 'block',
+                                            userSelect: 'none',
+                                            width: '100%'
+                                          }}
+                                        />
+                                      </Box>
+                                    ))}
                                   </Box>
-                                ))
+                                )
                               }
                               const MAX_SHOW = 4
                               const visible = images.slice(0, MAX_SHOW)
@@ -1208,7 +1221,7 @@ const ChatLog = (props: ChatLogType) => {
                             }
 
                             return (
-                              <>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 {renderImages()}
                                 {others.map(att => (
                                   <Box
@@ -1295,14 +1308,26 @@ const ChatLog = (props: ChatLogType) => {
                                     )}
                                   </Box>
                                 ))}
-                              </>
+                              </Box>
                             )
                           })()}
-                          {/* Time footer for attachment-only bubbles. Matches the
-                              footer shown on text bubbles + the mixed attachment+text
-                              path so every message carries its send-time. Inherits
-                              the card's `color` so it's white on sender / dark on
-                              incoming without a per-isSender branch. */}
+                          {/* Caption text — shown when the message has both an
+                              attachment and typed text (WhatsApp-style caption). */}
+                          {hasDisplayableText(chat.msg) ? (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: 'inherit',
+                                mt: 1,
+                                wordBreak: 'break-word',
+                                whiteSpace: 'pre-wrap'
+                              }}
+                            >
+                              {stripForwardMarker(chat.msg)}
+                            </Typography>
+                          ) : null}
+                          {/* Time footer. Inherits the card's `color` so it's white
+                              on sender / dark on incoming without a per-isSender branch. */}
                           <Box
                             sx={{
                               display: 'flex',
@@ -1362,278 +1387,7 @@ const ChatLog = (props: ChatLogType) => {
                         {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                       </Box>
                     ) : null}
-                    {/* Mixed (attachments + text) and text-only paths: existing inline
-                        attachments map below + MessageBubble. Skipped when attachment-only. */}
-                    {chat.attachments?.length && (hasDisplayableText(chat.msg) || chat.isDeletedForEveryone)
-                      ? (() => {
-                          const images = chat.attachments.filter(a => a.type === 'image')
-                          const others = chat.attachments.filter(a => a.type !== 'image')
-                          const imgCount = images.length
-                          const bubbleCorners = {
-                            borderTopLeftRadius: !isSender ? 0 : undefined,
-                            borderTopRightRadius: isSender ? 0 : undefined
-                          }
-
-                          const imgCell = (att: any, cellH: number, extraCount = 0) => (
-                            <Box
-                              sx={{
-                                position: 'relative',
-                                overflow: 'hidden',
-                                cursor: 'zoom-in',
-                                lineHeight: 0,
-                                width: '100%',
-                                height: cellH
-                              }}
-                              onClick={() => openPreview(att, images)}
-                              onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                            >
-                              <Box
-                                component='img'
-                                src={att.thumbnailUrl ?? att.url}
-                                alt={att.filename}
-                                loading='lazy'
-                                draggable={false}
-                                sx={{
-                                  width: '100%',
-                                  height: cellH,
-                                  display: 'block',
-                                  objectFit: 'cover',
-                                  userSelect: 'none'
-                                }}
-                              />
-                              {extraCount > 0 && (
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    backgroundColor: 'rgba(0,0,0,0.55)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                >
-                                  <Typography sx={{ color: 'common.white', fontWeight: 700, fontSize: '1.375rem' }}>
-                                    +{extraCount}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          )
-
-                          const renderImages = () => {
-                            if (imgCount === 0) return null
-                            if (imgCount <= 2) {
-                              return images.map((att, i) => (
-                                <Box
-                                  key={att.id}
-                                  sx={{
-                                    boxShadow: 1,
-                                    borderRadius: 1,
-                                    overflow: 'hidden',
-                                    ...(i === 0 ? bubbleCorners : {}),
-                                    cursor: 'zoom-in',
-                                    lineHeight: 0
-                                  }}
-                                  onClick={() => openPreview(att)}
-                                  onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                >
-                                  <Box
-                                    component='img'
-                                    src={att.thumbnailUrl ?? att.url}
-                                    alt={att.filename}
-                                    loading='lazy'
-                                    draggable={false}
-                                    sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none' }}
-                                  />
-                                </Box>
-                              ))
-                            }
-                            const MAX_SHOW = 4
-                            const visible = images.slice(0, MAX_SHOW)
-                            const extra = imgCount > MAX_SHOW ? imgCount - MAX_SHOW : 0
-                            const gridSx = {
-                              boxShadow: 1,
-                              borderRadius: 1,
-                              overflow: 'hidden',
-                              ...bubbleCorners,
-                              width: '100%',
-                              maxWidth: '280px'
-                            }
-                            if (imgCount === 3) {
-                              return (
-                                <Box sx={{ ...gridSx, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                  {imgCell(visible[0], 150)}
-                                  <Box sx={{ display: 'flex', gap: '2px' }}>
-                                    <Box sx={{ flex: 1 }}>{imgCell(visible[1], 130)}</Box>
-                                    <Box sx={{ flex: 1 }}>{imgCell(visible[2], 130)}</Box>
-                                  </Box>
-                                </Box>
-                              )
-                            }
-                            return (
-                              <Box sx={{ ...gridSx, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
-                                {visible.map((att, idx) => (
-                                  <Box key={att.id}>
-                                    {imgCell(att, 138, idx === MAX_SHOW - 1 && extra > 0 ? extra : 0)}
-                                  </Box>
-                                ))}
-                              </Box>
-                            )
-                          }
-
-                          return (
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexDirection: isSender ? 'row-reverse' : 'row',
-                                alignItems: 'center',
-                                gap: 1
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  position: 'relative',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 0,
-                                  maxWidth: '280px',
-                                  backgroundColor: isSender ? '#1F515B' : 'background.paper',
-                                  borderRadius: '8px',
-                                  overflow: 'hidden',
-                                  boxShadow: 1,
-                                  p: theme => theme.spacing(2)
-                                }}
-                              >
-                                {renderImages()}
-                                {others.map((att, idx) => (
-                                  <Box
-                                    key={att.id}
-                                    sx={{
-                                      boxShadow: 'none',
-                                      borderRadius: 0,
-                                      overflow: 'hidden',
-                                      backgroundColor: 'transparent',
-                                      color: isSender ? 'common.white' : 'text.primary',
-                                      borderTop: idx > 0 || imgCount > 0 ? '1px solid' : 'none',
-                                      borderColor: isSender ? 'rgba(255,255,255,0.1)' : 'divider',
-                                      alignSelf:
-                                        att.type === 'audio' || att.type === 'video'
-                                          ? isSender
-                                            ? 'flex-end'
-                                            : 'flex-start'
-                                          : 'auto'
-                                    }}
-                                  >
-                                    {att.type === 'video' ? (
-                                      <Box
-                                        component='video'
-                                        src={att.url}
-                                        controls
-                                        controlsList='nodownload noplaybackrate'
-                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                        sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
-                                        onClick={() => openPreview(att)}
-                                      />
-                                    ) : att.type === 'audio' ? (
-                                      <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
-                                        <Box
-                                          component='audio'
-                                          src={att.url}
-                                          controls
-                                          controlsList='nodownload noplaybackrate'
-                                          onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                          sx={{
-                                            display: 'block',
-                                            width: '100%',
-                                            borderRadius: 1,
-                                            bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                          }}
-                                        />
-                                      </Box>
-                                    ) : (
-                                      (() => {
-                                        const visual = getAttachmentVisual(att.mimeType, att.filename)
-                                        return (
-                                          <Box
-                                            component='a'
-                                            href={att.url}
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                            download={att.filename}
-                                            sx={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 2,
-                                              p: theme => theme.spacing(3, 4),
-                                              color: 'inherit',
-                                              textDecoration: 'none'
-                                            }}
-                                          >
-                                            <Icon
-                                              icon={visual.icon}
-                                              color={isSender ? '#ffffff' : visual.color}
-                                              fontSize='2rem'
-                                            />
-                                            <Box sx={{ minWidth: 0 }}>
-                                              <Typography
-                                                variant='caption'
-                                                sx={{ display: 'block', color: 'inherit' }}
-                                                noWrap
-                                              >
-                                                {att.filename}
-                                              </Typography>
-                                              <Typography
-                                                variant='caption'
-                                                sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
-                                              >
-                                                {(att.size / 1024).toFixed(0)} KB
-                                              </Typography>
-                                            </Box>
-                                          </Box>
-                                        )
-                                      })()
-                                    )}
-                                  </Box>
-                                ))}
-                                {(imgCount > 0 || others.length > 0) && (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 0.5,
-                                      justifyContent: 'flex-end',
-                                      p: theme => theme.spacing(1, 2),
-                                      borderTop: '1px solid',
-                                      borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
-                                      backgroundColor: 'inherit',
-                                      color: 'inherit',
-                                      width: '100%',
-                                      boxSizing: 'border-box'
-                                    }}
-                                  >
-                                    <Typography
-                                      variant='caption'
-                                      sx={{
-                                        fontSize: '0.75rem',
-                                        opacity: 1,
-                                        color: isSender ? 'common.white' : 'text.primary'
-                                      }}
-                                    >
-                                      {new Date(chat.time).toLocaleString('en-US', {
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      })}
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                              {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
-                            </Box>
-                          )
-                        })()
-                      : null}
-                    {hasDisplayableText(chat.msg) || chat.isDeletedForEveryone ? (
+                    {(chat.isDeletedForEveryone || (!chat.attachments?.length && hasDisplayableText(chat.msg))) ? (
                       <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
                         <MessageBubble
                           chat={chat}
