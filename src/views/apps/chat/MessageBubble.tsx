@@ -183,8 +183,9 @@ const MessageBubble = ({
             color: isSender ? 'common.white' : 'text.primary',
             backgroundColor: isSender ? '#1F515B' : 'background.paper',
             ...(isActiveSearchMatch && {
-              outline: theme => `2px solid ${theme.palette.warning.main}`,
-              outlineOffset: '2px'
+              outline: theme => `3px solid ${theme.palette.warning.main}`,
+              outlineOffset: '3px',
+              boxShadow: theme => `0 0 0 6px ${theme.palette.warning.main}33`
             })
           }}
         >
