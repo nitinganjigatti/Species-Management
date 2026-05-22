@@ -360,9 +360,24 @@ const ChatContent = (props: ChatContentType) => {
                         sx={{ width: 40, height: 40, mr: 3.5 }}
                       />
                     ) : (
-                      <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
-                        <Icon icon='mdi:account-group' fontSize='1.25rem' />
-                      </CustomAvatar>
+                      // Teal-gradient circle + white glyph — same visual as the
+                      // group-created card in ChatLog, so the group identity
+                      // reads consistently across sidebar / header / card.
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          mr: 3.5,
+                          borderRadius: '50%',
+                          background: theme =>
+                            `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon icon='mdi:account-group' fontSize='1.25rem' style={{ color: '#fff' }} />
+                      </Box>
                     )
                   ) : (
                     (() => {

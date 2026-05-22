@@ -373,13 +373,23 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 chat.avatar ? (
                   <MuiAvatar src={chat.avatar} alt={chat.fullName} sx={{ width: 40, height: 40 }} />
                 ) : (
-                  <CustomAvatar
-                    color='primary'
-                    skin={activeCondition ? 'light-static' : 'light'}
-                    sx={{ width: 40, height: 40, fontSize: '1.125rem' }}
+                  // Teal-gradient circle + white glyph — same visual as the
+                  // group-created card in ChatLog, so the group identity reads
+                  // consistently across sidebar / header / in-conversation card.
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      background: theme =>
+                        `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   >
-                    <Icon icon='mdi:account-group' fontSize='1.25rem' />
-                  </CustomAvatar>
+                    <Icon icon='mdi:account-group' fontSize='1.25rem' style={{ color: '#fff' }} />
+                  </Box>
                 )
               ) : (
                 // DM peer userId — the participant that isn't the current

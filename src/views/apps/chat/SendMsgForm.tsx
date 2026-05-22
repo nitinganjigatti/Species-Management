@@ -798,7 +798,13 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 component='label'
                 htmlFor='chat-attachment-input'
                 disabled={uploading || processingFiles}
-                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
+                sx={{
+                  flexShrink: 0,
+                  alignSelf: 'center',
+                  color: 'text.secondary',
+                  transition: 'color 0.15s',
+                  '&:hover': { color: 'secondary.main' }
+                }}
               >
                 {processingFiles ? (
                   <CircularProgress size={18} color='inherit' />
@@ -837,10 +843,10 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 width: 42,
                 height: 42,
                 borderRadius: '50%',
-                backgroundColor: 'primary.main',
+                backgroundColor: 'secondary.main',
                 color: 'common.white',
                 transition: 'background-color 0.15s, transform 0.15s',
-                '&:hover': { backgroundColor: 'primary.dark', transform: 'scale(1.06)' },
+                '&:hover': { backgroundColor: 'secondary.dark', transform: 'scale(1.06)' },
                 '&:active': { transform: 'scale(0.94)' },
                 '&.Mui-disabled': { backgroundColor: 'action.disabledBackground', color: 'action.disabled' }
               }}
@@ -848,7 +854,12 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               {uploading ? (
                 <CircularProgress size={18} color='inherit' />
               ) : (
-                <Icon icon='mdi:send' fontSize='1.125rem' />
+                // `mdi:send` is visually asymmetric (arrow tip right, tail
+                // left). A 2px right nudge makes it read centered to the eye
+                // even though the bounding box is already centered by flex.
+                <Box sx={{ display: 'inline-flex', transform: 'translateX(1px)' }}>
+                  <Icon icon='mdi:send' fontSize='1.125rem' />
+                </Box>
               )}
             </IconButton>
           ) : (
@@ -863,7 +874,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 height: 42,
                 color: 'text.secondary',
                 transition: 'color 0.15s',
-                '&:hover': { color: 'primary.main' }
+                '&:hover': { color: 'secondary.main' }
               }}
             >
               <Icon icon='mdi:microphone' fontSize='1.375rem' />

@@ -690,7 +690,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 6,
-                      backgroundColor: 'customColors.Surface'
+                      '& fieldset': {
+                        borderColor: 'secondary.main',
+                        borderWidth: '0.5px',
+                        transition: 'border-color 160ms ease-out, border-width 160ms ease-out'
+                      },
+                      '&:hover fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                      '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' }
                     }
                   }}
                 />
