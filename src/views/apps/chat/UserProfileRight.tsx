@@ -36,6 +36,7 @@ import {
   getAppConfig,
   getUserLastSeen
 } from 'src/lib/chat/api'
+import { formatLastSeen } from 'src/lib/chat/formatLastSeen'
 
 // ** SDK presence store — auto-updates from `user_online` / `user_offline`.
 import { useChatStore } from '@antzsoft/chat-core'
@@ -217,31 +218,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dmPeerIdStr, userProfileRightOpen])
-
-  // Same formatter as ChatContent — duplicated to avoid coupling the
-  // two files. Returns null when ISO is missing/invalid so the caller
-  // can fall back to other copy.
-  const formatLastSeen = (iso?: string): string | null => {
-    if (!iso) return null
-    const seen = new Date(iso)
-    if (Number.isNaN(seen.getTime())) return null
-    const now = new Date()
-    const sameDay =
-      seen.getFullYear() === now.getFullYear() &&
-      seen.getMonth() === now.getMonth() &&
-      seen.getDate() === now.getDate()
-    const yesterday = new Date(now)
-    yesterday.setDate(now.getDate() - 1)
-    const isYesterday =
-      seen.getFullYear() === yesterday.getFullYear() &&
-      seen.getMonth() === yesterday.getMonth() &&
-      seen.getDate() === yesterday.getDate()
-    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    if (sameDay) return `last seen today at ${time}`
-    if (isYesterday) return `last seen yesterday at ${time}`
-
-    return `last seen ${seen.toLocaleDateString()} at ${time}`
-  }
 
   const currentUserId = store?.userProfile?.id ?? 11
   const currentGroupId = store?.selectedChat?.contact?.id ?? null
