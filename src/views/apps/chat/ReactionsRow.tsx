@@ -9,12 +9,9 @@ import Typography from '@mui/material/Typography'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
-// ** SDK — re-emit `add_reaction` for the toggle (server treats it as
-// add-or-remove based on whether the current user is already in the bucket).
-import { addReactionOverSocket } from 'src/lib/chat/api'
-
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
+import toggleSingleReaction from 'src/views/apps/chat/toggleSingleReaction'
 
 interface ReactionsRowProps {
   chat: ChatLogChatType
@@ -37,7 +34,7 @@ const ReactionsRow = ({ chat, isSender, canInteract = true }: ReactionsRowProps)
 
   const handleToggleReaction = (emoji: string) => {
     if (!chat.id || !canInteract) return
-    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
+    toggleSingleReaction({ chat, currentUserId, emoji }).catch((err: unknown) => {
       console.error('[chat] toggle reaction failed:', err)
     })
   }
