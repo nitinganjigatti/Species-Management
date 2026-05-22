@@ -7,6 +7,7 @@ import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth } from '@
 import { useAuth } from 'src/hooks/useAuth'
 import { getChatClient, disposeChatClient } from 'src/lib/chat/client'
 import authConfig from 'src/configs/auth'
+import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
 import type { AntzChatClient, ChatSocket } from 'src/lib/chat/api'
 import { attachSocketLifecycleLogs } from 'src/lib/chat/socketLogger'
 
@@ -154,12 +155,10 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       userId,
       tenantId,
       avatar: { url: avatarUrl },
-      // Mirror the AntzChatClient constructor — without this, the SDK's
-      // pre-socket handshake fetches `${apiUrl}/crypto/pubkey` and falls
-      // back to a relative URL when apiUrl is missing, hitting the dev
-      // server at `/login/undefined/crypto/pubkey` (404). Must also match
-      // the server's TRANSIT_ENCRYPTION_ENABLED flag.
-      transitEncryption: false
+      // Single source of truth: src/configs/chat.ts (same constant used by
+      // the REST client in lib/chat/client.ts — keeps the two surfaces in
+      // sync, MUST match the server's TRANSIT_ENCRYPTION_ENABLED).
+      transitEncryption: CHAT_TRANSIT_ENCRYPTION
     } as Parameters<typeof connectSocket>[0]
 
     // SDK's `connectSocket` is async — it does `fetchServerKeys` BEFORE

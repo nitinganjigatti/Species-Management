@@ -1,6 +1,7 @@
 'use client'
 
 import { AntzChatClient, type AntzChatConfig } from '@antzsoft/chat-core'
+import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
 
 let _client: AntzChatClient | null = null
 
@@ -61,15 +62,10 @@ export function getChatClient(opts: GetChatClientOpts): AntzChatClient {
     userId: opts.userId,
     tenantId: opts.tenantId,
     avatar: opts.avatar,
-    // SDK defaults `transitEncryption: true` (ECDH + AES-256-GCM on every
-    // HTTP body and socket event). The deployed server doesn't have
-    // `TRANSIT_ENCRYPTION_ENABLED=true`, so the handshake fails and the
-    // socket is never registered — `getSocket()` then throws
-    // `"Socket not initialized. Call connectSocket first."` on the next
-    // line in useChatClient. Forcing false matches the server config.
-    // Flip back to true (or remove) once the server enables transit
-    // encryption.
-    transitEncryption: false
+    // Single source of truth: src/configs/chat.ts (same constant used by
+    // the socket handshake in ChatClientContext.tsx — keeps the two
+    // surfaces in sync, MUST match the server's TRANSIT_ENCRYPTION_ENABLED).
+    transitEncryption: CHAT_TRANSIT_ENCRYPTION
   })
 
   return _client
