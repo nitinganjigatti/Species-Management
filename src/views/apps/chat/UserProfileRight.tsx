@@ -77,6 +77,16 @@ import MediaLinksDocsDrawer from 'src/views/apps/chat/MediaLinksDocsDrawer'
 import GroupIconEditor from 'src/views/apps/chat/GroupIconEditor'
 import StarredMessagesDrawer from 'src/views/apps/chat/StarredMessagesDrawer'
 
+// First letter of first word + first letter of last word (e.g. "Test Group Message" → "TM")
+const getAvatarInitials = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return ''
+  const first = words[0][0] ?? ''
+  const last = words.length > 1 ? words[words.length - 1][0] ?? '' : ''
+
+  return (first + last).toUpperCase()
+}
+
 const UserProfileRight = (props: UserProfileRightType) => {
   const {
     store,
@@ -720,7 +730,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                                     color={c.avatarColor}
                                     sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
                                   >
-                                    {getInitials(c.fullName)}
+                                    {getAvatarInitials(c.fullName)}
                                   </CustomAvatar>
                                 )}
                                 {isSelected && (
@@ -845,7 +855,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   isAdmin={isCurrentUserAdmin}
                   currentUserId={store.userProfile?.id ?? ''}
                   size={90}
-                  getInitials={getInitials}
+                  getInitials={getAvatarInitials}
                 />
               </Box>
 
@@ -1190,7 +1200,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                             color={m.avatarColor}
                             sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
                           >
-                            {getInitials(m.fullName)}
+                            {getAvatarInitials(m.fullName)}
                           </CustomAvatar>
                         )}
                       </Box>
@@ -1335,7 +1345,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   color={store.selectedChat.contact.avatarColor}
                   sx={{ width: 96, height: 96, fontSize: '2rem' }}
                 >
-                  {getInitials(store.selectedChat.contact.fullName)}
+                  {getAvatarInitials(store.selectedChat.contact.fullName)}
                 </CustomAvatar>
               )}
             </Badge>
@@ -1545,7 +1555,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                               color={group.avatarColor}
                               sx={{ width: 42, height: 42, fontSize: '0.875rem', flexShrink: 0 }}
                             >
-                              {getInitials(group.fullName)}
+                              {getAvatarInitials(group.fullName)}
                             </CustomAvatar>
                           )}
                           <Box sx={{ minWidth: 0 }}>
