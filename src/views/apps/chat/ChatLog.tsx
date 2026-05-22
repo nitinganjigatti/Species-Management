@@ -1313,6 +1313,16 @@ const ChatLog = (props: ChatLogType) => {
                               color: 'inherit'
                             }}
                           >
+                            {chat.isPinned ? (
+                              <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
+                                <Icon icon='mdi:pin' fontSize='0.875rem' />
+                              </Box>
+                            ) : null}
+                            {chat.isStarred ? (
+                              <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
+                                <Icon icon='mdi:star' fontSize='0.875rem' />
+                              </Box>
+                            ) : null}
                             <Typography
                               variant='caption'
                               sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}
