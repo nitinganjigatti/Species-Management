@@ -495,7 +495,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       sx={{
                         display: 'block',
                         fontStyle: 'italic',
-                        ...(!activeCondition && { color: 'text.disabled' })
+                        ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
                       }}
                     >
                       This message was deleted
@@ -508,7 +508,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       sx={{
                         display: 'block',
                         fontStyle: 'italic',
-                        ...(!activeCondition && { color: 'text.disabled' })
+                        ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
                       }}
                     >
                       {lastMessage.message || 'System message'}
@@ -518,7 +518,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       component='span'
                       noWrap
                       variant='body2'
-                      sx={{ display: 'block', ...(!activeCondition && { color: 'text.disabled' }) }}
+                      sx={{ display: 'block', ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
                     >
                       {senderPrefix ? (
                         <Box component='span' sx={{ fontWeight: 600 }}>
@@ -550,7 +550,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         component='span'
                         noWrap
                         variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
                       >
                         {senderPrefix ? (
                           <Box component='span' sx={{ fontWeight: 600 }}>
@@ -573,7 +573,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         component='span'
                         noWrap
                         variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
                       >
                         Attachment
                       </Typography>
@@ -589,7 +589,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     sx={{
                       display: 'block',
                       fontStyle: 'italic',
-                      ...(!activeCondition && { color: 'text.disabled' })
+                      ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
                     }}
                   >
                     {createdByPreview}
@@ -683,15 +683,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           />
         ) : (
           <>
-            {/* Header: avatar + title + compose icon */}
+            {/* Header: avatar + title + compose icon + Search & Filter with Gradient */}
+            <Box
+              sx={{
+                background: 'linear-gradient(to right, #C6FFE5, #7EC9FF99)',
+                mx: -3,
+                px: 3
+              }}
+            >
             <Box
               sx={{
                 px: 4,
                 py: 3.5,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: theme => `1px solid ${theme.palette.divider}`
+                justifyContent: 'space-between'
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -758,9 +764,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 sx={{
                   '& .MuiInputBase-root': { borderRadius: 5 },
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'transparent',
+                    backgroundColor: '#FFFFFFB2',
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(76, 78, 100, 0.38) !important',
+                      borderColor: 'transparent !important',
                       borderWidth: '1px !important',
                       transition: 'border-color 160ms ease-out'
                     },
@@ -769,21 +775,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       borderWidth: '1px !important'
                     },
                     '&:hover': {
-                      backgroundColor: 'rgba(0, 174, 164, 0.08) !important'
+                      backgroundColor: '#FFFFFFB2 !important'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#00ABAB !important',
                       borderWidth: '1px !important'
                     },
                     '&.Mui-focused': {
-                      backgroundColor: 'rgba(0, 174, 164, 0.08) !important'
+                      backgroundColor: '#FFFFFFB2 !important'
                     }
                   }
                 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position='start'>
-                      <Icon icon='mdi:magnify' fontSize='1.125rem' />
+                      <Icon icon='mdi:magnify' fontSize='1.125rem' color='customColors.OnSurfaceVariant' />
                     </InputAdornment>
                   )
                 }}
@@ -812,6 +818,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   onClick={() => handleFilterChange(tab.value)}
                 />
               ))}
+            </Box>
             </Box>
 
             {/* Chat list */}

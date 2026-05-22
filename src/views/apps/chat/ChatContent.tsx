@@ -446,10 +446,11 @@ const ChatContent = (props: ChatContentType) => {
                       sx={{
                         maxWidth: 480,
                         fontSize: '12px',
+                        lineHeight: 'normal',
                         color:
                           !selectedChat.contact.isGroup && peerUserId && onlineUsers.includes(peerUserId)
                             ? 'success.main'
-                            : 'text.disabled'
+                            : '#44544A'
                       }}
                     >
                       {selectedChat.contact.isGroup
@@ -487,10 +488,10 @@ const ChatContent = (props: ChatContentType) => {
                 {/* Call & video call hidden — re-enable when needed */}
                 {/* {mdAbove ? (
                   <Fragment>
-                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    <IconButton size='small' sx={{ color: '#44544A', lineHeight: 'normal' }}>
                       <Icon icon='mdi:phone-outline' />
                     </IconButton>
-                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    <IconButton size='small' sx={{ color: '#44544A', lineHeight: 'normal' }}>
                       <Icon icon='mdi:video-outline' fontSize='1.5rem' />
                     </IconButton>
                   </Fragment>
@@ -500,7 +501,7 @@ const ChatContent = (props: ChatContentType) => {
                     even though messages search is just as useful there). */}
                 <IconButton
                   size='small'
-                  sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
+                  sx={{ color: searchOpen ? 'primary.main' : '#44544A' }}
                   onClick={handleSearchToggle}
                 >
                   <Icon icon='mdi:magnify' />
@@ -509,7 +510,7 @@ const ChatContent = (props: ChatContentType) => {
                 {onToggleFullscreen && (
                   <IconButton
                     size='small'
-                    sx={{ color: 'text.secondary' }}
+                    sx={{ color: '#44544A', lineHeight: 'normal' }}
                     onClick={onToggleFullscreen}
                     title={isFullscreen ? 'Minimize' : 'Maximize'}
                   >
@@ -521,7 +522,7 @@ const ChatContent = (props: ChatContentType) => {
                 {/* <OptionsMenu
                   menuProps={{ sx: { mt: 2 } }}
                   icon={<Icon icon='mdi:dots-vertical' fontSize='1.25rem' />}
-                  iconButtonProps={{ size: 'small', sx: { color: 'text.secondary' } }}
+                  iconButtonProps={{ size: 'small', sx: { color: '#44544A' } }}
                   options={['View Contact', 'Mute Notifications', 'Block Contact', 'Clear Chat', 'Report']}
                 /> */}
               </Box>
@@ -597,7 +598,7 @@ const ChatContent = (props: ChatContentType) => {
                       width: 6,
                       height: 6,
                       borderRadius: '50%',
-                      backgroundColor: 'text.disabled',
+                      backgroundColor: '#44544A',
                       animation: 'typingBounce 1.4s infinite ease-in-out',
                       '&:nth-of-type(1)': { animationDelay: '0s' },
                       '&:nth-of-type(2)': { animationDelay: '0.2s' },
@@ -613,7 +614,7 @@ const ChatContent = (props: ChatContentType) => {
                   <Box component='span' />
                   <Box component='span' />
                 </Box>
-                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                <Typography variant='caption' sx={{ color: '#44544A', lineHeight: 'normal' }}>
                   {typingUsers.length === 1
                     ? `${typingUsers[0].displayName} is typing`
                     : typingUsers.length === 2
@@ -644,7 +645,7 @@ const ChatContent = (props: ChatContentType) => {
                     user understands why they can't message. Defaults to
                     the generic "no longer a member" copy when removedBy
                     is absent (covers self-exit and legacy/refresh cases). */}
-                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                <Typography variant='caption' sx={{ color: '#44544A', lineHeight: 'normal' }}>
                   {selectedChat.contact.removedBy
                     ? selectedChat.contact.removedByName
                       ? `You were removed from this group by ${selectedChat.contact.removedByName}.`
