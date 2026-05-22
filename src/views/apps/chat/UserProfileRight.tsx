@@ -36,6 +36,7 @@ import {
   getAppConfig,
   getUserLastSeen
 } from 'src/lib/chat/api'
+import { formatLastSeen } from 'src/lib/chat/formatLastSeen'
 
 // ** SDK presence store — auto-updates from `user_online` / `user_offline`.
 import { useChatStore } from '@antzsoft/chat-core'
@@ -218,31 +219,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dmPeerIdStr, userProfileRightOpen])
 
-  // Same formatter as ChatContent — duplicated to avoid coupling the
-  // two files. Returns null when ISO is missing/invalid so the caller
-  // can fall back to other copy.
-  const formatLastSeen = (iso?: string): string | null => {
-    if (!iso) return null
-    const seen = new Date(iso)
-    if (Number.isNaN(seen.getTime())) return null
-    const now = new Date()
-    const sameDay =
-      seen.getFullYear() === now.getFullYear() &&
-      seen.getMonth() === now.getMonth() &&
-      seen.getDate() === now.getDate()
-    const yesterday = new Date(now)
-    yesterday.setDate(now.getDate() - 1)
-    const isYesterday =
-      seen.getFullYear() === yesterday.getFullYear() &&
-      seen.getMonth() === yesterday.getMonth() &&
-      seen.getDate() === yesterday.getDate()
-    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    if (sameDay) return `last seen today at ${time}`
-    if (isYesterday) return `last seen yesterday at ${time}`
-
-    return `last seen ${seen.toLocaleDateString()} at ${time}`
-  }
-
   const currentUserId = store?.userProfile?.id ?? 11
   const currentGroupId = store?.selectedChat?.contact?.id ?? null
   const existingParticipantIds = store?.selectedChat?.contact?.participantIds ?? []
@@ -307,6 +283,26 @@ const UserProfileRight = (props: UserProfileRightType) => {
     setAddQuery('')
     setAddAsAdmin(false)
   }
+
+  // Reset Add-members state when the parent drawer closes — without this,
+  // clicking outside the drawer would close it but `selectedToAdd` and
+  // `addQuery` would stick, so reopening shows stale selections. Also
+  // resets on chat switch so opening Add-members in a different group
+  // doesn't carry over selections from the previous one.
+  useEffect(() => {
+    if (!userProfileRightOpen) {
+      setAddingMembers(false)
+      setSelectedToAdd(new Set())
+      setAddQuery('')
+      setAddAsAdmin(false)
+    }
+  }, [userProfileRightOpen])
+  useEffect(() => {
+    setAddingMembers(false)
+    setSelectedToAdd(new Set())
+    setAddQuery('')
+    setAddAsAdmin(false)
+  }, [contactId])
 
   const confirmAddMembers = () => {
     if (currentGroupId === null || selectedToAdd.size === 0) return
@@ -471,7 +467,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
         return {
           title: `Delete chat with "${chatName}"?`,
           description:
-            "This removes the chat from your list. The other person is not affected. If they message you again, the chat will reappear.",
+            'This removes the chat from your list. The other person is not affected. If they message you again, the chat will reappear.',
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
@@ -657,11 +653,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     px: 1.5,
                     py: 0.25,
                     borderRadius: 10,
-                    backgroundColor: 'customColors.Surface',
+                    backgroundColor: 'customColors.antzSecondaryBg',
                     border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
                   }}
                 >
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'primary.dark' }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'secondary.dark' }}>
                     {selectedToAdd.size} added
                   </Typography>
                 </Box>
@@ -725,7 +721,12 @@ const UserProfileRight = (props: UserProfileRightType) => {
                           <ListItem disablePadding>
                             <ListItemButton
                               onClick={() => toggleAddMember(c.id)}
-                              sx={{ px: 4, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                              sx={{
+                                px: 4,
+                                py: 1.5,
+                                gap: 3,
+                                '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
+                              }}
                             >
                               <Box sx={{ position: 'relative', flexShrink: 0 }}>
                                 {c.avatar ? (
@@ -745,7 +746,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                                       position: 'absolute',
                                       inset: 0,
                                       borderRadius: '50%',
-                                      backgroundColor: 'primary.main',
+                                      backgroundColor: 'secondary.main',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center'
@@ -765,7 +766,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                                   </Typography>
                                 }
                               />
-                              {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='primary.main' />}
+                              {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
                             </ListItemButton>
                           </ListItem>
                           {index < addableContacts.length - 1 && (
@@ -798,6 +799,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   Add as admin
                 </Typography>
                 <Switch
+                  color='secondary'
                   size='small'
                   checked={addAsAdmin}
                   onChange={e => setAddAsAdmin(e.target.checked)}
@@ -817,7 +819,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
               <Button variant='outlined' color='inherit' fullWidth onClick={cancelAddMembers}>
                 Cancel
               </Button>
-              <Button variant='contained' fullWidth disabled={selectedToAdd.size === 0} onClick={confirmAddMembers}>
+              <Button
+                variant='contained'
+                color='secondary'
+                fullWidth
+                disabled={selectedToAdd.size === 0}
+                onClick={confirmAddMembers}
+              >
                 {selectedToAdd.size > 0 ? `Add (${selectedToAdd.size})` : 'Add'}
               </Button>
             </Box>
@@ -894,7 +902,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     }}
                     sx={{
                       '& .MuiInput-root': { fontSize: '1rem', fontWeight: 600 },
-                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' }
+                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
+                      '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                        borderBottomColor: 'customColors.Outline'
+                      },
+                      '& .MuiInput-underline:after': { borderBottomColor: 'secondary.main' }
                     }}
                   />
                   <TextField
@@ -915,7 +927,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     }}
                     sx={{
                       '& .MuiInput-root': { fontSize: '0.875rem' },
-                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' }
+                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
+                      '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                        borderBottomColor: 'customColors.Outline'
+                      },
+                      '& .MuiInput-underline:after': { borderBottomColor: 'secondary.main' }
                     }}
                   />
                   {/* Inline icon actions */}
@@ -937,10 +953,10 @@ const UserProfileRight = (props: UserProfileRightType) => {
                       onClick={saveEditGroup}
                       disabled={!editName.trim()}
                       sx={{
-                        border: theme => `1px solid ${theme.palette.primary.main}`,
+                        border: theme => `1px solid ${theme.palette.secondary.main}`,
                         borderRadius: 2,
-                        color: 'primary.main',
-                        '&:hover': { backgroundColor: 'customColors.Surface' },
+                        color: 'secondary.main',
+                        '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                         '&.Mui-disabled': { opacity: 0.4 }
                       }}
                     >
@@ -961,7 +977,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     {store.selectedChat.contact.fullName}
                   </Typography>
                   {isCurrentUserAdmin && (
-                    <IconButton size='small' onClick={openEditGroup}>
+                    <IconButton size='small' onClick={openEditGroup} sx={{ color: 'secondary.main' }}>
                       <Icon icon='mdi:pencil-outline' fontSize='0.9rem' />
                     </IconButton>
                   )}
@@ -991,7 +1007,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                       <Typography
                         variant='body2'
                         onClick={openEditGroup}
-                        sx={{ color: 'primary.main', cursor: 'pointer' }}
+                        sx={{ color: 'secondary.main', cursor: 'pointer' }}
                       >
                         Add group description
                       </Typography>
@@ -1005,7 +1021,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
               )}
             </Box>
 
-            {/* ── Action buttons: Add / Search ── */}
+            {/* ── Action buttons: Add / Search ──
+                Hidden — duplicates already exposed elsewhere:
+                  • "Add" → Members section header's Add button below
+                  • "Search" → chat header search icon → SearchMessagesDrawer
+                Keep the code for future reference / quick re-enable.
             {!isEditing && (
               <Box sx={{ display: 'flex', gap: 2, px: 4, pb: 3 }}>
                 {isCurrentUserAdmin && (
@@ -1021,7 +1041,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                       borderRadius: 3,
                       border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                       cursor: 'pointer',
-                      '&:hover': { backgroundColor: 'customColors.Surface' },
+                      '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                       transition: 'background-color 150ms'
                     }}
                   >
@@ -1043,7 +1063,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     borderRadius: 3,
                     border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                     cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                     transition: 'background-color 150ms'
                   }}
                 >
@@ -1054,6 +1074,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 </Box>
               </Box>
             )}
+            */}
 
             <Divider sx={{ mx: '5%' }} />
 
@@ -1067,7 +1088,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 px: 5,
                 py: 3,
                 cursor: 'pointer',
-                '&:hover': { backgroundColor: 'customColors.Surface' },
+                '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                 transition: 'background-color 150ms'
               }}
             >
@@ -1088,7 +1109,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 px: 5,
                 py: 3,
                 cursor: 'pointer',
-                '&:hover': { backgroundColor: 'customColors.Surface' },
+                '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                 transition: 'background-color 150ms'
               }}
             >
@@ -1106,6 +1127,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 Mute notifications
               </Typography>
               <Switch
+                color='secondary'
                 size='small'
                 checked={isMuted}
                 onChange={e => {
@@ -1123,6 +1145,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 Pin to top
               </Typography>
               <Switch
+                color='secondary'
                 size='small'
                 checked={isPinned}
                 onChange={e => {
@@ -1160,14 +1183,19 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={openAddMembers}
-                    sx={{ px: 5, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                    sx={{
+                      px: 5,
+                      py: 1.5,
+                      gap: 3,
+                      '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
+                    }}
                   >
                     <Box
                       sx={{
                         width: 42,
                         height: 42,
                         borderRadius: '50%',
-                        backgroundColor: 'primary.main',
+                        backgroundColor: 'secondary.main',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1176,7 +1204,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     >
                       <Icon icon='mdi:account-plus-outline' fontSize='1.25rem' color='white' />
                     </Box>
-                    <Typography variant='body2' sx={{ fontWeight: 500, color: 'primary.main' }}>
+                    <Typography variant='body2' sx={{ fontWeight: 500, color: 'secondary.main' }}>
                       Add member
                     </Typography>
                   </ListItemButton>
@@ -1191,60 +1219,90 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     )
 
                 return (
-                <Box key={m.id}>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      onClick={dmChat ? () => { handleUserProfileRightSidebarToggle(); dispatch(selectChat(dmChat.id)) } : undefined}
-                      sx={{ px: 5, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' }, cursor: dmChat ? 'pointer' : 'default' }}
-                    >
-                      <Box sx={{ flexShrink: 0 }}>
-                        {m.avatar ? (
-                          <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 42, height: 42 }} />
-                        ) : (
-                          <CustomAvatar
-                            skin='light'
-                            color={m.avatarColor}
-                            sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
-                          >
-                            {getAvatarInitials(m.fullName)}
-                          </CustomAvatar>
-                        )}
-                      </Box>
-                      <ListItemText
-                        primary={
-                          <Typography variant='body2' sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
-                            {m.isYou ? 'You' : m.fullName}
-                          </Typography>
+                  <Box key={m.id}>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        onClick={
+                          dmChat
+                            ? () => {
+                                handleUserProfileRightSidebarToggle()
+                                dispatch(selectChat(dmChat.id))
+                              }
+                            : undefined
                         }
-                      />
-                      {m.isAdmin && (
-                        <Box
-                          sx={{
-                            px: 1.5,
-                            py: 0.25,
-                            borderRadius: 9999,
-                            backgroundColor: 'primary.dark',
-                            fontSize: '0.6875rem',
-                            fontWeight: 600,
-                            color: 'common.white',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          Group admin
+                        sx={{
+                          px: 5,
+                          py: 1.5,
+                          gap: 3,
+                          '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
+                          cursor: dmChat ? 'pointer' : 'default'
+                        }}
+                      >
+                        <Box sx={{ flexShrink: 0 }}>
+                          {m.avatar ? (
+                            <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 42, height: 42 }} />
+                          ) : (
+                            <CustomAvatar
+                              skin='light'
+                              color={m.avatarColor}
+                              sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                            >
+                              {getAvatarInitials(m.fullName)}
+                            </CustomAvatar>
+                          )}
                         </Box>
-                      )}
-                      {isCurrentUserAdmin && !m.isYou && (
-                        <IconButton
-                          size='small'
-                          edge='end'
-                          onClick={e => openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })}
-                        >
-                          <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
-                        </IconButton>
-                      )}
-                    </ListItemButton>
-                  </ListItem>
-                </Box>
+                        <ListItemText
+                          primary={
+                            <Typography
+                              variant='body2'
+                              sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}
+                            >
+                              {m.isYou ? 'You' : m.fullName}
+                            </Typography>
+                          }
+                        />
+                        {m.isAdmin && (
+                          <Box
+                            sx={{
+                              px: 1.5,
+                              py: 0.25,
+                              borderRadius: 9999,
+                              backgroundColor: 'secondary.dark',
+                              fontSize: '0.6875rem',
+                              fontWeight: 600,
+                              color: 'common.white',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            Group admin
+                          </Box>
+                        )}
+                        {isCurrentUserAdmin && !m.isYou && (
+                          <IconButton
+                            size='medium'
+                            edge='end'
+                            // Stop the click from bubbling up to the parent
+                            // ListItemButton — without this, the row's onClick
+                            // (open DM) would fire AND the kebab menu would
+                            // open at the same time. `onMouseDown` also stops
+                            // propagation so the ripple/keyboard activate of
+                            // the parent doesn't trip either.
+                            onClick={e => {
+                              e.stopPropagation()
+                              openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })
+                            }}
+                            onMouseDown={e => e.stopPropagation()}
+                            // Bigger hit target so it's harder to miss and
+                            // accidentally tap the row instead — ~44×44 (above
+                            // the WCAG 2.5.5 / Material minimum touch size).
+                            sx={{ p: 2 }}
+                          >
+                            <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
+                          </IconButton>
+                        )}
+                      </ListItemButton>
+                    </ListItem>
+                  </Box>
                 )
               })}
             </List>
@@ -1373,10 +1431,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 cannot be resolved (preserves the existing layout). */}
             {dmPeerIdStr ? (
               presenceOnlineUsers.includes(dmPeerIdStr) ? (
-                <Typography
-                  variant='caption'
-                  sx={{ color: 'success.main', mt: 0.5, fontWeight: 500 }}
-                >
+                <Typography variant='caption' sx={{ color: 'success.main', mt: 0.5, fontWeight: 500 }}>
                   online
                 </Typography>
               ) : formatLastSeen(presenceLastSeenMap[dmPeerIdStr]) ? (
@@ -1436,7 +1491,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     px: 5,
                     py: 4,
                     cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                     transition: 'background-color 150ms'
                   }}
                   onClick={() => setMediaDrawerOpen(true)}
@@ -1458,7 +1513,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     px: 5,
                     py: 4,
                     cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                     transition: 'background-color 150ms'
                   }}
                 >
@@ -1480,6 +1535,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     Mute notifications
                   </Typography>
                   <Switch
+                    color='secondary'
                     size='small'
                     checked={isMuted}
                     onChange={e => {
@@ -1501,6 +1557,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     Pin to top
                   </Typography>
                   <Switch
+                    color='secondary'
                     size='small'
                     checked={isPinned}
                     onChange={e => {
@@ -1545,7 +1602,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                             px: 5,
                             py: 2,
                             cursor: 'pointer',
-                            '&:hover': { backgroundColor: 'customColors.Surface' },
+                            '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
                             transition: 'background-color 150ms'
                           }}
                         >
@@ -1623,7 +1680,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: { minWidth: 180 } } }}
       >
-        <MenuItem onClick={handleToggleRole}>{memberMenuTarget?.isAdmin ? 'Demote to member' : 'Make admin'}</MenuItem>
+        <MenuItem onClick={handleToggleRole}>{memberMenuTarget?.isAdmin ? 'Dismiss as admin' : 'Make admin'}</MenuItem>
         <MenuItem onClick={handleRemoveMember} sx={{ color: 'error.main' }}>
           Remove from group
         </MenuItem>
@@ -1642,7 +1699,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
         ConfirmationText={confirmCopy?.confirmText}
         cancelText='Cancel'
       />
-
     </Sidebar>
   )
 }

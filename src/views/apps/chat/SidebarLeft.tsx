@@ -49,6 +49,38 @@ import ComposePopover from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
+// Mirror of mobile ChatListCard's filename→label/icon helpers.
+// Used to convert raw filenames (e.g. "sample-9s.mp3") from the SDK's
+// contentPreview into friendly labels + MDI icons with primary color.
+const ATTACHMENT_EXT_RE = /\.([^.]+)$/
+
+function filenameToLabel(filename: string): string {
+  const ext = ATTACHMENT_EXT_RE.exec(filename.toLowerCase())?.[1] ?? ''
+  if (['jpeg', 'jpg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp'].includes(ext)) return 'Photo'
+  if (['mp4', '3gp', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'qt', 'm4v'].includes(ext)) return 'Video'
+  if (['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'].includes(ext)) return 'Audio'
+  if (ext === 'pdf') return 'PDF'
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'Spreadsheet'
+  if (['pptx', 'ppt'].includes(ext)) return 'Presentation'
+  if (['docx', 'doc', 'rtf', 'txt'].includes(ext)) return 'Document'
+  return 'Attachment'
+}
+
+function filenameToIcon(filename: string): string {
+  const ext = ATTACHMENT_EXT_RE.exec(filename.toLowerCase())?.[1] ?? ''
+  if (['jpeg', 'jpg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp'].includes(ext)) return 'mdi:image-outline'
+  if (['mp4', '3gp', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'qt', 'm4v'].includes(ext)) return 'mdi:video-outline'
+  if (['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'].includes(ext)) return 'mdi:music-note'
+  if (ext === 'pdf') return 'mdi:file-pdf-box'
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'mdi:file-excel-box'
+  if (['pptx', 'ppt'].includes(ext)) return 'mdi:file-powerpoint-box'
+  if (['docx', 'doc', 'rtf', 'txt'].includes(ext)) return 'mdi:file-word-box'
+  return 'mdi:paperclip'
+}
+
+const FILENAME_STRIP_RE =
+  /\.(?:pdf|docx?|xlsx?|pptx?|csv|rtf|txt|mp[34]|wav|aac|m4a|ogg|flac|3gp|webm|mkv|mov|avi|wmv|qt|m4v|jpe?g|png|gif|webp|heic|heif|bmp|zip|rar|7z|tar|gz)$/i
+
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
 
@@ -239,7 +271,8 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         // Find the PerfectScrollbar container (the .ps div that has overflow)
         let scrollableParent = selectedElement.closest('.ps') as HTMLElement
         if (scrollableParent) {
-          const scrollTop = selectedElement.offsetTop - (scrollableParent.clientHeight / 2) + (selectedElement.clientHeight / 2)
+          const scrollTop =
+            selectedElement.offsetTop - scrollableParent.clientHeight / 2 + selectedElement.clientHeight / 2
           scrollableParent.scrollTop = scrollTop
         } else {
           selectedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -317,7 +350,13 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
     return visibleChats.map((chat: ChatsArrType, index: number) => {
       const { lastMessage } = chat.chat
+      // Detect filenames in the contentPreview (e.g. "sample-9s.mp3", "about pdf - Google Search.pdf").
+      // The SDK stores the filename in content.text which becomes lastMessage.message.
+      // Strip them so the text branch doesn't show raw filenames.
+      const rawMsg = lastMessage?.message ?? ''
+      const isFilename = FILENAME_STRIP_RE.test(rawMsg.trim())
       const activeCondition = selectedChatId ? String(chat.id) === String(selectedChatId) : false
+
       const isGroup = chat.isGroup === true
       const isPinnedChat = chat.isPinned === true
 
@@ -379,7 +418,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       }
 
       return (
-        <ListItem key={`chat-${chat.id}-${index}`} disablePadding data-chat-id={String(chat.id)} sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
+        <ListItem
+          key={`chat-${chat.id}-${index}`}
+          disablePadding
+          data-chat-id={String(chat.id)}
+          sx={{ '&:not(:last-child)': { mb: 1.5 } }}
+        >
           <ListItemButton
             disableRipple
             onClick={() => handleChatClick('chat', chat.id)}
@@ -424,9 +468,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 // mid-fetch state) we fall back to no peer id so the badge
                 // simply hides instead of showing a misleading dot.
                 (() => {
-                  const peerUserId = chat.participants?.find(
-                    p => String(p.userId) !== currentUserIdForPresence
-                  )?.userId
+                  const peerUserId = chat.participants?.find(p => String(p.userId) !== currentUserIdForPresence)?.userId
                   const isPeerOnline = Boolean(peerUserId) && onlineUsers.includes(String(peerUserId))
                   const avatarEl = chat.avatar ? (
                     <MuiAvatar src={chat.avatar} alt={chat.fullName} sx={{ width: 40, height: 40 }} />
@@ -458,7 +500,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                             color: 'success.main',
                             backgroundColor: 'success.main',
                             boxShadow: theme =>
-                              `0 0 0 2px ${!activeCondition ? theme.palette.background.paper : theme.palette.common.white}`
+                              `0 0 0 2px ${
+                                !activeCondition ? theme.palette.background.paper : theme.palette.common.white
+                              }`
                           }}
                         />
                       }
@@ -487,7 +531,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 <Typography
                   component='span'
                   noWrap
-                  sx={{ display: 'block', ...(!activeCondition ? { color: 'customColors.OnPrimaryContainer' } : {}), fontWeight: 600 }}
+                  sx={{
+                    display: 'block',
+                    ...(!activeCondition ? { color: 'customColors.OnPrimaryContainer' } : {}),
+                    fontWeight: 600
+                  }}
                 >
                   {chat.fullName}
                 </Typography>
@@ -498,12 +546,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 // "Draft:" prefix so it's immediately distinguishable
                 // from a regular sender prefix.
                 chat.id && store?.drafts?.[String(chat.id)] ? (
-                  <Typography
-                    component='span'
-                    noWrap
-                    variant='body2'
-                    sx={{ display: 'block', color: 'error.main' }}
-                  >
+                  <Typography component='span' noWrap variant='body2' sx={{ display: 'block', color: 'error.main' }}>
                     <Box component='span' sx={{ fontWeight: 600 }}>
                       Draft:{' '}
                     </Box>
@@ -540,7 +583,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       {lastMessage.message || 'System message'}
                     </Typography>
-                  ) : lastMessage.message ? (
+                  ) : lastMessage.message && !isFilename ? (
                     <Typography
                       component='span'
                       noWrap
@@ -554,57 +597,60 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       ) : null}
                       {lastMessage.message}
                     </Typography>
-                  ) : lastMessage.attachments?.length ? (
-                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                      <Box component='span' sx={{ flexShrink: 0, display: 'inline-flex' }}>
-                        <Icon
-                          icon={
-                            lastMessage.attachments[0].type === 'image'
-                              ? 'mdi:image-outline'
-                              : lastMessage.attachments[0].type === 'video'
-                              ? 'mdi:video-outline'
-                              : lastMessage.attachments[0].type === 'audio'
-                              ? 'mdi:music-note'
-                              : getAttachmentVisual(
-                                  lastMessage.attachments[0].mimeType,
-                                  lastMessage.attachments[0].filename
-                                ).icon
-                          }
-                          fontSize='1rem'
-                        />
-                      </Box>
-                      <Typography
-                        component='span'
-                        noWrap
-                        variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                      >
-                        {senderPrefix ? (
-                          <Box component='span' sx={{ fontWeight: 600 }}>
-                            {senderPrefix}
-                          </Box>
-                        ) : null}
-                        {lastMessage.attachments[0].type === 'image'
+                  ) : lastMessage.attachments?.length || lastMessage.contentType === 'attachment' || isFilename ? (
+                    (() => {
+                      // Derive icon + label from attachment metadata or filename — mirrors mobile ChatListCard logic.
+                      const att = lastMessage.attachments?.[0]
+                      const srcFilename = att?.filename ?? rawMsg
+                      const icon =
+                        att?.type === 'image'
+                          ? 'mdi:image-outline'
+                          : att?.type === 'video'
+                          ? 'mdi:video-outline'
+                          : att?.type === 'audio'
+                          ? 'mdi:music-note'
+                          : filenameToIcon(srcFilename)
+                      const label =
+                        att?.type === 'image'
                           ? 'Photo'
-                          : lastMessage.attachments[0].type === 'video'
+                          : att?.type === 'video'
                           ? 'Video'
-                          : lastMessage.attachments[0].type === 'audio'
+                          : att?.type === 'audio'
                           ? 'Audio'
-                          : lastMessage.attachments[0].filename}
-                      </Typography>
-                    </Box>
-                  ) : lastMessage.contentType === 'attachment' ? (
-                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                      <Icon icon='mdi:attachment' fontSize='1rem' />
-                      <Typography
-                        component='span'
-                        noWrap
-                        variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                      >
-                        Attachment
-                      </Typography>
-                    </Box>
+                          : filenameToLabel(srcFilename)
+
+                      return (
+                        <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          <Box
+                            component='span'
+                            sx={{
+                              flexShrink: 0,
+                              display: 'inline-flex',
+                              color: activeCondition ? 'common.white' : 'primary.main'
+                            }}
+                          >
+                            <Icon icon={icon} fontSize='1rem' />
+                          </Box>
+                          <Typography
+                            component='span'
+                            noWrap
+                            variant='body2'
+                            sx={{
+                              display: 'block',
+                              minWidth: 0,
+                              ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
+                            }}
+                          >
+                            {senderPrefix ? (
+                              <Box component='span' sx={{ fontWeight: 600 }}>
+                                {senderPrefix}
+                              </Box>
+                            ) : null}
+                            {label}
+                          </Typography>
+                        </Box>
+                      )
+                    })()
                   ) : null
                 ) : createdByPreview ? (
                   // No real lastMessage — render the resolved "X created
@@ -718,134 +764,134 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 px: 3
               }}
             >
-            <Box
-              sx={{
-                px: 4,
-                py: 3.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                {store?.userProfile ? (
-                  <Badge
-                    overlap='circular'
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    // Profile drawer is hidden for now — see <UserProfileLeft />
-                    // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
-                    // when the drawer comes back.
-                    badgeContent={
-                      <Box
-                        component='span'
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          color: `${statusObj[userStatus]}.main`,
-                          backgroundColor: `${statusObj[userStatus]}.main`,
-                          boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
-                        }}
-                      />
-                    }
-                  >
-                    <MuiAvatar
-                      src={store.userProfile.avatar}
-                      alt={store.userProfile.fullName}
-                      sx={{ width: 36, height: 36, cursor: 'pointer' }}
-                    />
-                  </Badge>
-                ) : null}
-                <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                  Chats
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <IconButton
-                  onClick={handleComposeOpen}
-                  sx={{
-                    color: 'customColors.OnSurfaceVariant',
-                    '&:hover': { backgroundColor: '#1F515B', color: 'common.white' }
-                  }}
-                  title='New chat'
-                >
-                  <Icon icon='mdi:square-edit-outline' fontSize='1.25rem' />
-                </IconButton>
-                {!mdAbove ? (
-                  <IconButton onClick={handleLeftSidebarToggle}>
-                    <Icon icon='mdi:close' fontSize='1.375rem' />
-                  </IconButton>
-                ) : null}
-              </Box>
-            </Box>
-
-            {/* Search */}
-            <Box sx={{ px: 4, pt: 3, pb: 2 }}>
-              <TextField
-                fullWidth
-                size='small'
-                value={query}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-                placeholder='Search'
+              <Box
                 sx={{
-                  '& .MuiInputBase-root': { borderRadius: 5 },
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#FFFFFFB2',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'transparent !important',
-                      borderWidth: '1px !important',
-                      transition: 'border-color 160ms ease-out'
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00ABAB !important',
-                      borderWidth: '1px !important'
-                    },
-                    '&:hover': {
-                      backgroundColor: '#FFFFFFB2 !important'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00ABAB !important',
-                      borderWidth: '1px !important'
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: '#FFFFFFB2 !important'
-                    }
-                  }
+                  px: 4,
+                  py: 3.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mdi:magnify' fontSize='1.125rem' color='customColors.OnSurfaceVariant' />
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Box>
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  {store?.userProfile ? (
+                    <Badge
+                      overlap='circular'
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      // Profile drawer is hidden for now — see <UserProfileLeft />
+                      // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
+                      // when the drawer comes back.
+                      badgeContent={
+                        <Box
+                          component='span'
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            color: `${statusObj[userStatus]}.main`,
+                            backgroundColor: `${statusObj[userStatus]}.main`,
+                            boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
+                          }}
+                        />
+                      }
+                    >
+                      <MuiAvatar
+                        src={store.userProfile.avatar}
+                        alt={store.userProfile.fullName}
+                        sx={{ width: 36, height: 36, cursor: 'pointer' }}
+                      />
+                    </Badge>
+                  ) : null}
+                  <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    Chats
+                  </Typography>
+                </Box>
 
-            {/* Filter pills */}
-            <Box
-              role='group'
-              aria-label='Filter chats'
-              sx={{
-                px: 4,
-                pb: 3,
-                display: 'flex',
-                gap: 1.5,
-                overflowX: 'auto',
-                '&::-webkit-scrollbar': { display: 'none' },
-                scrollbarWidth: 'none'
-              }}
-            >
-              {FILTER_TABS.map(tab => (
-                <FilterChip
-                  key={tab.value}
-                  label={tab.label}
-                  active={activeFilter === tab.value}
-                  onClick={() => handleFilterChange(tab.value)}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <IconButton
+                    onClick={handleComposeOpen}
+                    sx={{
+                      color: 'customColors.OnSurfaceVariant',
+                      '&:hover': { backgroundColor: '#1F515B', color: 'common.white' }
+                    }}
+                    title='New chat'
+                  >
+                    <Icon icon='mdi:square-edit-outline' fontSize='1.25rem' />
+                  </IconButton>
+                  {!mdAbove ? (
+                    <IconButton onClick={handleLeftSidebarToggle}>
+                      <Icon icon='mdi:close' fontSize='1.375rem' />
+                    </IconButton>
+                  ) : null}
+                </Box>
+              </Box>
+
+              {/* Search */}
+              <Box sx={{ px: 4, pt: 3, pb: 2 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  value={query}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+                  placeholder='Search'
+                  sx={{
+                    '& .MuiInputBase-root': { borderRadius: 5 },
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#FFFFFFB2',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'transparent !important',
+                        borderWidth: '1px !important',
+                        transition: 'border-color 160ms ease-out'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00ABAB !important',
+                        borderWidth: '1px !important'
+                      },
+                      '&:hover': {
+                        backgroundColor: '#FFFFFFB2 !important'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#00ABAB !important',
+                        borderWidth: '1px !important'
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: '#FFFFFFB2 !important'
+                      }
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mdi:magnify' fontSize='1.125rem' color='customColors.OnSurfaceVariant' />
+                      </InputAdornment>
+                    )
+                  }}
                 />
-              ))}
-            </Box>
+              </Box>
+
+              {/* Filter pills */}
+              <Box
+                role='group'
+                aria-label='Filter chats'
+                sx={{
+                  px: 4,
+                  pb: 3,
+                  display: 'flex',
+                  gap: 1.5,
+                  overflowX: 'auto',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  scrollbarWidth: 'none'
+                }}
+              >
+                {FILTER_TABS.map(tab => (
+                  <FilterChip
+                    key={tab.value}
+                    label={tab.label}
+                    active={activeFilter === tab.value}
+                    onClick={() => handleFilterChange(tab.value)}
+                  />
+                ))}
+              </Box>
             </Box>
 
             {/* Chat list */}

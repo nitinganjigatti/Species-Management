@@ -151,23 +151,32 @@ const MessageBubble = ({
   }
 
   return (
+    // Outer column stacks [bubble+picker row] and [reactions row] vertically.
+    // alignItems keeps both children flush to the same edge (left for receiver,
+    // right for sender) so the reactions row never pushes the picker sideways.
     <Box
       sx={{
         position: 'relative',
         display: 'flex',
-        alignItems: 'center',
-        flexDirection: isSender ? 'row-reverse' : 'row',
-        gap: 1,
-        // Reveal the inside-bubble chevron + outside-bubble emoji trigger on
-        // hover (WhatsApp-Web pattern). Both icons use `.msg-actions` and
-        // start at opacity: 0 / pointer-events: none.
+        flexDirection: 'column',
+        alignItems: isSender ? 'flex-end' : 'flex-start',
         '&:hover .msg-actions': {
           opacity: 1,
           pointerEvents: 'auto'
         }
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
+      {/* Inner row: bubble + emoji picker only (ReactionsRow is NOT here).
+          alignItems:center now correctly centers the picker to the bubble
+          height alone — it no longer sees the extra height added by reactions. */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexDirection: isSender ? 'row-reverse' : 'row',
+          gap: 1
+        }}
+      >
         <Box
           data-msg-id={chat.id ?? undefined}
           sx={{
@@ -316,10 +325,10 @@ const MessageBubble = ({
           </Box>
         </Box>
 
-        <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
+        {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
       </Box>
 
-      {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
+      <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
     </Box>
   )
 }

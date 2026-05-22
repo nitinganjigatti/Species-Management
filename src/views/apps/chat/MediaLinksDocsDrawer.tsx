@@ -153,6 +153,8 @@ export default function MediaLinksDocsDrawer({ open, onClose, conversationId }: 
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          textColor='secondary'
+          indicatorColor='secondary'
           sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}`, flexShrink: 0 }}
         >
           <Tab label='Media' sx={{ flex: 1, textTransform: 'none', fontWeight: 500 }} />
@@ -206,7 +208,7 @@ export default function MediaLinksDocsDrawer({ open, onClose, conversationId }: 
                     <Typography
                       variant='caption'
                       onClick={() => fetchMedia(mediaPage + 1)}
-                      sx={{ cursor: 'pointer', color: 'primary.main', fontWeight: 500 }}
+                      sx={{ cursor: 'pointer', color: 'secondary.main', fontWeight: 500 }}
                     >
                       Load more
                     </Typography>
@@ -287,7 +289,7 @@ export default function MediaLinksDocsDrawer({ open, onClose, conversationId }: 
                   <Typography
                     variant='caption'
                     onClick={() => fetchDocs(docPage + 1)}
-                    sx={{ cursor: 'pointer', color: 'primary.main', fontWeight: 500 }}
+                    sx={{ cursor: 'pointer', color: 'secondary.main', fontWeight: 500 }}
                   >
                     Load more
                   </Typography>

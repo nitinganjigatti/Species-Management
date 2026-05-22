@@ -228,6 +228,17 @@ export type ChatsArrType = {
   removedBy?: ChatEntityId
   /** Display name of the admin who removed the current user, when supplied. */
   removedByName?: string
+  /**
+   * WhatsApp-style "draft" DM — the conversation only exists in local
+   * state (no server `Conversation` record yet). Created by
+   * `startDirectChat` when no DM exists yet for the chosen peer. The
+   * `id` field is a `__draft__<userId>` placeholder. `sendMsg` materializes
+   * the conversation by calling `createDirectConversation` on first send
+   * and dispatches `materializeDraft` to swap the local state to a real
+   * server-backed row. If the user navigates away before sending, the
+   * draft just disappears — no server state is ever created.
+   */
+  isDraft?: boolean
 }
 
 export interface CreateGroupPayload {

@@ -62,7 +62,7 @@ import { AnimalProvider } from 'src/context/AnimalContext'
 import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 import { LanguageProvider } from 'src/context/LanguageContext'
 // Global init point for @antzsoft/chat-core
-import ChatBoot from 'src/components/chat/ChatBoot'
+import { ChatClientProvider } from 'src/contexts/ChatClientContext'
 import ChatLauncher from 'src/components/chat/ChatLauncher'
 
 // Redux
@@ -153,36 +153,37 @@ const App = props => {
                         <ForgotPasswordProvider>
                           <AuthProvider>
                             <PushNotificationProvider>
-                              <ChatBoot />
-                              <LanguageProvider>
-                              <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                                <SettingsConsumer>
-                                  {({ settings }) => {
-                                    return (
-                                      <ThemeComponent settings={settings}>
-                                        <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                                          <AclGuard
-                                            aclAbilities={aclAbilities}
-                                            guestGuard={guestGuard}
-                                            authGuard={authGuard}
-                                          >
-                                            {getLayout(<Component {...pageProps} />)}
-                                            <ChatLauncher />
-                                          </AclGuard>
-                                        </Guard>
-                                        <ReactHotToast>
-                                          <Toaster
-                                            position={settings.toastPosition}
-                                            containerClassName='react-hot-toast-container'
-                                            toastOptions={{ className: 'react-hot-toast' }}
-                                          />
-                                        </ReactHotToast>
-                                      </ThemeComponent>
-                                    )
-                                  }}
-                                </SettingsConsumer>
-                              </SettingsProvider>
-                            </LanguageProvider>
+                              <ChatClientProvider>
+                                <LanguageProvider>
+                                <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                                  <SettingsConsumer>
+                                    {({ settings }) => {
+                                      return (
+                                        <ThemeComponent settings={settings}>
+                                          <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                                            <AclGuard
+                                              aclAbilities={aclAbilities}
+                                              guestGuard={guestGuard}
+                                              authGuard={authGuard}
+                                            >
+                                              {getLayout(<Component {...pageProps} />)}
+                                              <ChatLauncher />
+                                            </AclGuard>
+                                          </Guard>
+                                          <ReactHotToast>
+                                            <Toaster
+                                              position={settings.toastPosition}
+                                              containerClassName='react-hot-toast-container'
+                                              toastOptions={{ className: 'react-hot-toast' }}
+                                            />
+                                          </ReactHotToast>
+                                        </ThemeComponent>
+                                      )
+                                    }}
+                                  </SettingsConsumer>
+                                </SettingsProvider>
+                              </LanguageProvider>
+                              </ChatClientProvider>
                             </PushNotificationProvider>
                           </AuthProvider>
                         </ForgotPasswordProvider>

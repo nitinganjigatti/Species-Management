@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
 import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth } from '@antzsoft/chat-core'
 
@@ -10,21 +10,62 @@ import authConfig from 'src/configs/auth'
 import type { AntzChatClient, ChatSocket } from 'src/lib/chat/api'
 import { attachSocketLifecycleLogs } from 'src/lib/chat/socketLogger'
 
-interface UseChatClientResult {
+/**
+ * Single-mount React Context for the `@antzsoft/chat-core` SDK lifecycle.
+ *
+ * Replaces the previous hook-based `useChatClient` pattern. The provider
+ * runs the connect / disconnect effect exactly ONCE (at the app root inside
+ * `providers.tsx` for App Router, `_app.js` for Pages Router), regardless
+ * of how many chat surfaces (`<AppChat>`,
+ * `<ChatLauncher>`, notification badges, etc.) consume the result. This
+ * guarantees a single socket connection and a single REST client across
+ * the whole app, with no risk of duplicate `connectSocket` calls when
+ * additional chat surfaces are added later.
+ *
+ * Reconnection behavior is unchanged from the previous hook implementation:
+ * Socket.IO's built-in auto-reconnect handles network drops; `connect_error`
+ * triggers `refreshSocketAuth()`; the `connected` flag flips back to true
+ * via the SDK's `reconnect` event.
+ *
+ * Consumers call `useChatClient()` to read `{ client, socket, connected, error }`.
+ * Calling `useChatClient()` OUTSIDE a `<ChatClientProvider>` returns a
+ * benign default (`connected: false`, everything null) — no throw — so
+ * components that may render before / outside the provider don't crash.
+ */
+interface ChatClientState {
   client: AntzChatClient | null
   socket: ChatSocket | null
   connected: boolean
   error: Error | null
 }
 
-export function useChatClient(): UseChatClientResult {
+const DEFAULT_STATE: ChatClientState = {
+  client: null,
+  socket: null,
+  connected: false,
+  error: null
+}
+
+const ChatClientContext = createContext<ChatClientState>(DEFAULT_STATE)
+
+interface ChatClientProviderProps {
+  children: ReactNode
+}
+
+export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const auth = useAuth() as any
   const [client, setClient] = useState<AntzChatClient | null>(null)
   const [socket, setSocket] = useState<ChatSocket | null>(null)
   const [connected, setConnected] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
+  // Tenant gate — short-circuit to a passthrough when `ENABLE_CHAT_MODULE`
+  // is off so we don't fetch profile / open a socket / register listeners
+  // for tenants that don't have chat enabled.
+  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
+
   useEffect(() => {
+    if (!enableChatModule) return
     // Accept either `auth.userData.user` (full backend resData) or `auth.user`
     // (the slim user object that `(module)/layout.tsx` already waits for).
     // The WSO2 hydrate path sometimes lands `auth.user` before / without
@@ -178,7 +219,19 @@ export function useChatClient(): UseChatClientResult {
       setSocket(null)
     }
     // Watch BOTH paths — whichever populates first triggers init.
-  }, [auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email])
+  }, [enableChatModule, auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email])
 
-  return { client, socket, connected, error }
+  return (
+    <ChatClientContext.Provider value={{ client, socket, connected, error }}>{children}</ChatClientContext.Provider>
+  )
+}
+
+/**
+ * Read the chat client state from the nearest `<ChatClientProvider>`.
+ * Returns the default benign state when called outside a provider — no
+ * throw, so components that may render before / outside the provider
+ * (e.g., during tenant chat-module-disabled passthrough) don't crash.
+ */
+export function useChatClient(): ChatClientState {
+  return useContext(ChatClientContext)
 }

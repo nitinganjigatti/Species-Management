@@ -711,6 +711,30 @@ const ChatLog = (props: ChatLogType) => {
         return
       }
 
+      // Unread-divider boundary — flush the active group and inject a
+      // synthetic 'unread' separator BEFORE the first-unread bubble.
+      // Emitting at the top level (not nested inside a sender row) lets
+      // the pill span the FULL chat width and center — same pattern as
+      // the date / system separators. Guarded so it fires exactly once
+      // per render even if formattedChatData runs multiple times.
+      if (firstUnreadInfo.id && msg.id === firstUnreadInfo.id) {
+        flushGroup()
+        formattedChatLog.push({
+          senderId: 'unread',
+          messages: [
+            {
+              id: `unread-divider-${firstUnreadInfo.id}`,
+              msg:
+                firstUnreadInfo.count === 1
+                  ? '1 unread message'
+                  : `${firstUnreadInfo.count} unread messages`,
+              time: msg.time,
+              feedback: { isSent: true, isDelivered: false, isSeen: false }
+            }
+          ]
+        })
+      }
+
       if (msgGroup && msgGroup.senderId === msg.senderId) {
         msgGroup.messages.push(entry)
       } else {
@@ -824,43 +848,40 @@ const ChatLog = (props: ChatLogType) => {
     // Track whether we've already injected the group-created card so it only
     // appears once — right after the first system message in history.
     let groupCardInjected = false
-    // Track whether the unread divider has been rendered — `formattedChatData`
-    // groups consecutive messages from the same sender, so multiple groups may
-    // contain unread messages, but the divider should only appear once,
-    // immediately before the first-unread bubble's group.
-    let unreadDividerRendered = false
-
-    // Helper that returns the divider JSX. Centered pill styling reuses the
-    // same tokens as the date / system-message separators so the divider
-    // visually integrates with the existing chat decorations.
-    const renderUnreadDivider = () => (
-      <Box
-        key={`unread-divider-${firstUnreadInfo.id}`}
-        ref={unreadDividerRef}
-        sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
-      >
-        <Typography
-          variant='caption'
-          sx={{
-            px: 3,
-            py: 1,
-            borderRadius: 2,
-            backgroundColor: theme => theme.palette.action.hover,
-            color: 'text.secondary',
-            fontWeight: 600,
-            textAlign: 'center'
-          }}
-        >
-          {firstUnreadInfo.count === 1
-            ? '1 unread message'
-            : `${firstUnreadInfo.count} unread messages`}
-        </Typography>
-      </Box>
-    )
 
     return formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
+      const isUnreadGroup = item.senderId === 'unread'
+
+      // Unread divider — centered pill spanning full chat width. Top-level
+      // group (not nested in a speaker row), so it isn't constrained by
+      // the sender column's 65–75% maxWidth. `formattedChatData` emits
+      // this exactly once at the boundary before the first-unread bubble.
+      if (isUnreadGroup) {
+        return (
+          <Box
+            key={`unread-divider-${firstUnreadInfo.id}`}
+            ref={unreadDividerRef}
+            sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
+          >
+            <Typography
+              variant='caption'
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                backgroundColor: theme => theme.palette.action.hover,
+                color: 'text.secondary',
+                fontWeight: 600,
+                textAlign: 'center'
+              }}
+            >
+              {item.messages[0]?.msg}
+            </Typography>
+          </Box>
+        )
+      }
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
@@ -985,20 +1006,8 @@ const ChatLog = (props: ChatLogType) => {
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
               const isActiveMatch = isMatch && chat.id === activeResultId
 
-              // Inject the unread divider IMMEDIATELY before the first
-              // bubble whose id matches `firstUnreadInfo.id`. Guarded
-              // by `unreadDividerRendered` so it appears exactly once
-              // across the entire render — even though sender-grouping
-              // means this loop sees every message in every group.
-              const showUnreadDivider =
-                !unreadDividerRendered &&
-                firstUnreadInfo.id !== null &&
-                chat.id === firstUnreadInfo.id
-              if (showUnreadDivider) unreadDividerRendered = true
-
               return (
                 <Fragment key={chat.id ?? `msg-${index}`}>
-                  {showUnreadDivider ? renderUnreadDivider() : null}
                 <Box
                   ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
                   data-msg-id={chat.id}
@@ -1517,10 +1526,10 @@ const ChatLog = (props: ChatLogType) => {
                 mt: 0.5,
                 width: '100%',
                 borderRadius: 2,
-                backgroundColor: 'customColors.Surface',
-                color: 'primary.main',
+                backgroundColor: 'customColors.antzSecondaryBg',
+                color: 'secondary.main',
                 fontWeight: 600,
-                '&:hover': { backgroundColor: 'customColors.OnBackground' }
+                '&:hover': { backgroundColor: 'customColors.antzSecondaryBg', filter: 'brightness(0.96)' }
               }}
             >
               Add Member

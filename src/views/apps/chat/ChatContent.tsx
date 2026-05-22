@@ -30,6 +30,7 @@ import AddMembersDrawer from 'src/views/apps/chat/AddMembersDrawer'
 
 // ** Chat API
 import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
+import { formatLastSeen } from 'src/lib/chat/formatLastSeen'
 
 // ** SDK presence store — auto-updates from `user_online` / `user_offline`.
 import { useChatStore } from '@antzsoft/chat-core'
@@ -123,32 +124,6 @@ const ChatContent = (props: ChatContentType) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerUserId])
-
-  // Format a last-seen ISO string into WhatsApp-style copy:
-  //   "last seen today at 14:30"
-  //   "last seen yesterday at 14:30"
-  //   "last seen 12/04/2026 at 14:30"
-  // Returns null when there's no valid date — caller falls back to the
-  // generic contact role label.
-  const formatLastSeen = (iso?: string): string | null => {
-    if (!iso) return null
-    const seen = new Date(iso)
-    if (Number.isNaN(seen.getTime())) return null
-    const now = new Date()
-    const sameDay =
-      seen.getFullYear() === now.getFullYear() && seen.getMonth() === now.getMonth() && seen.getDate() === now.getDate()
-    const yesterday = new Date(now)
-    yesterday.setDate(now.getDate() - 1)
-    const isYesterday =
-      seen.getFullYear() === yesterday.getFullYear() &&
-      seen.getMonth() === yesterday.getMonth() &&
-      seen.getDate() === yesterday.getDate()
-    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    if (sameDay) return `last seen today at ${time}`
-    if (isYesterday) return `last seen yesterday at ${time}`
-
-    return `last seen ${seen.toLocaleDateString()} at ${time}`
-  }
 
   // Debounced API search. Populates BOTH `searchResults` (full rows for
   // the drawer's preview list) and `searchResultIds` (id-only array
