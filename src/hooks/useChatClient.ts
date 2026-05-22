@@ -64,9 +64,7 @@ export function useChatClient(): UseChatClientResult {
     console.log('[chat:gate] initializing with', { userId, tenantId, hasAvatar: Boolean(avatarUrl) })
 
     const getAccessToken = (): string =>
-      typeof window !== 'undefined'
-        ? localStorage.getItem(authConfig.storageTokenKeyName) ?? ''
-        : ''
+      typeof window !== 'undefined' ? localStorage.getItem(authConfig.storageTokenKeyName) ?? '' : ''
     const accessToken = getAccessToken()
 
     // Final safety gate — refuse to connect without a valid access token in
@@ -140,7 +138,10 @@ export function useChatClient(): UseChatClientResult {
       setError(err)
       refreshSocketAuth()
     }
-    const onDisconnect = () => setConnected(false)
+    const onDisconnect = (reason: string) => {
+      console.log('[chat:socket] disconnected —', reason)
+      setConnected(false)
+    }
     const onReconnect = () => setConnected(true)
 
     let s: ChatSocket | null = null

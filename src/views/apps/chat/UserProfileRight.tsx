@@ -193,11 +193,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
       .catch(() => setContactUser(null))
   }, [userProfileRightOpen, contactId, isGroup])
 
-  // Live presence subscription for DM profile. ChatContent already
-  // seeds `lastSeen` when the DM opens; we mirror it here so a deep-link
-  // straight into the profile drawer (without first viewing the chat)
-  // still shows the right "last seen" text. Idempotent: the effect skips
-  // the fetch if the store already has a value.
+  // Live presence subscription for DM profile. `onlineUsers` comes from
+  // the SDK's `user_online` / `user_offline` socket handlers; `lastSeen`
+  // is REST-cold-seeded once per drawer open via `getUserLastSeen` when
+  // the store doesn't yet have a value for the peer (typically after a
+  // page refresh, since the Zustand store is in-memory only).
   const presenceOnlineUsers = useChatStore(s => s.onlineUsers)
   const presenceLastSeenMap = useChatStore(s => s.lastSeen)
   const dmPeerIdStr = dmOtherUserId ? String(dmOtherUserId) : null

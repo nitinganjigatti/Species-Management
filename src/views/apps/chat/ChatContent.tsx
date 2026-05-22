@@ -98,11 +98,15 @@ const ChatContent = (props: ChatContentType) => {
 
     return peer?.userId ? String(peer.userId) : null
   })()
+  // REST cold-seed for `lastSeen` — fires once per DM open when the
+  // Zustand store doesn't yet have a value for the peer (typically after
+  // a page refresh, since the store is in-memory only). Without this
+  // the chat header shows no "last seen" line until peer goes offline
+  // again during this session, because `user_offline` is a transition
+  // event and isn't replayed on socket reconnect (online state IS
+  // pushed by the server on connect, hence the asymmetry).
   useEffect(() => {
     if (!peerUserId) return
-    // Skip if we already have a snapshot — the store auto-refreshes via
-    // `user_offline` events while the socket is connected, so refetching
-    // on every DM re-open would be wasted network.
     if (lastSeenMap[peerUserId]) return
     let cancelled = false
     getUserLastSeen(peerUserId)

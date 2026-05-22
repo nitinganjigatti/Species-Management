@@ -32,7 +32,14 @@ import {
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markReadOverSocket, sdkConversationToChat, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
+import {
+  joinChatRoom,
+  markReadOverSocket,
+  sdkConversationToChat,
+  sdkMessageToMessage,
+  getUserLastSeen,
+  getOnlineUsersOverSocket
+} from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 import toast from 'react-hot-toast'
 // ** Types
@@ -238,17 +245,20 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   }, [chatClient, chatConnected, dispatch])
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
-  // SDK's `useChatStore.onlineUsers` is normally populated by `user_online`
-  // / `user_offline` events as peers come and go — but on a fresh connect
-  // the array starts empty until peers happen to change state. Result:
-  // green dots are absent for already-online peers until they re-connect.
+  // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory
+  // only), and the server doesn't reliably re-push `user_online` events
+  // for already-connected peers on a fresh socket connection. Without a
+  // cold-seed the chat header / sidebar wrongly falls through to the
+  // "last seen" branch even when peer is currently online.
   //
-  // Fix: one shot of `socketEmit.getOnlineUsers([all DM peer ids])` after
-  // socket connect + first chat list load. Merge the response into the
-  // store (don't replace — `user_online` events between connect and the
-  // batch response would otherwise get clobbered). Ref-gated so it fires
-  // exactly once per connection; reset on disconnect so a reconnect re-
-  // seeds with the latest data.
+  // One shot of `socketEmit.getOnlineUsers([all DM peer ids])` on connect
+  // asks the server "who from this list is currently online?" — purely a
+  // socket query, no fabrication. Result is Set-merged into
+  // `useChatStore.onlineUsers` (don't replace — `user_online` events that
+  // arrived during the round-trip mustn't be clobbered).
+  //
+  // Ref-gated so it fires exactly once per connection; reset on
+  // disconnect so a reconnect re-seeds with current data.
   const seededOnlineUsersRef = useRef<boolean>(false)
   useEffect(() => {
     if (!chatConnected) {
@@ -273,17 +283,61 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     getOnlineUsersOverSocket(Array.from(peerIds))
       .then(online => {
         const presenceStore = useChatStore.getState()
-        // Merge instead of replace so any `user_online` events that
-        // arrived during the round-trip aren't dropped.
         const merged = Array.from(new Set([...presenceStore.onlineUsers, ...online]))
         presenceStore.setOnlineUsers(merged)
       })
       .catch(err => {
         console.warn('[chat:presence] getOnlineUsers seed failed:', err)
-        // Allow a retry on the next connect transition.
         seededOnlineUsersRef.current = false
       })
   }, [chatConnected, store?.chats, store?.userProfile?.id])
+
+  // ── Refresh `lastSeen` on every live `user_offline` event ─────────────────
+  // The server's `user_offline` payload currently omits `lastSeenAt`, so the
+  // SDK's `if (e.lastSeenAt) store.setLastSeen(...)` short-circuits and the
+  // UI keeps showing whatever was cached from the earlier cold-seed.
+  //
+  // Workaround: listen to `user_offline` ourselves and refetch via the
+  // existing `getUserLastSeen` REST endpoint — same source of truth the
+  // cold-seed uses, no client-side timestamp fabrication. Server's
+  // authoritative value lands in `useChatStore.lastSeen[userId]` and the
+  // chat header / profile drawer re-render automatically.
+  //
+  // Dedupes the per-room fanout we observed (one `user_offline` per joined
+  // room — same userId, ~80ms apart): swallows duplicates within 1s.
+  const lastOfflineFetchedAtRef = useRef<Record<string, number>>({})
+  useEffect(() => {
+    if (!chatSocket || !chatConnected) return
+
+    const onUserOffline = (evt: { userId: string; lastSeenAt?: string }) => {
+      if (!evt?.userId) return
+      const userId = String(evt.userId)
+      const now = Date.now()
+      const lastAt = lastOfflineFetchedAtRef.current[userId] ?? 0
+      if (now - lastAt < 1000) return
+      lastOfflineFetchedAtRef.current[userId] = now
+
+      // If the server eventually starts sending `lastSeenAt` in the payload,
+      // trust it directly. Otherwise fall back to refetching via REST.
+      if (evt.lastSeenAt) {
+        useChatStore.getState().setLastSeen(userId, evt.lastSeenAt)
+
+        return
+      }
+      getUserLastSeen(userId)
+        .then(res => {
+          if (!res?.lastSeenAt) return
+          useChatStore.getState().setLastSeen(userId, res.lastSeenAt)
+        })
+        .catch(err => console.warn('[chat:presence] live getUserLastSeen failed:', err))
+    }
+
+    chatSocket.on('user_offline', onUserOffline)
+
+    return () => {
+      chatSocket.off('user_offline', onUserOffline)
+    }
+  }, [chatSocket, chatConnected])
 
   const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
 
