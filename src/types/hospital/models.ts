@@ -5,8 +5,10 @@
  * Keep optional fields liberally — backend payloads vary across endpoints.
  */
 
+import { string } from "yup"
 import { HospitalTransferRow } from "../housing/hospitalTransfer"
 import { Dayjs } from "dayjs"
+import Id from "src/pages/pharmacy/request/[id]"
 // ==================== Generic Helpers ====================
 
 export type Id = string | number
@@ -2314,5 +2316,51 @@ export interface SurgeryTemplateAction {
   template_id: Id
 }
 
+// ==================== Media ====================
+
+export interface PatientMediaData {
+  id: Id
+  file: string
+  thumbnail: null
+  file_original_name: string
+  created_at: string
+  user_profile_pic: string
+  user_name: string
+  created_by: Id
+  is_created_for_medical_record: number | string
+  is_for_current_medical_record: number | string
+  download_url: string
+}
+
+export interface UploadPatientMediaData {
+  id: Id
+  file: string
+  url: string
+  file_original_name: string
+  file_type: string
+  notes_type: string
+  created_at: string
+  modified_at: string
+  user_profile: UserProfile
+}
+
+export interface PatientMediaNotes {
+  id: Id
+  medical_record_id: Id
+  hospital_case_id: Id | null
+  medicine_id: Id | null
+  animal_id: Id
+  note: string
+  file_original_name: string | null
+  notes_type: string
+  is_deleted: number | string
+  created_for: string
+  created_by: Id
+  modified_by: Id | null
+  created_at: string
+  modified_at: string
+  name: string
+  date: string
+}
 
 
