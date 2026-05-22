@@ -49,6 +49,37 @@ import ComposePopover from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
+// Mirror of mobile ChatListCard's filename→label/icon helpers.
+// Used to convert raw filenames (e.g. "sample-9s.mp3") from the SDK's
+// contentPreview into friendly labels + MDI icons with primary color.
+const ATTACHMENT_EXT_RE = /\.([^.]+)$/
+
+function filenameToLabel(filename: string): string {
+  const ext = (ATTACHMENT_EXT_RE.exec(filename.toLowerCase())?.[1]) ?? ''
+  if (['jpeg', 'jpg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp'].includes(ext)) return 'Photo'
+  if (['mp4', '3gp', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'qt', 'm4v'].includes(ext)) return 'Video'
+  if (['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'].includes(ext)) return 'Audio'
+  if (ext === 'pdf') return 'PDF'
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'Spreadsheet'
+  if (['pptx', 'ppt'].includes(ext)) return 'Presentation'
+  if (['docx', 'doc', 'rtf', 'txt'].includes(ext)) return 'Document'
+  return 'Attachment'
+}
+
+function filenameToIcon(filename: string): string {
+  const ext = (ATTACHMENT_EXT_RE.exec(filename.toLowerCase())?.[1]) ?? ''
+  if (['jpeg', 'jpg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp'].includes(ext)) return 'mdi:image-outline'
+  if (['mp4', '3gp', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'qt', 'm4v'].includes(ext)) return 'mdi:video-outline'
+  if (['mp3', 'wav', 'aac', 'ogg', 'flac', 'm4a'].includes(ext)) return 'mdi:music-note'
+  if (ext === 'pdf') return 'mdi:file-pdf-box'
+  if (['xlsx', 'xls', 'csv'].includes(ext)) return 'mdi:file-excel-box'
+  if (['pptx', 'ppt'].includes(ext)) return 'mdi:file-powerpoint-box'
+  if (['docx', 'doc', 'rtf', 'txt'].includes(ext)) return 'mdi:file-word-box'
+  return 'mdi:paperclip'
+}
+
+const FILENAME_STRIP_RE = /\.(?:pdf|docx?|xlsx?|pptx?|csv|rtf|txt|mp[34]|wav|aac|m4a|ogg|flac|3gp|webm|mkv|mov|avi|wmv|qt|m4v|jpe?g|png|gif|webp|heic|heif|bmp|zip|rar|7z|tar|gz)$/i
+
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
 
@@ -290,6 +321,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
     return visibleChats.map((chat: ChatsArrType, index: number) => {
       const { lastMessage } = chat.chat
+      // Detect filenames in the contentPreview (e.g. "sample-9s.mp3", "about pdf - Google Search.pdf").
+      // The SDK stores the filename in content.text which becomes lastMessage.message.
+      // Strip them so the text branch doesn't show raw filenames.
+      const rawMsg = lastMessage?.message ?? ''
+      const isFilename = FILENAME_STRIP_RE.test(rawMsg.trim())
       const activeCondition = chat.id === selectedChatId
       const isGroup = chat.isGroup === true
       const isPinnedChat = chat.isPinned === true
@@ -513,7 +549,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       {lastMessage.message || 'System message'}
                     </Typography>
-                  ) : lastMessage.message ? (
+                  ) : lastMessage.message && !isFilename ? (
                     <Typography
                       component='span'
                       noWrap
@@ -527,57 +563,41 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       ) : null}
                       {lastMessage.message}
                     </Typography>
-                  ) : lastMessage.attachments?.length ? (
-                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                      <Box component='span' sx={{ flexShrink: 0, display: 'inline-flex' }}>
-                        <Icon
-                          icon={
-                            lastMessage.attachments[0].type === 'image'
-                              ? 'mdi:image-outline'
-                              : lastMessage.attachments[0].type === 'video'
-                              ? 'mdi:video-outline'
-                              : lastMessage.attachments[0].type === 'audio'
-                              ? 'mdi:music-note'
-                              : getAttachmentVisual(
-                                  lastMessage.attachments[0].mimeType,
-                                  lastMessage.attachments[0].filename
-                                ).icon
-                          }
-                          fontSize='1rem'
-                        />
-                      </Box>
-                      <Typography
-                        component='span'
-                        noWrap
-                        variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                      >
-                        {senderPrefix ? (
-                          <Box component='span' sx={{ fontWeight: 600 }}>
-                            {senderPrefix}
+                  ) : lastMessage.attachments?.length || lastMessage.contentType === 'attachment' || isFilename ? (
+                    (() => {
+                      // Derive icon + label from attachment metadata or filename — mirrors mobile ChatListCard logic.
+                      const att = lastMessage.attachments?.[0]
+                      const srcFilename = att?.filename ?? rawMsg
+                      const icon = att?.type === 'image' ? 'mdi:image-outline'
+                        : att?.type === 'video' ? 'mdi:video-outline'
+                        : att?.type === 'audio' ? 'mdi:music-note'
+                        : filenameToIcon(srcFilename)
+                      const label = att?.type === 'image' ? 'Photo'
+                        : att?.type === 'video' ? 'Video'
+                        : att?.type === 'audio' ? 'Audio'
+                        : filenameToLabel(srcFilename)
+
+                      return (
+                        <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          <Box component='span' sx={{ flexShrink: 0, display: 'inline-flex', color: activeCondition ? 'common.white' : 'primary.main' }}>
+                            <Icon icon={icon} fontSize='1rem' />
                           </Box>
-                        ) : null}
-                        {lastMessage.attachments[0].type === 'image'
-                          ? 'Photo'
-                          : lastMessage.attachments[0].type === 'video'
-                          ? 'Video'
-                          : lastMessage.attachments[0].type === 'audio'
-                          ? 'Audio'
-                          : lastMessage.attachments[0].filename}
-                      </Typography>
-                    </Box>
-                  ) : lastMessage.contentType === 'attachment' ? (
-                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                      <Icon icon='mdi:attachment' fontSize='1rem' />
-                      <Typography
-                        component='span'
-                        noWrap
-                        variant='body2'
-                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                      >
-                        Attachment
-                      </Typography>
-                    </Box>
+                          <Typography
+                            component='span'
+                            noWrap
+                            variant='body2'
+                            sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
+                          >
+                            {senderPrefix ? (
+                              <Box component='span' sx={{ fontWeight: 600 }}>
+                                {senderPrefix}
+                              </Box>
+                            ) : null}
+                            {label}
+                          </Typography>
+                        </Box>
+                      )
+                    })()
                   ) : null
                 ) : createdByPreview ? (
                   // No real lastMessage — render the resolved "X created
