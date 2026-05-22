@@ -915,17 +915,17 @@ export const sendMsg = createAsyncThunk(
     // undefined — the SDK field is optional.
     const attachments = obj.attachments?.length
       ? obj.attachments.map(a => ({
-          fileId: a.id,
-          type: a.type,
-          url: a.url,
-          thumbnailUrl: a.thumbnailUrl,
-          filename: a.filename,
-          mimeType: a.mimeType,
-          size: a.size,
-          ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video')
-            ? { duration: a.duration }
-            : {})
-        }))
+        fileId: a.id,
+        type: a.type,
+        url: a.url,
+        thumbnailUrl: a.thumbnailUrl,
+        filename: a.filename,
+        mimeType: a.mimeType,
+        size: a.size,
+        ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video')
+          ? { duration: a.duration }
+          : {})
+      }))
       : undefined
 
     // Reply: include the original message id so the server attaches a
@@ -1016,14 +1016,14 @@ export const forwardMessage = createAsyncThunk<
   // Map ChatAttachmentType → SendMessageAttachment. Same shape as sendMsg.
   const attachments = sourceAttachments?.length
     ? sourceAttachments.map(a => ({
-        fileId: a.id,
-        type: a.type,
-        url: a.url,
-        thumbnailUrl: a.thumbnailUrl,
-        filename: a.filename,
-        mimeType: a.mimeType,
-        size: a.size
-      }))
+      fileId: a.id,
+      type: a.type,
+      url: a.url,
+      thumbnailUrl: a.thumbnailUrl,
+      filename: a.filename,
+      mimeType: a.mimeType,
+      size: a.size
+    }))
     : undefined
 
   // composeForwardedText strips any existing marker on the source first,
@@ -1245,11 +1245,11 @@ export const appChatSlice = createSlice({
       state,
       action: PayloadAction<
         | {
-            messageId: string
-            messageText?: string
-            readBy?: Array<{ userId: string; readAt: string }>
-            deliveredTo?: Array<{ userId: string; deliveredAt: string }>
-          }
+          messageId: string
+          messageText?: string
+          readBy?: Array<{ userId: string; readAt: string }>
+          deliveredTo?: Array<{ userId: string; deliveredAt: string }>
+        }
         | null
       >
     ) => {
@@ -1563,30 +1563,30 @@ export const appChatSlice = createSlice({
       const existing = (chat.participants ?? []).find(p => String(p.userId) === userIdStr)
       const updatedParticipants = existing
         ? (chat.participants ?? []).map(p =>
-            String(p.userId) === userIdStr
-              ? {
-                  ...p,
-                  isActive: true,
-                  // Re-add can carry fresh display info; only overwrite
-                  // when the event actually provides each field.
-                  ...(displayName ? { displayName } : {}),
-                  ...(username ? { username } : {}),
-                  ...(avatarUrl ? { avatarUrl } : {}),
-                  ...(role ? { role } : {})
-                }
-              : p
-          )
-        : [
-            ...(chat.participants ?? []),
-            {
-              userId: userIdStr,
+          String(p.userId) === userIdStr
+            ? {
+              ...p,
               isActive: true,
-              role: role ?? 'member',
-              displayName,
-              username,
-              avatarUrl
+              // Re-add can carry fresh display info; only overwrite
+              // when the event actually provides each field.
+              ...(displayName ? { displayName } : {}),
+              ...(username ? { username } : {}),
+              ...(avatarUrl ? { avatarUrl } : {}),
+              ...(role ? { role } : {})
             }
-          ]
+            : p
+        )
+        : [
+          ...(chat.participants ?? []),
+          {
+            userId: userIdStr,
+            isActive: true,
+            role: role ?? 'member',
+            displayName,
+            username,
+            avatarUrl
+          }
+        ]
 
       const participantIdSet = new Set((chat.participantIds ?? []).map(String))
       participantIdSet.add(userIdStr)
@@ -2190,10 +2190,21 @@ export const appChatSlice = createSlice({
             ackProvided: newMsg.feedback,
             merged: mergedFeedback
           })
+          // The broadcast echo landed before the ack, so `receiveMessage` already
+          // added the row. Merge back any fields the thunk stamped locally that the
+          // server's broadcast payload may have omitted — most critically `replyTo`
+          // (the server doesn't always echo it) and `attachments` (guard only —
+          // the echo normally includes them). Without this merge, a reply sent
+          // with an attachment loses its quote because the stamped replyTo from
+          // the thunk is never applied to the already-existing row.
           chatEntry.chat.messages[existingIdx] = {
             ...existing,
             senderId: newMsg.senderId,
-            feedback: mergedFeedback
+            feedback: mergedFeedback,
+            ...(newMsg.replyTo && !existing.replyTo ? { replyTo: newMsg.replyTo } : {}),
+            ...(newMsg.attachments?.length && !existing.attachments?.length
+              ? { attachments: newMsg.attachments }
+              : {})
           }
           if (state.selectedChat && state.selectedChat.contact.id === contactId) {
             state.selectedChat = {
@@ -2235,10 +2246,10 @@ export const appChatSlice = createSlice({
       const stampedMsg: MessageType =
         state.userProfile
           ? {
-              ...newMsg,
-              senderId: newMsg.senderId || state.userProfile.id,
-              senderName: newMsg.senderName ?? state.userProfile.fullName
-            }
+            ...newMsg,
+            senderId: newMsg.senderId || state.userProfile.id,
+            senderName: newMsg.senderName ?? state.userProfile.fullName
+          }
           : newMsg
 
       const newMessages = [...chatEntry.chat.messages, stampedMsg]

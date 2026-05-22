@@ -574,9 +574,9 @@ const ChatLog = (props: ChatLogType) => {
   const openPreview = (att: ChatAttachmentType, list?: ChatAttachmentType[]) => {
     const idx = list
       ? Math.max(
-          0,
-          list.findIndex(a => a.id === att.id)
-        )
+        0,
+        list.findIndex(a => a.id === att.id)
+      )
       : 0
     setPreviewState({ attachment: att, list, index: idx })
   }
@@ -1008,421 +1008,451 @@ const ChatLog = (props: ChatLogType) => {
 
               return (
                 <Fragment key={chat.id ?? `msg-${index}`}>
-                <Box
-                  ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
-                  data-msg-id={chat.id}
-                  sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}
-                >
                   <Box
-                    sx={{
-                      ml: isSender ? 'auto' : undefined,
-                      width: 'fit-content',
-                      maxWidth: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 1
-                    }}
+                    ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
+                    data-msg-id={chat.id}
+                    sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}
                   >
-                    {/* Attachment-only messages get a MessageActions sibling so
+                    <Box
+                      sx={{
+                        ml: isSender ? 'auto' : undefined,
+                        width: 'fit-content',
+                        maxWidth: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1
+                      }}
+                    >
+                      {/* Attachment-only messages get a MessageActions sibling so
                         delete/star/pin/react work on audio / video / document / image
                         the same as on text bubbles. Mixed (text + attachments) messages
                         keep their actions inside MessageBubble below — one menu per
                         message, not per attachment. */}
-                    {chat.attachments?.length && !chat.isDeletedForEveryone ? (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: isSender ? 'row-reverse' : 'row',
-                          alignItems: 'center',
-                          gap: 1,
-                          // Reveal chevron (inside attachment bubble) + emoji
-                          // picker (outside attachment column) on hover.
-                          '&:hover .msg-actions': {
-                            opacity: '1 !important',
-                            pointerEvents: 'auto !important'
-                          }
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
+                      {chat.attachments?.length && !chat.isDeletedForEveryone ? (
                         <Box
                           sx={{
-                            position: 'relative',
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: 0,
-                            maxWidth: '280px',
-                            backgroundColor: isSender ? '#1F515B' : 'background.paper',
-                            // Set the card text color so the time footer + filename
-                            // captions inside (which use `color: 'inherit'`) read
-                            // correctly against the dark sender bubble. Mirrors
-                            // what MessageBubble does on its text card.
-                            color: isSender ? 'common.white' : 'text.primary',
-                            borderRadius: '8px',
-                            overflow: 'hidden',
-                            boxShadow: 1,
-                            p: theme => theme.spacing(2)
+                            flexDirection: isSender ? 'row-reverse' : 'row',
+                            alignItems: 'center',
+                            gap: 1,
+                            // Reveal chevron (inside attachment bubble) + emoji
+                            // picker (outside attachment column) on hover.
+                            '&:hover .msg-actions': {
+                              opacity: '1 !important',
+                              pointerEvents: 'auto !important'
+                            }
                           }}
                         >
-                          {/* Chevron lives INSIDE the attachment column,
-                              absolutely positioned at the top-right — matches
-                              the WhatsApp-Web pattern used for text bubbles. */}
-                          {canInteract ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
                             <Box
                               sx={{
-                                position: 'absolute',
-                                top: 4,
-                                right: 4,
-                                zIndex: 2
+                                position: 'relative',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 0,
+                                maxWidth: '280px',
+                                backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                                // Set the card text color so the time footer + filename
+                                // captions inside (which use `color: 'inherit'`) read
+                                // correctly against the dark sender bubble. Mirrors
+                                // what MessageBubble does on its text card.
+                                color: isSender ? 'common.white' : 'text.primary',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                boxShadow: 1,
+                                p: theme => theme.spacing(2)
                               }}
                             >
-                              <MessageActions
-                                chat={chat}
-                                isSender={isSender}
-                                senderName={isSender ? data.userContact.fullName : data.contact.fullName}
-                                senderId={item.senderId}
-                                canPin={(() => {
-                                  const isGroup = data.contact.isGroup === true
-                                  if (!isGroup) return true
-                                  const me = String(data.userContact.id ?? '')
-                                  const admins = data.contact.adminIds?.map(String) ?? []
-
-                                  return admins.includes(me)
-                                })()}
-                                showEdit={false}
-                                showCopyText={false}
-                              />
-                            </Box>
-                          ) : null}
-                          {isForwarded(chat.msg) ? <ForwardedTag isSender={isSender} /> : null}
-                          {(() => {
-                            // All images are grouped first as a single grid, then non-image
-                            // attachments (video / audio / document) follow in their original order.
-                            const images = chat.attachments.filter(a => a.type === 'image')
-                            const others = chat.attachments.filter(a => a.type !== 'image')
-                            const imgCount = images.length
-                            const bubbleCorners = {
-                              borderTopLeftRadius: !isSender ? 0 : undefined,
-                              borderTopRightRadius: isSender ? 0 : undefined
-                            }
-
-                            const imgCell = (att: ChatAttachmentType, cellH: number, extraCount = 0) => (
-                              <Box
-                                sx={{
-                                  position: 'relative',
-                                  overflow: 'hidden',
-                                  cursor: 'zoom-in',
-                                  lineHeight: 0,
-                                  width: '100%',
-                                  height: cellH
-                                }}
-                                onClick={() => openPreview(att, images)}
-                                onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                              >
+                              {/* Chevron lives INSIDE the attachment column,
+                              absolutely positioned at the top-right — matches
+                              the WhatsApp-Web pattern used for text bubbles. */}
+                              {canInteract ? (
                                 <Box
-                                  component='img'
-                                  src={att.thumbnailUrl ?? att.url}
-                                  alt={att.filename}
-                                  loading='lazy'
-                                  draggable={false}
-                                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                                    e.currentTarget.style.display = 'none'
-                                  }}
                                   sx={{
-                                    width: '100%',
-                                    height: cellH,
-                                    display: 'block',
-                                    objectFit: 'cover',
-                                    userSelect: 'none'
+                                    position: 'absolute',
+                                    top: 4,
+                                    right: 4,
+                                    zIndex: 2
                                   }}
-                                />
-                                {extraCount > 0 && (
+                                >
+                                  <MessageActions
+                                    chat={chat}
+                                    isSender={isSender}
+                                    senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                                    senderId={item.senderId}
+                                    canPin={(() => {
+                                      const isGroup = data.contact.isGroup === true
+                                      if (!isGroup) return true
+                                      const me = String(data.userContact.id ?? '')
+                                      const admins = data.contact.adminIds?.map(String) ?? []
+
+                                      return admins.includes(me)
+                                    })()}
+                                    showEdit={false}
+                                    showCopyText={false}
+                                  />
+                                </Box>
+                              ) : null}
+                              {isForwarded(chat.msg) ? <ForwardedTag isSender={isSender} /> : null}
+                              {chat.replyTo ? (
+                                <Box
+                                  sx={{
+                                    borderLeft: '3px solid',
+                                    borderColor: isSender ? 'rgba(255,255,255,0.6)' : 'primary.main',
+                                    pl: 1.5,
+                                    mb: 1.5,
+                                    cursor: chat.replyTo.messageId ? 'pointer' : 'default',
+                                    borderRadius: '0 4px 4px 0',
+                                    backgroundColor: isSender ? 'rgba(255,255,255,0.1)' : 'action.hover',
+                                    py: 0.5,
+                                    pr: 1
+                                  }}
+                                  onClick={() => chat.replyTo?.messageId && onJumpToReply?.(chat.replyTo.messageId)}
+                                >
+                                  <Typography
+                                    variant='caption'
+                                    sx={{ display: 'block', fontWeight: 600, color: isSender ? 'rgba(255,255,255,0.9)' : 'primary.main' }}
+                                  >
+                                    {chat.replyTo.senderName ?? 'Replied message'}
+                                  </Typography>
+                                  <Typography
+                                    variant='caption'
+                                    noWrap
+                                    sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                  >
+                                    {chat.replyTo.textPreview || (chat.replyTo.hasAttachment ? '📎 Attachment' : 'Original message')}
+                                  </Typography>
+                                </Box>
+                              ) : null}
+                              {(() => {
+                                // All images are grouped first as a single grid, then non-image
+                                // attachments (video / audio / document) follow in their original order.
+                                const images = chat.attachments.filter(a => a.type === 'image')
+                                const others = chat.attachments.filter(a => a.type !== 'image')
+                                const imgCount = images.length
+                                const bubbleCorners = {
+                                  borderTopLeftRadius: !isSender ? 0 : undefined,
+                                  borderTopRightRadius: isSender ? 0 : undefined
+                                }
+
+                                const imgCell = (att: ChatAttachmentType, cellH: number, extraCount = 0) => (
                                   <Box
                                     sx={{
-                                      position: 'absolute',
-                                      inset: 0,
-                                      backgroundColor: 'rgba(0,0,0,0.55)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      cursor: 'zoom-in',
+                                      lineHeight: 0,
+                                      width: '100%',
+                                      height: cellH
                                     }}
+                                    onClick={() => openPreview(att, images)}
+                                    onContextMenu={(e: MouseEvent) => e.preventDefault()}
                                   >
-                                    <Typography sx={{ color: 'common.white', fontWeight: 700, fontSize: '1.375rem' }}>
-                                      +{extraCount}
-                                    </Typography>
+                                    <Box
+                                      component='img'
+                                      src={att.thumbnailUrl ?? att.url}
+                                      alt={att.filename}
+                                      loading='lazy'
+                                      draggable={false}
+                                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                      sx={{
+                                        width: '100%',
+                                        height: cellH,
+                                        display: 'block',
+                                        objectFit: 'cover',
+                                        userSelect: 'none'
+                                      }}
+                                    />
+                                    {extraCount > 0 && (
+                                      <Box
+                                        sx={{
+                                          position: 'absolute',
+                                          inset: 0,
+                                          backgroundColor: 'rgba(0,0,0,0.55)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center'
+                                        }}
+                                      >
+                                        <Typography sx={{ color: 'common.white', fontWeight: 700, fontSize: '1.375rem' }}>
+                                          +{extraCount}
+                                        </Typography>
+                                      </Box>
+                                    )}
                                   </Box>
-                                )}
-                              </Box>
-                            )
+                                )
 
-                            const renderImages = () => {
-                              if (imgCount === 0) return null
-                              if (imgCount <= 2) {
+                                const renderImages = () => {
+                                  if (imgCount === 0) return null
+                                  if (imgCount <= 2) {
+                                    return (
+                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        {images.map(att => (
+                                          <Box
+                                            key={att.id}
+                                            sx={{
+                                              boxShadow: 'none',
+                                              borderRadius: 'none',
+                                              overflow: 'hidden',
+                                              cursor: 'zoom-in',
+                                              lineHeight: 0,
+                                              width: '100%'
+                                            }}
+                                            onClick={() => openPreview(att)}
+                                            onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                          >
+                                            <Box
+                                              component='img'
+                                              src={att.thumbnailUrl ?? att.url}
+                                              alt={att.filename}
+                                              loading='lazy'
+                                              draggable={false}
+                                              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                                const wrapper = e.currentTarget.parentElement
+                                                if (wrapper) wrapper.style.display = 'none'
+                                              }}
+                                              sx={{
+                                                maxWidth: '100%',
+                                                maxHeight: 280,
+                                                display: 'block',
+                                                userSelect: 'none',
+                                                width: '100%'
+                                              }}
+                                            />
+                                          </Box>
+                                        ))}
+                                      </Box>
+                                    )
+                                  }
+                                  const MAX_SHOW = 4
+                                  const visible = images.slice(0, MAX_SHOW)
+                                  const extra = imgCount > MAX_SHOW ? imgCount - MAX_SHOW : 0
+                                  const gridSx = {
+                                    boxShadow: 1,
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                    ...bubbleCorners,
+                                    width: '100%',
+                                    maxWidth: '280px'
+                                  }
+                                  if (imgCount === 3) {
+                                    return (
+                                      <Box sx={{ ...gridSx, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        {imgCell(visible[0], 150)}
+                                        <Box sx={{ display: 'flex', gap: '2px' }}>
+                                          <Box sx={{ flex: 1 }}>{imgCell(visible[1], 130)}</Box>
+                                          <Box sx={{ flex: 1 }}>{imgCell(visible[2], 130)}</Box>
+                                        </Box>
+                                      </Box>
+                                    )
+                                  }
+                                  return (
+                                    <Box sx={{ ...gridSx, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+                                      {visible.map((att, idx) => (
+                                        <Box key={att.id}>
+                                          {imgCell(att, 138, idx === MAX_SHOW - 1 && extra > 0 ? extra : 0)}
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  )
+                                }
+
                                 return (
                                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    {images.map(att => (
+                                    {renderImages()}
+                                    {others.map(att => (
                                       <Box
                                         key={att.id}
                                         sx={{
                                           boxShadow: 'none',
-                                          borderRadius: 'none',
+                                          borderRadius: 0,
                                           overflow: 'hidden',
-                                          cursor: 'zoom-in',
-                                          lineHeight: 0,
-                                          width: '100%'
+                                          backgroundColor: 'transparent',
+                                          color: isSender ? 'common.white' : 'text.primary',
+                                          width: '100%',
+                                          alignSelf:
+                                            att.type === 'audio' || att.type === 'video'
+                                              ? isSender
+                                                ? 'flex-end'
+                                                : 'flex-start'
+                                              : undefined
                                         }}
-                                        onClick={() => openPreview(att)}
-                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
                                       >
-                                        <Box
-                                          component='img'
-                                          src={att.thumbnailUrl ?? att.url}
-                                          alt={att.filename}
-                                          loading='lazy'
-                                          draggable={false}
-                                          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                                            const wrapper = e.currentTarget.parentElement
-                                            if (wrapper) wrapper.style.display = 'none'
-                                          }}
-                                          sx={{
-                                            maxWidth: '100%',
-                                            maxHeight: 280,
-                                            display: 'block',
-                                            userSelect: 'none',
-                                            width: '100%'
-                                          }}
-                                        />
+                                        {att.type === 'video' ? (
+                                          <Box
+                                            component='video'
+                                            src={att.url}
+                                            controls
+                                            controlsList='nodownload noplaybackrate'
+                                            onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                            sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                            onClick={() => openPreview(att)}
+                                          />
+                                        ) : att.type === 'audio' ? (
+                                          <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
+                                            <Box
+                                              component='audio'
+                                              src={att.url}
+                                              controls
+                                              controlsList='nodownload noplaybackrate'
+                                              onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                              sx={{
+                                                display: 'block',
+                                                width: '100%',
+                                                borderRadius: 1,
+                                                bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
+                                              }}
+                                            />
+                                          </Box>
+                                        ) : (
+                                          (() => {
+                                            const visual = getAttachmentVisual(att.mimeType, att.filename)
+                                            return (
+                                              <Box
+                                                onClick={() => openPreview(att)}
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 2,
+                                                  p: theme => theme.spacing(3, 4),
+                                                  color: 'inherit',
+                                                  cursor: 'pointer'
+                                                }}
+                                              >
+                                                <Icon
+                                                  icon={visual.icon}
+                                                  color={isSender ? '#ffffff' : visual.color}
+                                                  fontSize='2rem'
+                                                />
+                                                <Box sx={{ minWidth: 0 }}>
+                                                  <Typography
+                                                    variant='caption'
+                                                    sx={{ display: 'block', color: 'inherit' }}
+                                                    noWrap
+                                                  >
+                                                    {att.filename}
+                                                  </Typography>
+                                                  <Typography
+                                                    variant='caption'
+                                                    sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                                  >
+                                                    {(att.size / 1024).toFixed(0)} KB
+                                                  </Typography>
+                                                </Box>
+                                              </Box>
+                                            )
+                                          })()
+                                        )}
                                       </Box>
                                     ))}
                                   </Box>
                                 )
-                              }
-                              const MAX_SHOW = 4
-                              const visible = images.slice(0, MAX_SHOW)
-                              const extra = imgCount > MAX_SHOW ? imgCount - MAX_SHOW : 0
-                              const gridSx = {
-                                boxShadow: 1,
-                                borderRadius: 1,
-                                overflow: 'hidden',
-                                ...bubbleCorners,
-                                width: '100%',
-                                maxWidth: '280px'
-                              }
-                              if (imgCount === 3) {
-                                return (
-                                  <Box sx={{ ...gridSx, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    {imgCell(visible[0], 150)}
-                                    <Box sx={{ display: 'flex', gap: '2px' }}>
-                                      <Box sx={{ flex: 1 }}>{imgCell(visible[1], 130)}</Box>
-                                      <Box sx={{ flex: 1 }}>{imgCell(visible[2], 130)}</Box>
-                                    </Box>
-                                  </Box>
-                                )
-                              }
-                              return (
-                                <Box sx={{ ...gridSx, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
-                                  {visible.map((att, idx) => (
-                                    <Box key={att.id}>
-                                      {imgCell(att, 138, idx === MAX_SHOW - 1 && extra > 0 ? extra : 0)}
-                                    </Box>
-                                  ))}
-                                </Box>
-                              )
-                            }
-
-                            return (
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                {renderImages()}
-                                {others.map(att => (
-                                  <Box
-                                    key={att.id}
-                                    sx={{
-                                      boxShadow: 'none',
-                                      borderRadius: 0,
-                                      overflow: 'hidden',
-                                      backgroundColor: 'transparent',
-                                      color: isSender ? 'common.white' : 'text.primary',
-                                      width: '100%',
-                                      alignSelf:
-                                        att.type === 'audio' || att.type === 'video'
-                                          ? isSender
-                                            ? 'flex-end'
-                                            : 'flex-start'
-                                          : undefined
-                                    }}
-                                  >
-                                    {att.type === 'video' ? (
-                                      <Box
-                                        component='video'
-                                        src={att.url}
-                                        controls
-                                        controlsList='nodownload noplaybackrate'
-                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                        sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
-                                        onClick={() => openPreview(att)}
-                                      />
-                                    ) : att.type === 'audio' ? (
-                                      <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
-                                        <Box
-                                          component='audio'
-                                          src={att.url}
-                                          controls
-                                          controlsList='nodownload noplaybackrate'
-                                          onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                          sx={{
-                                            display: 'block',
-                                            width: '100%',
-                                            borderRadius: 1,
-                                            bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                          }}
-                                        />
-                                      </Box>
-                                    ) : (
-                                      (() => {
-                                        const visual = getAttachmentVisual(att.mimeType, att.filename)
-                                        return (
-                                          <Box
-                                            onClick={() => openPreview(att)}
-                                            sx={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 2,
-                                              p: theme => theme.spacing(3, 4),
-                                              color: 'inherit',
-                                              cursor: 'pointer'
-                                            }}
-                                          >
-                                            <Icon
-                                              icon={visual.icon}
-                                              color={isSender ? '#ffffff' : visual.color}
-                                              fontSize='2rem'
-                                            />
-                                            <Box sx={{ minWidth: 0 }}>
-                                              <Typography
-                                                variant='caption'
-                                                sx={{ display: 'block', color: 'inherit' }}
-                                                noWrap
-                                              >
-                                                {att.filename}
-                                              </Typography>
-                                              <Typography
-                                                variant='caption'
-                                                sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
-                                              >
-                                                {(att.size / 1024).toFixed(0)} KB
-                                              </Typography>
-                                            </Box>
-                                          </Box>
-                                        )
-                                      })()
-                                    )}
-                                  </Box>
-                                ))}
-                              </Box>
-                            )
-                          })()}
-                          {/* Caption text — shown when the message has both an
+                              })()}
+                              {/* Caption text — shown when the message has both an
                               attachment and typed text (WhatsApp-style caption). */}
-                          {hasDisplayableText(chat.msg) ? (
-                            <Typography
-                              sx={{
-                                fontSize: '0.875rem',
-                                color: 'inherit',
-                                mt: 1,
-                                wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap'
-                              }}
-                            >
-                              {stripForwardMarker(chat.msg)}
-                            </Typography>
-                          ) : null}
-                          {/* Time footer. Inherits the card's `color` so it's white
-                              on sender / dark on incoming without a per-isSender branch. */}
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-end',
-                              gap: 0.5,
-                              mt: 1,
-                              color: 'inherit'
-                            }}
-                          >
-                            {chat.isPinned ? (
-                              <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
-                                <Icon icon='mdi:pin' fontSize='0.875rem' />
-                              </Box>
-                            ) : null}
-                            {chat.isStarred ? (
-                              <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
-                                <Icon icon='mdi:star' fontSize='0.875rem' />
-                              </Box>
-                            ) : null}
-                            <Typography
-                              variant='caption'
-                              sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}
-                            >
-                              {new Date(chat.time).toLocaleString('en-US', {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                              })}
-                            </Typography>
-                            {isSender ? (
-                              chat.feedback.isSent && !chat.feedback.isDelivered ? (
-                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
-                                  <Icon icon='mdi:check' fontSize='0.875rem' />
-                                </Box>
-                              ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
-                                <Box
-                                  component='span'
+                              {hasDisplayableText(chat.msg) ? (
+                                <Typography
                                   sx={{
-                                    display: 'inline-flex',
-                                    '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                                    fontSize: '0.875rem',
+                                    color: 'inherit',
+                                    mt: 1,
+                                    wordBreak: 'break-word',
+                                    whiteSpace: 'pre-wrap'
                                   }}
                                 >
-                                  <Icon icon='mdi:check-all' fontSize='0.875rem' />
-                                </Box>
-                              ) : null
-                            ) : null}
-                          </Box>
-                        </Box>
-                          {/* Reactions chip row sits OUTSIDE the attachment card but
+                                  {stripForwardMarker(chat.msg)}
+                                </Typography>
+                              ) : null}
+                              {/* Time footer. Inherits the card's `color` so it's white
+                              on sender / dark on incoming without a per-isSender branch. */}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'flex-end',
+                                  gap: 0.5,
+                                  mt: 1,
+                                  color: 'inherit'
+                                }}
+                              >
+                                {chat.isPinned ? (
+                                  <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
+                                    <Icon icon='mdi:pin' fontSize='0.875rem' />
+                                  </Box>
+                                ) : null}
+                                {chat.isStarred ? (
+                                  <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', opacity: 0.8 }}>
+                                    <Icon icon='mdi:star' fontSize='0.875rem' />
+                                  </Box>
+                                ) : null}
+                                <Typography
+                                  variant='caption'
+                                  sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}
+                                >
+                                  {new Date(chat.time).toLocaleString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </Typography>
+                                {isSender ? (
+                                  chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                                    <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
+                                      <Icon icon='mdi:check' fontSize='0.875rem' />
+                                    </Box>
+                                  ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                                    <Box
+                                      component='span'
+                                      sx={{
+                                        display: 'inline-flex',
+                                        '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                                      }}
+                                    >
+                                      <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                                    </Box>
+                                  ) : null
+                                ) : null}
+                              </Box>
+                            </Box>
+                            {/* Reactions chip row sits OUTSIDE the attachment card but
                               INSIDE the inner column (same shape as MessageBubble for
                               text bubbles) so it stacks directly below the card with
                               the negative top margin in ReactionsRow tucking it
                               slightly onto the card edge. */}
-                          <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
+                            <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
+                          </Box>
+                          {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                         </Box>
-                        {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
-                      </Box>
-                    ) : null}
-                    {(chat.isDeletedForEveryone || (!chat.attachments?.length && hasDisplayableText(chat.msg))) ? (
-                      <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
-                        <MessageBubble
-                          chat={chat}
-                          isSender={isSender}
-                          senderName={isSender ? data.userContact.fullName : data.contact.fullName}
-                          senderId={item.senderId}
-                          canPin={(() => {
-                            // DM: both participants can pin any message (their
-                            // own or received). Group: still admin-only.
-                            const isGroup = data.contact.isGroup === true
-                            if (!isGroup) return true
-                            const me = String(data.userContact.id ?? '')
-                            const admins = data.contact.adminIds?.map(String) ?? []
+                      ) : null}
+                      {(chat.isDeletedForEveryone || (!chat.attachments?.length && hasDisplayableText(chat.msg))) ? (
+                        <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
+                          <MessageBubble
+                            chat={chat}
+                            isSender={isSender}
+                            senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                            senderId={item.senderId}
+                            canPin={(() => {
+                              // DM: both participants can pin any message (their
+                              // own or received). Group: still admin-only.
+                              const isGroup = data.contact.isGroup === true
+                              if (!isGroup) return true
+                              const me = String(data.userContact.id ?? '')
+                              const admins = data.contact.adminIds?.map(String) ?? []
 
-                            return admins.includes(me)
-                          })()}
-                          isSearchMatch={isMatch}
-                          isActiveSearchMatch={isActiveMatch}
-                          searchQuery={searchQuery}
-                          canInteract={canInteract}
-                          onJumpToReply={onJumpToReply}
-                        />
-                      </Box>
-                    ) : null}
+                              return admins.includes(me)
+                            })()}
+                            isSearchMatch={isMatch}
+                            isActiveSearchMatch={isActiveMatch}
+                            searchQuery={searchQuery}
+                            canInteract={canInteract}
+                            onJumpToReply={onJumpToReply}
+                          />
+                        </Box>
+                      ) : null}
+                    </Box>
                   </Box>
-                </Box>
                 </Fragment>
               )
             })}
@@ -1463,10 +1493,10 @@ const ChatLog = (props: ChatLogType) => {
       creator === me
         ? 'You created this group'
         : (() => {
-            const found = data.contact.participants?.find(p => String(p.userId) === creator)
-            const name = found?.displayName || found?.username
-            return name ? `${name} created this group` : 'Group created'
-          })()
+          const found = data.contact.participants?.find(p => String(p.userId) === creator)
+          const name = found?.displayName || found?.username
+          return name ? `${name} created this group` : 'Group created'
+        })()
     const memberCount =
       data.contact.participants?.filter(p => p.isActive).length ?? data.contact.participantIds?.length ?? 0
     const creationDate = new Date(data.contact.createdAt).toLocaleDateString('en-GB', {
