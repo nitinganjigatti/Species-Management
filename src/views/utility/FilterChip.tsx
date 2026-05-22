@@ -40,30 +40,30 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
         py: 0.5,
         fontWeight: 500,
         fontSize: '0.8125rem',
-        border: '1px solid',
+        border: '1px solid rgba(76, 78, 100, 0.38)',
         cursor: 'pointer',
         transition: theme =>
           theme.transitions.create(['background-color', 'color', 'border-color'], {
-            duration: theme.transitions.duration.short
+            duration: 160
           }),
         ...(active
           ? {
               // Mirrors MUI contained-primary button: hover darkens to primary.dark
               backgroundColor: '#1F515B',
               color: 'common.white',
-              borderColor: '#1F515B',
+              borderColor: '#00ABAB',
               px: 2,
-              '&:hover': { backgroundColor: '#1a3f47', borderColor: '#1a3f47' }
+              '&:hover': { backgroundColor: '#1a3f47', borderColor: '#00ABAB' }
             }
           : {
               // Mirrors MUI outlined-primary button: hover applies a primary alpha tint
               backgroundColor: 'transparent',
               color: 'text.secondary',
-              borderColor: 'text.secondary',
+              borderColor: 'rgba(76, 78, 100, 0.38)',
               px: 1.5,
               '&:hover': {
                 backgroundColor: 'rgba(31, 81, 91, 0.08)',
-                borderColor: 'text.primary',
+                borderColor: '#00ABAB',
                 color: 'text.secondary'
               }
             })

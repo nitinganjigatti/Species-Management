@@ -179,17 +179,17 @@ const ComposePopover = ({
             '& .MuiInputBase-root': { borderRadius: 5 },
             '& .MuiOutlinedInput-root': {
               '& fieldset': {
-                borderColor: 'secondary.main',
-                borderWidth: '0.5px',
-                transition: 'border-color 160ms ease-out, border-width 160ms ease-out'
+                borderColor: 'rgba(76, 78, 100, 0.38)',
+                borderWidth: '1px !important',
+                transition: 'border-color 160ms ease-out'
               },
               '&:hover fieldset': {
-                borderColor: 'secondary.main',
-                borderWidth: '2px'
+                borderColor: '#00ABAB',
+                borderWidth: '1px !important'
               },
               '&.Mui-focused fieldset': {
-                borderColor: 'secondary.main',
-                borderWidth: '2px'
+                borderColor: '#00ABAB',
+                borderWidth: '1px !important'
               }
             }
           }}
@@ -276,7 +276,7 @@ const ComposePopover = ({
                         </CustomAvatar>
                       )}
                     </ListItemAvatar>
-                    <ListItemText primary={<Typography sx={{ fontSize: '0.875rem' }}>{contact.fullName}</Typography>} />
+                    <ListItemText primary={<Typography sx={{ fontSize: '0.875rem', color: 'customColors.OnPrimaryContainer' }}>{contact.fullName}</Typography>} />
                   </ListItemButton>
                 </ListItem>
               ))}
@@ -326,7 +326,7 @@ const ComposePopover = ({
                       </CustomAvatar>
                     )}
                   </ListItemAvatar>
-                  <ListItemText primary={<Typography sx={{ fontSize: '0.875rem' }}>{contact.fullName}</Typography>} />
+                  <ListItemText primary={<Typography sx={{ fontSize: '0.875rem', color: 'customColors.OnPrimaryContainer' }}>{contact.fullName}</Typography>} />
                 </ListItemButton>
               </ListItem>
             ))}

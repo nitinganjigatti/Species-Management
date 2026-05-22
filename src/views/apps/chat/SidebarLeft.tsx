@@ -460,7 +460,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 <Typography
                   component='span'
                   noWrap
-                  sx={{ display: 'block', ...(!activeCondition ? { color: 'text.secondary' } : {}), fontWeight: 600 }}
+                  sx={{ display: 'block', ...(!activeCondition ? { color: 'customColors.OnPrimaryContainer' } : {}), fontWeight: 600 }}
                 >
                   {chat.fullName}
                 </Typography>
@@ -758,17 +758,25 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 sx={{
                   '& .MuiInputBase-root': { borderRadius: 5 },
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#1F515B',
-                      borderWidth: '0.5px'
+                    backgroundColor: 'transparent',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(76, 78, 100, 0.38) !important',
+                      borderWidth: '1px !important',
+                      transition: 'border-color 160ms ease-out'
                     },
-                    '&:hover fieldset': {
-                      borderColor: '#1F515B',
-                      borderWidth: '0.5px'
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#00ABAB !important',
+                      borderWidth: '1px !important'
                     },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#1F515B',
-                      borderWidth: '0.5px'
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 174, 164, 0.08) !important'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#00ABAB !important',
+                      borderWidth: '1px !important'
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(0, 174, 164, 0.08) !important'
                     }
                   }
                 }}

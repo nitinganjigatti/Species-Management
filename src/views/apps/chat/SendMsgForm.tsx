@@ -41,7 +41,14 @@ const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   paddingLeft: '12px',
   paddingBottom: '8px',
   gap: '4px',
-  backgroundColor: theme.palette.background.paper
+  backgroundColor: theme.palette.background.paper,
+  border: '1px solid transparent',
+  transition: theme.transitions.create(['border-color'], {
+    duration: 160
+  }),
+  '&:hover': {
+    borderColor: '#00ABAB'
+  }
 }))
 
 const Form = styled('form')(({ theme }) => ({
@@ -134,6 +141,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [pending, setPending] = useState<PendingFile[]>([])
   const [uploading, setUploading] = useState(false)
   const [processingFiles, setProcessingFiles] = useState(false)
+  const [focused, setFocused] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const textInputRef = useRef<HTMLInputElement | null>(null)
   const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -710,7 +718,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <ChatFormWrapper onClick={() => textInputRef.current?.focus()}>
+        <ChatFormWrapper
+          onClick={() => textInputRef.current?.focus()}
+          sx={{
+            ...(focused && {
+              borderColor: '#00ABAB'
+            })
+          }}
+        >
           {recording ? (
             // Recording overlay — replaces the text input until the user stops
             // or cancels. The recorded blob then drops into the pending strip
@@ -780,6 +795,8 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                     handleSendMsg(e as any)
                   }
                 }}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 disabled={uploading}
                 multiline
                 maxRows={4}
@@ -788,7 +805,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   alignSelf: 'center',
                   ml: 1,
                   '& .MuiOutlinedInput-input': { pl: 0, fontSize: '0.8125rem' },
-                  '& fieldset': { border: '0 !important' },
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none !important' },
                   '& .MuiInputBase-root': { p: 0, alignItems: 'center', fontSize: '0.8125rem' }
                 }}
               />
