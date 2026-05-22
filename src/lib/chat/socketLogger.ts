@@ -13,10 +13,20 @@ const TAG = '[chat:socket]'
  */
 export function attachSocketLifecycleLogs(socket: ChatSocket): () => void {
   const onConnect = () => {
-    console.log(`%c${TAG} ✅ CONNECTED`, 'color:#0a0;font-weight:700', `id: ${socket.id}`)
+    console.log(
+      `%c${TAG} ✅ CONNECTED`,
+      'color:#0a0;font-weight:700',
+      `id: ${socket.id}`,
+      `at: ${new Date().toLocaleTimeString()} (${new Date().toISOString()})`
+    )
   }
   const onDisconnect = (reason: string) => {
-    console.warn(`%c${TAG} ❌ DISCONNECTED`, 'color:#b00;font-weight:700', reason)
+    console.warn(
+      `%c${TAG} ❌ DISCONNECTED`,
+      'color:#b00;font-weight:700',
+      `reason: ${reason}`,
+      `at: ${new Date().toLocaleTimeString()} (${new Date().toISOString()})`
+    )
   }
 
   socket.on('connect', onConnect)

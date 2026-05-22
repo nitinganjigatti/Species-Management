@@ -15,9 +15,9 @@ import toast from 'react-hot-toast'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
-import { addReactionOverSocket } from 'src/lib/chat/api'
 import Icon from 'src/@core/components/icon'
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
+import toggleSingleReaction from 'src/views/apps/chat/toggleSingleReaction'
 
 import data from '@emoji-mart/data'
 
@@ -44,7 +44,7 @@ const MessageReactionPicker = ({ chat, isSender }: Props) => {
     handleClose()
     setPickerAnchor(null)
     if (!chat.id) return
-    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
+    toggleSingleReaction({ chat, currentUserId, emoji }).catch((err: unknown) => {
       console.error('[chat] toggle reaction failed:', err)
       toast.error('Reaction failed')
     })

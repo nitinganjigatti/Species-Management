@@ -51,8 +51,11 @@ import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
 import { LanguageProvider } from 'src/context/LanguageContext'
 
-// Global init point for @antzsoft/chat-core — see src/components/chat/ChatBoot.tsx
-import ChatBoot from 'src/components/chat/ChatBoot'
+// Single mount point for the @antzsoft/chat-core lifecycle (socket connect /
+// disconnect + REST client). The provider runs the effect once and exposes
+// `{ client, socket, connected, error }` to all descendants via
+// `useChatClient()`. Internally gated by the tenant's ENABLE_CHAT_MODULE flag.
+import { ChatClientProvider } from 'src/contexts/ChatClientContext'
 
 // Push Notifications
 import { PushNotificationProvider } from 'src/lib/notifications/PushNotificationProvider'
@@ -92,30 +95,31 @@ export function Providers({ children }: ProvidersProps) {
                         <ForgotPasswordProvider>
                           <AuthProvider>
                             <PushNotificationProvider>
-                              <ChatBoot />
-                              <LanguageProvider>
-                              <SettingsProvider pageSettings={null}>
-                                <SettingsConsumer>
-                                  {({ settings }) => {
-                                    return (
-                                      <ThemeComponent settings={settings}>
-                                        {/* <Suspense fallback={null}>
-                                          <NavigationProgress />
-                                        </Suspense> */}
-                                        {children}
-                                        <ReactHotToast>
-                                          <Toaster
-                                            position={settings.toastPosition as any}
-                                            containerClassName='react-hot-toast-container'
-                                            toastOptions={{ className: 'react-hot-toast' }}
-                                          />
-                                        </ReactHotToast>
-                                      </ThemeComponent>
-                                    )
-                                  }}
-                                </SettingsConsumer>
-                              </SettingsProvider>
-                            </LanguageProvider>
+                              <ChatClientProvider>
+                                <LanguageProvider>
+                                <SettingsProvider pageSettings={null}>
+                                  <SettingsConsumer>
+                                    {({ settings }) => {
+                                      return (
+                                        <ThemeComponent settings={settings}>
+                                          {/* <Suspense fallback={null}>
+                                            <NavigationProgress />
+                                          </Suspense> */}
+                                          {children}
+                                          <ReactHotToast>
+                                            <Toaster
+                                              position={settings.toastPosition as any}
+                                              containerClassName='react-hot-toast-container'
+                                              toastOptions={{ className: 'react-hot-toast' }}
+                                            />
+                                          </ReactHotToast>
+                                        </ThemeComponent>
+                                      )
+                                    }}
+                                  </SettingsConsumer>
+                                </SettingsProvider>
+                              </LanguageProvider>
+                              </ChatClientProvider>
                             </PushNotificationProvider>
                           </AuthProvider>
                         </ForgotPasswordProvider>

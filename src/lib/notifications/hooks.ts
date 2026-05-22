@@ -12,7 +12,7 @@ import type { PushNotification, AppNotification } from './index'
 import type { AppDispatch, RootState } from 'src/store/store'
 import { useSearchParams } from 'next/navigation'
 import notificationService from './index'
-import { setSelectedConversationId } from 'src/store/apps/chat'
+import { selectChat, setSelectedConversationId } from 'src/store/apps/chat'
 
 const playNotificationSound = async () => {
   try {
@@ -32,6 +32,8 @@ const playNotificationSound = async () => {
 export const usePushNotifications = () => {
   const { user, userData } = useAuth()
   const { handleNotification } = useNotificationHandler()
+  const router = useSafeRouter()
+  const dispatch = useDispatch<AppDispatch>()
   const syncAttemptedRef = { current: false }
 
   useEffect(() => {
@@ -66,7 +68,18 @@ export const usePushNotifications = () => {
         if (event.data.conversationId) {
           const targetUrl = `/chat?conversationId=${event.data.conversationId}`
           if (typeof window !== 'undefined') {
-            window.location.href = targetUrl
+            const currentPath = window.location.pathname
+            const isOnChatPage = currentPath === '/apps/chat' || currentPath.includes('chat')
+
+            if (isOnChatPage) {
+              // Already on chat page: smooth navigation without reload
+              router.push(targetUrl)
+              // Dispatch action to open the chat and load messages
+              dispatch(selectChat(event.data.conversationId))
+            } else {
+              // Not on chat page: do full navigation
+              window.location.href = targetUrl
+            }
           }
         }
       }
@@ -77,7 +90,7 @@ export const usePushNotifications = () => {
     return () => {
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage as any)
     }
-  }, [handleNotification])
+  }, [handleNotification, router, dispatch])
 
   return {
     isReady: !!user && !!userData,

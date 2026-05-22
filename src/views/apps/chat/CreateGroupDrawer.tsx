@@ -152,11 +152,11 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
               px: 1.5,
               py: 0.25,
               borderRadius: 10,
-              backgroundColor: 'customColors.Surface',
+              backgroundColor: 'customColors.antzSecondaryBg',
               border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
             }}
           >
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'primary.dark' }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'secondary.dark' }}>
               {selectedIds.size} added
             </Typography>
           </Box>
@@ -218,7 +218,8 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
               sx={{
                 '& .MuiInput-root': { fontSize: '1rem', fontWeight: 500 },
                 '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottomColor: 'customColors.Outline' }
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottomColor: 'customColors.Outline' },
+                '& .MuiInput-underline:after': { borderBottomColor: 'secondary.main' }
               }}
             />
             <TextField
@@ -240,7 +241,8 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
               sx={{
                 '& .MuiInput-root': { fontSize: '0.875rem' },
                 '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottomColor: 'customColors.Outline' }
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottomColor: 'customColors.Outline' },
+                '& .MuiInput-underline:after': { borderBottomColor: 'secondary.main' }
               }}
             />
           </Box>
@@ -345,18 +347,18 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 6,
-                backgroundColor: 'customColors.Surface',
                 '& fieldset': {
-                  borderColor: '#1F515B',
-                  borderWidth: '0.5px'
+                  borderColor: 'secondary.main',
+                  borderWidth: '0.5px',
+                  transition: 'border-color 160ms ease-out, border-width 160ms ease-out'
                 },
                 '&:hover fieldset': {
-                  borderColor: '#1F515B',
-                  borderWidth: '0.5px'
+                  borderColor: 'secondary.main',
+                  borderWidth: '2px'
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#1F515B',
-                  borderWidth: '0.5px'
+                  borderColor: 'secondary.main',
+                  borderWidth: '2px'
                 }
               }
             }}
@@ -390,7 +392,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                           px: 4,
                           py: 1.5,
                           gap: 3,
-                          '&:hover': { backgroundColor: 'customColors.Surface' }
+                          '&:hover': { backgroundColor: 'action.hover' }
                         }}
                       >
                         <Box sx={{ position: 'relative', flexShrink: 0 }}>
@@ -411,7 +413,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                                 position: 'absolute',
                                 inset: 0,
                                 borderRadius: '50%',
-                                backgroundColor: 'primary.main',
+                                backgroundColor: 'secondary.main',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
@@ -431,7 +433,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                             </Typography>
                           }
                         />
-                        {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='primary.main' />}
+                        {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
                       </ListItemButton>
                     </ListItem>
                     {index < filteredContacts.length - 1 && (
@@ -455,6 +457,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
       >
         <Button
           variant='contained'
+          color='secondary'
           fullWidth
           disabled={!canCreate}
           onClick={handleCreate}

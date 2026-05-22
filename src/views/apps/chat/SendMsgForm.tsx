@@ -27,7 +27,8 @@ import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
-import { setReplyingTo, setEditingMessage, setDraft } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded } from 'src/store/apps/chat'
+import type { AppDispatch } from 'src/store'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -41,7 +42,14 @@ const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   paddingLeft: '12px',
   paddingBottom: '8px',
   gap: '4px',
-  backgroundColor: theme.palette.background.paper
+  backgroundColor: theme.palette.background.paper,
+  border: '1px solid transparent',
+  transition: theme.transitions.create(['border-color'], {
+    duration: 160
+  }),
+  '&:hover': {
+    borderColor: '#00ABAB'
+  }
 }))
 
 const Form = styled('form')(({ theme }) => ({
@@ -134,6 +142,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [pending, setPending] = useState<PendingFile[]>([])
   const [uploading, setUploading] = useState(false)
   const [processingFiles, setProcessingFiles] = useState(false)
+  const [focused, setFocused] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const textInputRef = useRef<HTMLInputElement | null>(null)
   const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -500,7 +509,25 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     }
 
     let uploaded: ChatAttachmentType[] | undefined
-    const conversationId = store.selectedChat.contact.id
+    // Draft DM materialization — uploadChatFiles needs a REAL conversation id
+    // (the `__draft__<userId>` placeholder would 404 the presigned-URL
+    // request). Materialize server-side now if the user is sending the
+    // first message into a draft; `sendMsg` is idempotent and won't
+    // re-materialize. Plain text sends skip the upload branch entirely
+    // and let `sendMsg` handle the materialization.
+    let conversationId: string | number | undefined = store.selectedChat.contact.id
+    if (pending.length && store.selectedChat.contact.isDraft) {
+      try {
+        conversationId = await (dispatch as AppDispatch)(
+          materializeDraftIfNeeded(store.selectedChat.contact)
+        ).unwrap()
+      } catch (err) {
+        console.error('[chat] materializeDraftIfNeeded failed:', err)
+        toast.error('Couldn’t start the conversation. Try again.')
+
+        return
+      }
+    }
 
     if (pending.length) {
       if (typeof conversationId !== 'string') {
@@ -710,7 +737,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <ChatFormWrapper onClick={() => textInputRef.current?.focus()}>
+        <ChatFormWrapper
+          onClick={() => textInputRef.current?.focus()}
+          sx={{
+            ...(focused && {
+              borderColor: '#00ABAB'
+            })
+          }}
+        >
           {recording ? (
             // Recording overlay — replaces the text input until the user stops
             // or cancels. The recorded blob then drops into the pending strip
@@ -775,11 +809,20 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   if (e.target.value.trim()) emitTyping()
                 }}
                 onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  // On touch devices (iPad/iPhone/Android) the on-screen keyboard
+                  // has no Shift, so Shift+Enter for newline is impossible. Let
+                  // Enter insert a newline and require tapping the send button.
+                  const isTouchOnly =
+                    typeof window !== 'undefined' &&
+                    window.matchMedia?.('(hover: none) and (pointer: coarse)').matches
+
+                  if (e.key === 'Enter' && !e.shiftKey && !isTouchOnly) {
                     e.preventDefault()
                     handleSendMsg(e as any)
                   }
                 }}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 disabled={uploading}
                 multiline
                 maxRows={4}
@@ -788,7 +831,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   alignSelf: 'center',
                   ml: 1,
                   '& .MuiOutlinedInput-input': { pl: 0, fontSize: '0.8125rem' },
-                  '& fieldset': { border: '0 !important' },
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none !important' },
                   '& .MuiInputBase-root': { p: 0, alignItems: 'center', fontSize: '0.8125rem' }
                 }}
               />
@@ -798,7 +841,13 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 component='label'
                 htmlFor='chat-attachment-input'
                 disabled={uploading || processingFiles}
-                sx={{ flexShrink: 0, alignSelf: 'center', color: 'text.secondary' }}
+                sx={{
+                  flexShrink: 0,
+                  alignSelf: 'center',
+                  color: 'text.secondary',
+                  transition: 'color 0.15s',
+                  '&:hover': { color: 'secondary.main' }
+                }}
               >
                 {processingFiles ? (
                   <CircularProgress size={18} color='inherit' />
@@ -837,10 +886,10 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 width: 42,
                 height: 42,
                 borderRadius: '50%',
-                backgroundColor: 'primary.main',
+                backgroundColor: 'secondary.main',
                 color: 'common.white',
                 transition: 'background-color 0.15s, transform 0.15s',
-                '&:hover': { backgroundColor: 'primary.dark', transform: 'scale(1.06)' },
+                '&:hover': { backgroundColor: 'secondary.dark', transform: 'scale(1.06)' },
                 '&:active': { transform: 'scale(0.94)' },
                 '&.Mui-disabled': { backgroundColor: 'action.disabledBackground', color: 'action.disabled' }
               }}
@@ -848,7 +897,12 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               {uploading ? (
                 <CircularProgress size={18} color='inherit' />
               ) : (
-                <Icon icon='mdi:send' fontSize='1.125rem' />
+                // `mdi:send` is visually asymmetric (arrow tip right, tail
+                // left). A 2px right nudge makes it read centered to the eye
+                // even though the bounding box is already centered by flex.
+                <Box sx={{ display: 'inline-flex', transform: 'translateX(1px)' }}>
+                  <Icon icon='mdi:send' fontSize='1.125rem' />
+                </Box>
               )}
             </IconButton>
           ) : (
@@ -863,7 +917,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 height: 42,
                 color: 'text.secondary',
                 transition: 'color 0.15s',
-                '&:hover': { color: 'primary.main' }
+                '&:hover': { color: 'secondary.main' }
               }}
             >
               <Icon icon='mdi:microphone' fontSize='1.375rem' />

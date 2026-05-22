@@ -103,7 +103,7 @@ const AvatarUpload = ({
           inset: 0,
           borderRadius: '50%',
           background: theme =>
-            `radial-gradient(circle, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.main}00 70%)`,
+            `radial-gradient(circle, ${theme.palette.secondary.main}33 0%, ${theme.palette.secondary.main}00 70%)`,
           filter: 'blur(8px)',
           opacity: isDragActive ? 1 : 0.6,
           transition: 'opacity 240ms ease-out',
@@ -126,22 +126,25 @@ const AvatarUpload = ({
           justifyContent: 'center',
           gap: 0.5,
           color: 'common.white',
-          // Gradient base — primary.main → primary.dark, diagonal
+          // Gradient base — secondary.main → secondary.dark, diagonal.
+          // Teal palette to match the group-icon system across surfaces
+          // (sidebar / chat header / group-created card / new-group CTA).
           background: theme =>
-            `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-          boxShadow: theme => `0 8px 24px -8px ${theme.palette.primary.main}66, inset 0 0 0 2px rgba(255,255,255,0.10)`,
+            `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+          boxShadow: theme =>
+            `0 8px 24px -8px ${theme.palette.secondary.main}66, inset 0 0 0 2px rgba(255,255,255,0.10)`,
           transition: 'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 240ms ease-out',
           ...(isDragActive && {
             transform: 'scale(1.06)',
             boxShadow: theme =>
-              `0 12px 32px -8px ${theme.palette.primary.main}99, inset 0 0 0 3px rgba(255,255,255,0.25)`
+              `0 12px 32px -8px ${theme.palette.secondary.main}99, inset 0 0 0 3px rgba(255,255,255,0.25)`
           }),
           '&:hover': disabled
             ? {}
             : {
                 transform: 'scale(1.04) translateY(-2px)',
                 boxShadow: theme =>
-                  `0 12px 28px -8px ${theme.palette.primary.main}99, inset 0 0 0 2px rgba(255,255,255,0.18)`,
+                  `0 12px 28px -8px ${theme.palette.secondary.main}99, inset 0 0 0 2px rgba(255,255,255,0.18)`,
                 '& .avatar-upload__overlay': { opacity: 1 },
                 '& .avatar-upload__placeholder': { transform: 'scale(1.06)' }
               },

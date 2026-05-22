@@ -179,16 +179,17 @@ const ComposePopover = ({
             '& .MuiInputBase-root': { borderRadius: 5 },
             '& .MuiOutlinedInput-root': {
               '& fieldset': {
-                borderColor: '#1F515B',
-                borderWidth: '0.5px'
+                borderColor: 'rgba(76, 78, 100, 0.38)',
+                borderWidth: '1px !important',
+                transition: 'border-color 160ms ease-out'
               },
               '&:hover fieldset': {
-                borderColor: '#1F515B',
-                borderWidth: '0.5px'
+                borderColor: '#00ABAB',
+                borderWidth: '1px !important'
               },
               '&.Mui-focused fieldset': {
-                borderColor: '#1F515B',
-                borderWidth: '0.5px'
+                borderColor: '#00ABAB',
+                borderWidth: '1px !important'
               }
             }
           }}
@@ -214,25 +215,23 @@ const ComposePopover = ({
           '&:hover': { backgroundColor: '#1a3f47' }
         }}
       >
+        {/* Teal-gradient circle + white glyph — same group icon used in
+            sidebar / chat header / group-created card. Keeps the
+            new-group affordance visually consistent across surfaces. */}
         <Box
-          className='icon-wrap'
           sx={{
             width: 36,
             height: 36,
             borderRadius: '50%',
-            backgroundColor: 'common.white',
-            color: '#1F515B',
+            background: theme =>
+              `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mr: 3.5,
-            transition: 'color 0.2s ease',
-            '.MuiListItemButton-root:hover &': {
-              color: 'common.white'
-            }
+            mr: 3.5
           }}
         >
-          <Icon icon='mdi:account-group' fontSize='1.125rem' />
+          <Icon icon='mdi:account-group' fontSize='1.125rem' style={{ color: '#fff' }} />
         </Box>
         <ListItemText
           primary={
@@ -277,7 +276,7 @@ const ComposePopover = ({
                         </CustomAvatar>
                       )}
                     </ListItemAvatar>
-                    <ListItemText primary={<Typography sx={{ fontSize: '0.875rem' }}>{contact.fullName}</Typography>} />
+                    <ListItemText primary={<Typography sx={{ fontSize: '0.875rem', color: 'customColors.OnPrimaryContainer' }}>{contact.fullName}</Typography>} />
                   </ListItemButton>
                 </ListItem>
               ))}
@@ -327,7 +326,7 @@ const ComposePopover = ({
                       </CustomAvatar>
                     )}
                   </ListItemAvatar>
-                  <ListItemText primary={<Typography sx={{ fontSize: '0.875rem' }}>{contact.fullName}</Typography>} />
+                  <ListItemText primary={<Typography sx={{ fontSize: '0.875rem', color: 'customColors.OnPrimaryContainer' }}>{contact.fullName}</Typography>} />
                 </ListItemButton>
               </ListItem>
             ))}

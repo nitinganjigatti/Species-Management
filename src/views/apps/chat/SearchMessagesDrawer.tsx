@@ -152,7 +152,16 @@ const SearchMessagesDrawer = ({
               px: 2,
               py: 1,
               borderRadius: 999,
-              backgroundColor: 'action.hover'
+              backgroundColor: 'action.hover',
+              border: '1px solid rgba(76, 78, 100, 0.38)',
+              transition: theme =>
+                theme.transitions.create(['border-color'], {
+                  duration: 160
+                }),
+              '&:hover, &:focus-within': {
+                borderColor: '#00ABAB',
+                borderWidth: '1px'
+              }
             }}
           >
             <Icon icon='mdi:magnify' fontSize='1.125rem' color='customColors.Outline' />
