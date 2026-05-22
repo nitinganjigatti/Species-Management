@@ -84,7 +84,7 @@ const ReactionDetailDialog = ({ anchorEl, onClose, reactions, onToggleReaction }
           borderColor: 'divider',
           minHeight: 44,
           flexShrink: 0,
-          '& .MuiTab-root': { minHeight: 44, py: 0, px: 1.5, minWidth: 'unset', fontSize: '0.85rem', fontWeight: 500 },
+          '& .MuiTab-root': { minHeight: 44, py: 0, px: 1.5, minWidth: 'unset', fontSize: '0.85rem', fontWeight: 600, color: 'text.primary' },
           '& .Mui-selected': { color: 'primary.main' },
           '& .MuiTabs-indicator': { backgroundColor: 'primary.main' }
         }}
@@ -128,7 +128,7 @@ const ReactionDetailDialog = ({ anchorEl, onClose, reactions, onToggleReaction }
                 </ListItemAvatar>
                 <ListItemText
                   primary={
-                    <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                    <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {name}
                       {isMe ? (
                         <Typography component='span' variant='caption' sx={{ ml: 1, color: 'text.disabled' }}>
