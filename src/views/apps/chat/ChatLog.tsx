@@ -1526,10 +1526,10 @@ const ChatLog = (props: ChatLogType) => {
                 mt: 0.5,
                 width: '100%',
                 borderRadius: 2,
-                backgroundColor: 'customColors.Surface',
-                color: 'primary.main',
+                backgroundColor: 'customColors.antzSecondaryBg',
+                color: 'secondary.main',
                 fontWeight: 600,
-                '&:hover': { backgroundColor: 'customColors.OnBackground' }
+                '&:hover': { backgroundColor: 'customColors.antzSecondaryBg', filter: 'brightness(0.96)' }
               }}
             >
               Add Member
