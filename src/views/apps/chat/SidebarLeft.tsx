@@ -110,7 +110,15 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   // in sync no matter how the chat got opened — including the auto-select
   // effect in AppChat, programmatic `dispatch(selectChat(...))`, or any other
   // path. Single source of truth: state.chat.selectedChat.contact.id.
-  const selectedChatId = store?.selectedChat?.contact?.id ?? null
+  // Get selectedChatId from Redux, but fallback to URL parameter if Redux hasn't updated yet
+  let selectedChatId = store?.selectedChat?.contact?.id ?? null
+  if (!selectedChatId && typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlConversationId = urlParams.get('conversationId')
+    if (urlConversationId) {
+      selectedChatId = urlConversationId
+    }
+  }
 
   // Live presence — drives the green dot on DM avatars. SDK auto-updates
   // `onlineUsers` from `user_online` / `user_offline` socket events; we
@@ -221,6 +229,25 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, compact])
 
+  // Scroll to selected chat when it changes (e.g., from notification click)
+  useEffect(() => {
+    if (!selectedChatId) return
+    const selectedElement = document.querySelector(`[data-chat-id="${String(selectedChatId)}"]`) as HTMLElement
+    if (selectedElement) {
+      // Small delay to ensure the list has rendered
+      setTimeout(() => {
+        // Find the PerfectScrollbar container (the .ps div that has overflow)
+        let scrollableParent = selectedElement.closest('.ps') as HTMLElement
+        if (scrollableParent) {
+          const scrollTop = selectedElement.offsetTop - (scrollableParent.clientHeight / 2) + (selectedElement.clientHeight / 2)
+          scrollableParent.scrollTop = scrollTop
+        } else {
+          selectedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }, 100)
+    }
+  }, [selectedChatId])
+
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
     // Source list:
@@ -290,7 +317,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
     return visibleChats.map((chat: ChatsArrType, index: number) => {
       const { lastMessage } = chat.chat
-      const activeCondition = chat.id === selectedChatId
+      const activeCondition = selectedChatId ? String(chat.id) === String(selectedChatId) : false
       const isGroup = chat.isGroup === true
       const isPinnedChat = chat.isPinned === true
 
@@ -352,7 +379,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       }
 
       return (
-        <ListItem key={`chat-${chat.id}-${index}`} disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
+        <ListItem key={`chat-${chat.id}-${index}`} disablePadding data-chat-id={String(chat.id)} sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
           <ListItemButton
             disableRipple
             onClick={() => handleChatClick('chat', chat.id)}

@@ -368,47 +368,75 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   // Full page mode: auto-select conversation from URL or first on initial load
   const lastUrlRef = useRef<string | null>(null)
   const retryCountRef = useRef(0)
+  const selectedForUrlRef = useRef<string | null>(null)
   useEffect(() => {
     if (compact) return
     if (typeof window === 'undefined') return
     if (!searchParams) return
 
-    const conversationId = searchParams.get('conversationId')
-    const currentUrl = conversationId || ''
+    let isMounted = true
 
-    if (lastUrlRef.current === currentUrl) return
-    lastUrlRef.current = currentUrl
-    retryCountRef.current = 0
+    const selectConversation = async () => {
+      const conversationId = searchParams.get('conversationId')
+      const currentUrl = conversationId || ''
 
-    if (store?.chats === null) {
-      const timer = setTimeout(() => {
-        retryCountRef.current++
-        if (retryCountRef.current < 10) lastUrlRef.current = null
-      }, 500)
-      return () => clearTimeout(timer)
-    }
+      if (lastUrlRef.current === currentUrl) return
+      lastUrlRef.current = currentUrl
+      retryCountRef.current = 0
 
-    if (!store?.chats || store.chats.length === 0) return
-
-    if (conversationId) {
-      const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
-      if (chatToSelect) {
-        dispatch(selectChat(chatToSelect.id))
-        return
-      } else {
-        if (retryCountRef.current < 5) {
-          const timer = setTimeout(() => {
+      if (store?.chats === null) {
+        const timer = setTimeout(() => {
+          if (isMounted) {
             retryCountRef.current++
-            lastUrlRef.current = null
-          }, 500)
-          return () => clearTimeout(timer)
+            if (retryCountRef.current < 10) lastUrlRef.current = null
+          }
+        }, 500)
+        return () => clearTimeout(timer)
+      }
+
+      if (!store?.chats || store.chats.length === 0) return
+
+      if (conversationId) {
+        if (selectedForUrlRef.current === conversationId) return
+        if (String(store?.selectedChat?.contact?.id) === String(conversationId)) {
+          selectedForUrlRef.current = conversationId
+          return
         }
+
+        const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
+        if (chatToSelect) {
+          selectedForUrlRef.current = conversationId
+          lastUrlRef.current = currentUrl
+          if (isMounted) {
+            // Await selectChat so getLastRead completes before rendering
+            await dispatch(selectChat(chatToSelect.id))
+          }
+          return
+        } else {
+          if (retryCountRef.current < 5) {
+            const timer = setTimeout(() => {
+              if (isMounted) {
+                retryCountRef.current++
+                lastUrlRef.current = null
+              }
+            }, 500)
+            return () => clearTimeout(timer)
+          }
+        }
+      }
+
+      const first = store.chats?.[0]
+      if (first && isMounted) {
+        await dispatch(selectChat(first.id))
       }
     }
 
-    const first = store.chats?.[0]
-    if (first) dispatch(selectChat(first.id))
-  }, [compact, store?.chats, searchParams, dispatch])
+    selectConversation()
+
+    return () => {
+      isMounted = false
+    }
+  }, [compact, !!store?.chats, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -432,7 +460,11 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // Only update URL if the selection changed AND it's not matching the URL
     // (i.e., user clicked sidebar, not clicked a notification)
     // Skip URL push when in compact mode (floating panel)
-    if (currentConversationId && currentConversationId !== prevConversationIdRef.current && String(currentConversationId) !== urlConversationId) {
+    if (
+      currentConversationId &&
+      currentConversationId !== prevConversationIdRef.current &&
+      String(currentConversationId) !== urlConversationId
+    ) {
       prevConversationIdRef.current = currentConversationId
       if (!compact) {
         router.replace(`/chat?conversationId=${currentConversationId}`)
@@ -481,20 +513,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         return
       }
 
-      // TEMP DIAG — when investigating whether the backend emits a system
-      // message on group-icon change, this surfaces only system-typed
-      // messages so the console isn't drowned by regular chat traffic.
-      // Filter by `[chat:system]`. Remove once verified.
-      if (raw.content?.type === 'system') {
-        // eslint-disable-next-line no-console
-        console.log('[chat:system] new system message', {
-          messageId: raw.id,
-          conversationId: raw.conversationId,
-          text: raw.content?.text,
-          metadata: raw.content,
-          full: raw
-        })
-      }
+      // System message — handle silently without special logging
 
       // Determine if this is our own message by comparing senderId with our
       // profile id — tempId is unreliable because the server broadcasts it
@@ -760,16 +779,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     }
 
     // TEMPORARY: log every server event before our specific handlers run, so
-    // we can verify event-name matches. Remove once read-receipt flow is
-    // verified end-to-end on staging.
-    const onAnyDebug = (eventName: string, ...args: unknown[]) => {
-      // Highlight read-related events to make them easy to spot in the console.
-      const isReadLike = /read|receipt|seen/i.test(eventName)
-      const prefix = isReadLike ? '[chat:event ★ READ-LIKE]' : '[chat:event]'
-      console.log(prefix, eventName, args)
-    }
-
-    chatSocket.onAny(onAnyDebug)
+    // Socket event handlers below
     chatSocket.on('new_message', onNewMessage)
     chatSocket.on('message_delivered', onMessageDelivered)
     chatSocket.on('messages_delivered', onMessagesDelivered)
@@ -858,11 +868,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
         isFullscreen={isFullscreen}
         onToggleFullscreen={onToggleFullscreen}
-        typingUsers={
-          store?.selectedChat?.contact?.id
-            ? typingUsers[String(store.selectedChat.contact.id)] ?? []
-            : []
-        }
+        typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
       />
     </Box>
   )

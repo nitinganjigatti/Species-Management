@@ -1023,13 +1023,14 @@ export const appChatSlice = createSlice({
       if (!state.chats) return
 
       const chatId = action.payload
+      const chatIdStr = String(chatId)
 
-      // Try existing chat first
-      let chatEntry = state.chats.find(c => c.id === chatId)
+      // Try existing chat first (compare as strings to handle type mismatches)
+      let chatEntry = state.chats.find(c => String(c.id) === chatIdStr)
 
       // Otherwise build a fresh chat from a contact
       if (!chatEntry) {
-        const contact = state.contacts?.find(c => c.id === chatId)
+        const contact = state.contacts?.find(c => String(c.id) === chatIdStr)
         if (!contact) return
         const newChat: ChatType = { id: chatId, unseenMsgs: 0, messages: [] }
         chatEntry = { ...contact, chat: newChat } as ChatsArrType

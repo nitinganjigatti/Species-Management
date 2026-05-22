@@ -12,7 +12,7 @@
     "build:icons": "node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
-    "@antzsoft/chat-core": "^1.1.4",
+    "@antzsoft/chat-core": "^1.1.6",
     "@antzsoft/wso2-auth-web": "^1.4.5",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "7.21.3",
