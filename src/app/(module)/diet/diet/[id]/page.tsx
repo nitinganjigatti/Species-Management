@@ -821,7 +821,7 @@ const DietDetail = () => {
     dietid: dietDetails?.id,
     onSelectedSpeciesChange: handleSelectedSpeciesChange,
     dietId: id,
-
+    checkForSite,
     setLoading
   }
 
@@ -871,18 +871,20 @@ const DietDetail = () => {
                 </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {(() => { const DDC = DietDetailCard as any; return <DDC
-                  dietDetails={dietDetails}
-                  dietModulePermission={dietModule}
-                  dietModuleAccess={dietModuleAccess}
-                  refreshDietDetails={getDietDetailsCallback}
-                  handleSpeciesClick={handleSpeciesClick}
-                  handleSpeciesClicknew={handleSpeciesClicknew}
-                  setapplyfilterCheck={setapplyfilterCheck}
-                  authData={authData}
-                  onDownloadPdf={handleDownloadPdf}
-                  downloadingPdf={downloadingPdf}
-                />; })()}
+                {(() => {
+                  const DDC = DietDetailCard as any; return <DDC
+                    dietDetails={dietDetails}
+                    dietModulePermission={dietModule}
+                    dietModuleAccess={dietModuleAccess}
+                    refreshDietDetails={getDietDetailsCallback}
+                    handleSpeciesClick={handleSpeciesClick}
+                    handleSpeciesClicknew={handleSpeciesClicknew}
+                    setapplyfilterCheck={setapplyfilterCheck}
+                    authData={authData}
+                    onDownloadPdf={handleDownloadPdf}
+                    downloadingPdf={downloadingPdf}
+                  />;
+                })()}
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px' }}>
