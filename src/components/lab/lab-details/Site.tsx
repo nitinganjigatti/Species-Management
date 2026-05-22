@@ -69,6 +69,7 @@ const Site = ({ labId }: SiteProps) => {
           total={total}
           columns={columns}
           loading={loading}
+          getRowId={getRowId}
           hideFooterPagination
           disablePagination
         />
