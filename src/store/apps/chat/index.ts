@@ -28,6 +28,7 @@ import {
   getConversation,
   createGroupConversation,
   createDirectConversation,
+  getUserById,
   updateConversation,
   deleteConversation as apiDeleteConversation,
   addParticipants as apiAddParticipants,
@@ -201,15 +202,20 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
 )
 
 /**
- * Start (or reopen) a direct conversation with another user.
+ * Start (or reopen) a direct conversation with another user — WhatsApp-style
+ * deferred creation. The flow no longer eagerly calls `createDirect`:
  *
- * The backend's `POST /conversations/direct` is idempotent — if a direct
- * conversation between the two users already exists, the same one comes back.
- * Flow:
- *   1. Call `client.conversations.createDirect({ userId })`.
- *   2. Map the returned Conversation through our adapter and dispatch
- *      `addOrReplaceChat` so it appears in the sidebar (or moves to the top).
- *   3. Dispatch `selectChat` so the panel opens with messages loaded.
+ *   1. Look up `state.chats` for an existing DM with this peer
+ *      (`participantIds` includes both me + the chosen user, not group).
+ *   2. If found → just `selectChat(existingId)`. No API call.
+ *   3. If not found → build a LOCAL draft chat (`isDraft: true`,
+ *      placeholder id `__draft__<userId>`, populated from
+ *      `getUserById(userId)` for name/avatar) and dispatch
+ *      `setDraftChat`. The panel opens immediately with an empty
+ *      message list, but NO server `Conversation` record exists yet.
+ *      `sendMsg` materializes it via `createDirectConversation` on
+ *      the first send. If the user navigates away without sending,
+ *      the draft just disappears.
  */
 export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
   'appChat/startDirectChat',
@@ -217,17 +223,57 @@ export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
     const client = getChatClientOrNull()
     if (!client) return
 
+    const state = getState() as { chat?: ChatStoreType }
+    const currentUserId = String(state.chat?.userProfile?.id ?? '')
+    const peerIdStr = String(userId)
+
+    // (1) Existing DM lookup — short-circuit to the existing path.
+    const existing = (state.chat?.chats ?? []).find(c => {
+      if (c.isGroup === true) return false
+      const ids = c.participantIds?.map(String) ?? []
+
+      return ids.includes(peerIdStr) && ids.includes(currentUserId)
+    })
+    if (existing) {
+      dispatch(selectChat(existing.id))
+
+      return
+    }
+
+    // (2) No DM yet — build a local-only draft. No `createDirect` call;
+    // sendMsg will materialize the conversation server-side on first send.
     try {
-      const conv = await createDirectConversation({ userId: String(userId) })
+      const user = await getUserById(peerIdStr)
+      const displayName = user?.displayName || user?.username || 'User'
+      const avatarUrl = user?.avatarUrl
 
-      const state = getState() as { chat?: ChatStoreType }
-      const currentUserId = state.chat?.userProfile?.id ?? ''
-      const chat = sdkConversationToChat(conv, currentUserId)
+      const draft: ChatsArrType = {
+        id: `__draft__${peerIdStr}`,
+        role: '',
+        about: '',
+        fullName: displayName,
+        ...(avatarUrl ? { avatar: avatarUrl } : {}),
+        status: 'offline',
+        isGroup: false,
+        isDraft: true,
+        participantIds: [currentUserId, peerIdStr],
+        participants: [
+          { userId: currentUserId, isActive: true, role: 'member' },
+          { userId: peerIdStr, isActive: true, role: 'member', displayName, avatarUrl }
+        ],
+        isCurrentUserActive: true,
+        chat: {
+          id: `__draft__${peerIdStr}`,
+          unseenMsgs: 0,
+          messages: [],
+          hasMoreOlder: false,
+          loadingOlder: false
+        }
+      }
 
-      dispatch(addOrReplaceChat(chat))
-      dispatch(selectChat(conv.id))
+      dispatch(setDraftChat(draft))
     } catch (err) {
-      console.error('[chat] startDirectChat failed:', err)
+      console.error('[chat] startDirectChat (draft setup) failed:', err)
     }
   }
 )
@@ -813,11 +859,45 @@ export const jumpToMessage = createAsyncThunk<
  * an optimistic row before the ack — once we do, the ack handler will
  * reconcile by tempId.
  */
+/**
+ * If the currently-selected chat is a WhatsApp-style draft DM (created
+ * locally by `startDirectChat`, not yet on the server), materialize it
+ * server-side via `createDirect` and return the REAL conversation id.
+ * Idempotent — if already materialized (no draft in state), returns the
+ * existing id from the argument. Used by both `sendMsg` and SendMsgForm's
+ * attachment-upload path, since both need a real id to operate against.
+ */
+export const materializeDraftIfNeeded = createAsyncThunk<string, ChatsArrType>(
+  'appChat/materializeDraftIfNeeded',
+  async (contact, { dispatch, getState }) => {
+    if (!contact.isDraft) return String(contact.id)
+
+    const state = getState() as { chat?: ChatStoreType }
+    const currentUserId = String(state.chat?.userProfile?.id ?? '')
+    const peerUserId = contact.participantIds?.map(String).find(id => id !== currentUserId)
+    if (!peerUserId) throw new Error('[chat] draft chat is missing a peer userId')
+
+    const conv = await createDirectConversation({ userId: peerUserId })
+    const realChat = sdkConversationToChat(conv, currentUserId)
+    dispatch(materializeDraft(realChat))
+
+    return conv.id
+  }
+)
+
 export const sendMsg = createAsyncThunk(
   'appChat/sendMsg',
-  async (obj: SendMsgParamsType & { contact?: ChatsArrType }, { getState }) => {
-    const conversationId = obj.contact?.id ?? obj.chat?.id
+  async (obj: SendMsgParamsType & { contact?: ChatsArrType }, { dispatch, getState }) => {
+    let conversationId = obj.contact?.id ?? obj.chat?.id
     const client = getChatClientOrNull()
+
+    const state = getState() as { chat?: ChatStoreType }
+    const currentUserId = state.chat?.userProfile?.id ?? ''
+
+    // Draft chats: materialize server-side via shared thunk before sending.
+    if (obj.contact?.isDraft) {
+      conversationId = await dispatch(materializeDraftIfNeeded(obj.contact)).unwrap()
+    }
 
     if (!client || typeof conversationId !== 'string') {
       console.error('[chat] sendMsg precondition failed', {
@@ -826,9 +906,6 @@ export const sendMsg = createAsyncThunk(
       })
       throw new Error('[chat] sendMsg requires an initialized SDK and a real conversation id')
     }
-
-    const state = getState() as { chat?: ChatStoreType }
-    const currentUserId = state.chat?.userProfile?.id ?? ''
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -1624,6 +1701,43 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // WhatsApp-style "draft" DM — opens the chat panel locally without
+    // creating a server-side conversation. Sets `selectedChat` from the
+    // payload but DOES NOT add to `state.chats` (no sidebar row).
+    // Materialized later by `materializeDraft` when the user actually
+    // sends their first message.
+    setDraftChat: (state, action: PayloadAction<ChatsArrType>) => {
+      const draft = action.payload
+      state.selectedChat = {
+        chat: draft.chat,
+        contact: draft
+      }
+    },
+    // Swap a draft chat for the real server-backed conversation after
+    // `createDirectConversation` resolves on first send. Inserts the real
+    // row at the top of `state.chats` and, if the currently-open chat is
+    // the draft, repoints `selectedChat` at the real conversation so the
+    // open panel keeps working with the real id (sendMessageOverSocket
+    // result lands in the right chat via the `sendMsg.fulfilled` reducer).
+    materializeDraft: (state, action: PayloadAction<ChatsArrType>) => {
+      const realChat = action.payload
+      if (!state.chats) {
+        state.chats = [realChat]
+      } else {
+        const idx = state.chats.findIndex(c => c.id === realChat.id)
+        if (idx >= 0) {
+          state.chats[idx] = realChat
+        } else {
+          state.chats.unshift(realChat)
+        }
+      }
+      if (state.selectedChat && state.selectedChat.contact.isDraft) {
+        state.selectedChat = {
+          chat: realChat.chat,
+          contact: realChat
+        }
+      }
+    },
     addOrReplaceChat: (state, action: PayloadAction<ChatsArrType>) => {
       const incoming = action.payload
       if (!state.chats) {
@@ -2176,7 +2290,9 @@ export const {
   removeChatFromList,
   removeSelectedChat,
   setActiveFilter,
-  setDraft
+  setDraft,
+  setDraftChat,
+  materializeDraft
 } = appChatSlice.actions
 
 export default appChatSlice.reducer

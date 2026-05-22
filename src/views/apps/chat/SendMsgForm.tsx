@@ -27,7 +27,8 @@ import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
-import { setReplyingTo, setEditingMessage, setDraft } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded } from 'src/store/apps/chat'
+import type { AppDispatch } from 'src/store'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -508,7 +509,25 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     }
 
     let uploaded: ChatAttachmentType[] | undefined
-    const conversationId = store.selectedChat.contact.id
+    // Draft DM materialization — uploadChatFiles needs a REAL conversation id
+    // (the `__draft__<userId>` placeholder would 404 the presigned-URL
+    // request). Materialize server-side now if the user is sending the
+    // first message into a draft; `sendMsg` is idempotent and won't
+    // re-materialize. Plain text sends skip the upload branch entirely
+    // and let `sendMsg` handle the materialization.
+    let conversationId: string | number | undefined = store.selectedChat.contact.id
+    if (pending.length && store.selectedChat.contact.isDraft) {
+      try {
+        conversationId = await (dispatch as AppDispatch)(
+          materializeDraftIfNeeded(store.selectedChat.contact)
+        ).unwrap()
+      } catch (err) {
+        console.error('[chat] materializeDraftIfNeeded failed:', err)
+        toast.error('Couldn’t start the conversation. Try again.')
+
+        return
+      }
+    }
 
     if (pending.length) {
       if (typeof conversationId !== 'string') {
