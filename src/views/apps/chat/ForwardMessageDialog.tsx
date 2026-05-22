@@ -90,7 +90,12 @@ const ForwardMessageDialog = () => {
           sourceMessageId: forwarding.messageId,
           sourceText: forwarding.messageText,
           sourceAttachments: forwarding.attachments,
-          targetChatId: targetId
+          targetChatId: targetId,
+          // Stay on the source chat after forwarding. Without this the
+          // thunk dispatches `selectChat(targetChatId)`, which swaps the
+          // open conversation + refetches its messages — felt to the user
+          // like the page "refreshed" into the recipient's thread.
+          openTargetAfter: false
         })
       ).unwrap()
       toast.success('Message forwarded')
