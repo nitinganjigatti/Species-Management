@@ -30,6 +30,12 @@ const ComposeNavigation = () => {
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
+  // When the tenant uses an external LIMS, the in-app lab module is
+  // replaced by a single "Lab" link pointing to NEXT_PUBLIC_LIMS_BASE_URL.
+  // The replacement happens inside labNavigation; here we just need to
+  // ensure the outer gate doesn't short-circuit when the LIMS flag is on
+  // for users who otherwise have no lab role / no labs in their modules.
+  const labLimsRequired = authData?.userData?.settings?.LAB_LIMS_REQUIRED
   const userSettings = authData?.userData?.permission?.user_settings
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const complianceModule = authData?.userData?.roles?.settings?.compliance_module
@@ -100,7 +106,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...pharmacyNav)
   }
 
-  if (labList?.length > 0 || labRole) {
+  if (labList?.length > 0 || labRole || labLimsRequired) {
     const labNav = labNavigation({ labRole })
     navigationArray.push(...labNav)
   }

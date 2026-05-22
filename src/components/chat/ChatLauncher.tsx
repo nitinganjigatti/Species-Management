@@ -82,11 +82,20 @@ const ChatLauncher = () => {
   }, [chats])
 
   // Restore selected conversation from localStorage on app load
+  // But skip if URL parameter 'conversationId' is provided (URL takes priority)
   useEffect(() => {
     if (!enableChatModule) return
-    const savedConversationId = localStorage.getItem('selectedChatConversationId')
-    if (savedConversationId) {
-      dispatch(setSelectedConversationId(savedConversationId))
+    if (typeof window === 'undefined') return
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlConversationId = urlParams.get('conversationId')
+
+    // Only restore from localStorage if NO URL parameter is provided
+    if (!urlConversationId) {
+      const savedConversationId = localStorage.getItem('selectedChatConversationId')
+      if (savedConversationId) {
+        dispatch(setSelectedConversationId(savedConversationId))
+      }
     }
   }, [dispatch, enableChatModule])
 

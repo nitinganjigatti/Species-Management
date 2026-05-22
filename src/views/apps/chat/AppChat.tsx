@@ -32,7 +32,14 @@ import {
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markReadOverSocket, sdkConversationToChat, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
+import {
+  joinChatRoom,
+  markReadOverSocket,
+  sdkConversationToChat,
+  sdkMessageToMessage,
+  getUserLastSeen,
+  getOnlineUsersOverSocket
+} from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 import toast from 'react-hot-toast'
 // ** Types
@@ -238,17 +245,20 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   }, [chatClient, chatConnected, dispatch])
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
-  // SDK's `useChatStore.onlineUsers` is normally populated by `user_online`
-  // / `user_offline` events as peers come and go — but on a fresh connect
-  // the array starts empty until peers happen to change state. Result:
-  // green dots are absent for already-online peers until they re-connect.
+  // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory
+  // only), and the server doesn't reliably re-push `user_online` events
+  // for already-connected peers on a fresh socket connection. Without a
+  // cold-seed the chat header / sidebar wrongly falls through to the
+  // "last seen" branch even when peer is currently online.
   //
-  // Fix: one shot of `socketEmit.getOnlineUsers([all DM peer ids])` after
-  // socket connect + first chat list load. Merge the response into the
-  // store (don't replace — `user_online` events between connect and the
-  // batch response would otherwise get clobbered). Ref-gated so it fires
-  // exactly once per connection; reset on disconnect so a reconnect re-
-  // seeds with the latest data.
+  // One shot of `socketEmit.getOnlineUsers([all DM peer ids])` on connect
+  // asks the server "who from this list is currently online?" — purely a
+  // socket query, no fabrication. Result is Set-merged into
+  // `useChatStore.onlineUsers` (don't replace — `user_online` events that
+  // arrived during the round-trip mustn't be clobbered).
+  //
+  // Ref-gated so it fires exactly once per connection; reset on
+  // disconnect so a reconnect re-seeds with current data.
   const seededOnlineUsersRef = useRef<boolean>(false)
   useEffect(() => {
     if (!chatConnected) {
@@ -273,33 +283,75 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     getOnlineUsersOverSocket(Array.from(peerIds))
       .then(online => {
         const presenceStore = useChatStore.getState()
-        // Merge instead of replace so any `user_online` events that
-        // arrived during the round-trip aren't dropped.
         const merged = Array.from(new Set([...presenceStore.onlineUsers, ...online]))
         presenceStore.setOnlineUsers(merged)
       })
       .catch(err => {
         console.warn('[chat:presence] getOnlineUsers seed failed:', err)
-        // Allow a retry on the next connect transition.
         seededOnlineUsersRef.current = false
       })
   }, [chatConnected, store?.chats, store?.userProfile?.id])
 
+  // ── Refresh `lastSeen` on every live `user_offline` event ─────────────────
+  // The server's `user_offline` payload currently omits `lastSeenAt`, so the
+  // SDK's `if (e.lastSeenAt) store.setLastSeen(...)` short-circuits and the
+  // UI keeps showing whatever was cached from the earlier cold-seed.
+  //
+  // Workaround: listen to `user_offline` ourselves and refetch via the
+  // existing `getUserLastSeen` REST endpoint — same source of truth the
+  // cold-seed uses, no client-side timestamp fabrication. Server's
+  // authoritative value lands in `useChatStore.lastSeen[userId]` and the
+  // chat header / profile drawer re-render automatically.
+  //
+  // Dedupes the per-room fanout we observed (one `user_offline` per joined
+  // room — same userId, ~80ms apart): swallows duplicates within 1s.
+  const lastOfflineFetchedAtRef = useRef<Record<string, number>>({})
+  useEffect(() => {
+    if (!chatSocket || !chatConnected) return
+
+    const onUserOffline = (evt: { userId: string; lastSeenAt?: string }) => {
+      if (!evt?.userId) return
+      const userId = String(evt.userId)
+      const now = Date.now()
+      const lastAt = lastOfflineFetchedAtRef.current[userId] ?? 0
+      if (now - lastAt < 1000) return
+      lastOfflineFetchedAtRef.current[userId] = now
+
+      // If the server eventually starts sending `lastSeenAt` in the payload,
+      // trust it directly. Otherwise fall back to refetching via REST.
+      if (evt.lastSeenAt) {
+        useChatStore.getState().setLastSeen(userId, evt.lastSeenAt)
+
+        return
+      }
+      getUserLastSeen(userId)
+        .then(res => {
+          if (!res?.lastSeenAt) return
+          useChatStore.getState().setLastSeen(userId, res.lastSeenAt)
+        })
+        .catch(err => console.warn('[chat:presence] live getUserLastSeen failed:', err))
+    }
+
+    chatSocket.on('user_offline', onUserOffline)
+
+    return () => {
+      chatSocket.off('user_offline', onUserOffline)
+    }
+  }, [chatSocket, chatConnected])
+
   const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
 
-  // Compact mode (FAB panel): restore from Redux/localStorage only, ignore URL changes
-  const compactRestoredRef = useRef(false)
+  // Compact mode (FAB panel): hydrate selectedChat from Redux/localStorage
+  // whenever it's missing — runs on every panel open, on chats arriving
+  // after the ID was already restored, and after anything that clears
+  // selectedChat. URL changes are ignored in compact mode.
   useEffect(() => {
     if (!compact) return
     if (typeof window === 'undefined') return
-    if (compactRestoredRef.current) return
     if (!store?.chats || store.chats.length === 0) return
 
-    // If there's already a selected chat, don't override it
-    if (store?.selectedChat?.contact?.id) {
-      compactRestoredRef.current = true
-      return
-    }
+    // selectedChat already hydrated — nothing to do.
+    if (store?.selectedChat?.contact?.id) return
 
     const savedId = selectedConversationIdFromRedux || localStorage.getItem('selectedChatConversationId')
     if (!savedId) return
@@ -307,54 +359,37 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     const chatToSelect = store.chats.find(c => String(c.id) === String(savedId))
     if (chatToSelect) {
       dispatch(selectChat(chatToSelect.id))
-      compactRestoredRef.current = true
     }
   }, [compact, store?.chats, store?.selectedChat?.contact?.id, selectedConversationIdFromRedux, dispatch])
 
-  // Full page mode: auto-select conversation from URL or first on initial load
-  const lastUrlRef = useRef<string | null>(null)
-  const retryCountRef = useRef(0)
+  // Full-page mode: hydrate selectedChat whenever it's missing.
+  // Source priority: URL `?conversationId=` → first chat in the list.
+  // No refs / once-only guards — re-runs whenever selectedChat clears so
+  // any path that wipes it (removeChatFromList, race with route cleanup,
+  // etc.) self-heals on the next render. URL → selectedChat sync is the
+  // job of the URL-update effect below, so we don't fight it here when
+  // selectedChat is already set.
   useEffect(() => {
     if (compact) return
     if (typeof window === 'undefined') return
     if (!searchParams) return
-
-    const conversationId = searchParams.get('conversationId')
-    const currentUrl = conversationId || ''
-
-    if (lastUrlRef.current === currentUrl) return
-    lastUrlRef.current = currentUrl
-    retryCountRef.current = 0
-
-    if (store?.chats === null) {
-      const timer = setTimeout(() => {
-        retryCountRef.current++
-        if (retryCountRef.current < 10) lastUrlRef.current = null
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-
     if (!store?.chats || store.chats.length === 0) return
 
+    if (store?.selectedChat?.contact?.id) return
+
+    const conversationId = searchParams.get('conversationId')
     if (conversationId) {
       const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
       if (chatToSelect) {
         dispatch(selectChat(chatToSelect.id))
+
         return
-      } else {
-        if (retryCountRef.current < 5) {
-          const timer = setTimeout(() => {
-            retryCountRef.current++
-            lastUrlRef.current = null
-          }, 500)
-          return () => clearTimeout(timer)
-        }
       }
     }
 
-    const first = store.chats?.[0]
+    const first = store.chats[0]
     if (first) dispatch(selectChat(first.id))
-  }, [compact, store?.chats, searchParams, dispatch])
+  }, [compact, store?.chats, store?.selectedChat?.contact?.id, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -378,9 +413,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // Only update URL if the selection changed AND it's not matching the URL
     // (i.e., user clicked sidebar, not clicked a notification)
     // Skip URL push when in compact mode (floating panel)
-    if (currentConversationId && currentConversationId !== prevConversationIdRef.current && String(currentConversationId) !== urlConversationId) {
+    if (
+      currentConversationId &&
+      currentConversationId !== prevConversationIdRef.current &&
+      String(currentConversationId) !== urlConversationId
+    ) {
       prevConversationIdRef.current = currentConversationId
-      if (!compact) {
+      if (!compact && !isFullscreen) {
         router.replace(`/chat?conversationId=${currentConversationId}`)
       }
     } else {
@@ -427,20 +466,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         return
       }
 
-      // TEMP DIAG — when investigating whether the backend emits a system
-      // message on group-icon change, this surfaces only system-typed
-      // messages so the console isn't drowned by regular chat traffic.
-      // Filter by `[chat:system]`. Remove once verified.
-      if (raw.content?.type === 'system') {
-        // eslint-disable-next-line no-console
-        console.log('[chat:system] new system message', {
-          messageId: raw.id,
-          conversationId: raw.conversationId,
-          text: raw.content?.text,
-          metadata: raw.content,
-          full: raw
-        })
-      }
+      // System message — handle silently without special logging
 
       // Determine if this is our own message by comparing senderId with our
       // profile id — tempId is unreliable because the server broadcasts it
@@ -705,17 +731,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       }
     }
 
-    // TEMPORARY: log every server event before our specific handlers run, so
-    // we can verify event-name matches. Remove once read-receipt flow is
-    // verified end-to-end on staging.
-    const onAnyDebug = (eventName: string, ...args: unknown[]) => {
-      // Highlight read-related events to make them easy to spot in the console.
-      const isReadLike = /read|receipt|seen/i.test(eventName)
-      const prefix = isReadLike ? '[chat:event ★ READ-LIKE]' : '[chat:event]'
-      console.log(prefix, eventName, args)
-    }
-
-    chatSocket.onAny(onAnyDebug)
+    // Socket event handlers below
     chatSocket.on('new_message', onNewMessage)
     chatSocket.on('message_delivered', onMessageDelivered)
     chatSocket.on('messages_delivered', onMessagesDelivered)
@@ -733,7 +749,6 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     chatSocket.on('typing_indicator', handleTypingEvent)
 
     return () => {
-      chatSocket.offAny(onAnyDebug)
       chatSocket.off('new_message', onNewMessage)
       chatSocket.off('message_delivered', onMessageDelivered)
       chatSocket.off('messages_delivered', onMessagesDelivered)
@@ -804,11 +819,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
         isFullscreen={isFullscreen}
         onToggleFullscreen={onToggleFullscreen}
-        typingUsers={
-          store?.selectedChat?.contact?.id
-            ? typingUsers[String(store.selectedChat.contact.id)] ?? []
-            : []
-        }
+        typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
       />
     </Box>
   )

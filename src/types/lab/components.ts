@@ -177,6 +177,9 @@ export interface LabNavItem {
   path?: string
   icon?: string
   children?: LabNavChildItem[]
+  // When true, the vertical/horizontal nav renderers set `target="_blank"`
+  // so the link opens in a new tab. Used for external URLs like LIMS.
+  openInNewTab?: boolean
 }
 
 export interface LabNavigationProps {

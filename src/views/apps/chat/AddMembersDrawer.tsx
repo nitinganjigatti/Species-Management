@@ -191,11 +191,11 @@ const AddMembersDrawer = ({
                 px: 1.5,
                 py: 0.25,
                 borderRadius: 10,
-                backgroundColor: 'customColors.Surface',
+                backgroundColor: 'customColors.antzSecondaryBg',
                 border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
               }}
             >
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'primary.dark' }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'secondary.dark' }}>
                 {selected.size} added
               </Typography>
             </Box>
@@ -224,7 +224,13 @@ const AddMembersDrawer = ({
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 6,
-                  backgroundColor: 'customColors.Surface'
+                  '& fieldset': {
+                    borderColor: 'secondary.main',
+                    borderWidth: '0.5px',
+                    transition: 'border-color 160ms ease-out, border-width 160ms ease-out'
+                  },
+                  '&:hover fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+                  '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' }
                 }
               }}
             />
@@ -253,7 +259,12 @@ const AddMembersDrawer = ({
                       <ListItem disablePadding>
                         <ListItemButton
                           onClick={() => toggleSelect(c.id)}
-                          sx={{ px: 4, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                          sx={{
+                            px: 4,
+                            py: 1.5,
+                            gap: 3,
+                            '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
+                          }}
                         >
                           <Box sx={{ position: 'relative', flexShrink: 0 }}>
                             {c.avatar ? (
@@ -273,7 +284,7 @@ const AddMembersDrawer = ({
                                   position: 'absolute',
                                   inset: 0,
                                   borderRadius: '50%',
-                                  backgroundColor: 'primary.main',
+                                  backgroundColor: 'secondary.main',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center'
@@ -293,7 +304,7 @@ const AddMembersDrawer = ({
                               </Typography>
                             }
                           />
-                          {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='primary.main' />}
+                          {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
                         </ListItemButton>
                       </ListItem>
                       {index < contacts.length - 1 && (
@@ -324,7 +335,12 @@ const AddMembersDrawer = ({
             <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
               Add as admin
             </Typography>
-            <Switch size='small' checked={addAsAdmin} onChange={e => setAddAsAdmin(e.target.checked)} />
+            <Switch
+              color='secondary'
+              size='small'
+              checked={addAsAdmin}
+              onChange={e => setAddAsAdmin(e.target.checked)}
+            />
           </Box>
         ) : null}
 
@@ -340,7 +356,13 @@ const AddMembersDrawer = ({
           <Button variant='outlined' color='inherit' fullWidth onClick={onClose}>
             Cancel
           </Button>
-          <Button variant='contained' fullWidth disabled={selected.size === 0} onClick={handleAdd}>
+          <Button
+            variant='contained'
+            color='secondary'
+            fullWidth
+            disabled={selected.size === 0}
+            onClick={handleAdd}
+          >
             {selected.size > 0 ? `Add (${selected.size})` : 'Add'}
           </Button>
         </Box>
