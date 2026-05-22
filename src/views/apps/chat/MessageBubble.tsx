@@ -249,7 +249,7 @@ const MessageBubble = ({
           ) : null}
           {forwarded ? <ForwardedTag isSender={isSender} /> : null}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
+            <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', whiteSpace: 'pre-wrap', color: 'inherit' }}>
               <LinkifyText
                 text={displayText}
                 isSender={isSender}

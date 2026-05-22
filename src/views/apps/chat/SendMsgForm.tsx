@@ -809,7 +809,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   if (e.target.value.trim()) emitTyping()
                 }}
                 onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  // On touch devices (iPad/iPhone/Android) the on-screen keyboard
+                  // has no Shift, so Shift+Enter for newline is impossible. Let
+                  // Enter insert a newline and require tapping the send button.
+                  const isTouchOnly =
+                    typeof window !== 'undefined' &&
+                    window.matchMedia?.('(hover: none) and (pointer: coarse)').matches
+
+                  if (e.key === 'Enter' && !e.shiftKey && !isTouchOnly) {
                     e.preventDefault()
                     handleSendMsg(e as any)
                   }

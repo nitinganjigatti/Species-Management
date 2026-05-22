@@ -778,7 +778,6 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       }
     }
 
-    // TEMPORARY: log every server event before our specific handlers run, so
     // Socket event handlers below
     chatSocket.on('new_message', onNewMessage)
     chatSocket.on('message_delivered', onMessageDelivered)
@@ -797,7 +796,6 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     chatSocket.on('typing_indicator', handleTypingEvent)
 
     return () => {
-      chatSocket.offAny(onAnyDebug)
       chatSocket.off('new_message', onNewMessage)
       chatSocket.off('message_delivered', onMessageDelivered)
       chatSocket.off('messages_delivered', onMessagesDelivered)
