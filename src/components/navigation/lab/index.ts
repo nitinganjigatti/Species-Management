@@ -43,6 +43,31 @@ const ComposeLabNavigation = ({ labRole }: LabNavigationProps): LabNavItem[] => 
 
   const authData = useContext(AuthContext) as any
 
+  // External LIMS short-circuit: when the tenant has LAB_LIMS_REQUIRED on
+  // we replace the in-app lab module entirely with a single nav entry
+  // that opens the configured LIMS URL in a new tab. All other
+  // role/permission checks are skipped — every user on the tenant gets
+  // the same single link.
+  const labLimsRequired = authData?.userData?.settings?.LAB_LIMS_REQUIRED
+  if (labLimsRequired) {
+    const limsUrl = process.env.NEXT_PUBLIC_LIMS_BASE_URL
+    if (!limsUrl) {
+      console.warn('[lab-nav] LAB_LIMS_REQUIRED is true but NEXT_PUBLIC_LIMS_BASE_URL is not configured')
+
+      return []
+    }
+
+    return [
+      labTitle,
+      {
+        title: 'Lab',
+        path: limsUrl,
+        icon: 'icon-park-outline:traditional-chinese-medicine',
+        openInNewTab: true
+      }
+    ]
+  }
+
   const addlabPermission = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
   const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
