@@ -8,6 +8,7 @@ import { searchUsers, sdkUserToContact } from 'src/lib/chat/api'
 import Box from '@mui/material/Box'
 import List from '@mui/material/List'
 import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
 import MuiAvatar from '@mui/material/Avatar'
 import ListItem from '@mui/material/ListItem'
 import TextField from '@mui/material/TextField'
@@ -395,7 +396,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                           '&:hover': { backgroundColor: 'action.hover' }
                         }}
                       >
-                        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                        <Box sx={{ flexShrink: 0 }}>
                           {contact.avatar ? (
                             <MuiAvatar src={contact.avatar} alt={contact.fullName} sx={{ width: 42, height: 42 }} />
                           ) : (
@@ -407,21 +408,6 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                               {getInitials(contact.fullName)}
                             </CustomAvatar>
                           )}
-                          {isSelected && (
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                inset: 0,
-                                borderRadius: '50%',
-                                backgroundColor: 'secondary.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              <Icon icon='mdi:check' fontSize='1.125rem' color='white' />
-                            </Box>
-                          )}
                         </Box>
                         <ListItemText
                           primary={
@@ -432,8 +418,26 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                               {contact.fullName}
                             </Typography>
                           }
+                          secondary={
+                            contact.role ? (
+                              <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                                {contact.role}
+                              </Typography>
+                            ) : undefined
+                          }
                         />
-                        {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
+                        <Checkbox
+                          checked={isSelected}
+                          disableRipple
+                          size='small'
+                          sx={{
+                            flexShrink: 0,
+                            p: 0,
+                            color: 'customColors.SurfaceVariant',
+                            '&.Mui-checked': { color: 'primary.main' },
+                            '& .MuiSvgIcon-root': { fontSize: '1.375rem' }
+                          }}
+                        />
                       </ListItemButton>
                     </ListItem>
                     {index < filteredContacts.length - 1 && (
