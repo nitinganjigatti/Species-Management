@@ -90,12 +90,7 @@ const ForwardMessageDialog = () => {
           sourceMessageId: forwarding.messageId,
           sourceText: forwarding.messageText,
           sourceAttachments: forwarding.attachments,
-          targetChatId: targetId,
-          // Stay on the source chat after forwarding. Without this the
-          // thunk dispatches `selectChat(targetChatId)`, which swaps the
-          // open conversation + refetches its messages — felt to the user
-          // like the page "refreshed" into the recipient's thread.
-          openTargetAfter: false
+          targetChatId: targetId
         })
       ).unwrap()
       toast.success('Message forwarded')
@@ -136,12 +131,12 @@ const ForwardMessageDialog = () => {
             mt: 2,
             p: 2,
             borderRadius: 1,
-            borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
-            backgroundColor: 'customColors.Surface'
+            borderLeft: theme => `3px solid ${theme.palette.secondary.main}`,
+            backgroundColor: 'customColors.antzSecondaryBg'
           }}
         >
           {forwarding.senderName ? (
-            <Typography variant='caption' sx={{ fontWeight: 600, color: 'primary.main' }}>
+            <Typography variant='caption' sx={{ fontWeight: 600, color: 'secondary.dark' }}>
               {forwarding.senderName}
             </Typography>
           ) : null}
@@ -185,6 +180,18 @@ const ForwardMessageDialog = () => {
               )
             }
           }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 6,
+              '& fieldset': {
+                borderColor: 'secondary.main',
+                borderWidth: '0.5px',
+                transition: 'border-color 160ms ease-out, border-width 160ms ease-out'
+              },
+              '&:hover fieldset': { borderColor: 'secondary.main', borderWidth: '2px' },
+              '&.Mui-focused fieldset': { borderColor: 'secondary.main', borderWidth: '2px' }
+            }
+          }}
         />
       </Box>
 
@@ -196,39 +203,65 @@ const ForwardMessageDialog = () => {
           </Box>
         ) : (
           <List dense disablePadding>
-            {filteredChats.map((c: ChatsArrType) => {
+            {filteredChats.map((c: ChatsArrType, index) => {
               const selected = c.id === targetId
 
               return (
-                <ListItem key={String(c.id)} disablePadding>
-                  <ListItemButton onClick={() => setTargetId(c.id)} selected={selected}>
-                    <ListItemAvatar>
-                      {c.avatar ? (
-                        <CustomAvatar src={c.avatar} alt={c.fullName} sx={{ width: 36, height: 36 }} />
-                      ) : (
-                        <CustomAvatar
-                          skin='light'
-                          color={c.avatarColor ?? 'primary'}
-                          sx={{ width: 36, height: 36, fontSize: '0.875rem' }}
-                        >
-                          {getInitials(c.fullName)}
-                        </CustomAvatar>
-                      )}
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={c.fullName}
-                      secondary={c.isGroup ? 'Group' : undefined}
-                      primaryTypographyProps={{ noWrap: true, variant: 'subtitle2' }}
-                    />
-                    <Radio
-                      edge='end'
-                      checked={selected}
-                      tabIndex={-1}
-                      disableRipple
-                      inputProps={{ 'aria-label': `Select ${c.fullName}` }}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                <Box key={String(c.id)}>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() => setTargetId(c.id)}
+                      selected={selected}
+                      sx={{
+                        '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' },
+                        '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        {c.avatar ? (
+                          <CustomAvatar src={c.avatar} alt={c.fullName} sx={{ width: 36, height: 36 }} />
+                        ) : (
+                          <CustomAvatar
+                            skin='light'
+                            color={c.avatarColor ?? 'primary'}
+                            sx={{ width: 36, height: 36, fontSize: '0.875rem' }}
+                          >
+                            {getInitials(c.fullName)}
+                          </CustomAvatar>
+                        )}
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant='subtitle2'
+                            noWrap
+                            sx={{ fontWeight: selected ? 600 : 400, color: 'customColors.OnSurfaceVariant' }}
+                          >
+                            {c.fullName}
+                          </Typography>
+                        }
+                        secondary={
+                          c.isGroup ? (
+                            <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+                              Group
+                            </Typography>
+                          ) : undefined
+                        }
+                      />
+                      <Radio
+                        edge='end'
+                        color='secondary'
+                        checked={selected}
+                        tabIndex={-1}
+                        disableRipple
+                        inputProps={{ 'aria-label': `Select ${c.fullName}` }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                  {index < filteredChats.length - 1 && (
+                    <Divider sx={{ ml: '68px', borderColor: 'customColors.OnBackground' }} />
+                  )}
+                </Box>
               )
             })}
           </List>
@@ -243,6 +276,7 @@ const ForwardMessageDialog = () => {
         </Button>
         <Button
           variant='contained'
+          color='secondary'
           onClick={handleSubmit}
           disabled={!targetId || submitting}
           startIcon={submitting ? <CircularProgress size={16} color='inherit' /> : <Icon icon='mdi:share-outline' />}
