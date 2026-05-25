@@ -851,6 +851,16 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   const ownEntry = meId ? rawParticipants.find(p => p.userId === meId) : undefined
   const isCurrentUserActive = isGroup ? ownEntry?.isActive !== false : true
 
+  // Freeze the sidebar preview for kicked groups. The server keeps returning
+  // the live `lastMessage` (post-kick) in `listConversations`, which would
+  // otherwise leak into the sidebar after a hard refresh. Override the text
+  // with a removal placeholder; downstream renderers branch on
+  // `contentType === 'system'` to style it as a system pill.
+  const sidebarLastMessage =
+    isGroup && !isCurrentUserActive && lastMessage
+      ? { ...lastMessage, message: 'You were removed from this group', contentType: 'system' as const }
+      : lastMessage
+
   return {
     id: conv.id,
     fullName,
@@ -882,7 +892,7 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,
       messages: [],
-      lastMessage
+      lastMessage: sidebarLastMessage
     }
   }
 }

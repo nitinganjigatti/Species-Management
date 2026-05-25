@@ -1184,6 +1184,14 @@ export const appChatSlice = createSlice({
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
+      // Guard: don't let socket updates leak post-kick messages into the
+      // sidebar for groups we've been removed from. The cold-load adapter
+      // (`sdkConversationToChat`) sets a "You were removed…" placeholder;
+      // this guard keeps it pinned even when the server (incorrectly)
+      // continues broadcasts `conversation_updated` events to kicked
+      // sockets (backend quirk #11). Active members are unaffected.
+      if (chatEntry.isGroup && chatEntry.isCurrentUserActive === false) return
+
       if (lastMessage) {
         const existing = chatEntry.chat.lastMessage
         // Preserve the existing attachments array if the patch is about the
@@ -1926,6 +1934,22 @@ export const appChatSlice = createSlice({
         return
       }
 
+      // Don't append regular messages to groups we've been removed from.
+      // The server still broadcasts new_message to kicked sockets (backend
+      // quirk #11); this guard drops them so ChatLog stays frozen at
+      // pre-kick state. Active members + DMs take the normal path.
+      // EXCEPTION: system messages (contentType === 'system') ARE allowed
+      // through — so when the server eventually broadcasts pills like
+      // "X removed you from the group", the kicked user sees them.
+      const incomingContentType = (message as { contentType?: string }).contentType
+      if (
+        chatEntry.isGroup &&
+        chatEntry.isCurrentUserActive === false &&
+        incomingContentType !== 'system'
+      ) {
+        return
+      }
+
       if (message.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
         if (existingIdx >= 0) {
@@ -2025,8 +2049,27 @@ export const appChatSlice = createSlice({
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
-      chatEntry.chat.messages = messages
-      chatEntry.chat.lastMessage = messages[messages.length - 1]
+      // Kicked groups need special handling. The REST messages.list()
+      // response still includes post-kick messages (server doesn't filter
+      // by membership). Rules:
+      //   • First open (messages cache empty) → write everything so the
+      //     user sees their pre-kick history. The few latest entries may
+      //     include post-kick text but that's an acceptable one-time
+      //     limitation without server-side filtering.
+      //   • Subsequent calls (cache already populated) → skip the write
+      //     so a re-fetch triggered by live socket events doesn't surface
+      //     post-kick messages that arrived after the first open.
+      //   • Always skip the `lastMessage` write — adapter's placeholder
+      //     ("You were removed from this group") must stay in the
+      //     sidebar regardless.
+      const isKickedGroup = chatEntry.isGroup && chatEntry.isCurrentUserActive === false
+      const skipMessagesWrite = isKickedGroup && chatEntry.chat.messages.length > 0
+      if (!skipMessagesWrite) {
+        chatEntry.chat.messages = messages
+      }
+      if (!isKickedGroup) {
+        chatEntry.chat.lastMessage = messages[messages.length - 1]
+      }
       if (oldestCursor !== undefined) chatEntry.chat.oldestCursor = oldestCursor
       if (hasMoreOlder !== undefined) chatEntry.chat.hasMoreOlder = hasMoreOlder
       chatEntry.chat.loadingOlder = false
