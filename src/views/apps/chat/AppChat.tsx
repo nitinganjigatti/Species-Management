@@ -28,7 +28,8 @@ import {
   applyParticipantJoined,
   updateMessagesFeedback,
   addOrReplaceChat,
-  patchConversationFromEvent
+  patchConversationFromEvent,
+  updateChatFlags
 } from 'src/store/apps/chat'
 
 // ** Adapters
@@ -439,8 +440,10 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   // can detect events for conversations we don't yet have (e.g. someone just
   // created a DM with us) and pull a fresh list via `fetchChatsContacts`.
   const knownChatIdsRef = useRef<Set<string | number>>(new Set())
+  const chatsRef = useRef(store?.chats ?? null)
   useEffect(() => {
     knownChatIdsRef.current = new Set(store?.chats?.map(c => c.id) ?? [])
+    chatsRef.current = store?.chats ?? null
   }, [store?.chats])
 
   useEffect(() => {
@@ -728,6 +731,17 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         toast.error(
           removedByName ? `You were removed from this group by ${removedByName}` : 'You were removed from this group'
         )
+      }
+
+      // If the current user was removed from a pinned group, clear the pin
+      // locally. The API call would be rejected since the user is no longer
+      // a member, so we update Redux state directly — the server's own
+      // membership removal already handles the server-side pin state.
+      if (leaverIsMe) {
+        const chat = chatsRef.current?.find(c => String(c.id) === String(conversationId))
+        if (chat?.isPinned) {
+          dispatch(updateChatFlags({ chatId: conversationId, isPinned: false }))
+        }
       }
     }
 
