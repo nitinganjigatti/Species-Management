@@ -238,12 +238,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     roomIds.forEach(id => joinChatRoom(id as string))
   }, [chatSocket, chatConnected, store?.chats])
 
-  // Refresh the conversation list whenever the socket transitions to
-  // connected — picks up conversations created while we were offline.
-  useEffect(() => {
-    if (!chatClient || !chatConnected) return
-    dispatch(fetchChatsContacts())
-  }, [chatClient, chatConnected, dispatch])
+  // Connect-time refetch lives in ChatLauncher (mounted persistently in
+  // the app shell). AppChat no longer refetches on mount — it would
+  // re-fire on every FAB open (since `{open && <Box>}` unmounts/remounts
+  // AppChat) and that fetch is redundant: Redux already holds the list
+  // and is kept fresh by `new_message` + `conversation_updated` socket
+  // events. Cold start and socket-reconnect refetches are both owned by
+  // ChatLauncher's persistent effects.
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
   // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory
@@ -721,17 +722,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         })
       )
 
-      // Toast only when WE are the one being removed BY an admin. We
-      // read the current-user id from the same ref used by the rest of
-      // the file (kept in sync via the userProfile effect above) so the
-      // closure sees the latest value across re-renders.
+      // Removal toast intentionally suppressed — the inline composer
+      // placeholder ("You were removed by …") already conveys the state
+      // via the reducer snapshot of `removedBy`. The reducer below still
+      // flips `isCurrentUserActive=false` and clears the pin so all
+      // active UI signals reflect the removal without a toast.
       const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
       const leaverIsMe = me !== '' && String(userId) === me
-      if (leaverIsMe && removedBy !== undefined && removedBy !== null) {
-        toast.error(
-          removedByName ? `You were removed from this group by ${removedByName}` : 'You were removed from this group'
-        )
-      }
 
       // If the current user was removed from a pinned group, clear the pin
       // locally. The API call would be rejected since the user is no longer
