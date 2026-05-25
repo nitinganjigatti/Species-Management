@@ -689,7 +689,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         open={leftSidebarOpen}
         onClose={handleLeftSidebarToggle}
         variant={mdAbove ? 'permanent' : 'temporary'}
-        ModalProps={{ disablePortal: true, keepMounted: true }}
+        ModalProps={{ disablePortal: true, keepMounted: true, disableScrollLock: true }}
         sx={{
           zIndex: 7,
           height: '100%',
