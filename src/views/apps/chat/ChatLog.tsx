@@ -1081,12 +1081,13 @@ const ChatLog = (props: ChatLogType) => {
                                     senderName={isSender ? data.userContact.fullName : data.contact.fullName}
                                     senderId={item.senderId}
                                     canPin={(() => {
+                                      // DM: both sides can always pin. Group:
+                                      // any active member can pin (matches
+                                      // WhatsApp). Kicked members blocked.
                                       const isGroup = data.contact.isGroup === true
                                       if (!isGroup) return true
-                                      const me = String(data.userContact.id ?? '')
-                                      const admins = data.contact.adminIds?.map(String) ?? []
 
-                                      return admins.includes(me)
+                                      return data.contact.isCurrentUserActive !== false
                                     })()}
                                     showEdit={false}
                                     showCopyText={false}
@@ -1434,14 +1435,14 @@ const ChatLog = (props: ChatLogType) => {
                             senderName={isSender ? data.userContact.fullName : data.contact.fullName}
                             senderId={item.senderId}
                             canPin={(() => {
-                              // DM: both participants can pin any message (their
-                              // own or received). Group: still admin-only.
+                              // DM: both participants can pin any message
+                              // (their own or received). Group: any active
+                              // member can pin (matches WhatsApp behavior).
+                              // Kicked members are blocked.
                               const isGroup = data.contact.isGroup === true
                               if (!isGroup) return true
-                              const me = String(data.userContact.id ?? '')
-                              const admins = data.contact.adminIds?.map(String) ?? []
 
-                              return admins.includes(me)
+                              return data.contact.isCurrentUserActive !== false
                             })()}
                             isSearchMatch={isMatch}
                             isActiveSearchMatch={isActiveMatch}

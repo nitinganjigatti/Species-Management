@@ -527,7 +527,6 @@ const ChatContent = (props: ChatContentType) => {
                 <>
                   <PinnedMessagesStrip
                     selectedChat={selectedChat}
-                    userProfile={store.userProfile}
                     onScrollToMessage={(messageId: string) => {
                       // Clear first so re-clicking the same id retriggers
                       // the ChatLog effect (which dedupes on prop value).
