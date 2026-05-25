@@ -336,7 +336,7 @@ const ChatContent = (props: ChatContentType) => {
                       <MuiAvatar
                         src={selectedChat.contact.avatar}
                         alt={selectedChat.contact.fullName}
-                        sx={{ width: 40, height: 40, mr: 3.5 }}
+                        sx={{ width: 40, height: 40, mr: 3.5, flexShrink: 0 }}
                       />
                     ) : (
                       // Teal-gradient circle + white glyph — same visual as the
@@ -346,6 +346,8 @@ const ChatContent = (props: ChatContentType) => {
                         sx={{
                           width: 40,
                           height: 40,
+                          minWidth: 40,
+                          flexShrink: 0,
                           mr: 3.5,
                           borderRadius: '50%',
                           background: theme =>
@@ -368,13 +370,13 @@ const ChatContent = (props: ChatContentType) => {
                         <MuiAvatar
                           src={selectedChat.contact.avatar}
                           alt={selectedChat.contact.fullName}
-                          sx={{ width: 40, height: 40 }}
+                          sx={{ width: 40, height: 40, flexShrink: 0 }}
                         />
                       ) : (
                         <CustomAvatar
                           skin='light'
                           color={selectedChat.contact.avatarColor}
-                          sx={{ width: 40, height: 40, fontSize: '1rem' }}
+                          sx={{ width: 40, height: 40, fontSize: '1rem', flexShrink: 0 }}
                         >
                           {getInitials(selectedChat.contact.fullName)}
                         </CustomAvatar>
@@ -384,7 +386,7 @@ const ChatContent = (props: ChatContentType) => {
                         <Badge
                           overlap='circular'
                           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                          sx={{ mr: 4.5 }}
+                          sx={{ mr: 4.5, flexShrink: 0 }}
                           badgeContent={
                             <Box
                               component='span'
@@ -402,7 +404,7 @@ const ChatContent = (props: ChatContentType) => {
                           {peerAvatar}
                         </Badge>
                       ) : (
-                        <Box sx={{ mr: 4.5, display: 'inline-flex' }}>{peerAvatar}</Box>
+                        <Box sx={{ mr: 4.5, display: 'inline-flex', flexShrink: 0 }}>{peerAvatar}</Box>
                       )
                     })()
                   )}
