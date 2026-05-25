@@ -226,11 +226,18 @@ export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = String(state.chat?.userProfile?.id ?? '')
     const peerIdStr = String(userId)
+    const isSelfChat = peerIdStr === currentUserId && currentUserId !== ''
 
-    // (1) Existing DM lookup — short-circuit to the existing path.
+    // (1) Existing DM lookup — short-circuit to the existing path. Self-chats
+    // need a distinct predicate: their participants are entirely the current
+    // user, so the generic `includes(peer) && includes(me)` check would
+    // otherwise match any DM the current user is in.
     const existing = (state.chat?.chats ?? []).find(c => {
       if (c.isGroup === true) return false
       const ids = c.participantIds?.map(String) ?? []
+      if (isSelfChat) {
+        return ids.length > 0 && ids.every(id => id === currentUserId)
+      }
 
       return ids.includes(peerIdStr) && ids.includes(currentUserId)
     })
@@ -874,7 +881,9 @@ export const materializeDraftIfNeeded = createAsyncThunk<string, ChatsArrType>(
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = String(state.chat?.userProfile?.id ?? '')
-    const peerUserId = contact.participantIds?.map(String).find(id => id !== currentUserId)
+    const ids = contact.participantIds?.map(String) ?? []
+    const isSelfChat = ids.length > 0 && ids.every(id => id === currentUserId)
+    const peerUserId = isSelfChat ? currentUserId : ids.find(id => id !== currentUserId)
     if (!peerUserId) throw new Error('[chat] draft chat is missing a peer userId')
 
     const conv = await createDirectConversation({ userId: peerUserId })

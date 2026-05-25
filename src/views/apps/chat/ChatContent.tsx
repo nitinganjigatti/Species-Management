@@ -463,7 +463,7 @@ const ChatContent = (props: ChatContentType) => {
                 </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                 {/* Call & video call hidden — re-enable when needed */}
                 {/* {mdAbove ? (
                   <Fragment>
