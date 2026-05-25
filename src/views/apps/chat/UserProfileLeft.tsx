@@ -20,6 +20,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemButton from '@mui/material/ListItemButton'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import type { Theme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -65,8 +66,8 @@ const UserProfileLeft = (props: UserProfileLeftType) => {
         zIndex: 9,
         height: '100%',
         width: sidebarWidth,
-        borderTopLeftRadius: theme => theme.shape.borderRadius,
-        borderBottomLeftRadius: theme => theme.shape.borderRadius,
+        borderTopLeftRadius: (theme: Theme) => theme.shape.borderRadius,
+        borderBottomLeftRadius: (theme: Theme) => theme.shape.borderRadius,
         '& + .MuiBackdrop-root': {
           zIndex: 8,
           borderRadius: 1

@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
+import type { Theme } from '@mui/material/styles'
 
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState, AppDispatch } from 'src/store'
@@ -205,8 +206,8 @@ const MessageInfoDialog = () => {
         zIndex: 11,           // above ChatLog FAB (zIndex 10) and UserProfileRight (9)
         height: '100%',
         width: { xs: '100%', sm: 380 },
-        borderTopRightRadius: theme => theme.shape.borderRadius,
-        borderBottomRightRadius: theme => theme.shape.borderRadius,
+        borderTopRightRadius: (theme: Theme) => theme.shape.borderRadius,
+        borderBottomRightRadius: (theme: Theme) => theme.shape.borderRadius,
         '& + .MuiBackdrop-root': { zIndex: 10, borderRadius: 1 }
       }}
     >
