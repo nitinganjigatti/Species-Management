@@ -10,3 +10,4 @@ export const getInitials = string =>
     .split(/\s+/)
     .filter(Boolean)
     .reduce((response, word) => (response += word.slice(0, 1)), '')
+    .toUpperCase()
