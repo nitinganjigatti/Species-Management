@@ -48,7 +48,8 @@ const HIDDEN_DETAIL_KEYS = new Set([
   'is_causing_adverse_side_effect',
   'isCausingAdverseSideEffect',
   'data',
-  'Data'
+  'Data',
+  'user_name'
 ])
 
 const isEmptyDetailValue = (value: any): boolean => {
