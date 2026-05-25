@@ -351,13 +351,40 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       //   2. Current user id match → "You: "
       //   3. `store.contacts` lookup (last fallback for older messages
       //      cached before senderName was captured).
+      // Detect server-stored "actor-prefixed" system events that aren't
+      // tagged with contentType='system' — e.g. "Anil Rathod created group
+      // …" coming back as a regular message. When the actor IS the current
+      // user we rewrite the text inline ("You created group …") AND skip
+      // the redundant "You: " sender prefix that would otherwise be added
+      // by the regular-text branch. Triggers only when (sender or creator)
+      // matches the current user AND the text starts with their exact
+      // full name + space — falls back to the original text on any
+      // mismatch. Pure render-time transformation; no state, socket, or
+      // REST changes; survives hard refresh because it re-runs on every
+      // render once userProfile is loaded.
+      const meIdStrForRewrite = String(store?.userProfile?.id ?? '')
+      const myNameForRewrite = store?.userProfile?.fullName ?? ''
+      const lastMsgText = lastMessage?.message ?? ''
+      const actorIsMe = Boolean(
+        meIdStrForRewrite &&
+          ((lastMessage?.senderId && String(lastMessage.senderId) === meIdStrForRewrite) ||
+            (chat.createdBy && String(chat.createdBy) === meIdStrForRewrite))
+      )
+      const isActorPrefixedSelfMessage = Boolean(
+        actorIsMe && myNameForRewrite && lastMsgText.startsWith(myNameForRewrite + ' ')
+      )
+      const displayLastMessageText = isActorPrefixedSelfMessage
+        ? 'You ' + lastMsgText.slice(myNameForRewrite.length + 1)
+        : lastMsgText
+
       let senderPrefix = ''
       if (
         isGroup &&
         lastMessage &&
         lastMessage.senderId &&
         !lastMessage.isDeletedForEveryone &&
-        lastMessage.contentType !== 'system'
+        lastMessage.contentType !== 'system' &&
+        !isActorPrefixedSelfMessage
       ) {
         const senderIdStr = String(lastMessage.senderId)
         const meIdStr = String(store?.userProfile?.id ?? '')
@@ -535,7 +562,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
                       }}
                     >
-                      {lastMessage.message || 'System message'}
+                      {displayLastMessageText || 'System message'}
                     </Typography>
                   ) : lastMessage.message && !isFilename ? (
                     <Typography
@@ -549,7 +576,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                           {senderPrefix}
                         </Box>
                       ) : null}
-                      {lastMessage.message}
+                      {displayLastMessageText}
                     </Typography>
                   ) : lastMessage.attachments?.length || lastMessage.contentType === 'attachment' || isFilename ? (
                     (() => {

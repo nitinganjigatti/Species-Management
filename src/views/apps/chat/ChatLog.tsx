@@ -665,6 +665,10 @@ const ChatLog = (props: ChatLogType) => {
         time: msg.time,
         msg: msg.message,
         feedback: msg.feedback,
+        // Forwarded for system-message perspective rewrite — see render
+        // branch below ("You created group …", "Anil removed you", etc.)
+        ...(msg.senderId ? { senderId: msg.senderId } : {}),
+        ...(msg.senderName ? { senderName: msg.senderName } : {}),
         ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
         ...(msg.contentType ? { contentType: msg.contentType } : {}),
         // Interaction state — forwarded so the bubble renderer can decorate
@@ -898,6 +902,34 @@ const ChatLog = (props: ChatLogType) => {
         // use Fragment with an explicit key instead of a bare `<>`.
         if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
 
+        // WhatsApp-style perspective rewrite for the three scenarios:
+        //   1) Sender (actor IS me)     → replace my name at the start with "You"
+        //   2) Receiver (target IS me)  → replace my name after the verb with "you"
+        //   3) Bystander (neither)      → no change (original server text)
+        // Pure render-time transformation — original `msg` value preserved
+        // in state; only the displayed string is rewritten. Falls back to
+        // the original text on any mismatch.
+        const meIdForRewrite = String(data.userContact.id ?? '')
+        const myNameForRewrite = data.userContact.fullName ?? ''
+        const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const rewriteSystemText = (text: string, msgSenderId?: string | number): string => {
+          if (!text || !myNameForRewrite) return text || ''
+          let result = text
+          // (1) Actor perspective
+          const actorIsMe = Boolean(msgSenderId) && String(msgSenderId) === meIdForRewrite
+          if (actorIsMe && result.startsWith(myNameForRewrite + ' ')) {
+            result = 'You ' + result.slice(myNameForRewrite.length + 1)
+          }
+          // (2) Target perspective — common membership/role verbs followed
+          // by the current user's name → "you". Word-boundaries keep
+          // partial-name matches safe.
+          const verbList = 'removed|added|made|invited|kicked'
+          const targetRe = new RegExp(`\\b(${verbList})\\s+${escapeRegExp(myNameForRewrite)}\\b`, 'g')
+          result = result.replace(targetRe, '$1 you')
+
+          return result
+        }
+
         return (
           <Fragment key={`sys-grp-${index}`}>
             {item.messages.map((chat, msgIdx) => (
@@ -914,7 +946,7 @@ const ChatLog = (props: ChatLogType) => {
                     textAlign: 'center'
                   }}
                 >
-                  {chat.msg}
+                  {rewriteSystemText(chat.msg, (chat as { senderId?: string | number }).senderId)}
                 </Typography>
               </Box>
             ))}

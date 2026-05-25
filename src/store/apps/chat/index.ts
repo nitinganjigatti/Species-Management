@@ -1675,20 +1675,41 @@ export const appChatSlice = createSlice({
           ? { removedBy, removedByName }
           : {}
 
+      // When self is the leaver, also overwrite chat.lastMessage with the
+      // "You were removed from this group" sidebar placeholder so the
+      // sidebar preview updates immediately (matches the cold-load adapter
+      // behavior — without this, the sidebar would keep showing the last
+      // legitimate message until refresh). The in-chat pill itself comes
+      // from the server's broadcast new_message with contentType='system'
+      // — no client synthesis needed.
+      const updatedChatBlock = meIsLeaver
+        ? {
+            ...chat.chat,
+            lastMessage: chat.chat.lastMessage
+              ? {
+                  ...chat.chat.lastMessage,
+                  message: 'You were removed from this group',
+                  contentType: 'system' as const
+                }
+              : chat.chat.lastMessage
+          }
+        : chat.chat
+
       state.chats[idx] = {
         ...chat,
         participants: updatedParticipants,
         participantIds: updatedParticipantIds,
         adminIds: updatedAdminIds,
         ...(meIsLeaver ? { isCurrentUserActive: false } : {}),
-        ...removalFields
+        ...removalFields,
+        chat: updatedChatBlock
       }
 
       // Mirror into selectedChat so the open chat's composer + Group info
       // drawer re-render immediately.
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
-          chat: state.selectedChat.chat,
+          chat: updatedChatBlock,
           contact: state.chats[idx]
         }
       }
