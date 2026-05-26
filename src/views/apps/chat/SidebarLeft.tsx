@@ -46,7 +46,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Chat App Components
 import UserProfileLeft from 'src/views/apps/chat/UserProfileLeft'
-import ComposePopover from 'src/views/apps/chat/ComposePopover'
+import ComposePopover, { ComposePanel } from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
@@ -144,8 +144,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ** Local UI state
   const [query, setQuery] = useState<string>('')
-  const [composeAnchorEl, setComposeAnchorEl] = useState<HTMLElement | null>(null)
-  const [view, setView] = useState<'chats' | 'create-group'>('chats')
+  const [view, setView] = useState<'chats' | 'create-group' | 'compose'>('chats')
 
   const pathname = usePathname()
   const activeFilter: ChatFilterType = store?.activeFilter ?? 'all'
@@ -203,15 +202,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     dispatch(setActiveFilter(filter))
   }
 
-  const handleComposeOpen = (e: React.MouseEvent<HTMLElement>) => {
-    setComposeAnchorEl(e.currentTarget)
+  const handleComposeOpen = () => {
+    setView('compose')
   }
-
-  const handleComposeClose = () => setComposeAnchorEl(null)
 
   const handleOpenCreateGroup = () => {
     setView('create-group')
-    setComposeAnchorEl(null)
   }
 
   const handleCancelCreateGroup = () => setView('chats')
@@ -816,6 +812,17 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
             onCancel={handleCancelCreateGroup}
             onCreate={handleCreateGroup}
           />
+        ) : view === 'compose' ? (
+          <ComposePanel
+            contacts={store?.contacts ?? null}
+            chats={store?.chats ?? null}
+            onClose={() => setView('chats')}
+            onNewGroup={handleOpenCreateGroup}
+            onSelectContact={(id: ChatEntityId) => {
+              handleChatClick('contact', id)
+              setView('chats')
+            }}
+          />
         ) : (
           <>
             {/* Header: avatar + title + compose icon + Search & Filter with Gradient */}
@@ -967,17 +974,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           </>
         )}
       </Drawer>
-
-      {/* Compose popover */}
-      <ComposePopover
-        open={Boolean(composeAnchorEl)}
-        anchorEl={composeAnchorEl}
-        onClose={handleComposeClose}
-        contacts={store?.contacts ?? null}
-        chats={store?.chats ?? null}
-        onNewGroup={handleOpenCreateGroup}
-        onSelectContact={(id: ChatEntityId) => handleChatClick('contact', id)}
-      />
 
       {/* Hidden for now — own-profile drawer (About / Status / Settings).
           Restore the <UserProfileLeft /> render and the avatar's onClick
