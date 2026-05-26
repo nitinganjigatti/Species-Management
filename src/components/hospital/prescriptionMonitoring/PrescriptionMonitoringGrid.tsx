@@ -24,6 +24,14 @@ import { useSelector } from 'react-redux'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
+import { PrescriptionList, PrescriptionScheduleItem } from 'src/types/hospital/models'
+import { Id } from 'src/types/compliance'
+import {
+  MedicineIdentifier,
+  SelectedSlotState,
+  SingleOrMultipleDoseAdministerOrSkipData,
+  SingleOrMultipleDoseAdministerOrSkipTransformedData
+} from './PrescriptionLayout'
 
 // Utility functions
 const getLabelForHour = (hour: number) => {
@@ -239,25 +247,25 @@ const ShimmerSwitch = styled(Box)(({ theme }) => ({
 }))
 
 interface PrescriptionMonitoringGridProps {
-  medications?: any[]
-  dates?: any[]
+  medications?: PrescriptionList[]
+  dates?: string[] | null
   selectedDate?: any
-  handleDateChange?: (d: any) => void
-  onTimeSlotClick?: (metricId?: any, timeValue?: any) => void
+  handleDateChange?: (d: string) => void
+  onTimeSlotClick?: (metricId?: Id, timeValue?: unknown) => void
   onRemoveMetric?: (m?: any) => void
-  onOpenPrescriptionCard?: (d: any) => void
+  onOpenPrescriptionCard?: (d: MedicineIdentifier) => void
   isLoading?: boolean
   isCurrentMedicalRecord?: boolean
-  setIsCurrentMedicalRecord?: (v: any) => void
+  setIsCurrentMedicalRecord?: (v: boolean) => void
   setSelectedMedicine?: (v: any) => void
-  handleAdminister?: (data: any) => void
-  handleSkip?: (data: any) => void
+  handleAdminister?: (data: SingleOrMultipleDoseAdministerOrSkipData[]) => void
+  handleSkip?: (data: SingleOrMultipleDoseAdministerOrSkipData[]) => void
   isAdministerLoading?: boolean
   isSkipLoading?: boolean
-  handleAdministerOrSkipOpen?: (data: any, type: string) => void
-  addPrescriptionToTimeslot?: (type: string, data: any) => void
-  selectedMetrics?: any[]
-  setSelectedMetrics?: (v: any) => void
+  handleAdministerOrSkipOpen?: (data: SingleOrMultipleDoseAdministerOrSkipTransformedData, type: string) => void
+  addPrescriptionToTimeslot?: (type: string, data: SingleOrMultipleDoseAdministerOrSkipTransformedData) => void
+  selectedMetrics?: SingleOrMultipleDoseAdministerOrSkipData[]
+  setSelectedMetrics?: React.Dispatch<React.SetStateAction<SingleOrMultipleDoseAdministerOrSkipData[]>>
   isDischared?: boolean
   category?: any
   setIsSelectedAll?: () => void
@@ -334,7 +342,7 @@ const PrescriptionMonitoringGrid = ({
 
   // Default metrics if no medications are provided
   const defaultMetrics = useMemo(() => {
-    const medicationsMapped = medications?.map((med: any) => ({ ...med, timeSlots: createTimeSlotStructure(timeSlots) }))
+    const medicationsMapped = medications?.map((med) => ({ ...med, timeSlots: createTimeSlotStructure(timeSlots) }))
 
     return medicationsMapped
   }, [timeSlots, medications])
@@ -362,11 +370,11 @@ const PrescriptionMonitoringGrid = ({
   const formatMedicationData = useMemo(() => {
     const medicationList = defaultMetrics
 
-    return medicationList?.map((medication: any) => {
+    return medicationList?.map((medication: PrescriptionList) => {
       const medicationTimeSlots = timeSlots?.map((timeLabel: string) => {
         let schedule =
           medication.schedule && Array.isArray(medication.schedule)
-            ? medication.schedule.find((s: any) => isSameHourSlot(s.time, timeLabel))
+            ? medication.schedule.find((s) => isSameHourSlot(s.time, timeLabel))
             : undefined
 
         return {
@@ -407,7 +415,7 @@ const PrescriptionMonitoringGrid = ({
         sideEffects: medication.side_effects,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
-            ? medication.schedule.map((schedule: any) => ({
+            ? medication.schedule.map((schedule) => ({
                 ...schedule,
                 schedule_id: schedule.schedule_id,
                 time: schedule.time,
@@ -422,18 +430,19 @@ const PrescriptionMonitoringGrid = ({
   }, [defaultMetrics, timeSlots, medications])
 
   // Use medication data if available, otherwise use default metrics
-  const displayMetrics: any[] = formatMedicationData || []
+  const displayMetrics = formatMedicationData || []
 
   // Filter out items that are inherently non-selectable
   const selectableMetrics = useMemo(() => {
     return displayMetrics?.filter(
-      (metric: any) =>
+      metric =>
         metric.controlled_substance != 1 &&
         !(
           Array.isArray(metric.schedule) &&
           metric.schedule.length > 0 &&
           metric.schedule.every(
-            (s: any) => s.status === 'administrator' || s.status === 'withheld' || s.status === 'stopped'
+            (s: PrescriptionScheduleItem) =>
+              s.status === 'administrator' || s.status === 'withheld' || s.status === 'stopped'
           )
         )
     )
@@ -450,13 +459,13 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
-  const handleSelectMetric = (metricObj: any) => {
+  const handleSelectMetric = (metricObj: SingleOrMultipleDoseAdministerOrSkipData) => {
     if (metricObj.controlled_substance == 1) return // Safety check
 
-    setSelectedMetrics && setSelectedMetrics((prev: any[]) => {
-      const exists = prev.some((m: any) => m.id === metricObj.id)
+    setSelectedMetrics && setSelectedMetrics(prev => {
+      const exists = prev.some(m => m.id === metricObj.id)
       if (exists) {
-        return prev.filter((m: any) => m.id !== metricObj.id)
+        return prev.filter(m => m.id !== metricObj.id)
       } else {
         return [...prev, metricObj]
       }
@@ -553,15 +562,15 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
-  const handleMedicineNameClick = (data: any) => {
+  const handleMedicineNameClick = (data: MedicineIdentifier) => {
     onOpenPrescriptionCard(data)
   }
 
-  const handleAddPrescriptionToTimeslot = (data: any) => {
+  const handleAddPrescriptionToTimeslot = (data: SingleOrMultipleDoseAdministerOrSkipTransformedData) => {
     const datePart = selectedDate.split(' ')[0]
 
     // Convert "5 AM" etc. to proper 24-hour format
-    const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime)}`)
+    const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime || '')}`)
     const now = new Date()
 
     if (isNaN(targetDateTime.getTime())) {
@@ -580,7 +589,7 @@ const PrescriptionMonitoringGrid = ({
   }
 
   // this is for allow schedule for same day for fast time and future time and any fast time
-  const isScheduledAllowed = (scheduledDate: any, scheduledTime: any) => {
+  const isScheduledAllowed = (scheduledDate: string | Date | number, scheduledTime: string) => {
     const [hours, modifier] = scheduledTime.split(' ')
     let hours24 = parseInt(hours, 10)
 
@@ -746,7 +755,7 @@ const PrescriptionMonitoringGrid = ({
                     {t('hospital_module.pending_dosage')}
                   </Typography>
                   <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-                    {selectedMetrics.reduce((total: number, metric: any) => {
+                    {selectedMetrics.reduce((total: number, metric) => {
                       if (metric?.progress) {
                         const [completed, totalDoses] = metric.progress.split('/').map(Number)
                         const pending = totalDoses - completed
@@ -812,17 +821,17 @@ const PrescriptionMonitoringGrid = ({
                     </Typography>
                   </HeaderContainer>
 
-                  {displayMetrics?.map((metric: any) => (
+                  {displayMetrics?.map(metric => (
                     <MetricCardWrapper key={metric.id}>
                       <MetricCard
                         metric={metric}
                         onMedicineNameClick={() => handleMedicineNameClick(metric)}
-                        selected={selectedMetrics.some((m: any) => m.id === metric.id)}
+                        selected={selectedMetrics.some(m => m.id === metric.id)}
                         onSelect={() => handleSelectMetric(metric)}
                         disabled={
                           (Array.isArray(metric.schedule) &&
                             metric.schedule.length > 0 &&
-                            metric.schedule.every((s: any) => s.status === 'administered'))
+                            metric.schedule.every(s => s.status === 'administered'))
                         }
                         theme={theme}
                         MetricLabel={MetricLabel}
@@ -870,9 +879,9 @@ const PrescriptionMonitoringGrid = ({
                       )
                     })}
                   </TimeSlotGrid>
-                  {displayMetrics?.map((metric: any) => (
+                  {displayMetrics?.map(metric => (
                     <TimeSlotGrid onClick={() => {}} key={metric.id} numColumns={timeSlots.length}>
-                      {metric.timeSlots.map((timeSlot: any, index: number) => {
+                      {metric.timeSlots.map((timeSlot, index: number) => {
                         const slotKey = `${metric.id}-${index}`
                         const hasSchedule = timeSlot.isActive
 

@@ -29,10 +29,14 @@ import type {
   PrescriptionListParams,
   PrescriptionListResponse
 } from 'src/types/hospital'
+import { AddDirectAdministerParams, AddDirectAdministerResponse, AddPrescriptionParams, AddPrescriptionResponse, GetIntervalListResponse, GetPrescriptionFrequencyResponse, GetPrescriptionListParams, GetPrescriptionListResponse, GetPrescriptionMedicineSideEffectParams, GetPrescriptionMedicineSideEffectResponse,RestartStopMedicineResponse,UpdatePrescriptionParams, UpdatePrescriptionResponse, RestartMedicineParams, StopMedicineParams, UndoPrescriptionResponse, UndoPrescriptionParams, PrescriptionDatesResponse, PrescriptionDatesParams, AdministerDoseResponse, AdministerDoseParams, AdditionalDosageResponse, AdditionalDosageParams, DirectAdministerForPastSlotResponse, DirectAdministerForPastSlotParams, AdministerAllMedicineResponse, AdministerAllMedicineParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription';
+import { GetPrescriptionDetailsParams, GetPrescriptionDetailsResponse } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails';
+import { GetMedicineBatchListParams, GetMedicineBatchListResponse } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch';
+import { PrescriptionRecordParams, PrescriptionRecordResponse } from 'src/types/hospital/api/Discharge/prescriptionRecord';
 
 export async function addPrescription(
-  payLoad: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: FormData | AddPrescriptionParams
+): Promise<AddPrescriptionResponse> {
   try {
     const response = await axiosFormPost({ url: `${ADD_PRESCRIPTION}`, body: payLoad })
 
@@ -46,8 +50,8 @@ export async function addPrescription(
 }
 
 export async function addDirectAdministerPrescription(
-  payLoad: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: AddDirectAdministerParams
+): Promise<AddDirectAdministerResponse> {
   try {
     const response = await axiosFormPost({ url: `${ADD_DIRECT_ADMINISTER_PRESCRIPTION}`, body: payLoad })
 
@@ -60,7 +64,7 @@ export async function addDirectAdministerPrescription(
   }
 }
 
-export async function getPrescriptions(params: PrescriptionListParams): Promise<PrescriptionListResponse> {
+export async function getPrescriptions(params: GetPrescriptionListParams): Promise<GetPrescriptionListResponse> {
   try {
     const url = GET_PRESCRIPTION_LIST
     const response = await axiosGet({ url, params })
@@ -74,7 +78,7 @@ export async function getPrescriptions(params: PrescriptionListParams): Promise<
   }
 }
 
-export async function getPrescriptionDetails(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getPrescriptionDetails(params: GetPrescriptionDetailsParams): Promise<GetPrescriptionDetailsResponse> {
   try {
     const url = GET_PRESCRIPTION_DETAILS
     const response = await axiosGet({ url, params })
@@ -89,8 +93,8 @@ export async function getPrescriptionDetails(params: Record<string, unknown>): P
 }
 
 export async function getSideEffectMedicines(
-  payLoad: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: GetPrescriptionMedicineSideEffectParams
+): Promise<GetPrescriptionMedicineSideEffectResponse> {
   try {
     const response = await axiosFormPost({ url: `${MEDICINE_SIDE_EFFECT}`, body: payLoad })
 
@@ -103,7 +107,7 @@ export async function getSideEffectMedicines(
   }
 }
 
-export async function getDates(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getDates(params: PrescriptionDatesParams): Promise<PrescriptionDatesResponse> {
   try {
     const url = GET_PRESCRIPTION_DETAILS_DATES
     const response = await axiosGet({ url, params })
@@ -117,11 +121,11 @@ export async function getDates(params: Record<string, unknown>): Promise<ApiResp
   }
 }
 
-export async function getFrequency(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getFrequency(): Promise<GetPrescriptionFrequencyResponse> {
   try {
     const url = `${GET_FREQUENCY}`
 
-    const response = await axiosGet({ url, params })
+    const response = await axiosGet({ url })
 
     return response?.data
   } catch (error) {
@@ -132,11 +136,11 @@ export async function getFrequency(params: Record<string, unknown>): Promise<Api
   }
 }
 
-export async function getIntervalList(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getIntervalList(): Promise<GetIntervalListResponse> {
   try {
     const url = `${GET_INTERVALS}`
 
-    const response = await axiosGet({ url, params })
+    const response = await axiosGet({ url })
 
     return response?.data
   } catch (error) {
@@ -147,7 +151,7 @@ export async function getIntervalList(params: Record<string, unknown>): Promise<
   }
 }
 
-export async function getMedicineBatches(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getMedicineBatches(params: GetMedicineBatchListParams): Promise<GetMedicineBatchListResponse> {
   try {
     const url = `${GET_BATCH_LIST}`
 
@@ -162,7 +166,7 @@ export async function getMedicineBatches(params: Record<string, unknown>): Promi
   }
 }
 
-export async function stopPrescription(payLoad: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function stopPrescription(payLoad: RestartMedicineParams | StopMedicineParams): Promise<RestartStopMedicineResponse> {
   try {
     const response = await axiosPost({ url: `${STOP_PRESCRIPTION}`, body: payLoad })
 
@@ -175,7 +179,7 @@ export async function stopPrescription(payLoad: Record<string, unknown>): Promis
   }
 }
 
-export async function undoPrescription(payLoad: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function undoPrescription(payLoad: UndoPrescriptionParams): Promise<UndoPrescriptionResponse> {
   try {
     const response = await axiosPost({ url: `${UNDO_PRESCRIPTION}`, body: payLoad })
 
@@ -189,8 +193,8 @@ export async function undoPrescription(payLoad: Record<string, unknown>): Promis
 }
 
 export async function administerDose(
-  payLoad: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: AdministerDoseParams
+): Promise<AdministerDoseResponse> {
   try {
     const response = await axiosFormPost({ url: `${ADMINISTER_PRESCRIPTION}`, body: payLoad })
 
@@ -204,8 +208,8 @@ export async function administerDose(
 }
 
 export async function administerAllMedicines(
-  payLoad: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: AdministerAllMedicineParams
+): Promise<AdministerAllMedicineResponse> {
   try {
     const response = await axiosPost({ url: `${ADMINISTER_ALL_MEDICINES}`, body: payLoad })
 
@@ -219,8 +223,8 @@ export async function administerAllMedicines(
 }
 
 export async function schedulePrescription(
-  payLoad: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: AdditionalDosageParams
+): Promise<AdditionalDosageResponse> {
   try {
     const response = await axiosPost({ url: `${SCHEDULE_PRESCRIPTION}`, body: payLoad })
 
@@ -234,8 +238,8 @@ export async function schedulePrescription(
 }
 
 export async function directAdministerForPatSlot(
-  payLoad: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: DirectAdministerForPastSlotParams
+): Promise<DirectAdministerForPastSlotResponse> {
   try {
     const response = await axiosFormPost({ url: `${DIRECT_ADMINISTER_FOR_PAST_SLOT}`, body: payLoad })
 
@@ -249,8 +253,8 @@ export async function directAdministerForPatSlot(
 }
 
 export async function getPrescriptionsByRecord(
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  params: PrescriptionRecordParams
+): Promise<PrescriptionRecordResponse> {
   try {
     const url = GET_PRESCRIPTION_BY_RECORD
     const response = await axiosGet({ url, params })
@@ -271,8 +275,8 @@ export async function getSecurityCheckForTransfer(siteId: string | number): Prom
 }
 
 export async function validatePrescriptionUpdate(
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  params: UpdatePrescriptionParams
+): Promise<UpdatePrescriptionResponse> {
   try {
     const url = `${VALIDATE_PRESCRIPTION_BEFORE_UPDATE}`
 

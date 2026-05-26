@@ -1,7 +1,8 @@
 'use client'
 
-import { alpha, Box, Button, CircularProgress, Drawer, Grid, IconButton, Typography, useTheme } from '@mui/material'
+import { alpha, Box, Button, CircularProgress, Drawer, Grid, IconButton, Theme, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
+import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
@@ -14,6 +15,10 @@ import { useTranslation } from 'react-i18next'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/lib/api/hospital/treatmentMonitoring'
 import Toaster from 'src/components/Toaster'
+import { UpdatePreviousEntryParams } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
+import { SelectOption } from 'src/types/hospital'
+import { PreviousAssessmentEntry } from 'src/types/hospital/models'
+import { ObservationFormData } from './AddParameterDataEntry'
 
 const parseIntervalToTimeRange = (interval: any) => {
   if (!interval) return null
@@ -29,7 +34,7 @@ const parseIntervalToTimeRange = (interval: any) => {
   return { start, end }
 }
 
-const defaultValues: any = {
+const defaultValues: ObservationFormData = {
   observation_time: dayjs(),
   observation_value: '',
   value_unit: null,
@@ -51,35 +56,36 @@ export const convertUTCToIST = (utcDateTime: any) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-const getSchema = (resType: any, measurementType: any) =>
-  yup.object().shape({
-    observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
-      ? yup.string().required('Observation Value is required')
-      : yup.mixed().notRequired(),
-    observation_time: yup.string().required('Observation time is required'),
-    value_unit:
-      resType === 'numeric_value' && measurementType.trim() !== ''
-        ? yup.string().required('Unit is required')
-        : yup.mixed().notRequired()
-  })
-
 interface EditParamsHistoryProps {
   open?: boolean
-  setOpen?: any
-  data?: any
-  refetch?: any
-  resType?: any
-  measurementType?: any
-  unitsData?: any[]
-  interval?: any
-  refetchPatient?: any
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  data?: (PreviousAssessmentEntry & { unitsData: SelectOption[] }) | null
+  refetch?: () => void
+  resType?: string
+  measurementType?: string
+  unitsData?: SelectOption[]
+  interval?: string
+  refetchPatient?: () => void
 }
 
 const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval, refetchPatient }: EditParamsHistoryProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
 
-  const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
+  const schema = useMemo(
+    () =>
+      yup.object().shape({
+        observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType ?? '')
+          ? yup.string().required(t('hospital_module.observation_value_is_required') as string)
+          : yup.mixed().notRequired(),
+        observation_time: yup.string().required(t('hospital_module.observation_time_is_required') as string),
+        value_unit:
+          resType === 'numeric_value' && (measurementType ?? '').trim() !== ''
+            ? yup.string().required(t('hospital_module.unit_is_required') as string)
+            : yup.mixed().notRequired()
+      }),
+    [resType, measurementType, t]
+  )
 
   const {
     control,
@@ -113,23 +119,23 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
 
-  const onSubmit = async (formData: any) => {
+  const onSubmit = async (formData: ObservationFormData) => {
     setUpdateLoading(true)
     try {
-      const payload: any = {
-        animal_assessment_id: data?.id,
-        assessment_type_id: data?.assessment_type_id,
+      const payload: UpdatePreviousEntryParams = {
+        animal_assessment_id: data?.id ?? '',
+        assessment_type_id: data?.assessment_type_id ?? '',
         assessment_value: formData?.observation_value,
         assessment_unit_id: formData?.value_unit,
         comments: formData?.note,
-        recorded_date_time: formData?.observation_time
+        recorded_date_time: moment(formData?.observation_time as any).format('YYYY-MM-DD HH:mm:ss')
       }
 
-      const res: any = await updateHospitalAssessmentHistory(data?.animal_id, payload)
+      const res = await updateHospitalAssessmentHistory(data?.animal_id ?? '', payload)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        refetch()
-        setOpen(false)
+        refetch?.()
+        setOpen?.(false)
       } else {
         Toaster({ type: 'error', message: res?.message || 'Failed to update' })
       }
@@ -143,11 +149,11 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
   const handleEntryDelete = async () => {
     setDeleteLoading(true)
     try {
-      const res: any = await deleteAssessmentHistory(data?.id)
+      const res = await deleteAssessmentHistory(data?.id ?? '')
       if (res?.status) {
         Toaster({ type: 'success', message: res?.message })
-        refetch()
-        setOpen(false)
+        refetch?.()
+        setOpen?.(false)
         setOpenDeleteDialog(false)
         if (data?.assessment_type_id === '1' && refetchPatient) refetchPatient()
       } else {
@@ -166,7 +172,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
       <Drawer
         anchor='right'
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => setOpen?.(false)}
         slotProps={{
           paper: {
             sx: {
@@ -204,7 +210,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
               {t('hospital_module.edit_selected_entry')}
             </Typography>
 
-            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpen(false)}>
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpen?.(false)}>
               <Icon icon='mdi:close' fontSize={30} />
             </IconButton>
           </Box>
@@ -253,7 +259,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                     </Typography>
                   </Grid>
 
-                  {resType === 'numeric_value' && measurementType.trim() === '' && (
+                  {resType === 'numeric_value' && (measurementType ?? '').trim() === '' && (
                     <Grid size={{ xs: 12 }}>
                       <ControlledTextField
                         control={control}
@@ -268,7 +274,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                     </Grid>
                   )}
 
-                  {resType === 'numeric_value' && measurementType.trim() !== '' && (
+                  {resType === 'numeric_value' && (measurementType ?? '').trim() !== '' && (
                     <>
                       <Grid size={{ xs: 12, sm: 8 }}>
                         <ControlledTextField
@@ -289,8 +295,8 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                           label={(t('hospital_module.select_unit') as string)}
                           name='value_unit'
                           options={data?.unitsData || []}
-                          getOptionLabel={(option: any) => option.label}
-                          getOptionValue={(option: any) => option.value}
+                          getOptionLabel={(option: SelectOption) => option.label}
+                          getOptionValue={(option: SelectOption) => option.value}
                           required
                           sx={{
                             backgroundColor: theme.palette.customColors.Surface,
@@ -309,8 +315,8 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                         label={(t('hospital_module.select_value') as string)}
                         name='observation_value'
                         options={data?.unitsData || []}
-                        getOptionLabel={(option: any) => option.label}
-                        getOptionValue={(option: any) => option.value}
+                        getOptionLabel={(option: SelectOption) => option.label}
+                        getOptionValue={(option: SelectOption) => option.value}
                         required
                         sx={{
                           backgroundColor: theme.palette.customColors.Surface,
@@ -336,7 +342,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
 
                   <Grid
                     size={{ xs: 12 }}
-                    sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6), p: 4, borderRadius: 1 }}
+                    sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes ?? '', 0.6), p: 4, borderRadius: 1 }}
                   >
                     <ControlledTextField
                       control={control}

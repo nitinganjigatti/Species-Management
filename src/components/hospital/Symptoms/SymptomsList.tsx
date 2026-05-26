@@ -74,7 +74,7 @@ export default function SymptomsList({
     <Box sx={{ pt: 1 }}>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
         <TextField
-          placeholder='Search'
+          placeholder={t('search') as string}
           fullWidth
           size='small'
           sx={{
@@ -212,7 +212,7 @@ export default function SymptomsList({
               justifyContent: 'center'
             }}
           >
-            <Box component='img' src='/images/no_data_animal_2.png' alt='No Symptoms' sx={{ maxWidth: '250px' }} />
+            <Box component='img' src='/images/no_data_animal_2.png' alt={t('hospital_module.no_symptoms') as string} sx={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_symptoms_to_show')}
             </Typography>
@@ -286,7 +286,7 @@ export default function SymptomsList({
         {!hasMore && !loading && symptoms?.length > 10 && (
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <Typography variant='body2' color='textSecondary'>
-              All symptoms loaded ({symptoms?.length} of {symptomsCount})
+              {t('hospital_module.all_symptoms_loaded', { loaded: symptoms?.length, total: symptomsCount })}
             </Typography>
           </Box>
         )}

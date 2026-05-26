@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography, styled, Box, useTheme, IconButton, Tooltip } from '@mui/material'
+import { Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -10,20 +11,37 @@ import AddMedicationDrawer from './AddMedicationDrawer'
 import AddGasDrawer from './AddGasDrawer'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
 import { getMedicineProductList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
+import { Id, DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models'
+import { SelectOption } from 'src/types/hospital/api'
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
+import { GetMedicineListResponse } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch'
+import { MedicationFormData, GasFormData } from 'src/components/hospital/shared/AddAnesthesiaRecordPage'
+
+interface MedicationRow extends MedicationFormData {
+  medication_row_id?: Id
+  display_delivery_time?: string
+  display_max_effect_time?: string
+}
+
+interface GasRow extends GasFormData {
+  gas_row_id?: Id
+  display_start_time?: string
+  display_end_time?: string
+}
 
 interface MedicationsGasSectionProps {
-  onAddMedication?: (data: any) => void
-  onAddGas?: (data: any) => void
-  onUpdateMedication?: (index: number, data: any) => void
-  onUpdateGas?: (index: number, data: any) => void
-  onDeleteMedication?: (index: number, id: any) => void
-  onDeleteGas?: (index: number, id: any) => void
-  purposeStageOptions?: any[]
-  unitList?: any[]
+  onAddMedication?: (data: MedicationFormData) => void
+  onAddGas?: (data: GasFormData) => void
+  onUpdateMedication?: (index: number, data: MedicationFormData) => void
+  onUpdateGas?: (index: number, data: GasFormData) => void
+  onDeleteMedication?: (index: number, id: Id) => void
+  onDeleteGas?: (index: number, id: Id) => void
+  purposeStageOptions?: SelectOption[]
+  unitList?: UnitParams[]
 }
 
 function MedicationsGasSection({
@@ -37,13 +55,13 @@ function MedicationsGasSection({
   unitList
 }: MedicationsGasSectionProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
-  const [drawerType, setDrawerType] = useState<any>(null)
-  const [editIndex, setEditIndex] = useState<any>(null)
+  const theme: Theme = useTheme()
+  const [drawerType, setDrawerType] = useState<'medication' | 'gas' | null>(null)
+  const [editIndex, setEditIndex] = useState<number | null>(null)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
 
-  const [deliveryRouteOptions, setdeliveryRouteList] = useState<any[]>([])
-  const [medicationGasList, setmedicationGasList] = useState<any[]>([])
+  const [deliveryRouteOptions, setdeliveryRouteList] = useState<DeliveryRoute[]>([])
+  const [medicationGasList, setmedicationGasList] = useState<MedicationDrugOption[]>([])
   const [productPage, setProductPage] = useState<number>(1)
   const [productTotal, setProductTotal] = useState<number>(0)
   const [isProductLoading, setIsProductLoading] = useState<boolean>(false)
@@ -51,12 +69,12 @@ function MedicationsGasSection({
   const [debouncedSearch, setDebouncedSearch] = useState<string>('')
 
   const { watch } = useFormContext()
-  const medications: any[] = (watch('medicationsGas.medications') as any) || []
-  const gases: any[] = (watch('medicationsGas.gases') as any) || []
+  const medications: MedicationFormData[] = (watch('medicationsGas.medications') as MedicationFormData[]) || []
+  const gases: GasFormData[] = (watch('medicationsGas.gases') as GasFormData[]) || []
 
   const fetchDeliveryList = async () => {
     try {
-      const response: any = await (deliveryRouteList as any)()
+      const response = await deliveryRouteList()
 
       if (response?.success && response?.data?.length > 0) {
         setdeliveryRouteList(response?.data)
@@ -79,13 +97,13 @@ function MedicationsGasSection({
       page_no: pageToLoad
     }
     try {
-      const response: any = await getMedicineProductList({ params } as any)
-      if (response?.success && response?.data?.brand_name?.result?.length > 0) {
+      const response: GetMedicineListResponse = await getMedicineProductList({ params })
+      if (response?.success === true && response?.data?.brand_name?.result?.length > 0) {
         const newItems = response?.data?.brand_name?.result || []
-        const totalCount = response?.data?.brand_name?.count || 0
+        const totalCount = Number(response?.data?.brand_name?.count) || 0
 
         setProductTotal(totalCount)
-        setmedicationGasList((prev: any[]) => (append ? [...prev, ...newItems] : newItems))
+        setmedicationGasList((prev: MedicationDrugOption[]) => (append ? [...prev, ...newItems] : newItems))
         setProductPage(pageToLoad)
       }
     } catch (error) {
@@ -117,35 +135,35 @@ function MedicationsGasSection({
 
   const hasMoreProducts = medicationGasList.length < productTotal
 
-  const getUnitAbbr = (unitId: any) => {
-    const unit = unitList?.find((item: any) => String(item.id) === String(unitId))
+  const getUnitAbbr = (unitId: Id | null | undefined) => {
+    const unit = unitList?.find((item: UnitParams) => String(item.id) === String(unitId))
 
     return unit?.uom_abbr || '-'
   }
 
-  const safeFormat = (v: any) => {
+  const safeFormat = (v: string | Dayjs | null | undefined) => {
     if (!v) return '-'
     const d = dayjs(v)
 
     return d.isValid() ? d.format('hh:mm A') : '-'
   }
 
-  const medicationColumns: any[] = [
+  const medicationColumns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl.NO',
+      headerName: t('sl_no'),
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug',
-      headerName: 'Drug',
+      headerName: t('hospital_module.drug'),
       minWidth: 220,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <TextEllipsisWithModal
             enableDialog={false}
@@ -167,7 +185,7 @@ function MedicationsGasSection({
       minWidth: 180,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params.row.purpose_stage ?? '-'}
@@ -184,9 +202,9 @@ function MedicationsGasSection({
     {
       field: 'amount',
       headerName: t('amount'),
-      minWidth: 100,
+      minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography>
           {params.row.amount} {getUnitAbbr(params.row.unit)}
         </StyledTypography>
@@ -194,17 +212,17 @@ function MedicationsGasSection({
     },
     {
       field: 'route',
-      headerName: t('delivery_route'),
+      headerName: t('hospital_module.delivery_route'),
       minWidth: 140,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
       headerName: t('hospital_module.delivery_time'),
       minWidth: 130,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return <StyledTypography>{params.row.display_delivery_time || '-'}</StyledTypography>
       }
     },
@@ -213,14 +231,14 @@ function MedicationsGasSection({
       headerName: t('hospital_module.delivery'),
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
     },
     {
       field: 'notes',
       headerName: t('notes'),
       minWidth: 200,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params.row.notes ?? '-'}
@@ -241,7 +259,7 @@ function MedicationsGasSection({
       align: 'center',
       width: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           {params?.row?.medication_row_id !== undefined ? (
             <>
@@ -268,22 +286,22 @@ function MedicationsGasSection({
     }
   ]
 
-  const gasColumns: any[] = [
+  const gasColumns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl.NO',
+      headerName: t('hospital_module.sl_no'),
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'gas',
-      headerName: 'Gas',
+      headerName: t('hospital_module.gas'),
       minWidth: 220,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <TextEllipsisWithModal
             enableDialog={false}
@@ -304,35 +322,35 @@ function MedicationsGasSection({
       headerName: t('hospital_module.o2_l_min'),
       minWidth: 100,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.o2_flow}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.o2_flow}</StyledTypography>
     },
     {
       field: 'concentration',
       headerName: t('hospital_module.concentration_percent'),
       minWidth: 180,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.concentration}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.concentration}</StyledTypography>
     },
     {
       field: 'route',
-      headerName: t('delivery_route'),
+      headerName: t('hospital_module.delivery_route'),
       minWidth: 150,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'start_time',
       headerName: t('hospital_module.start_time'),
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.display_start_time ?? '-'}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.display_start_time ?? '-'}</StyledTypography>
     },
     {
       field: 'end_time',
       headerName: t('hospital_module.end_time'),
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.display_end_time ?? '-'}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.display_end_time ?? '-'}</StyledTypography>
     },
     {
       field: 'actions',
@@ -341,7 +359,7 @@ function MedicationsGasSection({
       align: 'center',
       width: 120,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <Box sx={{ display: 'flex', gap: 1 }}>
             {params?.row?.gas_row_id !== undefined ? (
@@ -377,7 +395,7 @@ function MedicationsGasSection({
     setDrawerType('gas')
   }
 
-  const parseTimeFromDrawer = (v: any) => {
+  const parseTimeFromDrawer = (v: string | Dayjs | Date | null | undefined) => {
     if (!v) return null
     if (dayjs.isDayjs(v)) return v
     if (v instanceof Date) return dayjs(v)
@@ -401,7 +419,7 @@ function MedicationsGasSection({
     return loose.isValid() ? loose : null
   }
 
-  const asStorageString = (d: any) => {
+  const asStorageString = (d: string | Dayjs | Date | null | undefined) => {
     if (!d) return ''
     const parsed = parseTimeFromDrawer(d)
 
@@ -409,8 +427,8 @@ function MedicationsGasSection({
   }
 
   const handleSubmitMedication = useCallback(
-    async (payload: any) => {
-      const normalized = {
+    async (payload: MedicationFormData) => {
+      const normalized: MedicationFormData = {
         ...payload,
         delivery_time: asStorageString(payload.delivery_time),
         max_effect_time: asStorageString(payload.max_effect_time)
@@ -426,8 +444,8 @@ function MedicationsGasSection({
   )
 
   const handleSubmitGas = useCallback(
-    async (payload: any) => {
-      const normalized = {
+    async (payload: GasFormData) => {
+      const normalized: GasFormData = {
         ...payload,
         start_time: asStorageString(payload.start_time),
         end_time: asStorageString(payload.end_time)
@@ -447,7 +465,7 @@ function MedicationsGasSection({
     setEditIndex(null)
   }
 
-  const renderAddSection = (label: string, type: string, buttonText: string) => (
+  const renderAddSection = (label: string, type: 'medication' | 'gas', buttonText: string) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
       <Typography
         sx={{
@@ -479,7 +497,7 @@ function MedicationsGasSection({
     </Box>
   )
 
-  const medicationsData = (medications || []).map((med: any, index: number) => {
+  const medicationsData: MedicationRow[] = (medications || []).map((med: MedicationFormData, index: number) => {
     return {
       ...med,
       medication_row_id: med?.id,
@@ -489,7 +507,7 @@ function MedicationsGasSection({
     }
   })
 
-  const gasesData = (gases || []).map((gas: any, index: number) => {
+  const gasesData: GasRow[] = (gases || []).map((gas: GasFormData, index: number) => {
     return {
       ...gas,
       gas_row_id: gas?.id,

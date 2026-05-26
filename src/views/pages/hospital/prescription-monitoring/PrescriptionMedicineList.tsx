@@ -22,6 +22,20 @@ import { keyframes } from '@emotion/react'
 import { useSelector } from 'react-redux'
 import RenderUtility from 'src/utility/render'
 import { useSearchParams } from 'next/navigation'
+import { Control, FieldErrors, FieldValues, UseFormSetValue } from 'react-hook-form'
+import { MedicineList, PrescriptionList } from 'src/types/hospital/models'
+import { Id } from 'src/types/hospital'
+import { MedicineIdentifier } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+
+export interface MedicineListItem extends MedicineList {
+  prescription_required?: number | boolean
+}
+
+export interface MedicineAutocompleteOption extends MedicineListItem {
+  label?: string
+  value?: Id
+  disabled?: boolean
+}
 
 // Shimmer animation
 const shimmerAnimation = keyframes`
@@ -42,24 +56,24 @@ const commonFieldStyles = {
 }
 
 interface PrescriptionMedicineListProps {
-  medicineList: any[]
-  temporarilySelectedMedicine?: any
+  medicineList: MedicineListItem[]
+  temporarilySelectedMedicine?: MedicineListItem | null
   handleClearMedicine?: () => void
-  selectedMedicine?: any
-  onSelect?: (medicine: any) => void
+  selectedMedicine?: Id[]
+  onSelect?: (medicine: MedicineListItem) => void
   searchQuery?: string
-  handleSearchChange?: (e: any) => void
+  handleSearchChange?: (e: { target: { value: string } }) => void
   handleClearSearch?: () => void
   handleScroll?: (e: React.UIEvent<HTMLElement>) => void
   loading?: boolean
   paginationLoading?: boolean
   searching?: boolean
-  error?: any
-  prescribedMedicines?: any[]
+  error?: string
+  prescribedMedicines?: PrescriptionList[]
   isDirectAdminister?: boolean
-  control?: any
-  errors?: any
-  setValue?: any
+  control: Control<FieldValues>
+  errors?: FieldErrors<FieldValues>
+  setValue?: UseFormSetValue<FieldValues>
 }
 
 export default function PrescriptionMedicineList({
@@ -91,25 +105,25 @@ export default function PrescriptionMedicineList({
   const discharge_tab = searchParams?.get('discharge_tab')
   const editIdStr = medicine_edit_id?.toString()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
-  const enclosureMedicines: any[] = hospitalData.enclosure_medicines || []
+  const enclosureMedicines: MedicineListItem[] = hospitalData.enclosure_medicines || []
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const filteredList = editIdStr
-    ? enclosureMedicines?.filter((med: any) => med.id.toString() == editIdStr)
+    ? enclosureMedicines?.filter((med) => med.id?.toString() == editIdStr)
     : medicineList
-  const isEnclosureMedicineAdded = (idStr: any) => enclosureMedicines.some((m: any) => m.id === idStr)
+  const isEnclosureMedicineAdded = (idStr: Id) => enclosureMedicines.some(m => m.id === idStr)
 
-  const isMedicinePrescribed = (medicineId: any) => {
+  const isMedicinePrescribed = (medicineId: Id) => {
     const isPrescribed = prescribedMedicines.some(
-      (prescription: any) =>
+      (prescription) =>
         prescription?.schedule?.[0]?.medicine_id === medicineId.toString() && prescription?.status !== 'stopped'
     )
 
     return isPrescribed
   }
 
-  const isMedicineDisabled = (medicine: any) => {
+  const isMedicineDisabled = (medicine: MedicineListItem) => {
     if (medicine_edit_id) return false
 
     const isPrescribed =
@@ -122,9 +136,9 @@ export default function PrescriptionMedicineList({
     return isPrescribed
   }
 
-  const availableMedicines = filteredList?.filter((medicine: any) => !isMedicineDisabled(medicine))
+  const availableMedicines = filteredList?.filter((medicine) => !isMedicineDisabled(medicine))
 
-  const autocompleteOptions = availableMedicines?.map((medicine: any) => ({
+  const autocompleteOptions = availableMedicines?.map(medicine => ({
     label: medicine?.name,
     value: medicine?.id,
     generic_name: medicine?.generic_name,
@@ -146,7 +160,7 @@ export default function PrescriptionMedicineList({
           sx={commonFieldStyles}
           {...({
             showIcons: false,
-            onChangeOverride: (value: any) => {
+            onChangeOverride: (value: MedicineAutocompleteOption) => {
               if (value && !value.disabled && !loading) {
                 onSelect?.(value)
               }
@@ -157,8 +171,8 @@ export default function PrescriptionMedicineList({
               setValue?.('selectedMedicine', null)
               setValue?.('selectedMedicineId', '')
             },
-            getOptionDisabled: (option: any) => option.disabled || loading,
-            renderOption: (props: any, option: any) => (
+            getOptionDisabled: (option: MedicineAutocompleteOption) => option.disabled || loading,
+            renderOption: (props: React.HTMLAttributes<HTMLLIElement>, option: MedicineAutocompleteOption) => (
               <Box
                 key={option.value}
                 component='li'
@@ -206,18 +220,21 @@ export default function PrescriptionMedicineList({
               helperText: error
             }
           })}
-          onInputChange={(value: any) => {
+          onInputChange={(value: string) => {
             handleSearchChange?.({ target: { value } })
           }}
-          getOptionLabel={(option: any) => {
+          getOptionLabel={(option: unknown) => {
             if (typeof option === 'string') return option
+            const opt = option as MedicineAutocompleteOption | undefined
 
-            return option?.label || option?.name || ''
+            return opt?.label || opt?.name || ''
           }}
-          isOptionEqualToValue={(option: any, value: any) => {
+          isOptionEqualToValue={(option: unknown, value: unknown) => {
             if (!option || !value) return false
+            const o = option as MedicineAutocompleteOption
+            const v = value as MedicineAutocompleteOption
 
-            return option.id === value.id || option.value === value.value
+            return o.id === v.id || o.value === v.value
           }}
         />
       </Box>
@@ -290,7 +307,7 @@ export default function PrescriptionMedicineList({
               justifyContent: 'center'
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='No Medicine' style={{ maxWidth: '250px' }} />
+            <Box component='img' src='/images/no_data_animal_2.png' alt='No Medicine' sx={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               No Medicine to show
             </Typography>

@@ -28,11 +28,11 @@ export interface GetHospitalListResponse {
 
 export interface GetHospitalListParams {
   params?: {
-    page: number
-    limit: number
-    q: string
-    sort_order: string
-    sort_by: string
+    page?: number
+    limit?: number
+    q?: string
+    sort_order?: string
+    sort_by?: string
     active?: number
     has_permission?: number
   }

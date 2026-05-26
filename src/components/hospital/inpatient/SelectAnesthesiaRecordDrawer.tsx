@@ -9,6 +9,9 @@ import { useTranslation } from 'react-i18next'
 
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 import Utility from 'src/utility'
+import { AnesthesiaRecordsResponse } from 'src/types/hospital/api/Anesthesia/anesthesia'
+import { AnesthesiaAssessmentType, AnesthesiaDetails, AnesthesiaRecordItem } from 'src/types/hospital/models'
+import { Id } from 'src/types/compliance'
 
 interface SelectAnesthesiaRecordDrawerProps {
   open: boolean
@@ -35,7 +38,7 @@ const SelectAnesthesiaRecordDrawer = ({
 }: SelectAnesthesiaRecordDrawerProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
-  const [selectedId, setSelectedId] = useState<any>(initialSelectedId)
+  const [selectedId, setSelectedId] = useState<Id>(initialSelectedId)
 
   useEffect(() => {
     if (open) {
@@ -43,7 +46,7 @@ const SelectAnesthesiaRecordDrawer = ({
     }
   }, [initialSelectedId, open])
 
-  const { data: anesthesiaResponse, isFetching: isAnesthesiaLoading } = useQuery<any>({
+  const { data: anesthesiaResponse, isFetching: isAnesthesiaLoading } = useQuery<AnesthesiaRecordsResponse>({
     queryKey: ['anesthesia-records', hospitalCaseId, medicalRecordId, open, refetchTrigger],
     queryFn: () => {
       const params = {
@@ -53,7 +56,7 @@ const SelectAnesthesiaRecordDrawer = ({
         limit: 20
       }
 
-      return getAnesthesiaList({ params } as any)
+      return getAnesthesiaList({ params })
     },
     enabled: open && Boolean(hospitalCaseId),
     staleTime: 5 * 60 * 1000,
@@ -68,18 +71,18 @@ const SelectAnesthesiaRecordDrawer = ({
     return Array.isArray(records) && records.length ? records : []
   }, [anesthesiaResponse, records])
 
-  const getRecordId = (record: any) => {
+  const getRecordId = (record: AnesthesiaDetails) => {
     if (!record) return ''
     return record?.anaesthesia_id || record?.id || record?.code || ''
   }
 
-  const handleSelect = (record: any) => {
+  const handleSelect = (record: AnesthesiaDetails) => {
     setSelectedId(getRecordId(record))
     onSelect(record)
   }
 
   const handleConfirm = () => {
-    const record = items.find((item: any) => getRecordId(item) === selectedId) || null
+    const record = items.find((item: AnesthesiaDetails) => getRecordId(item) === selectedId) || null
     onConfirm(record)
   }
 
@@ -135,7 +138,7 @@ const SelectAnesthesiaRecordDrawer = ({
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+          <Box component = 'img' src = '/icons/activity_icon.png' sx = {{width: '30px', height: '30px'}} alt = {t('hospital_module.filter_icon')} />
           <Typography
             sx={{
               fontWeight: 500,
@@ -171,18 +174,18 @@ const SelectAnesthesiaRecordDrawer = ({
           </Typography>
         )}
         {!isAnesthesiaLoading &&
-          items.map((record: any) => {
+          items.map((record: AnesthesiaRecordItem) => {
             const recordId = getRecordId(record)
             const isSelected = recordId === selectedId
             const createdAt = record?.anaesthesia_datetime ? dayjs(record.anaesthesia_datetime) : null
             const purposeNames = Array.isArray(record?.purpose)
-              ? record.purpose.map((item: any) => item?.name).filter(Boolean)
+              ? record.purpose.map((item: AnesthesiaAssessmentType) => item?.name).filter(Boolean)
               : record?.procedures || []
             const createdOn = createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : record?.createdOn || '--'
             //const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
             const createdTime = record?.anaesthesia_datetime
-              ? (Utility as any).convertUTCToLocaltime(record.anaesthesia_datetime)
-              : (Utility as any).convertUTCToLocaltime(record?.created_at)
+              ? Utility.convertUTCToLocaltime(record.anaesthesia_datetime)
+              : Utility.convertUTCToLocaltime(record?.created_at)
 
             return (
               <Box
@@ -233,7 +236,7 @@ const SelectAnesthesiaRecordDrawer = ({
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {purposeNames.map((procedure: any, index: number) => (
+                    {purposeNames.map((procedure: string, index: number) => (
                       <Typography
                         key={`${recordId}-proc-${procedure}`}
                         sx={{

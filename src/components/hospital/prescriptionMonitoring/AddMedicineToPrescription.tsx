@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useContext, BaseSyntheticEvent } from 'react'
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Theme, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
+import { FieldErrors, FieldValues, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
@@ -36,12 +36,19 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateState } from 'src/store/slices/hospital/hospitalSlice'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBarRaw from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 const BottomActionBar: any = BottomActionBarRaw
 import { AuthContext } from 'src/context/AuthContext'
+import { Id } from 'src/types/hospital'
+import { AddPrescriptionParamList, AddPrescriptionScheduleDose, DateRangeValue, DirectAdministerScheduleDose, MedicalCaseType, MedicineBatchList, PatientDetailsData, PrescriptionDeliveryRoute, PrescriptionDetails, PrescriptionDosageMeasurementType, PrescriptionDurationOption, PrescriptionFrequencyList, PrescriptionIntervalList, PrescriptionList, PrescriptionMeasurementType } from 'src/types/hospital/models'
+import { AddDirectAdministerParams, AddDirectAdministerResponse, AddPrescriptionParams, AddPrescriptionResponse, GetPrescriptionListParams, GetPrescriptionMedicineSideEffectResponse, RestartMedicineParams, UpdatePrescriptionParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
+import { GetPrescriptionDetailsParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails'
+import { FilterDate } from 'src/types/medical'
+import { SubmitHandler } from 'react-hook-form'
+import { MedicineSideEffect } from 'src/types/housing'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -50,12 +57,147 @@ interface AddMedicineToPrescriptionProps {
   params?: any
 }
 
+export interface MedicineIdentifier {
+  id: Id | null
+}
+
+export interface MedicineDetails {
+  id: Id
+  name?: string
+  generic_name?: string
+  total_qty?: number | string
+  total_central_store_qty?: number | string
+  total_local_store_qty?: number | string
+  controlled_substance?: number | string
+}
+
+export interface ApiMedicineState {
+  id: Id
+  name: string
+}
+
+export interface MedicalMasterFormData {
+  caseTypes?: MedicalCaseType[]
+  prescriptionDeliveryRoute: PrescriptionDeliveryRouteType[]
+  prescriptionFrequency: PrescriptionFrequencyType[]
+  intervalList?: PrescriptionIntervalType[]
+  prescriptionDuration: PrescriptionDurationType[]
+  prescriptionDosageMeasurementType?: PrescriptionDosageMeasurementType[]
+  prescriptionMeasurementType?: PrescriptionMeasurementType[]
+}
+
+export interface PrescriptionDeliveryRouteType extends PrescriptionDeliveryRoute {
+  string_id?: string
+  delivery_route_string_id?: string
+  value: string
+  label: string
+}
+
+export interface PrescriptionFrequencyType extends PrescriptionFrequencyList {
+  id: Id
+  frequency?: Id
+  value: Id
+  label: string
+}
+
+export interface PrescriptionIntervalType extends PrescriptionIntervalList {
+  value: string
+  interval?: string
+}
+
+export interface PrescriptionDurationType extends PrescriptionDurationOption {
+  value: string
+  dosageDuration?: {
+    unit: string
+    value: number
+  }
+}
+
+export type DosageDuration = {
+  unit: string
+  value: number
+}
+export interface AddPrescriptionFormData extends PrescriptionDurationType {
+  deliveryRoute: string
+  prescriptionStartDate: string
+  prescriptionEndDate: string
+  schedules: MedicineScheduleDose[]
+  interval: string
+  frequency: string | number
+  notes: string
+  selectMedicineType: string
+}
+
+export interface DirectAdministerFormData {
+  prescriptionStartDate: Date
+  prescriptionEndDate: Date
+  batchNumber?:
+    | {
+        batch_no?: string
+      }
+  schedules: DirectAdministerScheduleDose[]
+  frequency: Id
+  deliveryRoute: string
+  interval: string
+  wastageQuantity: number | string
+  wastageUOM: string
+  wastageNotes: string
+  notes: string
+  batchImage: File[] | string
+  selectMedicineType: string
+}
+
+export type SubmitFormData = AddPrescriptionFormData & DirectAdministerFormData
+
+export interface RestartMedicineFormData
+  extends Omit<AddPrescriptionFormData, 'schedules'> {
+  schedules: MedicineScheduleDose[]
+}
+export interface MedicineScheduleDose {
+  scheduled_dose_id: Id
+  oldTime: string
+  createdAt: string
+  time: string
+  quantity: string | number
+  unit: string 
+}
+
+export interface PrescriptionDefaultValues {
+   selectedMedicineId: string
+    selectedMedicine: MedicineIdentifier | null
+    selectMedicineType: string
+    frequency: string,
+    interval: string,
+    schedules: [
+      {
+        time: string,
+        quantity: string,
+        unit: string
+      }
+    ],
+    deliveryRoute: '',
+    prescriptionStartDate: null,
+    prescriptionEndDate: null,
+    dosageDuration: {
+      value: 0,
+      unit: null
+    },
+    notes: '',
+    wastageQuantity: null,
+    wastageUOM: null,
+    batchNumber: null,
+    wastageNotes: null,
+    batchImage: null
+}
+
 export default function AddMedicineToPrescription({ from, params }: AddMedicineToPrescriptionProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const router: any = useSafeRouter()
-  const searchParams: any = useSearchParams()
+  const searchParams = useSearchParams()
   const id = params?.id
+
+  if (!searchParams) return
   const medicine_edit_id = searchParams.get('medicine_edit_id')
   const discharge_tab = searchParams.get('discharge_tab')
   const date = searchParams.get('date')
@@ -75,7 +217,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     // Handle both medicine_edit_id (from EnclosureDischargeForm) and edit_id (from TransferDischargeForm)
     const idToFind = medicine_edit_id || edit_id
     if (idToFind) {
-      const result = list.find((med: any) => med.id?.toString() === idToFind?.toString())
+      const result = list.find((med: MedicineIdentifier) => med.id?.toString() === idToFind?.toString())
 
       return result
     }
@@ -93,15 +235,15 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     selectMedicineType: yup
       .string()
       .oneOf(['Schedule', 'Direct Administer'], 'Please select medicine type')
-      .required('Please select medicine type'),
-    frequency: yup.string().required('Please select a frequency'),
+      .required(t('hospital_module.please_select_medicine_type')),
+    frequency: yup.string().required(t('hospital_module.please_select_a_frequency')),
     interval: yup.string().when(['selectMedicineType', 'frequency'], {
       is: (frequency: any) => {
         const isOneTime = frequency === '2' || frequency === 2
 
         return !isOneTime
       },
-      then: (schema: any) => schema.required('Please select a interval'),
+      then: (schema: any) => schema.required(t('hospital_module.please_select_an_interval')),
       otherwise: (schema: any) => schema.nullable().notRequired()
     } as any),
 
@@ -111,7 +253,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         yup.object({
           time: yup
             .string()
-            .required('Time is required')
+            .required(t('time_required'))
             .test('valid-time-for-today', function (value: any) {
               const { selectMedicineType, frequency, prescriptionStartDate } = (this as any).from[1].value
 
@@ -154,21 +296,21 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             .typeError('Quantity is required')
             .test(
               'quantity-format',
-              'Quantity must have up to 8 digits and up to 4 decimal places',
+              t('hospital_module.quantity_must_have_eight_digits_four_decimals'),
               function (value: any) {
                 if (value === undefined || value === null) return true
                 const rawValue = String((this as any).originalValue ?? value).trim()
                 return /^\d{1,8}(\.\d{1,4})?$/.test(rawValue)
               }
             )
-            .moreThan(0, 'Quantity must be greater than 0')
-            .required('Quantity is required'),
-          unit: yup.string().required('Please select a unit')
+            .moreThan(0, t('hospital_module.quantity_more_than_zero'))
+            .required(t('hospital_module.quantity_required')),
+          unit: yup.string().required(t('hospital_module.please_select_a_unit'))
         })
       )
-      .min(1, 'At least one schedule time is required')
-      .required('Schedules are required')
-      .test('unique-times', 'Duplicate times are not allowed', function (schedules: any) {
+      .min(1, t('hospital_module.at_least_one_schedule_time_required'))
+      .required(t('hospital_module.schedules_are_required'))
+      .test('unique-times', t('hospital_module.duplicate_times_not_allowed'), function (schedules: any) {
         if (!schedules || schedules.length <= 1) return true
 
         const times = schedules
@@ -197,11 +339,11 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         return true
       }),
 
-    deliveryRoute: yup.string().required('Please select a delivery route'),
+    deliveryRoute: yup.string().required(t('hospital_module.please_select_a_delivery_route')),
 
     prescriptionStartDate: yup
       .string()
-      .required('Start date is required')
+      .required(t('hospital_module.start_date_is_required'))
       .test('valid-direct-admin-date', function (value: any) {
         const { selectMedicineType, frequency, prescriptionEndDate } = (this as any).parent
 
@@ -261,12 +403,12 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             value: yup
               .number()
               .transform((value: any, originalValue: any) => (originalValue === '' ? undefined : value))
-              .min(1, 'Duration must be at least 1')
-              .max(100000, 'Duration cannot exceed 100000')
-              .required('Duration value is required'),
-            unit: yup.string().required('Please select duration unit')
+              .min(1, t('hospital_module.duration_must_be_at_least_one'))
+              .max(100000, t('hospital_module.duration_cannot_exceed_max'))
+              .required(t('hospital_module.duration_value_is_required')),
+            unit: yup.string().required('hospital_module.please_select_duration_unit')
           })
-          .required('Dosage duration is required'),
+          .required(t('hospital_module.dosage_duration_required')),
       otherwise: (schema: any) =>
         schema
           .shape({
@@ -277,24 +419,24 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           .notRequired()
     } as any),
 
-    notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired(),
+    notes: yup.string().trim().max(10000, t('hospital_module.notes_cannot_exceed_500')).notRequired(),
 
     // Fields specific to Direct Administer
     wastageQuantity: yup
       .string()
       .nullable()
       .trim()
-      .test('is-number', 'Quantity must be a number', (value: any) => {
+      .test('is-number', t('hospital_module.quantity_must_be_a_number'), (value: any) => {
         if (!value) return true
 
         return /^[0-9]*$/.test(value)
       })
-      .test('positive', 'Quantity must be greater than 0', (value: any) => {
+      .test('positive', t('hospital_module.quantity_more_than_zero'), (value: any) => {
         if (!value) return true
 
         return Number(value) > 0
       })
-      .test('max', 'Quantity cannot exceed 100', (value: any) => {
+      .test('max', t('hospital_module.quantity_cannot_exceed_100'), (value: any) => {
         if (!value) return true
 
         return Number(value) <= 100
@@ -302,23 +444,23 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
 
     wastageUOM: yup.string().when('wastageQuantity', {
       is: (value: any) => value && Number(value) > 0,
-      then: (schema: any) => schema.required('Please select unit'),
+      then: (schema: any) => schema.required(t('hospital_module.please_select_unit')),
       otherwise: (schema: any) => schema.notRequired()
     } as any),
 
     batchNumber: yup.mixed().when(['selectedMedicine', 'selectMedicineType'], {
       is: (selectedMedicine: any, selectMedicineType: any) =>
         selectMedicineType === 'Direct Administer' && selectedMedicine?.controlled_substance === 1,
-      then: (schema: any) => schema.required('Batch number is required for controlled substances'),
+      then: (schema: any) => schema.required(t('hospital_module.batch_required')),
       otherwise: (schema: any) => schema.nullable().notRequired()
     } as any),
 
     batchImage: yup.mixed().nullable().notRequired(),
 
-    wastageNotes: yup.string().nullable().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired()
+    wastageNotes: yup.string().nullable().trim().max(10000, t('hospital_module.notes_cannot_exceed_500')).notRequired()
   })
 
-  const defaultValues: any = {
+  const defaultValues: PrescriptionDefaultValues = {
     selectedMedicineId: '',
     selectedMedicine: null,
     selectMedicineType: 'Schedule',
@@ -365,13 +507,13 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   })
 
   // Only one medicine can be selected at a time
-  const [selectedMedicine, setSelectedMedicine] = useState<any>(null)
-  const [temporarilySelectedMedicine, setTemporarilySelectedMedicine] = useState<any>(null)
-  const [patientData, setPatientData] = useState<any>(null)
+  const [selectedMedicine, setSelectedMedicine] = useState<MedicineIdentifier | null>(null)
+  const [temporarilySelectedMedicine, setTemporarilySelectedMedicine] = useState<MedicineDetails | null>(null)
+  const [patientData, setPatientData] = useState<PatientDetailsData | null>(null)
   const [patientLoading, setPatientLoading] = useState<boolean>(false)
 
   // Pagination and search states for medicines
-  const [apiMedicineList, setApiMedicineList] = useState<any[]>([])
+  const [apiMedicineList, setApiMedicineList] = useState<ApiMedicineState[]>([])
   const [medicineSearchQuery, setMedicineSearchQuery] = useState<string>('')
   const [medicineLoading, setMedicineLoading] = useState<boolean>(false)
   const [totalMedicines, setTotalMedicines] = useState<number>(0)
@@ -380,21 +522,31 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   const [resetPagination, setResetPagination] = useState<boolean>(false)
   const [page, setPage] = useState<number>(1)
 
-  const [medicalMasterData, setMedicalMasterData] = useState<any>([])
+  const [medicalMasterData, setMedicalMasterData] =
+  useState<MedicalMasterFormData>(
+    {
+      caseTypes: [],
+      prescriptionDosageMeasurementType: [],
+      prescriptionDuration: [],
+      prescriptionFrequency: [],
+      prescriptionDeliveryRoute: [],
+      intervalList: []
+    }
+  )
   const [medicalMasterDataLoading, setMedicalMasterDataLoading] = useState<boolean>(true)
-  const [frequencyData, setFrequencyData] = useState<any[]>([])
-  const [intervalList, setIntervalList] = useState<any[]>([])
-  const [batchList, setBatchList] = useState<any[]>([])
+  const [frequencyData, setFrequencyData] = useState<PrescriptionFrequencyList[]>([])
+  const [intervalList, setIntervalList] = useState<PrescriptionIntervalList[]>([])
+  const [batchList, setBatchList] = useState<MedicineBatchList[]>([])
   const [batchSearchQuery, setBatchSearchQuery] = useState<string>('')
   const [batchLoading, setBatchLoading] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState<boolean>(false)
   const [frequencyLoading, setFrequencyLoading] = useState<boolean>(true)
   const [intervalLoading, setIntervalLoading] = useState<boolean>(true)
-  const [medicationData, setMedicationData] = useState<any[]>([])
-  const [endsOn, setEndsOn] = useState<any>(null)
+  const [medicationData, setMedicationData] = useState<PrescriptionList[]>([])
+  const [endsOn, setEndsOn] = useState<string | null>(null)
   const [cancelOrCloseText, setCancelOrCloseText] = useState<string>('CANCEL')
-  const [medicineDetail, setMedicineDetail] = useState<any>(null)
+  const [medicineDetail, setMedicineDetail] = useState<PrescriptionDetails | null>(null)
   const [sideEffectMedicinesLoading, setSideEffectMedicinesLoading] = useState<boolean>(false)
   const [showSideEffectWarning, setShowSideEffectWarning] = useState<boolean>(false)
   const [warningMedicine, setWarningMedicine] = useState<any>(null)
@@ -423,7 +575,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   }, [frequencyLoading, intervalLoading, isPrescriptionListLoading, medicalMasterDataLoading])
 
   // Helper function to calculate duration dynamically
-  function calculateDynamicDuration(startDate: any, endDate: any) {
+  function calculateDynamicDuration(startDate: Date, endDate: Date) {
     if (!startDate || !endDate) {
       return '1 days'
     }
@@ -444,31 +596,38 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   useEffect(() => {
     if (prescriptionStartDate && !isOneTimeFrequency && selectMedicineType === 'Schedule') {
       if (dosageDuration?.value && dosageDuration?.unit) {
-        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem, false)
+        const startDateForCalc =
+          prescriptionStartDate && typeof (prescriptionStartDate as any)?.toDate === 'function'
+            ? (prescriptionStartDate as any).toDate()
+            : prescriptionStartDate
+        const calculatedEndDate = calculateEndDate(startDateForCalc, dosageDuration, intervalItem, false)
         if (calculatedEndDate) {
           const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
           setEndsOn(formattedDate)
+          setValue('prescriptionEndDate', calculatedEndDate)
         } else {
           setEndsOn(null)
+          setValue('prescriptionEndDate', null as unknown as Date)
         }
       } else {
         setEndsOn(null)
+        setValue('prescriptionEndDate', null as unknown as Date)
       }
     } else {
       setEndsOn(null)
     }
   }, [
     prescriptionStartDate,
-    prescriptionEndDate,
     dosageDuration?.value,
     dosageDuration?.unit,
     isOneTimeFrequency,
     selectMedicineType,
-    intervalItem
+    intervalItem,
+    setValue
   ])
 
   const debouncedBatchSearch = useCallback(
-    debounce(async (medicineId: any, query: string = '') => {
+    debounce(async (medicineId: Id, query: string = '') => {
       if (!medicineId) {
         setBatchList([])
 
@@ -483,12 +642,13 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           q: query
         }
 
-        const response: any = await getMedicineBatches(params)
+        const response = await getMedicineBatches(params)
         if (response?.success) {
           setBatchList(response?.data?.result || [])
         }
-      } catch (error: any) {
-        console.error('Error fetching medicine batches:', error.message)
+      } catch (error) {
+        const err = error as Error
+        console.error('Error fetching medicine batches:', err.message)
       } finally {
         setBatchLoading(false)
       }
@@ -497,13 +657,13 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   )
 
   const fetchMedicineBatches = useCallback(
-    (medicineId: any, query: string = '') => {
+    (medicineId: Id, query: string = '') => {
       debouncedBatchSearch(medicineId, query)
     },
     [debouncedBatchSearch]
   )
 
-  function getTimeDayjs(timeStr: any) {
+  function getTimeDayjs(timeStr: string) {
     if (!timeStr) return dayjs()
 
     if (timeStr.includes('AM') || timeStr.includes('PM')) {
@@ -518,12 +678,13 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       .second(0)
   }
 
-  const handleSetDefaultValues = (data: any) => {
-    const frequency = frequencyData?.find((item: any) => item?.string_id == data.prescription_frequency)
-    const interval = intervalList?.find((item: any) => item?.interval_string_id == data.interval_string_id)
+  const handleSetDefaultValues = (data: PrescriptionDetails) => {
+    const frequency = frequencyData?.find((item) => item?.string_id == data.prescription_frequency)
+    const interval = intervalList?.find((item) => item?.interval_string_id == data.interval_string_id)
 
-    const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-      (item: any) => item?.string_id == data.delivery_route_string_id
+    const deliveryRoute = Array.isArray(medicalMasterData)
+    ? undefined :medicalMasterData?.prescriptionDeliveryRoute?.find(
+      (item) => item?.string_id == data.delivery_route_string_id
     )
 
     reset({
@@ -549,12 +710,12 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       batchImage: [],
 
       schedules:
-        data.medicine_timings?.map((schedule: any) => ({
-          oldTime: formatTimeWithMoment(schedule.scheduled_time),
+        data.medicine_timings?.map((schedule) => ({
+          oldTime: formatTimeWithMoment(schedule.scheduled_time ?? ''),
           createdAt: schedule.created_at,
           time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
           quantity: schedule.scheduled_quantity || '',
-          unit: getUnitFromLabel(schedule.scheduled_unit_name, medicalMasterData) || '',
+          unit: getUnitFromLabel(schedule.scheduled_unit_name ?? '', medicalMasterData) || '',
           scheduled_dose_id: schedule?.scheduled_dose_id
         })) || [],
       selectMedicineType: 'Schedule'
@@ -564,45 +725,48 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   useEffect(() => {
     if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'prescriptionDetail' && intervalList) {
       handleSetDefaultValues(medicineDetail)
-      handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
-      setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
+      handleMedicineSelect({ id: medicineDetail?.medicine_id ?? '', name: medicineDetail?.medicine_name ?? ''})
+      setApiMedicineList([{ id: medicineDetail?.medicine_id ?? '', name: medicineDetail?.medicine_name ?? '' }])
     }
   }, [fromPage, medicalMasterData, medicineDetail])
 
   useEffect(() => {
     if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'editPrescription' && intervalList) {
       handleSetDefaultValues(medicineDetail)
-      handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
-      setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
+      handleMedicineSelect({ id: medicineDetail?.medicine_id ?? '', name: medicineDetail?.medicine_name ?? '' })
+      setApiMedicineList([{ id: medicineDetail?.medicine_id ?? '', name: medicineDetail?.medicine_name ?? '' }])
     }
   }, [fromPage, medicalMasterData, medicineDetail])
 
-  const getDetails = async (data: any = {}) => {
+  const getDetails = async (data?: MedicineIdentifier) => {
     try {
       setMedicineLoading(true)
 
-      const payload = {
-        prescription_id: data?.id,
+      const payload: GetPrescriptionDetailsParams = {
+        prescription_id: data?.id ?? '',
         date: date || '',
-        group_prescription_id: data?.id,
+        group_prescription_id: data?.id ?? '',
         hospital_id: hospital?.id || ''
       }
 
-      const response: any = await getPrescriptionDetails(payload)
+      const response = await getPrescriptionDetails(payload)
 
       if (response?.success) {
         setMedicineDetail(response?.data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
+    } catch (error) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err || t('hospital_module.something_went_wrong') })
     } finally {
       setMedicineLoading(false)
     }
   }
 
-  const fetchSideEffectMedicines = async () => {
+  const fetchSideEffectMedicines = async (): Promise<
+  GetPrescriptionMedicineSideEffectResponse['data']| undefined
+> => {
     try {
       setSideEffectMedicinesLoading(true)
 
@@ -610,13 +774,14 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         animal_id: JSON.stringify([animal_id])
       }
 
-      const response: any = await (getSideEffectMedicines as any)(payload)
+      const response = await getSideEffectMedicines(payload)
 
       if (response?.data) {
         return response?.data
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
+    } catch (error) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err || t('hospital_module.something_went_wrong') })
       router.back()
     } finally {
       setSideEffectMedicinesLoading(false)
@@ -624,7 +789,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   }
 
   // Helper function to check for side effects
-  const checkForSideEffects = (sideEffectMedicines: any, selectedMedicineId: any) => {
+  const checkForSideEffects = (sideEffectMedicines: any, selectedMedicineId: Id) => {
     if (!sideEffectMedicines || !sideEffectMedicines.result) return false
 
     const medicineIdsWithSideEffects = sideEffectMedicines.result
@@ -634,7 +799,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     return medicineIdsWithSideEffects.includes(selectedMedicineId.toString())
   }
 
-  const handleMedicineSelect = async (medicine: any) => {
+  const handleMedicineSelect = async (medicine: MedicineDetails) => {
     if (medicine) {
       if (fromPage === 'prescriptionDetail' || editingMedicine || fromPage === 'editPrescription') {
         proceedWithMedicineSelection(medicine)
@@ -642,7 +807,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         return
       }
 
-      let sideEffectMedicines: any
+      let sideEffectMedicines: GetPrescriptionMedicineSideEffectResponse['data'] | undefined
 
       if (sideEffectMedicinesCache !== null) {
         sideEffectMedicines = sideEffectMedicinesCache
@@ -665,7 +830,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     }
   }
 
-  const proceedWithMedicineSelection = (medicine: any) => {
+  const proceedWithMedicineSelection = (medicine: MedicineDetails) => {
     setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
     setValue('selectedMedicine', medicine, { shouldValidate: true })
     setTemporarilySelectedMedicine({ ...medicine })
@@ -722,40 +887,48 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   const fetchMedicalMasterData = useCallback(async () => {
     try {
       setMedicalMasterDataLoading(true)
-      const response: any = await (getMedicalMasterData as any)()
+      const response = await getMedicalMasterData()
       if (response?.success) {
         await Promise.all([fetchFrequencies(), fetchIntervals()])
 
-        setMedicalMasterData((prevData: any) => ({
+        setMedicalMasterData((prevData: MedicalMasterFormData) => ({
           ...response?.data,
           prescriptionFrequency: prevData?.prescriptionFrequency || [],
           intervalList: prevData?.intervalList || [],
           prescriptionDosageMeasurementType:
-            response?.data?.prescriptionDosageMeasurementType?.map((item: any) => ({
+            response?.data?.prescriptionDosageMeasurementType?.map((item) => ({
               ...item,
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            }))?.sort((a: any, b: any) => a.label?.localeCompare(b.label)) || [],
-          prescriptionDuration: response?.data?.prescriptionDuration?.map((item: any) => ({ ...item, value: item.key })) || [],
+            }))?.sort((a: PrescriptionDosageMeasurementType, b: PrescriptionDosageMeasurementType) => a.label?.localeCompare(b.label)) || [],
+          prescriptionDuration: response?.data?.prescriptionDuration?.map((item) => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
-            response?.data?.prescriptionMeasurementType?.map((item: any) => ({
+            response?.data?.prescriptionMeasurementType?.map((item) => ({
               ...item,
               label: item.unit_name,
               value: item.uom_abbr
             })) || [],
           prescriptionDeliveryRoute:
-            response?.data?.prescriptionDeliveryRoute?.map((item: any) => ({
+            response?.data?.prescriptionDeliveryRoute?.map((item) => ({
               ...item,
               label: item.delivery,
               value: item.route_abbr
             }))?.sort((a: any, b: any) => a.label?.localeCompare(b.label)) || []
         }))
       } else {
-        setMedicalMasterData([])
+        setMedicalMasterData({
+          caseTypes: [],
+          prescriptionFrequency: [],
+          prescriptionDosageMeasurementType: [],
+          prescriptionDuration: [],
+          prescriptionDeliveryRoute: [],
+          intervalList: []
+        })
       }
-    } catch (error: any) {
-      console.error('Error fetching medical master data:', error.message)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching medical master data:', err.message)
     } finally {
       setMedicalMasterDataLoading(false)
     }
@@ -764,12 +937,12 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   const fetchFrequencies = useCallback(async () => {
     try {
       setFrequencyLoading(true)
-      const response: any = await (getFrequency as any)()
+      const response = await getFrequency()
       if (response?.success) {
-        setFrequencyData(response?.data?.map((item: any) => ({ ...item, value: item.id })) || [])
-        setMedicalMasterData((prevData: any) => ({
+        setFrequencyData(response?.data?.map((item) => ({ ...item, value: item.id })) || [])
+        setMedicalMasterData((prevData) => ({
           ...prevData,
-          prescriptionFrequency: response?.data?.map((item: any) => ({
+          prescriptionFrequency: response?.data?.map((item) => ({
             ...item,
             value: item.id
           }))
@@ -777,8 +950,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else {
         setFrequencyData([])
       }
-    } catch (error: any) {
-      console.error('Error fetching medical master data:', error.message)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching medical master data:', err.message)
     } finally {
       setFrequencyLoading(false)
     }
@@ -787,17 +961,17 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   const fetchIntervals = async () => {
     try {
       setIntervalLoading(true)
-      const response: any = await (getIntervalList as any)()
+      const response = await getIntervalList()
       if (response?.success) {
         setIntervalList(
-          response?.data?.map((item: any) => ({
+          response?.data?.map((item) => ({
             ...item,
             value: item.id
           })) || []
         )
-        setMedicalMasterData((prevData: any) => ({
+        setMedicalMasterData((prevData) => ({
           ...prevData,
-          intervalList: response?.data?.map((item: any) => ({
+          intervalList: response?.data?.map((item) => ({
             ...item,
             value: item.id
           }))
@@ -805,8 +979,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else {
         setIntervalList([])
       }
-    } catch (error: any) {
-      console.error('Error fetching medical master data:', error.message)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching medical master data:', err.message)
     } finally {
       setIntervalLoading(false)
     }
@@ -826,16 +1001,16 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           page_no: pageNo,
           screen: 'Medicine'
         }
-        const response: any = await getMedicineList({ params })
+        const response = await getMedicineList({ params })
         if (response?.success) {
           const newResults = response.data.brand_name.result || []
           const totalRecords = parseInt(response.data.brand_name.count) || 0
 
-          setApiMedicineList((prev: any[]) => (append ? [...prev, ...newResults] : newResults))
+          setApiMedicineList((prev) => (append ? [...prev, ...newResults] : newResults))
           setTotalMedicines(totalRecords)
           setHasMore(pageNo * 20 < totalRecords)
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching medicines:', error)
 
         return []
@@ -884,9 +1059,10 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     }
   }
 
-  const handleScroll = (e: any) => {
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement
     if (resetPagination || medicineLoading || !hasMore) return
-    const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50
+    const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50
 
     if (bottom) {
       const nextPage = page + 1
@@ -920,9 +1096,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     const getPatientInfo = async () => {
       setPatientLoading(true)
       try {
-        await getPatientDetails(id).then((res: any) => {
+        await getPatientDetails(id).then((res) => {
           if (res?.success === true) {
-            setPatientData(res?.data)
+            setPatientData(res?.data ?? null)
 
             if (
               hospital?.id &&
@@ -958,11 +1134,11 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     getPatientInfo()
   }, [id])
 
-  const getPrescriptionList = async (animalId?: any, medicalRecordId?: any) => {
+  const getPrescriptionList = async (animalId?: Id, medicalRecordId?: Id) => {
     try {
       setIsPrescriptionListLoading(true)
 
-      const payload = {
+      const payload: GetPrescriptionListParams = {
         hospital_id: hospital?.id || '',
         animal_id: animal_id || animalId || '',
         medical_type: 'prescription',
@@ -971,10 +1147,10 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         hospital_case_id: id || ''
       }
 
-      const response: any = await (getPrescriptions as any)(payload)
+      const response = await getPrescriptions(payload)
 
       if (response?.success) {
-        const prescriptions = response?.data?.prescriptions?.map((item: any) => ({
+        const prescriptions = response?.data?.prescriptions?.map((item) => ({
           ...item,
           status: item?.status ? item?.status?.toLowerCase() : null
         }))
@@ -982,10 +1158,11 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
-      console.error('Error fetching prescription list:', error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching prescription list:', err)
 
-      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
+      Toaster({ type: 'error', message: err || t('hospital_module.something_went_wrong') })
     } finally {
       setIsPrescriptionListLoading(false)
     }
@@ -1035,7 +1212,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     }
   }, [isDischargedAnimal, selectMedicineType, setValue])
 
-  function toISTISOString(date: any, includeCurrentTime: boolean = false) {
+  function toISTISOString(date: DateRangeValue, includeCurrentTime: boolean = false) {
     if (!date) return ''
 
     let momentDate = moment(date)
@@ -1061,7 +1238,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
-  function formatPrescriptionUTCDateTime(date: any, includeCurrentTime: boolean = false) {
+  function formatPrescriptionUTCDateTime(date: DateRangeValue, includeCurrentTime: boolean = false) {
     if (!date) return ''
 
     let momentDate = moment(date)
@@ -1086,7 +1263,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     return momentDate.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
-  function convertUTCToLocaltime(date: any) {
+  function convertUTCToLocaltime(date: DateRangeValue) {
     if (!date) return ''
     const stillUtc = moment.utc(date).toDate()
 
@@ -1095,7 +1272,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     return local
   }
 
-  function formatTimeWithMoment(timeString: any) {
+  function formatTimeWithMoment(timeString: string | null): string {
     if (!timeString) return ''
 
     const time = moment(timeString, 'HH:mm:ss')
@@ -1109,7 +1286,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       if (key === 'selectMedicineType') {
         setValue(key, watch('selectMedicineType'))
       } else {
-        setValue(key, (defaultValues as any)[key])
+          setValue(key as keyof PrescriptionDefaultValues, defaultValues[key as keyof PrescriptionDefaultValues])
       }
     })
     setSelectedMedicine(null)
@@ -1117,34 +1294,34 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
   }, [setValue])
 
   const handleScheduledPrescription = async (
-    data: any,
-    medicalMasterData: any,
-    medical_record_id: any,
-    temporarilySelectedMedicine: any
+    data: AddPrescriptionFormData,
+    medicalMasterData: MedicalMasterFormData | null,
+    medical_record_id: Id,
+    temporarilySelectedMedicine: MedicineDetails | null
   ) => {
     try {
       setIsSubmitting(true)
-      const interval = medicalMasterData?.intervalList?.find((item: any) => item?.value === data?.interval)
-      const frequency = medicalMasterData?.prescriptionFrequency?.find((item: any) => item?.id == data.frequency)
+      const interval = medicalMasterData?.intervalList?.find((item) => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find((item) => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-        (item: any) => item?.route_abbr === data.deliveryRoute
+        (item) => item?.route_abbr === data.deliveryRoute
       )
 
       const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
-        (item: any) => item?.value === data.dosageDuration?.unit
+        (item) => item?.value === data.dosageDuration?.unit
       )
 
-      const scheduleDoses = data.schedules.map((schedule: any) => ({
+      const scheduleDoses = data.schedules.map((schedule) => ({
         id: '',
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
-        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData ?? null),
         unit_name: schedule.unit,
         string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
       }))
 
-      const payload = {
+      const payload: AddPrescriptionParams = {
         medical_record_id: medical_record_id,
         request_from: 'hospital',
         hospital_case_id: id,
@@ -1206,7 +1383,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         ])
       }
 
-      const response: any = await addPrescription(payload)
+      const response = await addPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -1221,8 +1398,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
 
         return null
       }
-    } catch (error: any) {
-      console.error('Error in handleScheduledPrescription:', error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error in handleScheduledPrescription:', err)
 
       return null
     } finally {
@@ -1230,26 +1408,26 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     }
   }
 
-  const handleDirectAdminister = async (data: any, medicalMasterData: any, medical_record_id: any, temporarilySelectedMedicine: any) => {
+  const handleDirectAdminister = async (data: DirectAdministerFormData, medicalMasterData: MedicalMasterFormData, medical_record_id: Id, temporarilySelectedMedicine: MedicineDetails | null) => {
     try {
       setIsSubmitting(true)
 
       let calculatedDuration = calculateDynamicDuration(data.prescriptionStartDate, data.prescriptionEndDate)
 
-      const frequency = medicalMasterData?.prescriptionFrequency?.find((item: any) => item?.id == data.frequency)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find((item) => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-        (item: any) => item?.route_abbr === data.deliveryRoute
+        (item) => item?.route_abbr === data.deliveryRoute
       )
-      const interval = medicalMasterData?.intervalList?.find((item: any) => item?.value === data?.interval)
+      const interval = medicalMasterData?.intervalList?.find((item) => item?.value === data?.interval)
 
-      const selectedBatch = batchList?.find((item: any) => {
+      const selectedBatch = batchList?.find((item) => {
         const batchNo = typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber
 
         return item?.batch_no === batchNo
       })
 
-      const scheduleDoses = data.schedules.map((schedule: any) => ({
+      const scheduleDoses = data.schedules.map((schedule) => ({
         id: '',
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
@@ -1284,7 +1462,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             ]
           : []
 
-      const payload: any = {
+      const payload: AddDirectAdministerParams = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         case_type: 1,
         medical_record_type: 'SINGLE',
@@ -1347,7 +1525,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         [selectedBatch ? `BATCH_${selectedBatch.id}` : 'BATCH_0']: data.batchImage?.[0] ? data.batchImage[0] : []
       }
 
-      const response: any = await addDirectAdministerPrescription(payload)
+      const response = await addDirectAdministerPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.direct_administer_record_added') })
@@ -1362,7 +1540,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
 
         return null
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in handleDirectAdminister:', error)
 
       return null
@@ -1371,11 +1549,12 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     }
   }
 
-  const submitHandler = handleSubmit(async (data: any) => {
+  const submitHandler = handleSubmit(async (data: SubmitFormData) => {
     try {
       const isDirectAdminister = data.selectMedicineType === 'Direct Administer'
-      let response: any = null
+      let response: AddDirectAdministerResponse | AddPrescriptionResponse | null = null
       if (isDirectAdminister) {
+        if (medicalMasterData == null) return
         response = await handleDirectAdminister(data, medicalMasterData, medical_record_id, temporarilySelectedMedicine)
       } else {
         response = await handleScheduledPrescription(
@@ -1392,12 +1571,13 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           resetForm()
         }
       }
-    } catch (error: any) {
-      console.error(' Error in submitHandler:', error)
+    } catch (error) {
+      const err = error as Error
+      console.error(' Error in submitHandler:', err)
     }
   })
 
-  function formatDateWithCurrentTime(date: any) {
+  function formatDateWithCurrentTime(date: string | number | Date): string {
     const originalDate = new Date(date)
 
     const now = new Date()
@@ -1415,21 +1595,21 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     return result.toISOString()
   }
 
-  const handleRestartMedicine = async (data: any) => {
+  const handleRestartMedicine = async (data: RestartMedicineFormData) => {
     try {
       setIsSubmitting(true)
-      const interval = medicalMasterData?.intervalList?.find((item: any) => item?.value === data?.interval)
-      const frequency = medicalMasterData?.prescriptionFrequency?.find((item: any) => item?.id == data.frequency)
+      const interval = medicalMasterData?.intervalList?.find((item) => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find((item) => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-        (item: any) => item?.route_abbr === data.deliveryRoute
+        (item) => item?.route_abbr === data.deliveryRoute
       )
 
       const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
-        (item: any) => item?.value === data.dosageDuration?.unit
+        (item) => item?.value === data.dosageDuration?.unit
       )
 
-      const scheduleDoses = data.schedules.map((schedule: any) => ({
+      const scheduleDoses = data.schedules.map((schedule) => ({
         id: schedule?.scheduled_dose_id,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
@@ -1440,17 +1620,17 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         created_at: schedule?.createdAt
       }))
 
-      const payload = {
-        medical_record_id: medicineDetail?.medical_record_id,
-        prescription_id: medicineDetail?.medicine_id,
+      const payload: RestartMedicineParams = {
+        medical_record_id: medicineDetail?.medical_record_id ?? '',
+        prescription_id: medicineDetail?.medicine_id ?? '',
         type: 'prescription',
         status: 'restart',
         request_from: 'hospital_module',
         note: data?.notes,
         medicine_details: {
-          id: medicineDetail?.medicine_id,
-          label: medicineDetail?.medicine_name,
-          name: medicineDetail?.medicine_name,
+          id: medicineDetail?.medicine_id ?? '',
+          label: medicineDetail?.medicine_name ?? '',
+          name: medicineDetail?.medicine_name ?? '',
 
           frequency_key: frequency?.string_id || '',
           frequency_id: frequency?.id || '',
@@ -1492,10 +1672,10 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           restart_reason: '',
           stop_reason: '',
           side_effect: false,
-          group_prescription_id: medicineDetail?.group_prescription_id || medicineDetail?.prescription_id
+          group_prescription_id: medicineDetail?.group_prescription_id || medicineDetail?.prescription_id ||''
         }
       }
-      const response: any = await stopPrescription(payload)
+      const response = await stopPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -1503,48 +1683,48 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in handleRestartMedicine:', error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const validatePrescriptionBeforeUpdate = async (data: any) => {
+  const validatePrescriptionBeforeUpdate = async (data: AddPrescriptionFormData) => {
     try {
-      const payload = {
-        medical_record_id: medicineDetail?.medical_record_id,
-        prescription_id: medicineDetail?.prescription_id,
-        medicine_id: medicineDetail?.medicine_id
+      const payload: UpdatePrescriptionParams = {
+        medical_record_id: medicineDetail?.medical_record_id ?? '',
+        prescription_id: medicineDetail?.prescription_id ?? '',
+        medicine_id: medicineDetail?.medicine_id ?? ''
       }
 
-      const response: any = await validatePrescriptionUpdate(payload)
+      const response = await validatePrescriptionUpdate(payload)
 
       if (response?.success) {
         handleUpdatePrescription(data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in validatePresctiptionBeforeUpdate:', error)
     }
   }
 
-  const handleUpdatePrescription = async (data: any) => {
+  const handleUpdatePrescription = async (data: AddPrescriptionFormData) => {
     try {
       setIsSubmitting(true)
-      const interval = medicalMasterData?.intervalList?.find((item: any) => item?.value === data?.interval)
-      const frequency = medicalMasterData?.prescriptionFrequency?.find((item: any) => item?.id == data.frequency)
+      const interval = medicalMasterData?.intervalList?.find((item) => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find((item) => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-        (item: any) => item?.route_abbr === data.deliveryRoute
+        (item) => item?.route_abbr === data.deliveryRoute
       )
 
       const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
-        (item: any) => item?.value === data.dosageDuration?.unit
+        (item) => item?.value === data.dosageDuration?.unit
       )
 
-      const scheduleDoses = data.schedules.map((schedule: any) => ({
+      const scheduleDoses = data.schedules.map((schedule) => ({
         id: schedule?.scheduled_dose_id ?? null,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
@@ -1555,8 +1735,8 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         created_at: schedule?.createdAt
       }))
 
-      const payload = {
-        medical_record_id: medicineDetail?.medical_record_id,
+      const payload: AddPrescriptionParams = {
+        medical_record_id: medicineDetail?.medical_record_id ?? '',
         request_from: 'hospital',
         hospital_case_id: id,
         data: JSON.stringify([
@@ -1628,7 +1808,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         ])
       }
 
-      const response: any = await addPrescription(payload)
+      const response = await addPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -1636,8 +1816,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
-      console.error('Error in handleRestartMedicine:', error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error in handleRestartMedicine:', err)
     } finally {
       setIsSubmitting(false)
     }
@@ -1671,110 +1852,108 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       return null
     }
 
-    const firstError = findFirstErrorField(errors)
+  const firstError = findFirstErrorField(errors)
 
-    if (!firstError) return
+  if (!firstError) return
 
-    const { path, message } = firstError
+  const { path, message } = firstError
 
-    let selectorPath = path
-      .replace(/\[(\d+)\]/g, '.$1')
-      .replace(/^\./, '')
+  let selectorPath = path.replace(/\[(\d+)\]/g, '.$1').replace(/^\./, '')
 
-    let element: any = null
-    let attempts: string[] = []
+  let element: any = null
+  let attempts: string[] = []
 
-    if (selectorPath.includes('schedules.')) {
-      const parts = selectorPath.split('.')
-      const index = parts[1]
-      const field = parts[2]
+  if (selectorPath.includes('schedules.')) {
+    const parts = selectorPath.split('.')
+    const index = parts[1]
+    const field = parts[2]
 
-      attempts = [
-        `[name="schedules.${index}.${field}"]`,
-        `input[name*="schedules.${index}.${field}"]`,
-        `select[name*="schedules.${index}.${field}"]`,
-        `[data-error-field="schedules.${index}.${field}"]`,
-        `.schedule-field-${index}-${field}`
-      ]
+    attempts = [
+      `[name="schedules.${index}.${field}"]`,
+      `input[name*="schedules.${index}.${field}"]`,
+      `select[name*="schedules.${index}.${field}"]`,
+      `[data-error-field="schedules.${index}.${field}"]`,
+      `.schedule-field-${index}-${field}`
+    ]
 
-      for (const attempt of attempts) {
-        element = document.querySelector(attempt)
-        if (element) break
-      }
-    } else if (selectorPath.includes('dosageDuration')) {
-      if (selectorPath === 'dosageDuration') {
-        if (message.includes('value') || message.includes('Duration must')) {
-          attempts = [
-            'input[name*="dosageDuration.value"]',
-            '[name="dosageDuration.value"]',
-            '[data-error-field="dosageDuration.value"]'
-          ]
-        } else if (message.includes('unit') || message.includes('select duration')) {
-          attempts = [
-            'select[name*="dosageDuration.unit"]',
-            '[name="dosageDuration.unit"]',
-            '[data-error-field="dosageDuration.unit"]'
-          ]
-        } else {
-          attempts = [
-            'input[name*="dosageDuration.value"]',
-            'select[name*="dosageDuration.unit"]',
-            '[name*="dosageDuration"]',
-            '[data-error-field*="dosageDuration"]'
-          ]
-        }
-      } else {
-        const field = selectorPath.split('.')[1]
+    for (const attempt of attempts) {
+      element = document.querySelector(attempt)
+      if (element) break
+    }
+  } else if (selectorPath.includes('dosageDuration')) {
+    if (selectorPath === 'dosageDuration') {
+      if (message.includes('value') || message.includes('Duration must')) {
         attempts = [
-          `[name="dosageDuration.${field}"]`,
-          `${field === 'value' ? 'input' : 'select'}[name*="dosageDuration.${field}"]`,
-          `[data-error-field="dosageDuration.${field}"]`
+          'input[name*="dosageDuration.value"]',
+          '[name="dosageDuration.value"]',
+          '[data-error-field="dosageDuration.value"]'
+        ]
+      } else if (message.includes('unit') || message.includes('select duration')) {
+        attempts = [
+          'select[name*="dosageDuration.unit"]',
+          '[name="dosageDuration.unit"]',
+          '[data-error-field="dosageDuration.unit"]'
+        ]
+      } else {
+        attempts = [
+          'input[name*="dosageDuration.value"]',
+          'select[name*="dosageDuration.unit"]',
+          '[name*="dosageDuration"]',
+          '[data-error-field*="dosageDuration"]'
         ]
       }
-
-      for (const attempt of attempts) {
-        element = document.querySelector(attempt)
-        if (element) break
-      }
     } else {
+      const field = selectorPath.split('.')[1]
       attempts = [
-        `[name="${selectorPath}"]`,
-        `[data-error-field="${selectorPath}"]`,
-        `input[name*="${selectorPath}"]`,
-        `select[name*="${selectorPath}"]`
+        `[name="dosageDuration.${field}"]`,
+        `${field === 'value' ? 'input' : 'select'}[name*="dosageDuration.${field}"]`,
+        `[data-error-field="dosageDuration.${field}"]`
       ]
-
-      for (const attempt of attempts) {
-        element = document.querySelector(attempt)
-        if (element) break
-      }
     }
 
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'nearest'
-      })
-    } else {
-      const formContainer =
-        document.querySelector('.schedule-medicine-form') ||
-        document.querySelector('form') ||
-        document.querySelector('.MuiBox-root')
+    for (const attempt of attempts) {
+      element = document.querySelector(attempt)
+      if (element) break
+    }
+  } else {
+    attempts = [
+      `[name="${selectorPath}"]`,
+      `[data-error-field="${selectorPath}"]`,
+      `input[name*="${selectorPath}"]`,
+      `select[name*="${selectorPath}"]`
+    ]
 
-      if (formContainer) {
-        formContainer.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        })
-
-        console.error('Validation error:', message)
-      }
+    for (const attempt of attempts) {
+      element = document.querySelector(attempt)
+      if (element) break
     }
   }
 
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'nearest'
+    })
+  } else {
+    const formContainer =
+      document.querySelector('.schedule-medicine-form') ||
+      document.querySelector('form') ||
+      document.querySelector('.MuiBox-root')
+
+    if (formContainer) {
+      formContainer.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
+
+      console.error('Validation error:', message)
+    }
+  }
+}
+
   const prescriptionSubmitHandler = handleSubmit(
-    async (data: any) => {
+    async (data: SubmitFormData) => {
       if (patientData?.discharge_at) {
         const dischargeDate = dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).endOf('day')
         const isOneTime = data.frequency === '2' || data.frequency === 2
@@ -1820,7 +1999,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             const durationUnit = data.dosageDuration.unit.toLowerCase()
 
             const startDate = dayjs(data.prescriptionStartDate).startOf('day')
-            let calculatedEndDate: any
+            let calculatedEndDate: number | Dayjs
 
             if (durationUnit === 'days') {
               calculatedEndDate = startDate.add(durationValue - 1, 'day').endOf('day')
@@ -1843,18 +2022,18 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         }
       }
 
-      const interval = medicalMasterData?.intervalList?.find((item: any) => item?.value === data?.interval)
-      const frequency = medicalMasterData?.prescriptionFrequency?.find((item: any) => item?.id == data.frequency)
+      const interval = medicalMasterData?.intervalList?.find((item) => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find((item) => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-        (item: any) => item?.route_abbr === data.deliveryRoute
+        (item) => item?.route_abbr === data.deliveryRoute
       )
 
       const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
-        (item: any) => item?.value === data.dosageDuration?.unit
+        (item) => item?.value === data.dosageDuration?.unit
       )
 
-      const scheduleDoses = data.schedules.map((schedule: any) => ({
+      const scheduleDoses = data.schedules.map((schedule: MedicineScheduleDose) => ({
         id: '',
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
@@ -1937,10 +2116,10 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
 
         const existing = hospitalData[tempKey] || []
-        const alreadyExists = existing.some((med: any) => med.id === newMedicine.id)
+        const alreadyExists = existing.some((med: MedicineIdentifier) => med.id === newMedicine.id)
 
         const updatedList = alreadyExists
-          ? existing.map((med: any) => (med.id === newMedicine.id ? newMedicine : med))
+          ? existing.map((med: MedicineIdentifier) => (med.id === newMedicine.id ? newMedicine : med))
           : [newMedicine, ...existing]
 
         dispatch(updateState({ key: tempKey, value: updatedList }))
@@ -1952,10 +2131,10 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       } else if (fromPage === 'prescriptionDetail') {
         handleRestartMedicine(data)
       } else {
-        submitHandler(data)
+        submitHandler(data as unknown as BaseSyntheticEvent)
       }
     },
-    (errors: any) => {
+    (errors) => {
       scrollToFirstError(errors)
     }
   )
@@ -1965,37 +2144,37 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     handleMedicineSelect(editingMedicine)
   }, [editingMedicine])
 
-  const getUnitIdFromName = (unitName: any, medicalMasterData: any) => {
+  const getUnitIdFromName = (unitName: string, medicalMasterData: MedicalMasterFormData | null) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      (item: any) => item.unit_name === unitName || item.uom_abbr === unitName
+      (item) => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
     return unit?.id || ''
   }
 
-  const getUnitFromLabel = (unitName: any, medicalMasterData: any) => {
+  const getUnitFromLabel = (unitName: string, medicalMasterData: MedicalMasterFormData | null) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      (item: any) => item?.label?.toLowerCase() == unitName?.toLowerCase()
+      (item) => item?.label?.toLowerCase() == unitName?.toLowerCase()
     )
 
     return unit?.key || ''
   }
 
-  const getStringIdFromUnitName = (unitName: any, medicalMasterData: any) => {
+  const getStringIdFromUnitName = (unitName: string, medicalMasterData: MedicalMasterFormData | null) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      (item: any) => item.unit_name === unitName || item.uom_abbr === unitName
+      (item) => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
     return unit?.string_id || ''
   }
 
-  const calculateEndDate = (startDate: any, dosageDuration: any, interval: any, includeTime: boolean = true) => {
+  const calculateEndDate = (startDate: string | number | Date, dosageDuration?: DosageDuration, interval?: any, includeTime: boolean = true) => {
     if (!startDate || !dosageDuration?.value) return ''
 
     const start = moment(startDate)
     if (!start.isValid()) return ''
     let endDate = start.clone()
-    const durationValue = parseInt(dosageDuration.value)
+    const durationValue = Number(dosageDuration.value)
 
     if (durationValue === 0) {
       endDate = start.clone()
@@ -2050,9 +2229,9 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
                 : 'AID',
             value: handleAIDDisplay()
           },
-          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
-          { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
+          { label: t('hospital_module.health_status_label'), value: patientData?.health_status || 'stable', isStatusCard: true },
+          { label: t('hospital_module.location'), value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: t('hospital_module.consulting_veterinarian'), value: patientData?.attend_by_full_name }
         ]}
         isLoading={patientLoading}
       />
@@ -2068,7 +2247,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         <Grid container spacing={5} className='match-height' sx={{ alignItems: 'center' }}>
           <Grid size={{ xs: 12, md: 4, lg: 4 }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
-              Select the medicine to
+              {t('hospital_module.select_medicine_to')}
             </Typography>
           </Grid>
           {!isDischargedAnimal && (
@@ -2150,12 +2329,12 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       <BottomActionBar
         submitLabel={
           fromPage === 'editPrescription'
-            ? 'Update Medicine'
+            ? t('hospital_module.update_medicine')
             : fromPage === 'prescriptionDetail'
-            ? 'Restart Medicine'
+            ? t('hospital_module.restart_medicine')
             : watch('selectMedicineType') === 'Direct Administer'
-            ? 'Administer'
-            : 'Schedule'
+            ? t('hospital_module.administer_title')
+            : t('hospital_module.schedule_title')
         }
         cancelLabel={cancelOrCloseText}
         onSubmit={prescriptionSubmitHandler}

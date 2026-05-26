@@ -1,0 +1,897 @@
+'use client'
+
+import { useCallback, useContext, useEffect, useRef, useState, Dispatch, SetStateAction } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
+
+import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip, CircularProgress } from '@mui/material'
+import { TabContext } from '@mui/lab'
+import { useTheme } from '@mui/material/styles'
+import toast from 'react-hot-toast'
+import moment from 'moment'
+
+import { AuthContext } from 'src/context/AuthContext'
+import { useAnimalContext } from 'src/context/AnimalContext'
+import { usePariveshContext } from 'src/context/PariveshContext'
+
+import Error404 from 'src/pages/404'
+import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+import StickyTable from 'src/views/table/sticky-table'
+
+import { getAllAnimalReport, getAnimalReportById } from 'src/lib/api/report'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import { Zoo, UserSettings, HeaderItem, PopoverData, FilterParams } from 'src/types/report'
+
+interface AuthContextType {
+  userData: {
+    user: { zoos: Zoo[] }
+    roles: { settings: { enable_reports_module: boolean } }
+    permission: { user_settings: UserSettings }
+  } | null
+}
+
+interface AnimalContextType {
+  selectedAnimal: Record<string, string | undefined> | null
+  setSelectedAnimal: Dispatch<SetStateAction<Record<string, string | undefined> | null>>
+  apiFilterParams: FilterParams
+  setApiFilterParams: Dispatch<SetStateAction<FilterParams>>
+  selectedSites: string[]
+  setSelectedSites: Dispatch<SetStateAction<string[]>>
+  selectedOptions: Record<string, string[] | string>
+  setSelectedOptions: Dispatch<SetStateAction<Record<string, string[] | string>>>
+}
+
+const AnimalList = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const theme = useTheme()
+  const { t } = useTranslation()
+  const animalId = searchParams?.get('animalId') ?? undefined
+  const { organizationList } = usePariveshContext()
+  const authData = useContext(AuthContext) as AuthContextType
+  const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+
+  const categories = ['Site', 'Organization']
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
+
+  const [status, setStatus] = useState('statistics')
+  const [animalList, setAnimalList] = useState<Record<string, string | number | null | undefined>[]>([])
+
+  const [dataList, setDataList] = useState<Record<string, string | number | null | undefined>[]>([])
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
+  const {
+    selectedAnimal,
+    setSelectedAnimal,
+    apiFilterParams,
+    setApiFilterParams,
+    selectedSites,
+    setSelectedSites,
+    selectedOptions,
+    setSelectedOptions
+  } = useAnimalContext() as AnimalContextType
+
+  const [sites, setSites] = useState(
+    authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || []
+  )
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [total, setTotal] = useState(0)
+
+  const [headerList, setHeaderList] = useState<HeaderItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const [isLoader, setIsLoader] = useState(false)
+
+  const [popoverData, setPopoverData] = useState<PopoverData>({
+    Taxonomy: [
+      { label: t('report_module.class'), key: 'include_class', checked: true },
+      { label: t('report_module.order'), key: 'include_order', checked: true },
+      { label: t('report_module.family'), key: 'include_family', checked: true },
+      { label: t('report_module.genus'), key: 'include_genus', checked: true }
+    ],
+    Housing: [
+      { label: t('site'), key: 'include_site', checked: false },
+      { label: t('section'), key: 'include_section', checked: false },
+      { label: t('enclosure'), key: 'include_enclosure', checked: false },
+      { label: t('report_module.cluster'), key: 'include_cluster', checked: false },
+      { label: t('report_module.organisation'), key: 'include_organization', checked: false }
+    ]
+  })
+
+  const [filterParams, setFilterParams] = useState<FilterParams>({
+    include_housing: 0,
+    include_enclosure: 0,
+    include_section: 0,
+    include_cluster: 0,
+    include_class: 1,
+    include_organization: 0,
+    include_order: 1,
+    include_family: 1,
+    include_genus: 1,
+    include_site: 0
+  })
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (animalId) {
+      setAnchorEl(event.currentTarget)
+
+      setPopoverData(prevData => {
+        const updatedData = { ...prevData }
+
+        Object.keys(updatedData).forEach(category => {
+          updatedData[category] = updatedData[category].map(item => ({
+            ...item,
+            checked: item.checked || apiFilterParams?.[item.key] === 1
+          }))
+        })
+
+        return updatedData
+      })
+    } else {
+      setAnchorEl(event.currentTarget)
+    }
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const initialLoad = useRef(true)
+  const lastFetchKeyRef = useRef('')
+
+  const open = Boolean(anchorEl)
+  const id = open ? 'filter-popover' : undefined
+
+  useEffect(() => {
+    if (!animalId) {
+      setSelectedSites([])
+      setSelectedOptions({})
+
+      setApiFilterParams(prevParams => {
+        const updatedParams = { ...prevParams }
+        delete updatedParams.site_ids
+        delete updatedParams.sids
+
+        return {
+          ...updatedParams,
+          include_class: 1,
+          include_order: 1,
+          include_family: 1,
+          include_genus: 1
+        }
+      })
+    }
+  }, [animalId])
+
+  const handleSelection = async (selectedIDs: string[], category: string) => {
+    let params: FilterParams = {}
+    setIsLoading(true)
+    const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+    const key = category === 'Site' ? 'sids' : 'oids'
+
+    if (selectedIDs.includes(isAllSelected)) {
+      if (category === 'Site') {
+        setSelectedSites(selectedIDs)
+        params[key] = ''
+      } else {
+        setSelectedOptions(prev => ({ ...prev, Organization: selectedIDs }))
+        params[key] = ''
+      }
+    } else {
+      params[key] = selectedIDs.length ? selectedIDs.toString() : ''
+      if (category === 'Site') {
+        setSelectedSites(selectedIDs)
+      } else {
+        setSelectedOptions(prev => ({ ...prev, Organization: selectedIDs }))
+      }
+    }
+    setIsLoading(false)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    setApiFilterParams(prev => ({
+      ...prev,
+      [key]: params[key]
+    }))
+  }
+
+  const fetchAndSetDataList = async (
+    params: FilterParams,
+    options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}
+  ) => {
+    const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
+    try {
+      setIsLoading(true)
+      const response = await getAllAnimalReport(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data as unknown as string)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } =
+          (response.data as {
+            header: HeaderItem[]
+            animal_list: Record<string, string | number | null | undefined>[]
+            total_animal: number
+          }) || {}
+
+        setTotal(total_animal)
+        setIsLoading(false)
+
+        if (setHeaders) setHeaderList(header)
+        setAnchorEl(null)
+
+        setDataList(loadServerRows(paginationModel.page, animal_list))
+      } else {
+        setDataList([])
+        setTotal(0)
+        toast.error(response?.message)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const fetchDownList = async (params: FilterParams, options: { responseType?: string } = {}) => {
+    const { responseType = 'json' } = options
+    try {
+      setIsDownloading(true)
+      const response = await getAllAnimalReport(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data as unknown as string)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } =
+          (response.data as {
+            header: HeaderItem[]
+            animal_list: Record<string, string | number | null | undefined>[]
+            total_animal: number
+          }) || {}
+
+        setTotal(total_animal)
+        setIsDownloading(false)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handleCsvResponse = (csvUrl: string) => {
+    const link = document.createElement('a')
+    link.href = csvUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(csvUrl)
+  }
+
+  const getAnimalDataToExport = async () => {
+    await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+  }
+
+  const getSpecificAnimalDataToExport = async () => {
+    await getSpecificAnimal(animalId, { response_type: 'csv' }, { responseType: 'csv' })
+  }
+
+  const fetchData = useCallback(
+    async (param: FilterParams, paginationModel: { page: number; pageSize: number }) => {
+      const params: FilterParams = {
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        ...param
+      }
+      setIsLoading(true)
+      await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
+      initialLoad.current = false
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    if (!animalId && reports_module && enable_animal_report) {
+      const fetchKey = JSON.stringify({
+        params: apiFilterParams,
+        page: paginationModel.page,
+        pageSize: paginationModel.pageSize
+      })
+
+      if (lastFetchKeyRef.current === fetchKey) return
+
+      lastFetchKeyRef.current = fetchKey
+      fetchData(apiFilterParams, paginationModel)
+    }
+  }, [fetchData, apiFilterParams, paginationModel, reports_module, enable_animal_report, animalId])
+
+  const getSpecificAnimal = async (
+    id: string | undefined,
+    options: { response_type?: string } = {},
+    fetchOptions: { responseType?: string } = {}
+  ) => {
+    try {
+      const parsedParams = apiFilterParams || {}
+
+      let siteParam = selectedSites.includes('All Sites') ? '' : parsedParams.site_ids
+
+      if (selectedSites.includes('All Sites')) {
+        const updatedParams = { ...parsedParams }
+        delete updatedParams.site_ids
+
+        setApiFilterParams(updatedParams)
+        setSelectedSites([])
+      }
+
+      // Remove site_ids from the API payload
+      const { site_ids, ...filteredParams } = parsedParams
+
+      const params: FilterParams = {
+        tids: id,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sids: siteParam,
+        ...filteredParams
+      }
+
+      if (options.response_type === 'csv') {
+        setIsDownloading(true)
+        try {
+          const csvResponse = await getAnimalReportById({ ...params, response_type: 'csv' })
+          if (csvResponse && csvResponse.data) {
+            const fileName = 'specific_animal_data.csv' // Default filename
+            handleCsvResponse(csvResponse.data as unknown as string)
+          }
+        } finally {
+          setIsDownloading(false)
+        }
+
+        return
+      }
+
+      setIsLoading(true)
+      const response = await getAnimalReportById(params)
+      if (response.success) {
+        const { header, animal_list, total_animal } = response.data as {
+          header: HeaderItem[]
+          animal_list: Record<string, string | number | null | undefined>[]
+          total_animal: number
+        }
+
+        setTotal(total_animal)
+        setHeaderList(header)
+        setAnimalList(loadServerRows(paginationModel.page, animal_list))
+        const primaryAnimal = Array.isArray(animal_list) && animal_list.length > 0 ? animal_list[0] : null
+        if (primaryAnimal) {
+          setSelectedAnimal(prev => prev || (primaryAnimal as Record<string, string | undefined>))
+        }
+      } else {
+        setTotal(0)
+        setAnimalList([])
+        toast.error(response?.message)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (animalId) {
+      getSpecificAnimal(animalId)
+    }
+  }, [animalId, filterParams, selectedSites, paginationModel])
+
+  const handleOptionChange = (category: string, itemIndex: number) => {
+    setPopoverData(prevData => {
+      const updatedData = {
+        ...prevData,
+        [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
+      }
+
+      return updatedData
+    })
+  }
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length > maxLength) {
+      return <>{`${text.substring(0, maxLength)}...`}</>
+    }
+
+    return text
+  }
+
+  const getSpecificTotalSelectedFilters = (selectedOptions: Record<string, string[] | string>) => {
+    return Object.values(selectedOptions).filter(items => {
+      if (!Array.isArray(items)) return false
+      const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
+
+      return filtered.length > 0
+    }).length
+  }
+
+  const getTotalSelectedFilters = (selectedOptions: Record<string, string[] | string>) => {
+    return Object.values(selectedOptions || {}).filter(selected => Array.isArray(selected) && selected.length > 0)
+      .length
+  }
+
+  const columns = headerList.map(header => {
+    const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
+
+    if (Array.isArray(header.key) ? header.key.includes('default_icon') : header.key.includes('default_icon')) {
+      return {
+        field: 'Animals',
+        headerName: header.label,
+        isAvatar: true,
+        pinned: 'left',
+        sortable: false,
+        disableColumnMenu: true,
+        width: 300,
+        headerStyle: { zIndex: 1099 },
+        renderCell: (params: { row: Record<string, string | number | null | undefined> }) => (
+          <Box sx={{ paddingY: '20px' }}>
+            <AnimalCard data={params.row} />
+          </Box>
+        )
+      }
+    }
+
+    return {
+      field: fieldKey,
+      headerName: header.label,
+      width: 170,
+      sortable: false,
+      disableColumnMenu: true,
+      textAlign: 'center',
+      renderCell: (params: {
+        row: Record<string, string | number | null | undefined>
+        value?: string | number | null
+      }) => {
+        let truncatedValue: string | React.ReactNode
+        const cellValue = params?.row[header?.key as string]
+        truncatedValue = cellValue
+          ? String(header?.key) === 'accession_date'
+            ? moment(cellValue).format('DD-MMM-YYYY')
+            : truncateText(String(cellValue), 20)
+          : '-'
+
+        const showTooltip = params?.value !== null && params?.value !== undefined && String(params.value).length > 20
+
+        return (
+          <Tooltip title={showTooltip ? cellValue : null} placement='bottom'>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.customHeadingTextColor,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {truncatedValue}
+            </Typography>
+          </Tooltip>
+        )
+      }
+    }
+  })
+
+  const getSlNo = (index: number) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const reportRows = (animalId ? animalList : dataList)?.map((item, index) => ({
+    id: index + 1,
+    sex: item.gender || item.sex,
+    ...item,
+    sl_no: getSlNo(index)
+  })) as (Record<string, string | number | null | undefined> & { id: number; sl_no: number })[]
+
+  const handleConfirm = async () => {
+    const updatedApiParams: FilterParams = { ...apiFilterParams }
+
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        updatedApiParams[option.key] = option.checked ? 1 : 0
+      })
+    })
+
+    setApiFilterParams(updatedApiParams)
+    setPaginationModel({ ...paginationModel, page: 0 })
+  }
+
+  function loadServerRows(_currentPage: number, data: Record<string, string | number | null | undefined>[]) {
+    return data
+  }
+
+  const options = {
+    Site:
+      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [],
+    Organization:
+      (organizationList as { organization_name: string }[])?.sort((a, b) =>
+        a.organization_name.localeCompare(b.organization_name)
+      ) || []
+  }
+
+  const handleFilterSection = () => {
+    setOpenFilterDrawer(true)
+  }
+
+  const handleFilterConfirm = async () => {
+    const updatedApiParams: FilterParams = {}
+
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        if (option.checked) {
+          updatedApiParams[option.key] = 1
+        }
+      })
+    })
+    const selectedSiteIds = selectedSites.length > 0 ? selectedSites : ''
+
+    updatedApiParams.sids =
+      Array.isArray(selectedSiteIds) && selectedSiteIds.length > 0 ? selectedSiteIds.join(',') : ''
+
+    setSelectedSites(
+      Array.isArray(selectedSiteIds) && selectedSiteIds.includes('All Sites')
+        ? sites.map(s => String(s.site_id))
+        : Array.isArray(selectedSiteIds)
+        ? selectedSiteIds
+        : []
+    )
+
+    setApiFilterParams(updatedApiParams)
+    setAnchorEl(null)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }
+
+  return (
+    <>
+      {reports_module && enable_animal_report ? (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
+              <CardHeader
+                sx={{ px: animalId && 0 }}
+                title={
+                  animalId ? (
+                    <CardHeader
+                      avatar={
+                        <img
+                          src={selectedAnimal?.default_icon}
+                          alt={selectedAnimal?.common_name}
+                          style={{ width: 60, height: 60, borderRadius: '118px', marginRight: 2 }}
+                        />
+                      }
+                      subheader={
+                        <>
+                          <Typography
+                            sx={{
+                              fontSize: '16px',
+                              fontWeight: 400,
+                              ml: 1,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.common_name}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '24px',
+                              fontWeight: 600,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.scientific_name}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  ) : (
+                    <Typography
+                      sx={{
+                        fontSize: '24px',
+                        fontWeight: 500,
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {t('report_module.animal_report_list')}
+                    </Typography>
+                  )
+                }
+              />
+
+              <Typography
+                onClick={
+                  isDownloading
+                    ? undefined
+                    : () => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())
+                }
+                sx={{
+                  fontSize: '20px',
+                  fontWeight: '400',
+                  fontFamily: 'Inter',
+                  color: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: isDownloading ? 'not-allowed' : 'pointer',
+                  mr: 4
+                }}
+                aria-disabled={isDownloading}
+              >
+                {t('report_module.download_report')}
+                {isDownloading ? (
+                  <CircularProgress size={22} sx={{ ml: 2 }} />
+                ) : (
+                  <img
+                    src='/images/download1.png'
+                    alt='download icon'
+                    style={{ marginLeft: 8, width: 30, height: 30 }}
+                  />
+                )}
+              </Typography>
+            </Box>
+
+            <TabContext value={status}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, mt: 3 }}>
+                {(authData?.userData?.user?.zoos[0]?.sites?.length ?? 0) > 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      borderRadius: '8px',
+                      mr: 2
+                    }}
+                  >
+                    <Button
+                      onClick={() => handleFilterSection()}
+                      variant='outlined'
+                      sx={{
+                        width: '129px',
+                        height: '40px',
+                        mt: 2,
+                        mr: 2,
+                        display: 'flex',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        borderRadius: '4px',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/filterIcon.png'
+                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
+                        alt='Filter Icon'
+                      />
+
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnPrimaryContainer,
+                          textTransform: 'capitalize',
+                          marginRight: 8,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
+                      >
+                        {t('filter')}
+                      </Typography>
+
+                      {animalId && getSpecificTotalSelectedFilters(selectedOptions) > 0 ? (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                            color: theme.palette.customColors.OnPrimary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {getSpecificTotalSelectedFilters(selectedOptions)}
+                        </Box>
+                      ) : (
+                        getTotalSelectedFilters(selectedOptions) > 0 && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: '5px',
+                              right: '6px',
+                              width: '29px',
+                              height: '27px',
+                              borderRadius: '69%',
+                              backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                              color: theme.palette.customColors.OnPrimary,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px',
+                              fontWeight: 500
+                            }}
+                          >
+                            {getTotalSelectedFilters(selectedOptions)}
+                          </Box>
+                        )
+                      )}
+                    </Button>
+                    {
+                      <FilterSheet
+                        open={openFilterDrawer}
+                        setOpenFilterDrawer={setOpenFilterDrawer}
+                        categories={categories}
+                        sites={sites}
+                        setSites={setSites}
+                        selectedSites={selectedSites}
+                        setSelectedSites={setSelectedSites}
+                        animalId={animalId}
+                        options={options}
+                        selectedOptions={selectedOptions}
+                        isLoader={isLoader}
+                        setSelectedOptions={setSelectedOptions}
+                        handleSelection={handleSelection}
+                        getTotalSelectedFilters={animalId ? getSpecificTotalSelectedFilters : getTotalSelectedFilters}
+                      />
+                    }
+
+                    <Button
+                      onClick={handleClick}
+                      variant='outlined'
+                      sx={{
+                        width: '150px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        borderRadius: '4px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mr: 2,
+                        gap: 1,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/show_popup.png'
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          marginBottom: '2px',
+                          marginRight: '3px',
+                          marginTop: '2px'
+                        }}
+                        alt='Filter Icon'
+                      />
+                      <Typography
+                        sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                      >
+                        {t('report_module.show_hide')}
+                      </Typography>
+                    </Button>
+                    <Popover
+                      id={id}
+                      open={open}
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left'
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left'
+                      }}
+                    >
+                      <Box sx={{ p: 2, width: 300 }}>
+                        {Object.keys(popoverData).map(category => (
+                          <Box key={category}>
+                            <Typography
+                              sx={{
+                                ml: 2,
+                                mt: 2
+                              }}
+                              variant='h6'
+                            >
+                              {category}
+                            </Typography>
+                            {popoverData[category].map((item, index) => (
+                              <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
+                                <Typography>{item.label}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        ))}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          alignItems: 'center',
+                          gap: 3,
+                          mb: 5,
+                          mr: 10
+                        }}
+                      >
+                        <Button
+                          variant='outlined'
+                          onClick={() => {
+                            setAnchorEl(null)
+                          }}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          {t('cancel')}
+                        </Button>
+                        <Button
+                          variant='contained'
+                          onClick={animalId ? handleFilterConfirm : handleConfirm}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          {t('confirm')}
+                        </Button>
+                      </Box>
+                    </Popover>
+                  </Box>
+                )}
+              </Box>
+              <Box sx={{ width: '100%', p: 5 }}>
+                <StickyTable
+                  rows={reportRows?.length > 0 ? reportRows : []}
+                  rowCount={total}
+                  rowHeight={86}
+                  headerHeight={47}
+                  pagination={true}
+                  columns={columns.length ? columns : []}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  rowsInView={10}
+                  rowsInViewOptions={[5, 7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={isLoading}
+                  downloadExcel
+                  headerName={t('report_module.animal_report_list')}
+                  searchMode='server'
+                  disableColumnSorting={true}
+                />
+              </Box>
+            </TabContext>
+          </Card>
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
+  )
+}
+
+export default AnimalList

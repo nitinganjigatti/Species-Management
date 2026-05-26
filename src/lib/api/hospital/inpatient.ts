@@ -33,6 +33,11 @@ import type {
 } from 'src/types/hospital'
 import { TotalVisitParams, TotalVisitsResponse } from 'src/types/hospital/api/Inpatient/visitHistory';
 import { GetHospitalVisitSummaryPayload, GetHospitalVisitSummaryResponse, GetPatientMediaResponse } from 'src/types/hospital/api/Inpatient/patientMedia';
+import { PatientMediaParams, PatientMediaResponse, UploadPatientMediaParams, UploadPatientMediaResponse } from 'src/types/hospital/api/Media/media';
+import { DeleteApiResponse } from 'src/types/hospital/api';
+import { DownloadResponse } from 'src/types/hospital/api/Download/export';
+import { DownloadDischargeParams } from 'src/types/hospital/api/Discharge/discharge';
+import { ZooWiseSiteListParams, ZooWiseSiteListResponse } from 'src/types/hospital/api/ZooWiseSitelists/siteLists';
 
 export const updateAnimalHealthStatus = async (
   payload: FormData | Record<string, unknown>
@@ -128,15 +133,15 @@ export async function getZooWiseSiteLists(params: Record<string, any>): Promise<
   return response?.data
 }
 
-export async function getPatientMedia(params: PatientMediaListParams): Promise<PatientMediaListResponse> {
+export async function getPatientMedia(params: PatientMediaParams): Promise<PatientMediaResponse> {
   const response = await axiosGet({ url: `${GET_PATIENT_MEDIA}`, params })
 
   return response?.data
 }
 
 export async function uploadPatientMedia(
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown> | unknown> {
+  payload: UploadPatientMediaParams
+): Promise<UploadPatientMediaResponse> {
   try {
     const response = await axiosFormPost({ url: `${UPLOAD_PATIENT_MEDIA}`, body: payload })
 
@@ -151,11 +156,11 @@ export async function uploadPatientMedia(
       console.error(err.response.headers)
     }
 
-    return error
+    throw error
   }
 }
 
-export async function deletePatientMedia(mediaId: string | number): Promise<ApiResponse<unknown>> {
+export async function deletePatientMedia(mediaId: string | number): Promise<DeleteApiResponse> {
   try {
     if (!mediaId) throw new Error('Media ID is required')
 
@@ -171,8 +176,8 @@ export async function deletePatientMedia(mediaId: string | number): Promise<ApiR
 }
 
 export async function downloadDischargeListings(
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  params: DownloadDischargeParams
+): Promise<DownloadResponse> {
   try {
     const response = await axiosGet({ url: `${DOWNLOAD_DISCHARGE_LISTINGS}`, params })
 

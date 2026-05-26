@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent, Divider, Button } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Theme, useTheme } from '@mui/material/styles'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import Icon from 'src/@core/components/icon'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
@@ -14,9 +14,12 @@ import { Controller, useForm, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import Utility from 'src/utility'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import moment from 'moment'
+import { ScheduleSubmitFormData, SelectedSlotState } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
+import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+import { SelectOption } from 'src/types/hospital'
 
 // Enable custom parse format plugin for dayjs
 dayjs.extend(customParseFormat)
@@ -25,15 +28,22 @@ interface ScheduleDosageSidesheetProps {
   label?: string
   handleOpen?: boolean
   handleSidebarClose: () => void
-  onSubmit: (data: any) => void
+  onSubmit: (data: ScheduleSubmitFormData) => void
   submitLoader?: boolean
-  scheduleDosage?: any
-  selectedDate?: any
-  medicalMasterData?: any
+  scheduleDosage?: SelectedSlotState | null
+  selectedDate?: string
+  medicalMasterData?: MedicalMasterFormData
+}
+
+interface ScheduleDosageFormItem {
+  time: Dayjs | null
+  dosageQuantity: number | string
+  dosageUnit: string | number
+  dosageWeights: string | number
 }
 
 interface FormValues {
-  schedules: any[]
+  schedules: ScheduleDosageFormItem[]
   applyDosage: string
 }
 
@@ -48,7 +58,7 @@ const ScheduleDosageSidesheet = ({
   medicalMasterData
 }: ScheduleDosageSidesheetProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const hasSetDefaults = useRef(false)
 
   const commonFieldStyles = {
@@ -224,7 +234,7 @@ const ScheduleDosageSidesheet = ({
     if (scheduleDosage?.scheduledTime && !hasSetDefaults.current) {
       const defaultTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
 
-      reset((prev: any) => ({
+      reset(prev => ({
         ...prev,
         schedules: [
           {
@@ -247,7 +257,7 @@ const ScheduleDosageSidesheet = ({
   const handleFormSubmit = (data: FormValues) => {
     const formattedData = {
       ...data,
-      schedules: data.schedules.map((schedule: any) => ({
+      schedules: data.schedules.map((schedule) => ({
         ...schedule,
         time: schedule.time ? dayjs(schedule.time).format('hh:mm A') : ''
       }))
@@ -293,7 +303,7 @@ const ScheduleDosageSidesheet = ({
             }}
           >
             <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-              <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+              <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Filter Icon' />
               <Typography
                 sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
@@ -324,7 +334,7 @@ const ScheduleDosageSidesheet = ({
               sx={{
                 fontSize: '1rem',
                 fontWeight: 500,
-                color: theme.palette.primary.deepDark
+                color: theme.palette.customColors.deepDark
               }}
             >
               {scheduleDosage?.data?.name}
@@ -365,13 +375,13 @@ const ScheduleDosageSidesheet = ({
                     </Grid>
                   )}
 
-                  {fields.map((field: any, idx: number) => (
+                  {fields.map((field, idx: number) => (
                     <React.Fragment key={field.fieldId}>
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <ControlledTimePicker
                           name={`schedules.${idx}.time`}
                           control={control}
-                          label={(t('select_time') as string)}
+                          label={(t('hospital_module.select_time') as string)}
                           format='hh:mm A'
                           error={(errors as any)?.schedules?.[idx]?.time}
                           sx={commonFieldStyles}
@@ -396,8 +406,8 @@ const ScheduleDosageSidesheet = ({
                             placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
-                            getOptionLabel: (option: any) => option.label,
-                            getOptionValue: (option: any) => option.value,
+                            getOptionLabel: (option: SelectOption) => option.label,
+                            getOptionValue: (option: SelectOption) => option.value,
                             required: true,
                             selectWidth: 100,
                             disabled: submitLoader,
@@ -496,7 +506,7 @@ const ScheduleDosageSidesheet = ({
                 </Grid>
 
                 {/* Hidden submit button for form submission */}
-                <button type='submit' style={{ display: 'none' }} />
+                <Box component='button' type='submit' sx={{ display: 'none' }} />
               </form>
             </CardContent>
           </Card>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useFormContext } from 'react-hook-form'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 
 import AddReversalDrug from './AddReversalDrug'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
@@ -16,14 +16,20 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
 import { getMedicineProductList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
+import { GetMedicineListParams } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch'
+import { Id } from 'src/types/hospital'
+import { RecoveryFormData, ReversalDrugFormItem } from '../../shared/AddAnesthesiaRecordPage'
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
+import { SelectOption } from 'src/types/necropsy'
+import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models'
 
 interface RecoveryAndReversalProps {
-  unitList?: any[]
-  recoveryTypeOptions?: any[]
-  anesthesiaRatingOptions?: any[]
-  onAddReversalDrug?: (data: any) => void
-  onUpdateReversalDrug?: (index: number, data: any) => void
-  onDeleteReversalDrug?: (index: number, id: any) => void
+  unitList?: UnitParams[]
+  recoveryTypeOptions?: SelectOption[]
+  anesthesiaRatingOptions?: SelectOption[]
+  onAddReversalDrug?: (data: ReversalDrugFormItem) => void
+  onUpdateReversalDrug?: (index: number, data:  ReversalDrugFormItem) => void
+  onDeleteReversalDrug?: (index: number, id: Id) => void
 }
 
 function RecoveryAndReversal({
@@ -37,10 +43,10 @@ function RecoveryAndReversal({
   const { t } = useTranslation()
   const theme: any = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
-  const [editIndex, setEditIndex] = useState<any>(null)
+  const [editIndex, setEditIndex] = useState<number | null>(null)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
-  const [deliveryRouteOptionsState, setDeliveryRouteOptionsState] = useState<any[]>([])
-  const [medicationGasList, setMedicationGasList] = useState<any[]>([])
+  const [deliveryRouteOptionsState, setDeliveryRouteOptionsState] = useState<DeliveryRoute[]>([])
+  const [medicationGasList, setMedicationGasList] = useState<MedicationDrugOption[]>([])
   const [productPage, setProductPage] = useState<number>(1)
   const [productTotal, setProductTotal] = useState<number>(0)
   const [isProductLoading, setIsProductLoading] = useState<boolean>(false)
@@ -61,7 +67,7 @@ function RecoveryAndReversal({
 
   const fetchDeliveryList = async () => {
     try {
-      const response: any = await (deliveryRouteList as any)()
+      const response = await deliveryRouteList()
 
       if (response?.success && response?.data?.length > 0) {
         setDeliveryRouteOptionsState(response?.data)
@@ -94,7 +100,7 @@ function RecoveryAndReversal({
 
     setIsProductLoading(true)
 
-    const params = {
+    const params: GetMedicineListParams = {
       sort: 'asc',
       q,
       limit: 50,
@@ -102,14 +108,14 @@ function RecoveryAndReversal({
       page_no: pageToLoad
     }
     try {
-      const response: any = await getMedicineProductList({ params } as any)
+      const response = await getMedicineProductList({ params })
 
       if (response?.success && response?.data?.brand_name?.result?.length > 0) {
         const newItems = response?.data?.brand_name?.result || []
         const totalCount = response?.data?.brand_name?.count || 0
 
-        setProductTotal(totalCount)
-        setMedicationGasList((prev: any[]) => (append ? [...prev, ...newItems] : newItems))
+        setProductTotal(Number(totalCount))
+        setMedicationGasList((prev:  MedicationDrugOption[]) => (append ? [...prev, ...newItems] : newItems))
         setProductPage(pageToLoad)
       }
     } catch (error) {
@@ -141,20 +147,20 @@ function RecoveryAndReversal({
 
   const hasMoreProducts = medicationGasList.length < productTotal
 
-  const getUnitAbbr = (unitId: any) => {
-    const unit = unitList?.find((item: any) => String(item.id) === String(unitId))
+  const getUnitAbbr = (unitId: Id | null) => {
+    const unit = unitList?.find((item: UnitParams) => String(item.id) === String(unitId))
 
     return unit?.uom_abbr || '-'
   }
 
-  const safeFormat = (v: any) => {
+  const safeFormat = (v: string | Dayjs | null) => {
     if (!v) return '-'
     const d = dayjs(v)
 
     return d.isValid() ? d.format('hh:mm A') : '-'
   }
 
-  const parseTimeFromDrawer = (v: any) => {
+  const parseTimeFromDrawer = (v: string | Dayjs | Date | null | undefined) => {
     if (!v) return null
     if (dayjs.isDayjs(v)) return v
     if (v instanceof Date) return dayjs(v)
@@ -179,7 +185,7 @@ function RecoveryAndReversal({
     return loose.isValid() ? loose : null
   }
 
-  const asStorageString = (d: any) => {
+  const asStorageString = (d: string | Dayjs | Date | null | undefined) => {
     if (!d) return ''
     const parsed = parseTimeFromDrawer(d)
 
@@ -192,7 +198,7 @@ function RecoveryAndReversal({
   }
 
   const handleSubmitData = useCallback(
-    async (payload: any) => {
+    async (payload: RecoveryFormData) => {
       setSubmitLoader(true)
       try {
         const normalized = {
@@ -221,14 +227,14 @@ function RecoveryAndReversal({
     setEditIndex(null)
   }
 
-  const drugColumns: any[] = [
+  const drugColumns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl.NO',
+      headerName: t('sl_no'),
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug_name',
@@ -236,7 +242,7 @@ function RecoveryAndReversal({
       minWidth: 260,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params.row.drug_name?.name ?? '-'}
@@ -255,7 +261,7 @@ function RecoveryAndReversal({
       headerName: t('amount'),
       minWidth: 100,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography>
           {params.row.amount} {getUnitAbbr(params.row.unit)}
         </StyledTypography>
@@ -263,17 +269,17 @@ function RecoveryAndReversal({
     },
     {
       field: 'route',
-      headerName: t('delivery_route'),
+      headerName: t('hospital_module.delivery_route'),
       minWidth: 140,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
       headerName: t('hospital_module.delivery_time'),
       minWidth: 130,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return <StyledTypography>{params.row.display_delivery_time ?? '-'}</StyledTypography>
       }
     },
@@ -282,14 +288,14 @@ function RecoveryAndReversal({
       headerName: t('hospital_module.delivery'),
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
     },
     {
       field: 'max_effect_time',
       headerName: t('hospital_module.max_effect'),
       minWidth: 130,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return <StyledTypography>{params.row.display_max_effect_time ?? '-'}</StyledTypography>
       }
     },
@@ -300,7 +306,7 @@ function RecoveryAndReversal({
       align: 'center',
       width: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           {params?.row?.reversal_row_id !== undefined ? (
             <>
@@ -327,12 +333,12 @@ function RecoveryAndReversal({
     }
   ]
 
-  const reversalDrugsData = reversalDrugs.map((drug: any, index: number) => ({
+  const reversalDrugsData = reversalDrugs.map((drug: ReversalDrugFormItem, index: number) => ({
     ...drug,
     reversal_row_id: drug?.id,
     id: index + 1,
-    display_delivery_time: safeFormat(drug.delivery_time),
-    display_max_effect_time: safeFormat(drug.max_effect_time)
+    display_delivery_time: safeFormat(drug.delivery_time ?? ''),
+    display_max_effect_time: safeFormat(drug.max_effect_time ?? '')
   }))
 
   return (
@@ -417,8 +423,8 @@ function RecoveryAndReversal({
               errors={errors}
               label={`${t('hospital_module.recovery_type')}*`}
               options={recoveryTypeOptions}
-              getOptionLabel={(option: any) => option.label}
-              getOptionValue={(option: any) => option.value}
+              getOptionLabel={(option: SelectOption) => option.label}
+              getOptionValue={(option: SelectOption) => option.value}
             />
           </Grid>
           <Grid size={{ xs: 4 }}>
@@ -476,8 +482,8 @@ function RecoveryAndReversal({
               errors={errors}
               label={`${t('hospital_module.induction')}*`}
               options={anesthesiaRatingOptions}
-              getOptionLabel={(option: any) => option.label}
-              getOptionValue={(option: any) => option.value}
+              getOptionLabel={(option: SelectOption) => option.label}
+              getOptionValue={(option: SelectOption) => option.value}
             />
           </Grid>
           <Grid size={{ xs: 3 }}>
@@ -487,8 +493,8 @@ function RecoveryAndReversal({
               errors={errors}
               label={`${t('hospital_module.tolerance')}*`}
               options={anesthesiaRatingOptions}
-              getOptionLabel={(option: any) => option.label}
-              getOptionValue={(option: any) => option.value}
+              getOptionLabel={(option: SelectOption) => option.label}
+              getOptionValue={(option: SelectOption) => option.value}
             />
           </Grid>
           <Grid size={{ xs: 3 }}>
@@ -498,8 +504,8 @@ function RecoveryAndReversal({
               errors={errors}
               label={`${t('hospital_module.recovery')}*`}
               options={anesthesiaRatingOptions}
-              getOptionLabel={(option: any) => option.label}
-              getOptionValue={(option: any) => option.value}
+              getOptionLabel={(option: SelectOption) => option.label}
+              getOptionValue={(option: SelectOption) => option.value}
             />
           </Grid>
           <Grid size={{ xs: 3 }}>
@@ -509,8 +515,8 @@ function RecoveryAndReversal({
               errors={errors}
               label={`${t('hospital_module.overall')}*`}
               options={anesthesiaRatingOptions}
-              getOptionLabel={(option: any) => option.label}
-              getOptionValue={(option: any) => option.value}
+              getOptionLabel={(option: SelectOption) => option.label}
+              getOptionValue={(option: SelectOption) => option.value}
             />
           </Grid>
         </Grid>

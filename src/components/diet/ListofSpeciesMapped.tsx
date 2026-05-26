@@ -64,6 +64,7 @@ interface Props {
   siteId: any
   setSiteListDrawer: (...args: any[]) => any
   setCheckForSite: (...args: any[]) => any
+  checkForSite: any
 }
 
 const ListOfSpeciesMapped: React.FC<Props> = ({
@@ -94,7 +95,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
   setapplyfilterCheck,
   siteId,
   setSiteListDrawer,
-  setCheckForSite
+  setCheckForSite, checkForSite
 }) => {
   const theme = useTheme()
   const { t } = useTranslation()
@@ -110,8 +111,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
     console.log(dietDetails, 'dietDetails')
     if (
       dietDetails?.total_animals !== '0' ||
-      dietDetails?.total_species !== '0' ||
-      dietDetails?.total_site_species != '0'
+      dietDetails?.total_species !== '0' || dietDetails?.total_site_species != 0
     ) {
       setOpenModal(true)
     } else {
@@ -119,6 +119,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
       handleAdd()
     }
   }
+
   const handleClose = () => setOpenModal(false)
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,8 +279,8 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
     speciesview === 'select' && selectionType === 'species'
       ? speciesData.filter(species => tempSelectedSpecies.includes(species.species_id))
       : speciesview === 'select' && selectionType === 'animals'
-      ? speciesData.filter(species => tempSelectedSpecies.includes(species.animal_id))
-      : speciesData.filter(species => species.mapped_to_diet)
+        ? speciesData.filter(species => tempSelectedSpecies.includes(species.animal_id))
+        : speciesData.filter(species => species.mapped_to_diet)
 
   return (
     <Drawer
@@ -563,8 +564,8 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
                         ? 'Specie Selected'
                         : 'Species Selected'
                       : tempSelectedSpecies?.length === 1
-                      ? 'Animal Selected'
-                      : 'Animals Selected'}
+                        ? 'Animal Selected'
+                        : 'Animals Selected'}
                   </Typography>
                 ) : (
                   <Typography
@@ -692,7 +693,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
                                 //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
-                                    selectionType === 'species' ? species.species_id : species.animal_id
+                                  selectionType === 'species' ? species.species_id : species.animal_id
                                   ] === '1'
                                 }
                                 onChange={() => handleTogglePrimary(species)}
@@ -748,7 +749,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
                               <Switch
                                 checked={
                                   primaryStatus[
-                                    selectionType === 'species' ? species.species_id : species.animal_id
+                                  selectionType === 'species' ? species.species_id : species.animal_id
                                   ] === '1'
                                 }
                                 onChange={() => handleTogglePrimary(species)}
@@ -831,7 +832,6 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
           >
             {t('cancel')}
           </Button>
-
           <LoadingButton
             variant='contained'
             size='large'
@@ -852,6 +852,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
           </LoadingButton>
         </Box>
       </Box>
+
       <Fragment>
         <Dialog
           open={openModal}

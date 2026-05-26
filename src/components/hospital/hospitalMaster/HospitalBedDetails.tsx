@@ -171,7 +171,7 @@ const HospitalBedDetails = () => {
         if (response?.success) {
           Toaster({
             type: 'success',
-            message: response?.message || `Room ${checked ? 'activated' : 'deactivated'} successfully`
+            message: response?.message || (checked ? t('hospital_module.room_activated_successfully') as string : t('hospital_module.room_deactivated_successfully') as string)
           })
 
           setRoomStatusEdit(true)
@@ -343,7 +343,7 @@ const HospitalBedDetails = () => {
         if (response?.success) {
           Toaster({
             type: 'success',
-            message: response?.message || `Bed ${editParams?.id ? 'updated' : 'added'} successfully`
+            message: response?.message || (editParams?.id ? t('hospital_module.bed_updated_successfully') as string : t('hospital_module.bed_added_successfully') as string)
           })
           refetchBeds()
           if (id && selectedHospital?.id === id) {
@@ -422,7 +422,7 @@ const HospitalBedDetails = () => {
     {
       minWidth: 380,
       field: 'occupant',
-      headerName: 'Occupant',
+      headerName: t('hospital_module.occupant') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => {
         const animalData = {
@@ -479,14 +479,14 @@ const HospitalBedDetails = () => {
     {
       minWidth: 140,
       field: 'active',
-      headerName: 'Status',
+      headerName: t('status') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
     },
     {
       minWidth: 180,
       field: 'room_date',
-      headerName: 'Room Alloted On',
+      headerName: t('hospital_module.room_alloted_on') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 1.4 }}>
@@ -497,7 +497,7 @@ const HospitalBedDetails = () => {
     {
       minWidth: 100,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Box onClick={(e: React.MouseEvent) => e.stopPropagation()}>
@@ -556,11 +556,11 @@ const HospitalBedDetails = () => {
       <DynamicBreadcrumbs
         sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
         pageItems={[
-          { title: 'Hospital' },
-          { title: 'Masters' },
-          { title: 'Hospital List' },
-          { title: 'Hospital Detail', onClick: () => router.push(`/hospital/masters/hospital/${id}`) },
-          { title: 'Room Detail' }
+          { title: t('navigation.hospital') },
+          { title: t('navigation.masters') },
+          { title: t('hospital_module.hospital_list') },
+          { title: t('hospital_module.hospital_detail'), onClick: () => router.push(`/hospital/masters/hospital/${id}`) },
+          { title: t('hospital_module.room_detail') }
         ]}
       />
       <Card sx={{ p: 6 }}>
@@ -575,7 +575,7 @@ const HospitalBedDetails = () => {
           }}
           title={
             <StyledTypography fontSize='1.5rem' fontWeight={500}>
-              Room Detail
+              {t('hospital_module.room_detail')}
             </StyledTypography>
           }
           action={
@@ -593,7 +593,7 @@ const HospitalBedDetails = () => {
                     />
                   )
                 }
-                label={isStatusUpdating || isLoadingBeds ? 'Loading...' : isActive ? 'Active' : 'Inactive'}
+                label={isStatusUpdating || isLoadingBeds ? t('hospital_module.loading') : isActive ? t('active') : t('inactive')}
                 labelPlacement='start'
                 sx={{
                   margin: 0,
@@ -603,7 +603,7 @@ const HospitalBedDetails = () => {
                   }
                 }}
               />
-              <Tooltip title='Edit'>
+              <Tooltip title={t('edit') as string}>
                 <IconButton onClick={openEditRoomDrawer} size='small' disabled={isLoadingBeds}>
                   <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                 </IconButton>
@@ -615,7 +615,7 @@ const HospitalBedDetails = () => {
                 disabled={isLoadingBeds}
                 onClick={openAddBedDrawer}
               >
-                Add Enclosure
+                {t('hospital_module.add_enclosure')}
               </Button>
             </Box>
           }
@@ -638,7 +638,7 @@ const HospitalBedDetails = () => {
             value={searchValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Enclosure'
+            placeholder={t('hospital_module.search_by_enclosure') as string}
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontSize: '0.875rem'
@@ -712,12 +712,12 @@ const HospitalBedDetails = () => {
       {isOccupiedBedWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedBedWarningOpen}
-          title='The room status cannot be updated as there are patients currently assigned to the enclosures'
+          title={t('hospital_module.room_status_cannot_be_updated') as string}
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={() => setIsOccupiedBedWarningOpen(false)}
-          ConfirmationText={'OK'}
+          ConfirmationText={t('ok') as string}
           allowCancel={false}
         />
       )}

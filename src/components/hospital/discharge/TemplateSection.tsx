@@ -16,6 +16,32 @@ const RichTextEditor: any = RichTextEditorRaw
 const SurgeryRecordTemplateList: any = SurgeryRecordTemplateListRaw
 import { createSurgeryTemplate, getSurgeryTemplates } from 'src/lib/api/hospital/surgeryMaster'
 import { SaveTemplateButton } from 'src/views/utility/render-snippets'
+import { CreateTemplateParams, GetTemplatesResponse } from 'src/types/hospital/api/Template/template'
+import { FieldError } from 'react-hook-form'
+import { Id } from 'src/types/hospital'
+import { Template } from 'src/types/hospital/models'
+
+export interface RichTextNote {
+  html?: string
+  text?: string
+  delta?: {
+    ops?: {
+      insert?: unknown
+    }[]
+  }
+}
+
+export interface RichTextValue {
+  html: string
+  text: string
+  delta?: undefined
+  ops?: undefined
+}
+
+export interface TemplateType {
+  title: string
+  description: string
+}
 
 // Utilities
 const createEmptyRichTextValue = (): any => {
@@ -29,13 +55,13 @@ const createEmptyRichTextValue = (): any => {
   }
 }
 
-const getSafeString = (value: any) => {
+const getSafeString = (value: unknown) => {
   if (value === undefined || value === null) return ''
 
   return String(value)
 }
 
-const richFromHtml = (html: any) => {
+const richFromHtml = (html: unknown): string => {
   if (!html) return ''
 
   return String(html)
@@ -44,7 +70,7 @@ const richFromHtml = (html: any) => {
     .trim()
 }
 
-const getRichTextHtml = (note: any) => {
+const getRichTextHtml = (note: RichTextNote) => {
   if (!note) return ''
   if (typeof note === 'string') return note
   if (note?.html) return note.html
@@ -65,7 +91,7 @@ const getRichTextHtml = (note: any) => {
   return ''
 }
 
-const buildRichTextValueFromHtml = (html: any): any => {
+const buildRichTextValueFromHtml = (html: unknown): RichTextValue => {
   const safeHtml = typeof html === 'string' ? html : ''
   const finalHtml = safeHtml || '<p><br></p>'
 
@@ -123,7 +149,7 @@ interface SaveTemplateBarProps {
   onClose: () => void
   onSave: (name: string) => Promise<boolean>
   loading?: boolean
-  richNote?: any
+  richNote?: RichTextValue
 }
 
 // Save  template bar
@@ -241,12 +267,12 @@ const SaveTemplateBar = ({ onClose, onSave, loading = false, richNote }: SaveTem
 
 interface TemplateSectionProps {
   label?: string
-  value?: any
+  value?: RichTextNote | string
   onChange?: (html: string) => void
-  error?: any
-  helperText?: any
+  error?: boolean
+  helperText?: string
   onDirtyChange?: (dirty: boolean) => void
-  hospitalId?: any
+  hospitalId?: Id
   templateType?: string
 }
 
@@ -263,7 +289,7 @@ const TemplateSection = ({
   const { t } = useTranslation()
   const theme: any = useTheme()
 
-  const [richNote, setRichNote] = useState<any>(() =>
+  const [richNote, setRichNote] = useState<RichTextValue>(() =>
     value ? buildRichTextValueFromHtml(value) : createEmptyRichTextValue()
   )
 
@@ -289,7 +315,7 @@ const TemplateSection = ({
     data: templateData,
     isFetching: isTemplatesLoading,
     refetch: refetchTemplates
-  } = useQuery<any>({
+  } = useQuery<GetTemplatesResponse>({
     queryKey: ['hospital-templates', hospitalId, templateType],
     queryFn: () =>
       getSurgeryTemplates({
@@ -305,7 +331,7 @@ const TemplateSection = ({
   } as any)
 
   const templatesList = useMemo(() => extractTemplates(templateData), [templateData])
-  const templateLabels = useMemo(() => templatesList.map((t: any) => t.title), [templatesList])
+  const templateLabels = useMemo(() => templatesList.map((t: TemplateType) => t.title), [templatesList])
 
   // If activeTemplate no longer exists in list, clear it
   useEffect(() => {
@@ -317,7 +343,7 @@ const TemplateSection = ({
 
   // Handlers
   const applyTemplateToEditor = useCallback(
-    (template: any) => {
+    (template: TemplateType) => {
       if (!template) return
 
       const safeTitle = template?.title ? String(template.title) : ''
@@ -325,7 +351,7 @@ const TemplateSection = ({
       const richValue = buildRichTextValueFromHtml(html)
 
       setActiveTemplate(safeTitle)
-      setRichNote((prev: any) => {
+      setRichNote((prev) => {
         if (prev?.html === richValue.html) {
           return prev
         }
@@ -342,7 +368,7 @@ const TemplateSection = ({
   )
 
   const handleTemplateSelect = useCallback(
-    (templateName: any) => {
+    (templateName: string) => {
       const safeName = templateName ? String(templateName) : ''
 
       if (!safeName) {
@@ -351,7 +377,7 @@ const TemplateSection = ({
         return
       }
 
-      const matchedTemplate = templatesList.find((template: any) => template.title === safeName)
+      const matchedTemplate = templatesList.find((template: TemplateType) => template.title === safeName)
 
       if (matchedTemplate) {
         applyTemplateToEditor(matchedTemplate)
@@ -373,9 +399,9 @@ const TemplateSection = ({
         return false
       }
 
-      const payload = {
+      const payload: CreateTemplateParams = {
         template_name: trimmedName,
-        hospital_id: hospitalId,
+        hospital_id: hospitalId ?? '',
         type: templateType,
         description: getSafeString(getRichTextHtml(richNote))
       }
@@ -383,7 +409,7 @@ const TemplateSection = ({
       setIsSavingTemplate(true)
 
       try {
-        const response: any = await createSurgeryTemplate(payload)
+        const response = await createSurgeryTemplate(payload)
 
         if (response?.success) {
           Toaster({ type: 'success', message: response?.message || t('hospital_module.template_saved_successfully') })
@@ -391,7 +417,7 @@ const TemplateSection = ({
 
           const refetchResult: any = await refetchTemplates()
           const newList = extractTemplates(refetchResult?.data)
-          const newTemplate = newList.find((template: any) => template.title === trimmedName)
+          const newTemplate = newList.find((template: TemplateType) => template.title === trimmedName)
 
           if (newTemplate) applyTemplateToEditor(newTemplate)
 
@@ -418,7 +444,7 @@ const TemplateSection = ({
 
   // Handle rich text change
   const handleEditorChange = useCallback(
-    (valueObj: any) => {
+    (valueObj: RichTextValue) => {
       setRichNote(valueObj)
 
       const html = getRichTextHtml(valueObj)

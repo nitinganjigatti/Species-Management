@@ -77,9 +77,7 @@ const IngredientDetailCardview = ({
   return (
     <Grid size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
-        <div
-          style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
-        >
+        <div style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
           <CardContent
             sx={{
               display: 'flex',
@@ -179,7 +177,7 @@ const IngredientDetailCardview = ({
           ) : (
             ''
           )}
-          {IngredientsDetailsval.standard_unit !== '0.00' ? (
+          {IngredientsDetailsval.standard_unit ? (
             <Box
               sx={{
                 width: '100%',

@@ -40,10 +40,10 @@ const ControlledDateTimePicker = ({
               {...field}
               value={field.value ? dayjs(field.value) : null}
               onChange={newValue => {
-                const dayjsValue = newValue ?? dayjs()
-                const value = outputFormat ? dayjsValue.format(outputFormat) : dayjsValue
+                if (newValue == null) return
+                const value = outputFormat ? newValue.format(outputFormat) : newValue
                 field.onChange(value)
-                onChangeOverride?.(dayjsValue)
+                onChangeOverride?.(newValue)
               }}
               label={label}
               minDateTime={minDateTime}

@@ -1,8 +1,11 @@
+'use client'
+
 import { useTheme } from '@emotion/react'
 import { Box, Chip, CircularProgress, Drawer, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getAnimalDetailsOverview } from 'src/lib/api/housing'
@@ -24,6 +27,9 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 const MedicalRecords = () => {
   const theme: any = useTheme()
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
   const [animalDrawer, setAnimalDrawer] = useState<boolean>(false)
   const [selectedAnimalsDrawer, setSelectedAnimalsDrawer] = useState<boolean>(false)
@@ -33,7 +39,7 @@ const MedicalRecords = () => {
   const [rows, setRows] = useState<MedicalRow[]>([])
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
-  const [searchValue, setSearchValue] = useState<string>((router.query.q as string) || '')
+  const [searchValue, setSearchValue] = useState<string>(searchParams?.get('q') || '')
   const [isDownloading, setIsDownloading] = useState<boolean>(false)
   const [downloadingRowId, setDownloadingRowId] = useState<string | number | null>(null)
   const [filterDate, setFilterDate] = useState<FilterDate>({})
@@ -51,13 +57,15 @@ const MedicalRecords = () => {
   })
 
   const [filters, setFilters] = useState<PaginationFilters>({
-    page: parseInt(router.query.page as string) || 1,
-    limit: parseInt(router.query.limit as string) || 50,
-    q: (router.query.q as string) || ''
+    page: parseInt(searchParams?.get('page') || '') || 1,
+    limit: parseInt(searchParams?.get('limit') || '') || 50,
+    q: searchParams?.get('q') || ''
   })
 
   useEffect(() => {
-    const { page = '1', limit = '50', q = '' } = router.query as { page?: string; limit?: string; q?: string }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
 
     setFilters({
       page: parseInt(page),
@@ -66,12 +74,12 @@ const MedicalRecords = () => {
     })
 
     setSearchValue(q)
-  }, [router.query])
+  }, [searchParams])
   const fetchAnimal = async () => {
     setAnimalLoader(true)
     try {
       const res = await getAnimalDetailsOverview({
-        animal_id: Number(router.query.animal_id)
+        animal_id: Number(searchParams?.get('animal_id'))
       })
 
       if (res?.success) {
@@ -104,13 +112,18 @@ const MedicalRecords = () => {
   }
 
   useEffect(() => {
-    if ((router.query.animal_id as string) && selectedAnimals.length === 0) {
+    if (searchParams?.get('animal_id') && selectedAnimals.length === 0) {
       fetchAnimal()
     }
-  }, [router.query.animal_id as string])
+  }, [searchParams?.get('animal_id')])
 
-  const updateRouterQuery = (query: Record<string, any>, shallow = true) => {
-    router.push({ pathname: router.pathname, query }, undefined, { shallow })
+  const updateRouterQuery = (query: Record<string, any>, _shallow = true) => {
+    const sp = new URLSearchParams()
+    Object.entries(query).forEach(([key, value]) => {
+      if (value != null && value !== '') sp.set(key, String(value))
+    })
+    const qs = sp.toString()
+    router.push(qs ? `${pathname}?${qs}` : (pathname as string))
   }
 
   const handleAnimalSelect = (animals: any, options?: { isSelectAll?: boolean }) => {
@@ -137,8 +150,10 @@ const MedicalRecords = () => {
     setSelectedAnimals(mapped)
     setIsAllAnimalsSelected(isSelectAll)
     const animalIds = mapped.map(a => a.animal_id).join(',')
-    const updatedQuery = { ...router.query, animal_id: animalIds, page: '1' }
-    router.replace({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
+    const sp = new URLSearchParams(searchParams?.toString() || '')
+    sp.set('animal_id', animalIds)
+    sp.set('page', '1')
+    router.replace(`${pathname}?${sp.toString()}`)
 
     return true
   }
@@ -153,7 +168,7 @@ const MedicalRecords = () => {
     const animalIds =
       selectedAnimals.length > 0
         ? selectedAnimals.map(a => a.animal_id).join(',')
-        : (router.query.animal_id as string) || ''
+        : searchParams?.get('animal_id') || ''
 
     const startDate = formatDate(filterDate?.startDate)
     const endDate = formatDate(filterDate?.endDate)
@@ -231,7 +246,7 @@ const MedicalRecords = () => {
       animal_id:
         selectedAnimals.length > 0
           ? selectedAnimals.map(a => a.animal_id).join(',')
-          : (router.query.animal_id as string)
+          : searchParams?.get('animal_id')
     }).forEach(([key, value]) => {
       if (value) query[key] = value.toString()
     })
@@ -342,7 +357,7 @@ const MedicalRecords = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('medical_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -354,7 +369,7 @@ const MedicalRecords = () => {
       minWidth: 120,
       field: 'medical_record_code',
       sortable: false,
-      headerName: 'MEDICAL RECORD ID',
+      headerName: t('medical_module.medical_record_id'),
       renderCell: (params: any) => (
         <Typography
           sx={{
@@ -372,7 +387,7 @@ const MedicalRecords = () => {
       minWidth: 120,
       field: 'case_type',
       sortable: false,
-      headerName: 'CASE TYPE',
+      headerName: t('medical_module.case_type'),
       renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {params.row.default_icon && (
@@ -406,7 +421,7 @@ const MedicalRecords = () => {
       minWidth: 150,
       field: 'complaint',
       sortable: false,
-      headerName: 'COMPLAINTS',
+      headerName: t('medical_module.complaints_column'),
       renderCell: (params: any) => renderListCell(params.row.complaint || [], 'complaint')
     },
     {
@@ -414,7 +429,7 @@ const MedicalRecords = () => {
       minWidth: 150,
       field: 'diagnosis',
       sortable: false,
-      headerName: 'DIAGNOSIS',
+      headerName: t('medical_module.diagnosis_column'),
       renderCell: (params: any) => renderListCell(params.row.diagnosis || [], ['diagnosis', 'name'])
     },
     {
@@ -422,7 +437,7 @@ const MedicalRecords = () => {
       minWidth: 100,
       field: 'prescription',
       sortable: false,
-      headerName: 'PRESCRIPTIONS',
+      headerName: t('medical_module.prescriptions'),
       renderCell: (params: any) => {
         const count = params.row.prescription?.length || 0
 
@@ -516,7 +531,10 @@ const MedicalRecords = () => {
     setRows([])
     setTotal(0)
 
-    const { animal_id, ...rest } = router.query
+    const rest: Record<string, string> = {}
+    searchParams?.forEach((value, key) => {
+      if (key !== 'animal_id') rest[key] = value
+    })
     updateRouterQuery(rest, false)
   }
 
@@ -563,9 +581,11 @@ const MedicalRecords = () => {
   )
   return (
     <>
-      <DynamicBreadcrumbs pageItems={[{ title: 'Medical' }, { title: 'Records', active: true }]} />
+      <DynamicBreadcrumbs
+        pageItems={[{ title: t('medical_module.medical') }, { title: t('medical_module.records'), active: true }]}
+      />
 
-      <PageCardLayout title='Medical Records' action={headerAction}>
+      <PageCardLayout title={t('medical_module.medical_records')} action={headerAction}>
         {selectedAnimals.length > 0 ? (
           <>
             <Grid container spacing={4}>
@@ -592,7 +612,7 @@ const MedicalRecords = () => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      All Animals Selected
+                      {t('medical_module.all_animals_selected')}
                     </Typography>
                   </Box>
                 ) : (
@@ -600,7 +620,7 @@ const MedicalRecords = () => {
                     <AnimalCard data={selectedAnimals[0]} sx={{ border: 'none', background: 'none' }} animal={true} />
                     {selectedAnimals.length > 1 && (
                       <Chip
-                        label={`+${selectedAnimals.length - 1} more`}
+                        label={t('medical_module.more_count', { count: selectedAnimals.length - 1 })}
                         onClick={() => setSelectedAnimalsDrawer(true)}
                         sx={{
                           cursor: 'pointer',
@@ -634,7 +654,7 @@ const MedicalRecords = () => {
                 <Box sx={{ width: { xs: '100%', sm: '30%' } }}>
                   <MUISearch
                     disabled={indexedRows?.length === 0}
-                    placeholder='Search by medical record ID'
+                    placeholder={t('medical_module.search_by_medical_record_id')}
                     value={searchValue}
                     onClear={handleSearchClear}
                     onChange={(e: any) => handleSearch(e.target.value)}
@@ -688,9 +708,9 @@ const MedicalRecords = () => {
         ) : (
           <Box>
             <ReportCard
-              subtitle='No Animal Selected'
-              description='Select an animal to view its medical records'
-              buttonText='SELECT ANIMAL'
+              subtitle={t('medical_module.no_animal_selected')}
+              description={t('medical_module.select_animal_to_view_records')}
+              buttonText={t('medical_module.select_animal')}
               addHandler={() => setAnimalDrawer(true)}
             />
           </Box>
@@ -701,7 +721,7 @@ const MedicalRecords = () => {
             open={animalDrawer}
             onClose={() => setAnimalDrawer(false)}
             handleAnimalClick={handleAnimalSelect}
-            btnText='VIEW MEDICAL RECORDS'
+            btnText={t('medical_module.view_medical_records')}
             // --- OLD: module='medical' (used before, now upgrading to customQueryParams) ---
             showFilterAndSort
             handleFilterClick={() => setOpenFilterDrawer(true)}
@@ -767,7 +787,7 @@ const MedicalRecords = () => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Selected Animals ({selectedAnimals.length})
+            {t('medical_module.selected_animals')} ({selectedAnimals.length})
           </Typography>
           <IconButton onClick={() => setSelectedAnimalsDrawer(false)}>
             <Icon icon='mdi:close' />

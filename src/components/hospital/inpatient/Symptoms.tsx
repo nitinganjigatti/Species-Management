@@ -199,7 +199,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
     <Box>
       {isSwitchToggle && currentRecordOnly && loading ? (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 6, mt: 6 }}>
+          <Box sx={{ display: 'flex', justifyContent: {md: 'flex-end'}, mb: 6, mt: 6 }}>
             <Skeleton width={250} height={30} variant='rounded' />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', m: 0 }}>
