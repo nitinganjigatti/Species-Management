@@ -12,6 +12,7 @@ import List from '@mui/material/List'
 import Chip from '@mui/material/Chip'
 import Badge from '@mui/material/Badge'
 import Drawer from '@mui/material/Drawer'
+import Skeleton from '@mui/material/Skeleton'
 import MuiAvatar from '@mui/material/Avatar'
 import ListItem from '@mui/material/ListItem'
 import TextField from '@mui/material/TextField'
@@ -100,6 +101,18 @@ const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: bool
 
   return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
 }
+
+const SkeletonChatItem = () => (
+  <ListItem disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
+    <Box sx={{ px: 2.5, py: 2.5, width: '100%', display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
+      <Skeleton variant='circular' width={40} height={40} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Skeleton variant='text' width='70%' height={20} />
+        <Skeleton variant='text' width='90%' height={16} sx={{ mt: 1 }} />
+      </Box>
+    </Box>
+  </ListItem>
+)
 
 const FILTER_TABS: { value: ChatFilterType; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -272,12 +285,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   })()
 
   const renderChats = () => {
-    // chats is null until the first fetch resolves — show a spinner.
+    // chats is null until the first fetch resolves — show skeleton items.
     if (!store?.chats) {
       return (
-        <ListItem>
-          <Typography sx={{ color: 'text.secondary' }}>Loading…</Typography>
-        </ListItem>
+        <List sx={{ p: 0 }}>
+          {[...Array(5)].map((_, idx) => (
+            <SkeletonChatItem key={`skeleton-chat-${idx}`} />
+          ))}
+        </List>
       )
     }
 
