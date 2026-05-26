@@ -4,12 +4,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 
 import VitalFormDialog from './VitalFormDialog'
+
+interface AddTimeFormPayload {
+  timeLabel: string
+}
 
 dayjs.extend(customParseFormat)
 
@@ -19,7 +23,7 @@ const SUBMIT_BUTTON_STYLES = {
   boxShadow: '0px 4px 8px -4px #4C4E646B'
 }
 
-const parseInitialValue = (initialValue: any) => {
+const parseInitialValue = (initialValue: string) => {
   if (initialValue) {
     const parsed = dayjs(initialValue, 'hh:mm A', true)
     if (parsed.isValid()) {
@@ -33,14 +37,14 @@ const parseInitialValue = (initialValue: any) => {
 interface AddTimeFormProps {
   open: boolean
   onClose: () => void
-  onSubmit: (data: any) => void
+  onSubmit: (data: AddTimeFormPayload) => void
   initialValue?: string
 }
 
 export default function AddTimeForm({ open, onClose, onSubmit, initialValue = '' }: AddTimeFormProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
-  const [timeValue, setTimeValue] = useState<any>(() => parseInitialValue(initialValue))
+  const theme: Theme = useTheme()
+  const [timeValue, setTimeValue] = useState<Dayjs | null>(() => parseInitialValue(initialValue))
   const timeInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -170,7 +174,7 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
 
           <TimePicker
             value={timeValue}
-            onChange={(newValue: any) => setTimeValue(newValue)}
+            onChange={(newValue) => setTimeValue(newValue as Dayjs | null)}
             format='hh:mm A'
             slotProps={{
               textField: {

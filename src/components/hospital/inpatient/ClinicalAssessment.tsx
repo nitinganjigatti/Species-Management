@@ -458,7 +458,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     <Box sx={{ mt: 6 }}>
       {isSwitchToggle  && isLoading && currentRecordOnly  && !searchQuery.trim() ? (
         <>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: { md: 'flex-end' }, mb: 6 }}>
           <Skeleton width={250} height={30} variant='rounded' />
         </Box>
         <Box sx = {{display: 'flex', flexDirection: 'column', m: 0}}>

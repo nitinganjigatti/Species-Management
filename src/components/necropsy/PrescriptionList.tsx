@@ -2,6 +2,7 @@ import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Box, Chip, CircularProgress, Skeleton, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { CalendarToday as CalendarIcon, FiberManualRecord, Timeline as FrequencyIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 
 import Utility from 'src/utility'
 import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
@@ -132,6 +133,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
   scrollContainerRef
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null)
   const requestIdRef = useRef(0)
 
@@ -276,7 +278,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
   const getDurationText = (item: PrescriptionItem): string | null => {
     if (item.duration) return item.duration
     if (item.duration_type && item.duration_qty) {
-      return `For ${item.duration_qty} ${item.duration_type}`
+      return t('necropsy_module.for_x_unit', { qty: item.duration_qty, type: item.duration_type }) as string
     }
     if (item.start_date && item.end_date) {
       const start = new Date(item.start_date)
@@ -284,9 +286,9 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
       const diffMs = end.getTime() - start.getTime()
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
 
-      if (diffDays <= 1) return 'For 1 Day'
+      if (diffDays <= 1) return t('necropsy_module.for_1_day') as string
 
-      return `For ${diffDays} Days`
+      return t('necropsy_module.for_x_days', { count: diffDays }) as string
     }
 
     return null
@@ -401,7 +403,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                     fontWeight: 500
                   }}
                 >
-                  {`${tab} - ${getTabCount(tab)}`}
+                  {`${tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')} - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -428,13 +430,13 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
               fontWeight: 400
             }}
           >
-            No Prescriptions Recorded
+            {t('necropsy_module.no_prescriptions_recorded')}
           </Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {data.map((section, sectionIdx) => {
-            const medRecordId = section.medical_record_id || 'N/A'
+            const medRecordId = section.medical_record_id || (t('na') as string)
             const prescriptions: PrescriptionItem[] = Array.isArray(section.data) ? section.data : []
 
             if (prescriptions.length === 0) return null
@@ -455,7 +457,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   {prescriptions.map((item, index) => {
                     const stopped = isStopped(item)
-                    const medicineName = item.name || item.medicine_name || 'N/A'
+                    const medicineName = item.name || item.medicine_name || (t('na') as string)
                     const frequency = item.frequency
                     const dosageChips = buildDosageChips(item)
                     const durationText = getDurationText(item)
@@ -634,7 +636,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  Load More
+                  {t('necropsy_module.load_more')}
                 </Typography>
               )}
             </Box>
@@ -642,7 +644,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
 
           {!hasMore && pageNo > 1 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more prescriptions to load
+              {t('necropsy_module.no_more_prescriptions_to_load')}
             </Typography>
           )}
         </Box>

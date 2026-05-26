@@ -1,29 +1,57 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
-import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
+import React, { useState, useCallback, useEffect, useMemo, HTMLAttributes } from 'react'
+import { AutocompleteChangeReason, AutocompleteInputChangeReason, Box, Card, Chip, Drawer, IconButton, Theme, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, ControllerRenderProps, FieldError, Resolver, useForm } from 'react-hook-form'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { Grid } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
-import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import { useTranslation } from 'react-i18next'
-import dayjs from 'dayjs'
+import { TFunction } from 'i18next'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { DeliveryRoute, DeliveryStatus, Id, MedicationDrugOption, SelectOption } from 'src/types/hospital/models'
+import { GasFormData } from '../../shared/AddAnesthesiaRecordPage'
 dayjs.extend(customParseFormat)
 
-const createSchema = (t: any) => {
+interface GasDrugRef {
+  id?: Id
+  name?: string
+}
+
+interface GasRouteRef {
+  id?: Id
+  delivery?: string | number
+}
+interface ExistingGasItem {
+  gas_name?: GasDrugRef | null
+  drug_id?: Id
+}
+
+interface GasEditData {
+  id?: Id
+  gas_name?: GasDrugRef | null
+  drug_id?: Id
+  o2_flow?: string
+  concentration?: string
+  start_time?: string | Dayjs | Date | null
+  end_time?: string | Dayjs | Date | null
+  delivery_route?: GasRouteRef | string | null
+  delivery_status?: DeliveryStatus | string | null
+}
+
+const createSchema = (t: TFunction) => {
   return yup.object().shape({
     gas_name: yup
       .object()
       .nullable()
       .required(t('hospital_module.gas_is_required', 'Please select a Gas from the list'))
-      .test('is-valid-drug', t('hospital_module.please_select_valid_gas', 'Please select a valid gas from the list'), function (value: any) {
+      .test('is-valid-drug', t('hospital_module.please_select_valid_gas', 'Please select a valid gas from the list'), function (value: GasDrugRef | null | undefined) {
         if (!value) return false
         return Boolean(value.id && value.name)
       }),
@@ -34,8 +62,8 @@ const createSchema = (t: any) => {
       .nullable()
       .required(t('hospital_module.start_time_required', 'Start time is required'))
       .typeError(t('hospital_module.please_select_valid_start_time', 'Please select a valid start time'))
-      .test('is-before-end-time', t('hospital_module.start_time_cannot_be_greater_than_end_time', 'Start time cannot be greater than end time'), function (value: any) {
-        const { end_time } = this.parent
+      .test('is-before-end-time', t('hospital_module.start_time_cannot_be_greater_than_end_time', 'Start time cannot be greater than end time'), function (value: Date | null | undefined) {
+        const { end_time } = this.parent as { end_time: Date | Dayjs | null }
         if (!value || !end_time) return true
 
         const start = dayjs(value)
@@ -49,8 +77,8 @@ const createSchema = (t: any) => {
       .nullable()
       .required(t('hospital_module.end_time_required', 'End time is required'))
       .typeError(t('hospital_module.please_select_valid_end_time', 'Please select a valid end time'))
-      .test('is-after-start-time', t('hospital_module.end_time_cannot_be_less_than_start_time', 'End time cannot be less than start time'), function (value: any) {
-        const { start_time } = this.parent
+      .test('is-after-start-time', t('hospital_module.end_time_cannot_be_less_than_start_time', 'End time cannot be less than start time'), function (value: Date | null | undefined) {
+        const { start_time } = this.parent as { start_time: Date | Dayjs | null }
         if (!value || !start_time) return true
 
         const start = dayjs(start_time)
@@ -63,17 +91,7 @@ const createSchema = (t: any) => {
   })
 }
 
-interface FormValues {
-  gas_name: any
-  o2_flow: string
-  concentration: string
-  start_time: any
-  delivery_route: any
-  delivery_status: any
-  end_time: any
-}
-
-const defaultValues: FormValues = {
+const defaultValues: GasFormData = {
   gas_name: null,
   o2_flow: '',
   concentration: '',
@@ -86,12 +104,12 @@ const defaultValues: FormValues = {
 interface AddGasDrawerProps {
   handleSidebarOpen: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (data: any) => Promise<void> | void
+  handleSubmitData: (data: GasFormData) => Promise<void> | void
   submitLoader?: boolean
-  editData?: any
-  gasOptions?: any[]
-  existingMedications?: any[]
-  deliveryRouteOptions?: any[]
+  editData?: GasEditData | null
+  gasOptions?: MedicationDrugOption[]
+  existingMedications?: ExistingGasItem[]
+  deliveryRouteOptions?: DeliveryRoute[]
   onLoadMoreDrugs?: () => void
   hasMoreDrugs?: boolean
   isLoadingDrugs?: boolean
@@ -112,17 +130,17 @@ function AddGasDrawer({
   isLoadingDrugs = false,
   onSearch
 }: AddGasDrawerProps) {
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const { t } = useTranslation()
 
   const schema = createSchema(t)
 
-  const deliveryStatus = [
+  const deliveryStatus: SelectOption<DeliveryStatus>[] = [
     { label: t('hospital_module.complete'), value: 'Complete' },
     { label: t('hospital_module.partial'), value: 'Partial' },
     { label: t('hospital_module.none'), value: 'None' }
   ]
-  const [selectedStatus, setSelectedStatus] = useState<any>(null)
+  const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | null>(null)
   const [drugNameTouched, setDrugNameTouched] = useState<boolean>(false)
   const {
     reset,
@@ -131,28 +149,28 @@ function AddGasDrawer({
     setValue,
     trigger,
     formState: { errors, isValid }
-  } = useForm<FormValues>({
+  } = useForm<GasFormData>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(schema) as unknown as Resolver<GasFormData>,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
-  const filteredGasOptions = useMemo(() => {
+  const filteredGasOptions = useMemo<MedicationDrugOption[]>(() => {
     if (!Array.isArray(gasOptions) || !gasOptions.length) return []
-    const existing = Array.isArray(existingMedications) ? existingMedications : []
+    const existing: ExistingGasItem[] = Array.isArray(existingMedications) ? existingMedications : []
 
     const excludedIds = new Set(
       existing
-        .map((m: any) => m?.gas_name?.id ?? m?.drug_id ?? null)
+        .map((m: ExistingGasItem) => m?.gas_name?.id ?? m?.drug_id ?? null)
         .filter(Boolean)
-        .map((id: any) => String(id))
+        .map((id: Id | null) => String(id))
     )
     const editingId = editData?.gas_name?.id ?? editData?.drug_id ?? null
     const editingIdStr = editingId ? String(editingId) : null
 
-    return gasOptions.filter((opt: any) => {
+    return gasOptions.filter((opt: MedicationDrugOption) => {
       const optId = opt?.id ?? opt?.drug_id ?? null
       if (!optId) return true
       const idStr = String(optId)
@@ -164,14 +182,14 @@ function AddGasDrawer({
   useEffect(() => {
     if (!handleSidebarOpen) return
     if (editData) {
-      const parseTime = (t: any) => {
-        if (!t) return null
-        if (dayjs.isDayjs(t)) return t
-        if (t instanceof Date) return dayjs(t)
+      const parseTime = (value: string | Dayjs | Date | null | undefined): Dayjs | null => {
+        if (!value) return null
+        if (dayjs.isDayjs(value)) return value
+        if (value instanceof Date) return dayjs(value)
 
         const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'hh:mm A', 'hh:mm a']
         for (const format of formats) {
-          const parsed = dayjs(t, format, true)
+          const parsed = dayjs(value, format, true)
           if (parsed.isValid()) {
             if (format.includes('hh:mm') || format === 'HH:mm:ss') {
               const today = dayjs().format('YYYY-MM-DD')
@@ -183,18 +201,19 @@ function AddGasDrawer({
         return null
       }
 
-      Object.keys(defaultValues).forEach((key: any) => {
+      (Object.keys(defaultValues) as (keyof GasFormData)[]).forEach((key) => {
         if (key !== 'start_time' && key !== 'end_time') {
-          setValue(key as any, editData[key] ?? (defaultValues as any)[key], { shouldValidate: true })
+          const editValue = (editData as Record<string, unknown>)[key]
+          setValue(key, (editValue ?? defaultValues[key]) as GasFormData[typeof key], { shouldValidate: true })
         }
       })
 
-      setValue('start_time' as any, parseTime(editData.start_time), { shouldValidate: true })
-      setValue('end_time' as any, parseTime(editData.end_time), { shouldValidate: true })
+      setValue('start_time', parseTime(editData.start_time), { shouldValidate: true })
+      setValue('end_time', parseTime(editData.end_time), { shouldValidate: true })
 
       if (editData.delivery_status) {
-        setSelectedStatus(editData.delivery_status)
-        setValue('delivery_status' as any, editData.delivery_status, { shouldValidate: true })
+        setSelectedStatus(editData.delivery_status as DeliveryStatus)
+        setValue('delivery_status', editData.delivery_status as DeliveryStatus, { shouldValidate: true })
       }
 
       if (editData.gas_name) {
@@ -206,7 +225,7 @@ function AddGasDrawer({
         ...defaultValues,
         start_time: now,
         end_time: now
-      } as any)
+      })
       setDrugNameTouched(false)
       setSelectedStatus(null)
     }
@@ -214,7 +233,7 @@ function AddGasDrawer({
 
   useEffect(() => {
     if (selectedStatus) {
-      setValue('delivery_status' as any, selectedStatus, { shouldValidate: true })
+      setValue('delivery_status', selectedStatus, { shouldValidate: true })
     }
   }, [selectedStatus, setValue])
 
@@ -224,7 +243,7 @@ function AddGasDrawer({
   }, [trigger])
 
   const handleDrugNameChange = useCallback(
-    (event: any, value: any) => {
+    (event: React.SyntheticEvent | null, value: GasDrugRef | null) => {
       if (event?.type === 'change' && !value?.id) {
         setDrugNameTouched(true)
       }
@@ -234,9 +253,9 @@ function AddGasDrawer({
   )
 
   const onSubmit = useCallback(
-    async (formData: FormValues) => {
-      const fmt = (v: any) => (v ? dayjs(v).format('hh:mm A') : null)
-      const payload = {
+    async (formData: GasFormData) => {
+      const fmt = (v: string | Dayjs | Date | null | undefined) => (v ? dayjs(v).format('hh:mm A') : null)
+      const payload: GasFormData = {
         ...(editData && editData.id ? { id: editData.id } : {}),
         gas_name: formData.gas_name,
         o2_flow: formData.o2_flow,
@@ -285,7 +304,7 @@ function AddGasDrawer({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt={t('hospital_module.anaesthesia_icon')} />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {editData ? t('hospital_module.edit_gas') : t('hospital_module.add_gas')}
@@ -313,28 +332,33 @@ function AddGasDrawer({
                 <Controller
                   name='gas_name'
                   control={control}
-                  render={({ field, fieldState: { error } }: any) => (
+                  render={({ field, fieldState: { error } }: { field: ControllerRenderProps<GasFormData, 'gas_name'>; fieldState: { error?: FieldError } }) => (
                     <ControlledAutocomplete
-                      {...(field as any)}
+                      {...field}
                       control={control}
                       name='gas_name'
                       errors={errors}
                       label={(t('hospital_module.enter_gas_name') as string)}
                       options={filteredGasOptions}
-                      getOptionLabel={(option: any) => option?.name || ''}
-                      isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                      renderOption={(props: any, option: any) => (
-                        <li {...props} key={option.id}>
-                          {option.name}
-                        </li>
-                      )}
+                      getOptionLabel={(option: unknown) => (option as MedicationDrugOption)?.name || ''}
+                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as MedicationDrugOption)?.id === (value as MedicationDrugOption)?.id}
+                      renderOption={(props: HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                        const opt = option as MedicationDrugOption
+
+                        return (
+                          <Box component='li' {...props} key={opt.id}>
+                            {opt.name}
+                          </Box>
+                        )
+                      }}
                       loading={isLoadingDrugs}
                       autocompleteProps={{
-                        onBlur: (event: any) => {
+                        onBlur: (event: React.FocusEvent) => {
                           handleDrugNameBlur()
-                          field.onBlur(event)
+                          field.onBlur()
+                          void event
                         },
-                        onChange: (event: any, value: any, reason: any) => {
+                        onChange: (event: React.SyntheticEvent, value: MedicationDrugOption | null, reason: AutocompleteChangeReason) => {
                           field.onChange(value)
                           if (reason === 'selectOption') {
                             setDrugNameTouched(false)
@@ -342,7 +366,7 @@ function AddGasDrawer({
                             handleDrugNameChange(event, value)
                           }
                         },
-                        onInputChange: (_: any, value: any, reason: any) => {
+                        onInputChange: (_: React.SyntheticEvent, value: string, reason: AutocompleteInputChangeReason) => {
                           if (reason === 'input') {
                             onSearch?.(value)
                           }
@@ -353,7 +377,7 @@ function AddGasDrawer({
                         },
                         slotProps: {
                           listbox: {
-                            onScroll: (event: any) => {
+                            onScroll: (event: React.UIEvent<HTMLUListElement>) => {
                               const listboxNode = event.currentTarget
                               const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
                               const threshold = listboxNode.scrollHeight - 50
@@ -373,9 +397,9 @@ function AddGasDrawer({
                             }
                           }
                         },
-                        filterOptions: (options: any, params: any) => {
-                          const filtered = options.filter((option: any) =>
-                            option.name.toLowerCase().includes(params.inputValue.toLowerCase())
+                        filterOptions: (options: MedicationDrugOption[], params: { inputValue: string }) => {
+                          const filtered = options.filter((option: MedicationDrugOption) =>
+                            (option.name || '').toLowerCase().includes(params.inputValue.toLowerCase())
                           )
                           return filtered
                         }
@@ -414,7 +438,7 @@ function AddGasDrawer({
                   name={'start_time'}
                   label={(t('hospital_module.start_time', 'Start Time') as string)}
                   errors={errors}
-                  {...({ format: 'hh:mm a' } as any)}
+                  format='hh:mm a'
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -422,15 +446,19 @@ function AddGasDrawer({
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label={(t('hospital_module.delivery_route') as string)}
+                  label={(t('navigation.delivery_route') as string)}
                   options={deliveryRouteOptions}
-                  getOptionLabel={(option: any) => option?.delivery || ''}
-                  isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                  renderOption={(props: any, option: any) => (
-                    <li {...props} key={option.id}>
-                      {option.delivery}
-                    </li>
-                  )}
+                  getOptionLabel={(option: unknown) => String((option as DeliveryRoute)?.delivery ?? '')}
+                  isOptionEqualToValue={(option: unknown, value: unknown) => (option as DeliveryRoute)?.id === (value as DeliveryRoute)?.id}
+                  renderOption={(props: HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                    const opt = option as DeliveryRoute
+
+                    return (
+                      <Box component='li' {...props} key={opt.id}>
+                        {opt.delivery}
+                      </Box>
+                    )
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -438,7 +466,7 @@ function AddGasDrawer({
                   {t('hospital_module.delivery_status_label')}{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                  {deliveryStatus.map((status: any, index: number) => (
+                  {deliveryStatus.map((status: SelectOption<DeliveryStatus>, index: number) => (
                     <Chip
                       key={index}
                       label={status.label}
@@ -476,7 +504,7 @@ function AddGasDrawer({
                   name={'end_time'}
                   label={(t('hospital_module.end_time', 'End Time') as string)}
                   errors={errors}
-                  {...({ format: 'hh:mm a' } as any)}
+                  format='hh:mm a'
                 />
               </Grid>
             </Grid>

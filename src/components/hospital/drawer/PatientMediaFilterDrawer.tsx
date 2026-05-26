@@ -5,12 +5,20 @@ import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import MediaFilterContent from './MediaFilterContent'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import type { MediaFilters } from 'src/components/hospital/inpatient/PatientMedia'
+
 
 interface PatientMediaFilterDrawerProps extends BaseDrawerProps {
-  onApplyFilters: (filters: any) => void
+  onApplyFilters: (filters: MediaFilters) => void
   setFilterCount: (count: number) => void
-  initialSelectedOptions?: any
+  initialSelectedOptions?: MediaFilters
 }
+export interface MediaFilterOption {
+  label: string
+  value: string
+}
+
+export type MediaFilterMenuData = Record<keyof MediaFilters, MediaFilterOption[]>
 
 const PatientMediaFilterDrawer = ({
   open,
@@ -23,7 +31,7 @@ const PatientMediaFilterDrawer = ({
   const [selectedMenu, setSelectedMenu] = useState('Media Type')
   const [localFilterCount, setLocalFilterCount] = useState(0)
 
-  const [selectedOptions, setSelectedOptions] = useState<any>({
+  const [selectedOptions, setSelectedOptions] = useState<MediaFilters>({
     'Media Type': [],
     'Medical Record': [],
     'Feature': []
@@ -32,7 +40,7 @@ const PatientMediaFilterDrawer = ({
   const leftMenu = ['Media Type', 'Medical Record', 'Feature']
 
   // Static data for filters
-  const menuData: any = {
+  const menuData: MediaFilterMenuData = {
     'Media Type': [
       { label: t('hospital_module.images'), value: 'image' },
       { label: t('hospital_module.documents'), value: 'document' },
@@ -65,30 +73,31 @@ const PatientMediaFilterDrawer = ({
     setSelectedMenu(menuName)
   }, [])
 
-  const handleCheckbox = useCallback((id: any, menuName: string) => {
-    setSelectedOptions((prevOptions: any) => {
-      const isSelected = prevOptions[menuName]?.includes(id)
+  const handleCheckbox = useCallback((id: string, menuName: string) => {
+    const key = menuName as keyof MediaFilters
+    setSelectedOptions((prevOptions: MediaFilters) => {
+      const isSelected = prevOptions[key]?.includes(id)
 
-      let newOptions: any
+      let newOptions: MediaFilters
       // For Medical Record, only allow single selection
-      if (menuName === 'Medical Record') {
+      if (key === 'Medical Record') {
         newOptions = {
           ...prevOptions,
-          [menuName]: isSelected ? [] : [id]
+          [key]: isSelected ? [] : [id]
         }
       } else {
         // For other menus, allow multiple selection
         newOptions = {
           ...prevOptions,
-          [menuName]: isSelected
-            ? prevOptions[menuName].filter((itemId: any) => itemId !== id)
-            : [...(prevOptions[menuName] || []), id]
+          [key]: isSelected
+            ? prevOptions[key].filter((itemId: string) => itemId !== id)
+            : [...(prevOptions[key] || []), id]
         }
       }
 
       // Update filter count
-      const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
-      setLocalFilterCount(count as number)
+      const count = Object.values(newOptions).reduce((acc: number, curr: string[]) => acc + curr.length, 0)
+      setLocalFilterCount(count)
 
       return newOptions
     })
@@ -96,23 +105,23 @@ const PatientMediaFilterDrawer = ({
 
   // Handle select all
   const handleSelectAll = useCallback(
-    (menuName: string) => {
+    (menuName: keyof MediaFilters) => {
       // Don't allow select all for Medical Record (single selection only)
       if (menuName === 'Medical Record') return
 
-      setSelectedOptions((prevOptions: any) => {
-        const allIds = menuData[menuName]?.map((item: any) => item.value) || []
+      setSelectedOptions((prevOptions: MediaFilters) => {
+        const allIds = menuData[menuName]?.map((item: MediaFilterOption) => item.value) || []
         const currentSelected = prevOptions[menuName] || []
         const isAllSelected = currentSelected.length === allIds.length
 
-        const newOptions = {
+        const newOptions: MediaFilters = {
           ...prevOptions,
           [menuName]: isAllSelected ? [] : allIds
         }
 
         // Update filter count
-        const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
-        setLocalFilterCount(count as number)
+        const count = Object.values(newOptions).reduce((acc: number, curr: string[]) => acc + curr.length, 0)
+        setLocalFilterCount(count)
 
         return newOptions
       })
@@ -126,7 +135,7 @@ const PatientMediaFilterDrawer = ({
     onClose()
   }
 
-  const isAllSelected = (menuName: string) => {
+  const isAllSelected = (menuName: keyof MediaFilters) => {
     if (menuName === 'Medical Record') return false
 
     return menuData[menuName]?.length > 0 && selectedOptions[menuName]?.length === menuData[menuName]?.length
@@ -135,8 +144,8 @@ const PatientMediaFilterDrawer = ({
   useEffect(() => {
     if (initialSelectedOptions) {
       setSelectedOptions(initialSelectedOptions)
-      const count = Object.values(initialSelectedOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
-      setLocalFilterCount(count as number)
+      const count = Object.values(initialSelectedOptions).reduce((acc: number, curr: string[]) => acc + curr.length, 0)
+      setLocalFilterCount(count)
     }
   }, [initialSelectedOptions, open])
 

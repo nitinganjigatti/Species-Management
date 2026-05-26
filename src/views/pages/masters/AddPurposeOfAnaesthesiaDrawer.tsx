@@ -1,5 +1,6 @@
 // ** React Imports
 import { useEffect, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -46,11 +47,6 @@ interface AddPurposeOfAnaesthesiaDrawerProps {
   drawerWidth?: number | string
 }
 
-// Validation Schema
-const schema = yup.object().shape({
-  name: yup.string().required('Purpose of Anaesthesia is Required')
-})
-
 // Default Form Values
 const defaultValues: FormValues = {
   name: ''
@@ -66,6 +62,11 @@ const AddPurposeOfAnaesthesiaDrawer: FC<AddPurposeOfAnaesthesiaDrawerProps> = ({
   drawerWidth = 562
 }) => {
   const theme: Theme = useTheme()
+  const { t } = useTranslation()
+
+  const schema = yup.object().shape({
+    name: yup.string().required(t('hospital_module.purpose_of_anaesthesia_required'))
+  })
 
   const {
     reset,
@@ -109,7 +110,7 @@ const AddPurposeOfAnaesthesiaDrawer: FC<AddPurposeOfAnaesthesiaDrawerProps> = ({
     }
   }, [resetForm, editParams, reset])
 
-  const title = editParams?.id ? 'Edit Purpose of Anaesthesia' : 'Add Purpose of Anaesthesia'
+  const title = editParams?.id ? t('hospital_module.edit_purpose_of_anaesthesia') : t('hospital_module.add_purpose_of_anaesthesia')
 
   return (
     <Drawer
@@ -134,7 +135,7 @@ const AddPurposeOfAnaesthesiaDrawer: FC<AddPurposeOfAnaesthesiaDrawerProps> = ({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Anaesthesia Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt={t('hospital_module.anaesthesia_icon')} />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {title}
           </Typography>
@@ -161,9 +162,9 @@ const AddPurposeOfAnaesthesiaDrawer: FC<AddPurposeOfAnaesthesiaDrawerProps> = ({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Purpose of Anaesthesia*'
+                  label={`${t('hospital_module.purpose_of_anaesthesia')}*`}
                   name='name'
-                  placeholder='Enter Purpose of Anaesthesia'
+                  placeholder={t('hospital_module.enter_purpose_of_anaesthesia')}
                   fullWidth
                 />
               </Grid>

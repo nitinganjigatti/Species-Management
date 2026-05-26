@@ -13,10 +13,11 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse } from 'src/types/hospital'
+import { AddTreatmentParams, AddTreatmentResponse, DeleteTreatmentParans, DeleteTreatmentResponse, GetTreatmentListParams, GetTreatmentListResponse, GetTreatmentMasterListParams, GetTreatmentMasterListResponse, UpdateTreatmentParams, UpdateTreatmentResponse } from 'src/types/hospital/api/OtherTreatments/otherTreatments';
 
 export const getTreatmentMasterList = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetTreatmentMasterListParams
+): Promise<GetTreatmentMasterListResponse> => {
   try {
     const response = await axiosGet({
       url: GET_TREATMENT_MASTER_LIST,
@@ -48,8 +49,8 @@ export const updateTreatmentMasters = async (
 }
 
 export const createTreatmentRecord = async (
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddTreatmentParams
+): Promise<AddTreatmentResponse> => {
   try {
     const formData = new FormData()
 
@@ -73,8 +74,8 @@ export const createTreatmentRecord = async (
 }
 
 export const getTreatmentList = async (
-  params: Record<string, unknown> = {}
-): Promise<ApiResponse<unknown>> => {
+  params: Partial<GetTreatmentListParams> = {}
+): Promise<GetTreatmentListResponse> => {
   try {
     const filteredParams = Object.entries(params).reduce<Record<string, unknown>>((acc, [key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
@@ -98,8 +99,8 @@ export const getTreatmentList = async (
 }
 
 export const updateTreatmentRecord = async (
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: UpdateTreatmentParams
+): Promise<UpdateTreatmentResponse> => {
   try {
     const formData = new FormData()
 
@@ -123,8 +124,8 @@ export const updateTreatmentRecord = async (
 }
 
 export const deleteTreatmentRecord = async (
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: DeleteTreatmentParans
+): Promise<DeleteTreatmentResponse> => {
   try {
     const formData = new FormData()
 

@@ -24,7 +24,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -32,7 +32,7 @@ import { debounce } from 'lodash'
 dayjs.extend(customParseFormat)
 
 import Toaster from 'src/components/Toaster'
-import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
+import TemplateSection, { RichTextNote } from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
@@ -59,16 +59,155 @@ import {
   getSurgeryMaster
 } from 'src/lib/api/hospital/surgeryMaster'
 import { borderRadius } from '@mui/system'
+import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse } from 'src/types/hospital/api/Masters/surgery'
+import { ApiError } from 'src/types/hospital/api'
+import { AddSurgeryRecordResponse, GetPatientSurgeryListResponse, GetSurgeryMasterParams, GetSurgeryMasterResponse } from 'src/types/hospital/api/Surgery/surgery'
+import { AnesthesiaDetails, DoctorDetails, DoctorOption, Id, PatientDetailsData, SurgeryMaster, SurgeryRecords } from 'src/types/hospital/models'
+import { HospitalStaffListParams, HospitalStaffListResponse } from 'src/types/hospital/api'
 
+interface SurgeryDrawerFormValues {
+  surgery_name?: string
+  description?: string
+  status?: boolean | string
+}
+
+interface CreateSurgeryResponse extends AddUpdateSurgeryResponse {
+  surgery_id?: string | number
+  data?: AddUpdateSurgeryResponse['data'] & {
+    surgery_id?: string | number
+    id?: string | number
+  }
+}
+
+interface ProcedureOption {
+  value: string
+  label: string
+  surgery_id?: string | number
+  status?: string
+  description?: string
+}
+
+interface SurgeonOption {
+  value: string | number
+  label?: string
+  id?: string | number
+}
+
+interface SurgeryAttachment {
+  id?: string | number
+  file_path?: string
+  file?: string
+  file_original_name?: string
+  name?: string
+}
+
+interface SurgeryOptionInput {
+  id?: Id
+  surgery_id?: Id
+  value?: Id
+  surgery_name?: string
+  label?: string
+  status?: string
+  surgery_status?: string
+  surgeryId?: Id
+}
+
+export interface AnesthesiaPersonRef {
+  id: Id
+  full_name: string
+}
+
+export interface AnesthesiaPurposeRef {
+  name: string
+}
+
+export interface AnesthesiaRecordSelection {
+  anaesthesia_id?: Id
+  anesthesia_id?: Id
+  code?: string
+  label?: string
+  location?: string
+  estimated_time_required?: string | number
+  estimated_time_unit?: string
+  veterinarian?: AnesthesiaPersonRef[]
+  anesthetist?: AnesthesiaPersonRef[]
+  veterinarians?: AnesthesiaPersonRef[]
+  anesthetists?: AnesthesiaPersonRef[]
+  purpose?: AnesthesiaPurposeRef[]
+  anaesthesia_datetime?: string
+  anesthesia_datetime?: string
+}
+
+interface SurgeryRecordPrefillDetail {
+  surgery_date?: string
+  date?: string
+  start_time?: string
+  end_time?: string
+  surgery_id?: string | number
+  surgeryId?: string | number
+  surgery_name?: string
+  surgeryName?: string
+  procedure_name?: string
+  surgery?: string
+  code?: string
+  anaesthesia_id?: string | number
+  anesthesia_id?: string | number
+  anaesthesia_name?: string
+  anesthesia_name?: string
+  anaesthesia_detail?: { code?: string } | null
+  anesthesia_detail?: { code?: string } | null
+  name_of_surgeon?: string
+  surgeon_name?: string
+  name_of_surgeon_id?: string | number
+  surgeon_id?: string | number
+  type_of_surgery?: string
+  surgical_approach?: string
+  duration?: string | number
+  complications?: string
+  complication?: string
+  care_diet_instructions?: string
+  care_activity_restrictions?: string
+  additional_notes?: string
+  surgery_notes?: string
+  secondary_surgeons?: SecondarySurgeonOption[]
+  attachments?: SurgeryAttachment[]
+  detail?: SurgeryRecordPrefillDetail
+}
+
+interface SurgeryRecordFormValues {
+  date?: string | Date | null
+  startTime?: string | Date | null
+  endTime?: string | Date | null
+  procedure?: ProcedureOption | null
+  typeOfSurgery?: string
+  surgicalApproach?: string
+  surgeon?: SurgeonOption | null
+  secondarySurgeon?: SurgeonOption[]
+  complication?: string
+  dietInstructions?: string
+  restrictions?: string
+  additionalNotes?: string
+  duration?: string | number
+  attachments?: (File | SurgeryAttachment)[]
+}
+
+export interface SecondarySurgeonOption {
+  user_full_name: string
+  user_id: Id
+}
 const FORM_ID = 'add-surgery-record-form'
 
-const getSafeString = (value: any) => {
+const getSafeString = (value: unknown): any => {
   if (value === undefined || value === null) return ''
 
   return String(value)
 }
 
-const getRichTextHtml = (note: any) => {
+interface RichTextOp {
+  insert?: string | unknown
+}
+
+const getRichTextHtml = (note: string | RichTextNote | null) => {
   if (!note) return ''
   if (typeof note === 'string') return note
   if (note?.html) return note.html
@@ -76,7 +215,7 @@ const getRichTextHtml = (note: any) => {
   if (note?.delta?.ops) {
     try {
       const text = note.delta.ops
-        .map((op: any) => (typeof op.insert === 'string' ? op.insert : ''))
+        .map((op: RichTextOp) => (typeof op.insert === 'string' ? op.insert : ''))
         .join('')
         .trim()
 
@@ -89,7 +228,7 @@ const getRichTextHtml = (note: any) => {
   return ''
 }
 
-const mapSurgeryToOption = (surgery: any): any => {
+const mapSurgeryToOption = (surgery: SurgeryOptionInput | null): any => {
   if (!surgery || typeof surgery !== 'object') return null
 
   const id = surgery?.id ?? surgery?.surgery_id ?? surgery?.value
@@ -106,21 +245,21 @@ const mapSurgeryToOption = (surgery: any): any => {
   }
 }
 
-const getSurgeryIdentifier = (value: any): any => {
+const getSurgeryIdentifier = (value: string | number | SurgeryOptionInput | null | undefined): string | number => {
   if (!value) return ''
   if (typeof value === 'string' || typeof value === 'number') return value
 
   return value?.value ?? value?.id ?? value?.surgery_id ?? value?.surgeryId ?? ''
 }
 
-const getAnesthesiaIdentifier = (value: any): any => {
+const getAnesthesiaIdentifier = (value: string | number | { anaesthesia_id?: Id } | null): string | number => {
   if (!value) return ''
   if (typeof value === 'string' || typeof value === 'number') return value
 
   return value?.anaesthesia_id ?? ''
 }
 
-const getSurgeryRecordIdentifier = (record: any) => {
+const getSurgeryRecordIdentifier = (record: SurgeryRecords) => {
   if (!record || typeof record !== 'object') return ''
   if (record.id !== undefined && record.id !== null) return String(record.id)
   if (record.detail?.id !== undefined && record.detail?.id !== null) return String(record.detail.id)
@@ -128,17 +267,17 @@ const getSurgeryRecordIdentifier = (record: any) => {
   return ''
 }
 
-const formatDateValue = (value: any) => (value ? dayjs(value).format('YYYY-MM-DD') : '')
+const formatDateValue = (value: Date | string | null | undefined) => (value ? dayjs(value).format('YYYY-MM-DD') : '')
 
-const formatTimeValue = (value: any) => (value ? dayjs(value).format('HH:mm:ss') : '')
+const formatTimeValue = (value: Date | string | null | undefined) => (value ? dayjs(value).format('HH:mm:ss') : '')
 
-const combineDateAndTime = (dateValue: any, timeValue: any): any => {
+const combineDateAndTime = (dateValue: string | Date | Dayjs | null | undefined, timeValue: string | number | Dayjs | null | undefined): Dayjs | null => {
   const date = dayjs(dateValue)
 
   if (!date.isValid() || !timeValue) return null
 
   const baseDateString = date.format('YYYY-MM-DD')
-  const parseTime = (value: any): any => {
+  const parseTime = (value: string | number | Dayjs | null | undefined): Dayjs | null => {
     if (dayjs.isDayjs(value)) return value
     if (!value) return null
 
@@ -183,9 +322,9 @@ const resolveHospitalCaseId = (query: any): any => {
   return undefined
 }
 
-const buildAnimalInfoData = (patientData: any) => {
+const buildAnimalInfoData = (patientData: PatientDetailsData | null) => {
   const animalDetail = patientData?.animal_detail || {}
-  const additionalInfo: any = {}
+  const additionalInfo: Record<string, string> = {}
   const hasLocalIdentifier = Boolean(animalDetail?.local_identifier_name && animalDetail?.local_identifier_value)
 
   if (hasLocalIdentifier) {
@@ -222,96 +361,6 @@ const buildAnimalInfoData = (patientData: any) => {
 }
 
 // ✅ Validation schema
-const schema: any = yup.object().shape({
-  date: yup
-    .mixed()
-    .test('date-required', 'Date is required', (value: any) => Boolean(value) && dayjs(value).isValid())
-    .test('date-after-admission', 'Date cannot be before admission date', function (this: any, value: any) {
-      const admissionDateTime = (this as any)?.options?.context?.admissionDateTime
-      if (!value || !dayjs(value).isValid() || !admissionDateTime) return true
-
-      return !dayjs(value).startOf('day').isBefore(dayjs(admissionDateTime).startOf('day'))
-    })
-    .test('date-not-in-future', 'Date cannot be in the future', (value: any) => {
-      if (!value || !dayjs(value).isValid()) return true
-
-      return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
-    }),
-  startTime: yup
-    .mixed()
-    .test('start-required', 'Start time is required', (value: any) => Boolean(value))
-    .when('date', ((date: any, schema: any) =>
-      schema.test('starttime', function (this: any, value: any) {
-        if (!value || !date) return true
-
-        const selectedStartDate = dayjs(date)
-        const selectedStartTime = dayjs(value)
-
-        const patientData = this.options?.context?.patientData
-        if (!patientData) return true
-
-        const admittedAt = dayjs.utc(patientData.admitted_at).local()
-        const dischargeAt = dayjs.utc(patientData.discharge_at).local()
-        const now = dayjs()
-
-        const selectedDateTime = selectedStartDate
-          .hour(selectedStartTime.hour())
-          .minute(selectedStartTime.minute())
-          .second(0)
-
-        if (selectedStartDate.isSame(admittedAt, 'day') && selectedDateTime.isBefore(admittedAt)) {
-          return this.createError({
-            message: `Time cannot be before the admitted time (${admittedAt.format('hh:mm A')})`
-          })
-        }
-
-        if (
-          selectedStartDate.isSame(dischargeAt, 'day') &&
-          selectedDateTime.isAfter(dischargeAt.clone().subtract(1, 'hour'))
-        ) {
-          return this.createError({
-            message: `Time should be at least 1 hour less than the discharge time (${dischargeAt.format('hh:mm A')})`
-          })
-        }
-
-        if (selectedStartDate.isSame(now, 'day') && selectedDateTime.isAfter(now)) {
-          return this.createError({ message: `Time cannot be later than the current time (${now.format('hh:mm A')})` })
-        }
-
-        return true
-      })) as any
-    ),
-  endTime: yup
-    .mixed()
-    .test('end-required', 'End time is required', (value: any) => Boolean(value))
-    .test('end-after-start', 'End time must be at least 1 hour after start time', function (this: any, value: any) {
-      const { startTime, date } = (this as any)?.parent || {}
-      if (!value || !startTime || !date) return true
-
-      const startDateTime = combineDateAndTime(date, startTime)
-      const endDateTime = combineDateAndTime(date, value)
-
-      if (!startDateTime || !endDateTime) return true
-
-      const diffSeconds = endDateTime.diff(startDateTime, 'second')
-      const diffMinutes = Math.ceil(diffSeconds / 60)
-
-      return diffMinutes >= 60
-    }),
-  procedure: yup
-    .mixed()
-    .nullable()
-    .test('procedure-required', 'Procedure is required', (value: any) => Boolean(value)),
-  surgeon: yup
-    .mixed()
-    .nullable()
-    .test('surgeon-required', 'Surgeon is required', (value: any) => Boolean(value)),
-  typeOfSurgery: yup.string().trim().required('Type of surgery is required'),
-  surgicalApproach: yup.string().trim().required('Surgical approach is required'),
-  duration: yup.string().trim().required('Duration is required'),
-  complication: yup.string().required('Complication is required')
-})
-
 const AddSurgeryRecord = () => {
   // Suppress MUI InputBase warning for ControlledSelectWithTextField in AddAnesthesiaRecordDrawer
   useEffect(() => {
@@ -334,6 +383,97 @@ const AddSurgeryRecord = () => {
   const router: any = useSafeRouter()
   const { t } = useTranslation()
   const theme: any = useTheme()
+
+  const schema: any = yup.object().shape({
+    date: yup
+      .mixed()
+      .test('date-required', t('hospital_module.date_is_required'), (value: any) => Boolean(value) && dayjs(value).isValid())
+      .test('date-after-admission', t('hospital_module.date_cannot_be_before_admission'), function (this: any, value: any) {
+        const admissionDateTime = (this as any)?.options?.context?.admissionDateTime
+        if (!value || !dayjs(value).isValid() || !admissionDateTime) return true
+
+        return !dayjs(value).startOf('day').isBefore(dayjs(admissionDateTime).startOf('day'))
+      })
+      .test('date-not-in-future', t('hospital_module.date_cannot_be_in_future'), (value: any) => {
+        if (!value || !dayjs(value).isValid()) return true
+
+        return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
+      }),
+    startTime: yup
+      .mixed()
+      .test('start-required', t('hospital_module.start_time_required'), (value: any) => Boolean(value))
+      .when('date', ((date: any, schema: any) =>
+        schema.test('starttime', function (this: any, value: any) {
+          if (!value || !date) return true
+
+          const selectedStartDate = dayjs(date)
+          const selectedStartTime = dayjs(value)
+
+          const patientData = this.options?.context?.patientData
+          if (!patientData) return true
+
+          const admittedAt = dayjs.utc(patientData.admitted_at).local()
+          const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+          const now = dayjs()
+
+          const selectedDateTime = selectedStartDate
+            .hour(selectedStartTime.hour())
+            .minute(selectedStartTime.minute())
+            .second(0)
+
+          if (selectedStartDate.isSame(admittedAt, 'day') && selectedDateTime.isBefore(admittedAt)) {
+            return this.createError({
+              message: t('hospital_module.time_cannot_be_before_admitted_x', { time: admittedAt.format('hh:mm A') })
+            })
+          }
+
+          if (
+            selectedStartDate.isSame(dischargeAt, 'day') &&
+            selectedDateTime.isAfter(dischargeAt.clone().subtract(1, 'hour'))
+          ) {
+            return this.createError({
+              message: t('hospital_module.time_should_be_1_hour_less_than_discharge_x', { time: dischargeAt.format('hh:mm A') })
+            })
+          }
+
+          if (selectedStartDate.isSame(now, 'day') && selectedDateTime.isAfter(now)) {
+            return this.createError({ message: t('hospital_module.time_cannot_be_later_than_current_x', { time: now.format('hh:mm A') }) })
+          }
+
+          return true
+        })) as any
+      ),
+    endTime: yup
+      .mixed()
+      .test('end-required', t('hospital_module.end_time_required'), (value: any) => Boolean(value))
+      .test('end-after-start', t('hospital_module.end_time_must_be_1_hour_after'), function (this: any, value: any) {
+        const { startTime, date } = (this as any)?.parent || {}
+        if (!value || !startTime || !date) return true
+
+        const startDateTime = combineDateAndTime(date, startTime)
+        const endDateTime = combineDateAndTime(date, value)
+
+        if (!startDateTime || !endDateTime) return true
+
+        const diffSeconds = endDateTime.diff(startDateTime, 'second')
+        const diffMinutes = Math.ceil(diffSeconds / 60)
+
+        return diffMinutes >= 60
+      }),
+    procedure: yup
+      .mixed()
+      .nullable()
+      .test('procedure-required', t('hospital_module.procedure_is_required'), (value: any) => Boolean(value)),
+    surgeon: yup
+      .mixed()
+      .nullable()
+      .test('surgeon-required', t('hospital_module.surgeon_is_required'), (value: any) => Boolean(value)),
+    typeOfSurgery: yup.string().trim().required(t('hospital_module.type_of_surgery_is_required')),
+    surgicalApproach: yup.string().trim().required(t('hospital_module.surgical_approach_is_required')),
+    duration: yup.string().trim().required(t('hospital_module.duration_is_required')),
+    complication: yup.string().required(t('hospital_module.complication_is_required'))
+  })
+
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
   const surgeryRecordId = useMemo(() => {
     const possible =
@@ -352,7 +492,7 @@ const AddSurgeryRecord = () => {
 
     return Array.isArray(possible) ? possible[0] : possible || ''
   }, [router.query])
-  const [patientData, setPatientData] = useState<any>(null)
+  const [patientData, setPatientData] = useState<PatientDetailsData | null>(null)
 
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
@@ -402,24 +542,24 @@ const AddSurgeryRecord = () => {
 
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState<boolean>(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState<boolean>(false)
-  const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState<any>(null)
+  const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState<AnesthesiaRecordSelection | null>(null)
   const [editingAnesthesiaRecordId, setEditingAnesthesiaRecordId] = useState<string>('')
-  const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState<any>(null)
-  const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState<any>(null)
+  const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState<AnesthesiaRecordSelection | null>(null)
+  const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState<AnesthesiaRecordSelection | null>(null)
   const [anesthesiaRecordJustAdded, setAnesthesiaRecordJustAdded] = useState<boolean>(false)
   const [anesthesiaRefetchTrigger, setAnesthesiaRefetchTrigger] = useState<number>(0)
-  const [richNote, setRichNote] = useState<any>('')
-  const [initialRichNote, setInitialRichNote] = useState<any>('')
+  const [richNote, setRichNote] = useState<string | RichTextNote>('')
+  const [initialRichNote, setInitialRichNote] = useState<string | RichTextNote>('')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-  const [prefillDetail, setPrefillDetail] = useState<any>(null)
+  const [prefillDetail, setPrefillDetail] = useState<SurgeryRecordPrefillDetail | null>(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState<string>('')
   const [searchAttendDoctor, setSearchAttendDoctor] = useState<string>('')
   const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState<boolean>(false)
   const [isSurgerySaving, setIsSurgerySaving] = useState<boolean>(false)
-  const [localProcedureOptions, setLocalProcedureOptions] = useState<any[]>([])
+  const [localProcedureOptions, setLocalProcedureOptions] = useState<ProcedureOption[]>([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState<string>('')
-  const [doctors, setDoctors] = useState<any[]>([])
-  const [attendingDoctors, setAttendingDoctors] = useState<any[]>([])
+  const [doctors, setDoctors] = useState<DoctorDetails[]>([])
+  const [attendingDoctors, setAttendingDoctors] = useState<SurgeonOption[]>([])
   const [doctorsPage, setDoctorsPage] = useState<number>(1)
   const [hasMoreDoctors, setHasMoreDoctors] = useState<boolean>(true)
   const [doctorsLoading, setDoctorsLoading] = useState<boolean>(false)
@@ -427,14 +567,14 @@ const AddSurgeryRecord = () => {
   const [formResetKey, setFormResetKey] = useState<number>(0)
   const [showNavWarning, setShowNavWarning] = useState<boolean>(false)
   const [staffLoading, setStaffLoading] = useState<boolean>(false)
-  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
-  const [selectedAttendingDoctors, setSelectedAttendingDoctors] = useState<any[]>([])
-  const [paginationModel, setPaginationModel] = useState<any>({
+  const [selectedDoctor, setSelectedDoctor] = useState<SurgeonOption | null>(null)
+  const [selectedAttendingDoctors, setSelectedAttendingDoctors] = useState<SurgeonOption[]>([])
+  const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({
     page: 0,
     pageSize: 10
   })
 
-  const [pendingRoute, setPendingRoute] = useState<any>(null)
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null)
   const isNavigatingRef = useRef<boolean>(false)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
@@ -466,7 +606,7 @@ const AddSurgeryRecord = () => {
     }
   }, [selectedDate, trigger]) //time validation dependent on date field
 
-  const convertUtcTimeToLocalString = useCallback((dateValue: any, timeValue: any): any => {
+  const convertUtcTimeToLocalString = useCallback((dateValue: string | null | undefined, timeValue: string | null | undefined): string | null => {
     if (!timeValue) return null
 
     const baseDate = dateValue || dayjs().format('YYYY-MM-DD')
@@ -477,7 +617,7 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const applyPrefillFromRecord = useCallback(
-    (detail: any) => {
+    (detail: SurgeryRecordPrefillDetail | null) => {
       if (!detail) return
       setPrefillDetail(detail)
 
@@ -570,7 +710,7 @@ const AddSurgeryRecord = () => {
         shouldTouch: false
       })
       const secondarySurgeonOptions =
-        detail?.secondary_surgeons?.map((item: any) => ({
+        detail?.secondary_surgeons?.map((item: SecondarySurgeonOption) => ({
           label: item.user_full_name,
           value: item.user_id
         })) || []
@@ -580,7 +720,7 @@ const AddSurgeryRecord = () => {
       setSelectedAttendingDoctors(secondarySurgeonOptions)
 
       const existingAttachments = Array.isArray(detail?.attachments)
-        ? detail.attachments.map((item: any) => ({
+        ? detail.attachments.map((item: SurgeryAttachment) => ({
             id: item?.id,
             file_path: item?.file || item?.file_path || '',
             name: item?.file_original_name || item?.name || item?.file || ''
@@ -638,10 +778,10 @@ const AddSurgeryRecord = () => {
     setSurgeonSearchTerm
   ])
 
-  const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery({
+  const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery<GetSurgeryMasterResponse>({
     queryKey: ['hospital-surgeries', debouncedProcedureSearchTerm],
     queryFn: () => {
-      const params: any = {
+      const params: GetSurgeryMasterParams = {
         page_no: 1,
         limit: 20
       }
@@ -653,26 +793,21 @@ const AddSurgeryRecord = () => {
 
       return getSurgeryMaster({ params })
     },
-    keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
-    retry: false,
-    onError: (error: any) => {
-      console.error('Failed to fetch surgeries:', error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_surgery_list') })
-    }
-  } as any)
+    retry: false
+  })
 
   const procedureOptions = useMemo(() => {
-    const smr: any = surgeryMasterResponse
+    const smr = surgeryMasterResponse as GetSurgeryMasterResponse
     const rawSurgeries =
       (Array.isArray(smr?.surgeries) && smr.surgeries) ||
       (Array.isArray(smr?.data?.surgeries) && smr.data.surgeries) ||
       []
-    const surgeries = Array.isArray(rawSurgeries) ? rawSurgeries : []
+    const surgeries: SurgeryMaster[] = Array.isArray(rawSurgeries) ? rawSurgeries : []
 
     const unique = new Map()
 
-    ;[...localProcedureOptions, ...surgeries].forEach((item: any) => {
+    ;[...localProcedureOptions, ...surgeries].forEach((item: SurgeryOptionInput) => {
       const option = mapSurgeryToOption(item)
 
       if (option && !unique.has(option.value)) {
@@ -683,12 +818,12 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
 
-  const getDoctorList = useCallback(async (hospitalId: any, pageNo: number = 1, searchTerm: string = '') => {
+  const getDoctorList = useCallback(async (hospitalId: Id | null, pageNo: number = 1, searchTerm: string = '') => {
     if (!hospitalId) return
 
     setDoctorsLoading(true)
     try {
-      const params: any = {
+      const params: HospitalStaffListParams = {
         hospital_id: hospitalId,
         page_no: pageNo,
         limit: 10
@@ -698,7 +833,7 @@ const AddSurgeryRecord = () => {
         params.q = searchTerm.trim()
       }
 
-      const res: any = await getHospitalStaff({ params })
+      const res: HospitalStaffListResponse = await getHospitalStaff({ params })
       if (res?.success === true) {
         const data = res?.data
 
@@ -708,15 +843,15 @@ const AddSurgeryRecord = () => {
           return
         }
 
-        const mapped = data.records.map((item: any) => ({
+        const mapped: DoctorDetails[] = data.records.map((item) => ({
           id: String(item.user_id),
-          name: item.user_full_name
+          name: item.user_full_name ?? ''
         }))
 
         if (!prefilledRef.current && mapped.length === 1 && selectedHospital?.id) {
           const prefilledDoc = {
-            value: mapped[0].id,
-            label: mapped[0].name
+            value: mapped[0].id ?? '',
+            label: mapped[0].name ?? ''
           }
 
           setValue('surgeon', prefilledDoc)
@@ -729,14 +864,14 @@ const AddSurgeryRecord = () => {
         if (pageNo === 1) {
           setDoctors(mapped)
         } else {
-          setDoctors((prev: any[]) => {
+          setDoctors((prev: DoctorDetails[]) => {
             const merged = [...prev, ...mapped]
-            return Array.from(new Map(merged.map((item: any) => [item.id, item])).values())
+            return Array.from(new Map(merged.map((item: DoctorDetails) => [item.id, item])).values())
           })
         }
 
-        setHasMoreDoctors(data.current_page < data.total_pages)
-        setDoctorsPage(data.current_page)
+        setHasMoreDoctors((data.current_page ?? 0) < (data.total_pages ?? 0))
+        setDoctorsPage(data.current_page ?? 1)
       }
     } catch (e) {
       console.error(e)
@@ -750,7 +885,7 @@ const AddSurgeryRecord = () => {
     try {
       if (!selectedHospital?.id) return
 
-      const params: any = {
+      const params: HospitalStaffListParams = {
         page_no: 1,
         limit: 10,
         hospital_id: selectedHospital.id
@@ -760,18 +895,19 @@ const AddSurgeryRecord = () => {
         params.q = searchTerm.trim()
       }
 
-      const response: any = await getHospitalStaff({ params })
+      const response: HospitalStaffListResponse = await getHospitalStaff({ params })
 
       if (response?.success && response?.data?.records) {
-        const mappedData = response.data.records.map((item: any) => ({
+        const mappedData: SurgeonOption[] = response.data.records.map((item) => ({
           value: String(item.user_id),
-          label: item.user_full_name
+          label: item.user_full_name ?? ''
         }))
 
         setAttendingDoctors(mappedData)
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital staff:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error fetching hospital staff:', err?.message)
     } finally {
       setStaffLoading(false)
     }
@@ -797,8 +933,8 @@ const AddSurgeryRecord = () => {
   useEffect(() => {
     if (!selectedDoctor?.value) return
 
-    setSelectedAttendingDoctors((prev: any[]) => {
-      const updated = prev.filter((attendingDoctor: any) => String(attendingDoctor.value) !== String(selectedDoctor.value))
+    setSelectedAttendingDoctors((prev: SurgeonOption[]) => {
+      const updated = prev.filter((attendingDoctor: SurgeonOption) => String(attendingDoctor.value) !== String(selectedDoctor.value))
 
       setValue('secondarySurgeon', updated)
 
@@ -818,16 +954,16 @@ const AddSurgeryRecord = () => {
 
   const loadMoreDoctors = () => {
     if (!hasMoreDoctors || doctorsLoading) return
-    getDoctorList(patientData?.hospital_id, doctorsPage + 1, debouncedSurgeonSearchTerm)
+    getDoctorList(patientData?.hospital_id ?? '', doctorsPage + 1, debouncedSurgeonSearchTerm)
   }
 
-  const handleSurgeonSelect = (doctor: any) => {
+  const handleSurgeonSelect = (doctor: SurgeonOption | null) => {
     setSelectedDoctor(doctor)
     clearErrors('surgeon')
   }
 
   const surgeonOptions = useMemo(() => {
-    return doctors.map((d: any) => ({
+    return doctors.map((d: DoctorDetails) => ({
       label: d.name,
       value: d.id,
       is_hospital_chief_doctor: d.is_hospital_chief_doctor === '1'
@@ -839,9 +975,9 @@ const AddSurgeryRecord = () => {
     if (!selectedDoctor?.value) return attendingDoctors
 
     return attendingDoctors.filter(
-      (doctor: any) =>
+      (doctor: SurgeonOption) =>
         String(doctor.value) !== String(selectedDoctor.value) &&
-        !selectedAttendingDoctors?.some((secondary: any) => String(secondary.value) === String(doctor.value))
+        !selectedAttendingDoctors?.some((secondary: SurgeonOption) => String(secondary.value) === String(doctor.value))
     )
   }, [attendingDoctors, selectedDoctor, selectedAttendingDoctors])
 
@@ -852,21 +988,22 @@ const AddSurgeryRecord = () => {
 
     const fetchSurgeryRecord = async () => {
       try {
-        const response: any = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } as any })
-        const records = Array.isArray(response?.data?.surgery_records) ? response.data.surgery_records : []
-        const match = records.find((record: any) => getSurgeryRecordIdentifier(record) === String(surgeryRecordId))
+        const response: GetPatientSurgeryListResponse = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } })
+        const records: SurgeryRecords[] = Array.isArray(response?.data?.surgery_records) ? response.data.surgery_records : []
+        const match = records.find((record: SurgeryRecords) => getSurgeryRecordIdentifier(record) === String(surgeryRecordId))
 
         if (!isMounted) return
 
         if (match) {
-          applyPrefillFromRecord(match?.detail || match)
+          applyPrefillFromRecord((match?.detail || match) as unknown as SurgeryRecordPrefillDetail)
         } else {
           Toaster({ type: 'error', message: t('hospital_module.surgery_record_not_found') })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as ApiError
         if (!isMounted) return
-        console.error('Failed to load surgery record', error)
-        const message = error?.response?.data?.message || error?.message || 'Failed to load surgery record.'
+        console.error('Failed to load surgery record', err)
+        const message = err?.response?.data?.message || err?.message || t('hospital_module.failed_to_load_surgery_record')
         Toaster({ type: 'error', message })
       }
     }
@@ -889,21 +1026,22 @@ const AddSurgeryRecord = () => {
 
     const fetchPatientDetails = async () => {
       try {
-        const response: any = await getPatientDetails(resolvedHospitalCaseId)
+        const response = await getPatientDetails(resolvedHospitalCaseId)
 
         if (!isMounted) return
 
         if (response?.success) {
-          setPatientData(response.data)
+          setPatientData(response.data ?? null)
         } else {
           setPatientData(null)
           Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_load_patient_details') })
         }
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error
         if (!isMounted) return
 
         console.error('Failed to fetch patient details:', error)
-        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_patient_details') })
+        Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_load_patient_details') })
         setPatientData(null)
       }
     }
@@ -1023,10 +1161,10 @@ const AddSurgeryRecord = () => {
     return dt.format('DD MMM YYYY • hh:mm A')
   }, [])
 
-  const joinNames = useCallback((list: any) => {
+  const joinNames = useCallback((list: AnesthesiaPersonRef[] | null) => {
     if (!Array.isArray(list)) return '--'
 
-    const names = list.map((item: any) => item?.full_name).filter(Boolean)
+    const names = list.map((item: AnesthesiaPersonRef) => item?.full_name).filter(Boolean)
 
     return names.length ? names.join(' , ') : '--'
   }, [])
@@ -1034,10 +1172,10 @@ const AddSurgeryRecord = () => {
   const purposeNames = useMemo(() => {
     if (!Array.isArray(selectedAnesthesia?.purpose)) return []
 
-    return selectedAnesthesia.purpose.map((item: any) => item?.name).filter(Boolean)
+    return selectedAnesthesia.purpose.map((item: AnesthesiaPurposeRef) => item?.name).filter(Boolean)
   }, [selectedAnesthesia?.purpose])
 
-  const handleProcedureInputChange = useCallback((value: any) => {
+  const handleProcedureInputChange = useCallback((value: string) => {
     if (typeof value === 'string') {
       setProcedureSearchTerm(value)
     } else {
@@ -1049,22 +1187,23 @@ const AddSurgeryRecord = () => {
     setProcedureSearchTerm('')
   }, [])
 
-  const handleAttendingDoctorInputChange = useCallback((event: any, value: any, reason: any) => {
+  const handleAttendingDoctorInputChange = useCallback((_event: React.SyntheticEvent, value: string, reason: string) => {
     if (reason === 'input') {
       setSearchAttendDoctor(value)
     }
   }, [])
 
   const handleCreateSurgery = useCallback(
-    async (values: any) => {
-      const formData = new FormData()
-      formData.append('surgery_name', values?.surgery_name || '')
-      formData.append('description', values?.description || '')
-      formData.append('status', values?.status ? 'Active' : 'Inactive')
+    async (values: AddUpdateSurgeryPayload) => {
+      const formData: AddUpdateSurgeryPayload = {
+        surgery_name: values?.surgery_name || '',
+        description: values?.description || '',
+        status: values?.status ? 'Active' : 'Inactive' 
+      }
 
       setIsSurgerySaving(true)
       try {
-        const response: any = await addSurgeryMaster((formData as any))
+        const response = await addSurgeryMaster(formData)
         if (response?.success) {
           const newId = response?.data?.surgery_id || response?.surgery_id || response?.data?.id
 
@@ -1077,8 +1216,8 @@ const AddSurgeryRecord = () => {
             })
 
           if (option) {
-            setLocalProcedureOptions((prev: any[]) => {
-              const map = new Map(prev.map((opt: any) => [opt.value, opt]))
+            setLocalProcedureOptions((prev: ProcedureOption[]) => {
+              const map = new Map(prev.map((opt: ProcedureOption) => [opt.value, opt]))
               map.set(option.value, option)
 
               return Array.from(map.values())
@@ -1096,9 +1235,10 @@ const AddSurgeryRecord = () => {
         } else {
           Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_create_surgery') })
         }
-      } catch (error: any) {
-        console.error('Failed to create surgery:', error)
-        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_create_surgery') })
+      } catch (error: unknown) {
+        const err = error as ApiError
+        console.error('Failed to create surgery:', err)
+        Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_create_surgery') })
       } finally {
         setIsSurgerySaving(false)
       }
@@ -1106,22 +1246,24 @@ const AddSurgeryRecord = () => {
     [clearErrors, setLocalProcedureOptions, setValue, setProcedureSearchTerm]
   )
 
-  const procedureGetOptionLabel = useCallback((option: any) => option?.label || '', [])
+  const procedureGetOptionLabel = useCallback((option: unknown) => (option as ProcedureOption | null)?.label || '', [])
 
-  const procedureIsOptionEqualToValue = useCallback((option: any, selected: any) => {
-    if (!option || !selected) return false
+  const procedureIsOptionEqualToValue = useCallback((option: unknown, value: unknown) => {
+    const opt = option as ProcedureOption | null
+    const selected = value as ProcedureOption | null
+    if (!opt || !selected) return false
 
-    const optionId = getSurgeryIdentifier(option)
+    const optionId = getSurgeryIdentifier(opt)
     const selectedId = getSurgeryIdentifier(selected)
 
     if (optionId !== '' && selectedId !== '') {
       return String(optionId) === String(selectedId)
     }
 
-    return option?.label === selected?.label
+    return opt?.label === selected?.label
   }, [])
 
-  const handleSurgeonInputChange = useCallback((value: any) => {
+  const handleSurgeonInputChange = useCallback((value: string) => {
     if (typeof value === 'string') {
       setSurgeonSearchTerm(value)
     } else {
@@ -1137,19 +1279,21 @@ const AddSurgeryRecord = () => {
     prefilledRef.current = true
   }, [])
 
-  const surgeonGetOptionLabel = useCallback((option: any) => option?.label || '', [])
+  const surgeonGetOptionLabel = useCallback((option: unknown) => (option as SurgeonOption | null)?.label || '', [])
 
-  const surgeonIsOptionEqualToValue = useCallback((option: any, selected: any) => {
-    if (!option || !selected) return false
+  const surgeonIsOptionEqualToValue = useCallback((option: unknown, value: unknown) => {
+    const opt = option as SurgeonOption | null
+    const selected = value as SurgeonOption | null
+    if (!opt || !selected) return false
 
-    const optionId = option?.value ?? option?.id
+    const optionId = opt?.value ?? opt?.id
     const selectedId = selected?.value ?? selected?.id
 
     if (optionId !== undefined && selectedId !== undefined) {
       return String(optionId) === String(selectedId)
     }
 
-    return option?.label === selected?.label
+    return opt?.label === selected?.label
   }, [])
 
   const handleAddNewanesthesia = useCallback(() => {
@@ -1172,7 +1316,7 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const handleAnesthesiaCreateSuccess = useCallback(
-    (record: any) => {
+    (record: AnesthesiaRecordSelection | null) => {
       if (record) {
         setSelectedAnesthesiaRecord(record)
         setAnesthesiaRecordJustAdded(true)
@@ -1184,7 +1328,7 @@ const AddSurgeryRecord = () => {
     [setSelectedAnesthesiaRecord]
   )
 
-  const handleAnesthesiaRecordSelect = useCallback((record: any) => {
+  const handleAnesthesiaRecordSelect = useCallback((record: AnesthesiaRecordSelection | null) => {
     setPendingAnesthesiaRecord(record)
   }, [])
 
@@ -1194,7 +1338,7 @@ const AddSurgeryRecord = () => {
     }
   }, [openAddanesthesiaDrawer, editingAnesthesiaRecordId])
 
-  const handleConfirmAnesthesiaRecord = useCallback((record: any) => {
+  const handleConfirmAnesthesiaRecord = useCallback((record: AnesthesiaRecordSelection | null) => {
     if (record) {
       setSelectedAnesthesiaRecord(record)
     }
@@ -1249,7 +1393,7 @@ const AddSurgeryRecord = () => {
     }
   }, [checkIsDirty, isSubmitting])
 
-  const onSubmit = async (formValues: any) => {
+  const onSubmit = async (formValues: SurgeryRecordFormValues) => {
     if (!resolvedHospitalCaseId) {
       Toaster({ type: 'error', message: t('hospital_module.hospital_case_id_is_missing') })
 
@@ -1276,7 +1420,7 @@ const AddSurgeryRecord = () => {
 
     const surgeryId = getSurgeryIdentifier(formValues.procedure)
     const secondarySurgeonString = formValues?.secondarySurgeon?.length
-      ? JSON.stringify(formValues?.secondarySurgeon.map((doc: any) => String(doc.value)))
+      ? JSON.stringify(formValues?.secondarySurgeon.map((doc: SurgeonOption) => String(doc.value)))
       : '[]'
 
     payload.append('surgery_id', getSafeString(surgeryId))
@@ -1292,7 +1436,7 @@ const AddSurgeryRecord = () => {
     payload.append('secondary_surgeon', secondarySurgeonString)
 
     if (Array.isArray(formValues.attachments)) {
-      formValues.attachments.forEach((file: any) => {
+      formValues.attachments.forEach((file: File | SurgeryAttachment) => {
         if (file instanceof File) {
           payload.append('attachments[]', file)
         } else if (file && (file.id || file.file_path || file.file)) {
@@ -1305,14 +1449,14 @@ const AddSurgeryRecord = () => {
     setIsSubmitting(true)
 
     try {
-      const response: any = await addSurgeryRecord(payload)
+      const response: AddSurgeryRecordResponse = await addSurgeryRecord(payload as unknown as Parameters<typeof addSurgeryRecord>[0])
 
       if (response?.success) {
         Toaster({
           type: 'success',
           message:
             response?.message ||
-            (isEditMode ? 'Surgery record updated successfully' : 'Surgery record added successfully')
+            (isEditMode ? t('hospital_module.surgery_record_updated_success') : t('hospital_module.surgery_record_added_success'))
         })
         resetForm()
         // Skip route change warning after successful save
@@ -1322,12 +1466,13 @@ const AddSurgeryRecord = () => {
         Toaster({
           type: 'error',
           message:
-            response?.message || (isEditMode ? 'Failed to update surgery record' : 'Failed to add surgery record')
+            response?.message || (isEditMode ? t('hospital_module.failed_to_update_surgery_record') : t('hospital_module.failed_to_add_surgery_record'))
         })
       }
-    } catch (error: any) {
-      console.error('Add surgery record error:', error)
-      const message = error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Add surgery record error:', err)
+      const message = err?.response?.data?.message || err?.message || t('hospital_module.unexpected_error_occurred')
       Toaster({ type: 'error', message })
     } finally {
       setIsSubmitting(false)
@@ -1347,7 +1492,7 @@ const AddSurgeryRecord = () => {
 
       <DynamicBreadcrumbs
         sx={{ mb: 0 }}
-        lastBreadcrumbLabel={isEditMode ? 'Edit Surgery' : 'Add Surgery' }
+        lastBreadcrumbLabel={isEditMode ? t('hospital_module.edit_surgery') : t('hospital_module.add_surgery')}
       />
 
       <Card
@@ -1380,7 +1525,7 @@ const AddSurgeryRecord = () => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {isEditMode ? 'Edit Surgery Record' : 'Add Surgery Record'}
+            {isEditMode ? t('hospital_module.edit_surgery_record') : t('hospital_module.add_surgery_record')}
           </Typography>
         </Box>
 
@@ -1398,10 +1543,10 @@ const AddSurgeryRecord = () => {
                   : 'AID',
               value: handleAIDDisplay()
             },
-            { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+            { label: t('hospital_module.health_status'), value: patientData?.health_status || 'stable', isStatusCard: true },
             // { label: 'Admitted days', value: patientData?.admitted_for_day },
-            { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-            { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+            { label: t('hospital_module.holding_location'), value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+            { label: t('hospital_module.chief_veterinarian'), value: patientData?.attend_by_full_name }
           ]}
           isLoading={!patientData}
         />
@@ -1422,7 +1567,7 @@ const AddSurgeryRecord = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Date and time of surgery
+                {t('hospital_module.date_and_time_of_surgery')}
                 <Typography sx={{ color: theme.palette.customColors.Error }} variant={'span' as any}>
                   *
                 </Typography>
@@ -1502,7 +1647,7 @@ const AddSurgeryRecord = () => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Surgery details
+              {t('hospital_module.surgery_details')}
               <Typography sx={{ color: theme.palette.customColors.Error }} variant={'span' as any}>
                 *
               </Typography>
@@ -1586,11 +1731,14 @@ const AddSurgeryRecord = () => {
                       getOptionLabel={procedureGetOptionLabel}
                       isOptionEqualToValue={procedureIsOptionEqualToValue}
                       onChangeOverride={() => clearErrors?.('procedure')}
-                      renderOption={(props: any, option: any) => (
-                        <Tooltip title={option.description || 'No description available'} placement='right' arrow>
-                          <li {...props}>{procedureGetOptionLabel(option)}</li>
-                        </Tooltip>
-                      )}
+                      renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                        const opt = option as ProcedureOption
+                        return (
+                          <Tooltip title={opt.description || t('hospital_module.no_description_available')} placement='right' arrow>
+                            <li {...props}>{procedureGetOptionLabel(opt)}</li>
+                          </Tooltip>
+                        )
+                      }}
                       endAdornment={() => (
                         <IconButton
                           size='small'
@@ -1650,9 +1798,10 @@ const AddSurgeryRecord = () => {
                       loading={staffLoading}
                       clearOnBlur
                       filterSelectedOptions
+                      disableCloseOnSelect
                       getOptionLabel={option => option?.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
-                      noOptionsText='No available attending vets...'
+                      noOptionsText={t('hospital_module.no_available_attending_vets')}
                       onChange={(event, newValue) => {
                         setSelectedAttendingDoctors(newValue)
                         field.onChange(newValue)
@@ -1712,7 +1861,7 @@ const AddSurgeryRecord = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Anesthesia Details
+          {t('hospital_module.anesthesia_details')}
           <Typography component='span' sx={{ color: theme.palette.customColors.Error, ml: 1 }}>
             *
           </Typography>
@@ -1814,7 +1963,7 @@ const AddSurgeryRecord = () => {
                 }}
               >
                 {[
-                  { label: 'Location', value: selectedAnesthesia?.location || '--' },
+                  { label: t('hospital_module.location'), value: selectedAnesthesia?.location || '--' },
                   {
                     label: t('hospital_module.date_and_time_of_anesthesia'),
                     value:
@@ -1829,19 +1978,19 @@ const AddSurgeryRecord = () => {
                           )
                   },
                   {
-                    label: 'Estimated Time Required',
+                    label: t('hospital_module.estimated_time_required'),
                     value:
                       selectedAnesthesia?.estimated_time_required && selectedAnesthesia?.estimated_time_unit
                         ? `${selectedAnesthesia.estimated_time_required} ${selectedAnesthesia.estimated_time_unit}`
                         : selectedAnesthesia?.estimated_time_required || '--'
                   },
                   {
-                    label: 'Veterinarian',
-                    value: joinNames(selectedAnesthesia?.veterinarians)
+                    label: t('hospital_module.veterinarian'),
+                    value: joinNames(selectedAnesthesia?.veterinarians ?? null)
                   },
                   {
                     label: t('hospital_module.anesthetists'),
-                    value: joinNames(selectedAnesthesia?.anesthetists)
+                    value: joinNames(selectedAnesthesia?.anesthetists ?? null)
                   }
                 ].map(info => (
                   <Box key={info.label} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1872,11 +2021,11 @@ const AddSurgeryRecord = () => {
                   <Typography
                     sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Purpose of Anesthesia
+                    {t('hospital_module.purpose_of_anesthesia')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     {purposeNames.length ? (
-                      purposeNames.map((name: any) => (
+                      purposeNames.map((name: string) => (
                         <Box
                           key={name}
                           sx={{
@@ -1902,7 +2051,7 @@ const AddSurgeryRecord = () => {
                       ))
                     ) : (
                       <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px' }}>
-                        No purpose added
+                        {t('hospital_module.no_purpose_added')}
                       </Typography>
                     )}
                   </Box>
@@ -1941,7 +2090,7 @@ const AddSurgeryRecord = () => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Care Instructions
+            {t('hospital_module.care_instructions')}
           </Typography>
           <IconButton
             size='small'
@@ -1965,7 +2114,7 @@ const AddSurgeryRecord = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Enter diet instructions
+                {t('hospital_module.enter_diet_instructions')}
               </Typography>
               <ControlledTextField
                 sx={{
@@ -1978,7 +2127,7 @@ const AddSurgeryRecord = () => {
                 name={'dietInstructions'}
                 errors={errors}
                 borderRadius='4px'
-                placeholder={'Enter text'}
+                placeholder={t('hospital_module.enter_text')}
               />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1990,7 +2139,7 @@ const AddSurgeryRecord = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Enter restriction activities with duration
+                {t('hospital_module.enter_restriction_activities_with_duration')}
               </Typography>
               <ControlledTextField
                 sx={{
@@ -2003,7 +2152,7 @@ const AddSurgeryRecord = () => {
                 name={'restrictions'}
                 errors={errors}
                 borderRadius='4px'
-                placeholder={'Enter text'}
+                placeholder={t('hospital_module.enter_text')}
               />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -2015,7 +2164,7 @@ const AddSurgeryRecord = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Additional notes
+                {t('hospital_module.additional_notes')}
               </Typography>
               <ControlledTextField
                 sx={{
@@ -2025,7 +2174,7 @@ const AddSurgeryRecord = () => {
                   },
                   backgroundColor: alpha(theme.palette.customColors.Notes, 153 / 255)
                 }}
-                placeholder={'Enter text'}
+                placeholder={t('hospital_module.enter_text')}
                 control={control}
                 name={'additionalNotes'}
                 errors={errors}
@@ -2073,8 +2222,8 @@ const AddSurgeryRecord = () => {
           onSubmit: handleSubmit(onSubmit),
           loading: isSubmitting,
           disabled: isSubmitting,
-          submitLabel: isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : isEditMode ? 'UPDATE' : 'SAVE',
-          cancelLabel: 'RESET',
+          submitLabel: isSubmitting ? (isEditMode ? t('hospital_module.updating') : t('submitting')) : isEditMode ? t('update_upper') : t('save_upper'),
+          cancelLabel: t('reset'),
           cancelBtnStyle: {
             height: '56px',
             minWidth: { xs: '100%', sm: '160px' },
@@ -2101,11 +2250,11 @@ const AddSurgeryRecord = () => {
             setShowNavWarning(false)
             setPendingRoute(null)
           },
-          title: 'Unsaved Changes',
-          description: 'Please save your changes before navigating back.',
+          title: t('hospital_module.unsaved_changes'),
+          description: t('hospital_module.please_save_changes'),
           confirmAction: handleConfirmNavigation,
-          ConfirmationText: 'Discard',
-          cancelText: 'Stay',
+          ConfirmationText: t('hospital_module.discard'),
+          cancelText: t('hospital_module.stay'),
           icon: 'mdi:alert-circle-outline',
           iconColor: theme.palette.warning.main,
           imgStyle: { backgroundColor: alpha(theme.palette.warning.main, 0.1) }
