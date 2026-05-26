@@ -1222,7 +1222,12 @@ export const appChatSlice = createSlice({
       }
 
       if (typeof unreadCount === 'number') {
-        chatEntry.chat.unseenMsgs = unreadCount
+        // If this conversation is currently open the user is actively reading it —
+        // keep unseenMsgs at 0. The server's value is stale (it incremented before
+        // our markRead socket call was processed). Mirrors mobile's behaviour where
+        // the screen being focused means messages are immediately consumed.
+        const isCurrentlyOpen = state.selectedChat?.contact.id === chatId
+        chatEntry.chat.unseenMsgs = isCurrentlyOpen ? 0 : unreadCount
       }
 
       // New activity → bubble to the top of the list, matching how
