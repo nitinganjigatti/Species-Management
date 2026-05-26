@@ -18,6 +18,7 @@ import {
   InputAdornment,
   CircularProgress,
   alpha,
+  useMediaQuery
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
@@ -67,6 +68,15 @@ const ProductDetailsList = () => {
   const editParamsInitialState = { id: null, unit_multiplier: null, description: null, active: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  // const isLargeScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'))
+
+  const [showAllVariants, setShowAllVariants] = useState(false)
+  const VISIBLE_COUNT = 4
+
+  const displayedVariants = showAllVariants ? variantProductList : variantProductList.slice(0, VISIBLE_COUNT)
+
   const addEventSidebarOpen = () => {
     setEditParams(editParamsInitialState)
     setVariantDrawer(true)
@@ -185,8 +195,20 @@ const ProductDetailsList = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [selectedVariants, setSelectedVariants] = useState([])
 
-  const handleDrawerOpen = () => setIsDrawerOpen(true)
-  const handleDrawerClose = () => setIsDrawerOpen(false)
+  // const handleDrawerOpen = () => setIsDrawerOpen(true)
+  // const handleDrawerClose = () => setIsDrawerOpen(false)
+
+  const handleDrawerOpen = () => {
+    setIsDrawerOpen(true)
+    setSearchQuery('')
+    setSelectedVariants([])
+  }
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false)
+    setSelectedVariants([])
+    setSearchQuery('')
+  }
 
   // const handleToggle = id => {
   //   setCheckedItems(prev => (prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]))
@@ -334,6 +356,67 @@ const ProductDetailsList = () => {
     }
   }, [id])
 
+  const DetailsCard = () => {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          bgcolor: 'customColors.tableHeaderBg',
+          p: 3,
+          borderRadius: '8px',
+          width: '100%'
+        }}
+      >
+        <Grid container spacing={2}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+            >
+              Manufacturer
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+            >
+              {productDetails?.manufacturer_name}
+            </Typography>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+            >
+              Drugs Class
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+            >
+              {/* Non-steroidal anti-inflammatory */}
+              {productDetails?.drug_class_label || 'NA'}
+            </Typography>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+            >
+              Storage
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+            >
+              {productDetails?.storage_value || 'NA'}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Box>
+    )
+  }
 
   return (
     <>
@@ -377,119 +460,127 @@ const ProductDetailsList = () => {
                   </>
                 }
               >
-                  <Grid container spacing={4}>
-                    <Grid
-                      item
-                      size={{ xs: 12, sm: 3 }}
+                <Grid container spacing={4}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={
+                      {
+                        // mb: 6
+                        // mb: 2
+                      }
+                    }
+                  >
+                    <Avatar
+                      variant='square'
+                      src={uploadedImage}
+                      alt='Medicine Image'
                       sx={{
-                        mb: 6
+                        objectFit: 'contain',
+                        // objectFit: 'cover',
+                        width: 'auto',
+                        // height: 'auto',
+                        // width: '200px',
+                        height: '200px',
+
+                        maxHeight: 200,
+                        borderRadius: 2
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item size={{ xs: 12, sm: 9 }}>
+                    <Grid
+                      container
+                      spacing={4}
+                      sx={{
+                        // mb: 6
+                        mb: 2
                       }}
                     >
-                      <Avatar
-                        variant='square'
-                        src={uploadedImage}
-                        alt='Medicine Image'
-                        sx={{
-                          objectFit: 'contain',
-                          width: 'auto',
-                          height: 'auto',
-                          maxHeight: 200,
-                          borderRadius: 2
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item size={{ xs: 12, sm: 9 }}>
-                      <Grid
-                        container
-                        spacing={4}
-                        sx={{
-                          mb: 6
-                        }}
-                      >
-                        <Grid item size={{ xs: 12, sm: 6 }}>
-                          <Box>
-                            <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
-                              {productDetails?.name}
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              component='div'
-                              sx={{
-                                color: 'text.secondary'
-                              }}
+                      <Grid item size={{ xs: 12, sm: 6 }}>
+                        <Box>
+                          <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
+                            {productDetails?.name}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={{
+                              color: 'text.secondary'
+                            }}
+                          >
+                            <Box
+                              component='span'
+                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
                             >
+                              Generic Name
+                            </Box>{' '}
+                            -{' '}
+                            <Box
+                              component='span'
+                              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                            >
+                              {productDetails?.generic_name || 'NA'}
+                            </Box>
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              mt: 0.5,
+                              color: 'customColors.customHeadingTextColor',
+                              fontWeight: 400,
+                              fontSize: '14px'
+                            }}
+                          >
+                            Composition -{' '}
+                            {productDetails?.salts && productDetails?.salts?.length > 0
+                              ? productDetails?.salts?.map((salt, index) => (
+                                  <span key={salt?.id}>
+                                    {salt?.label} {salt?.qty}
+                                    {index < productDetails?.salts?.length - 1 && ', '}
+                                  </span>
+                                ))
+                              : 'NA'}
+                          </Typography>
+                        </Box>
+                      </Grid>
+
+                      {/* Package Options */}
+                      <Grid item size={{ xs: 12, sm: 6 }}>
+                        <Box>
+                          {/* Row with Available Packages and Add Variant Button */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: { sm: 'flex-start', lg: 'center' },
+                              mb: 2
+                            }}
+                          >
+                            <Typography variant='body2' component='div'>
                               <Box
                                 component='span'
-                                sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+                                sx={{
+                                  color: 'customColors.neutralSecondary',
+                                  fontWeight: 400,
+                                  fontSize: '14px'
+                                }}
                               >
-                                Generic Name
+                                Available Packages:
                               </Box>{' '}
-                              -{' '}
                               <Box
                                 component='span'
-                                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                                sx={{
+                                  color: 'primary.light',
+                                  fontWeight: 500,
+                                  fontSize: '14px'
+                                }}
                               >
-                                {productDetails?.generic_name || 'NA'}
+                                ({productDetails?.package}) of
                               </Box>
                             </Typography>
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                mt: 0.5,
-                                color: 'customColors.customHeadingTextColor',
-                                fontWeight: 400,
-                                fontSize: '14px'
-                              }}
-                            >
-                              Composition -{' '}
-                              {productDetails?.salts && productDetails?.salts?.length > 0
-                                ? productDetails?.salts?.map((salt, index) => (
-                                    <span key={salt?.id}>
-                                      {salt?.label} {salt?.qty}
-                                      {index < productDetails?.salts?.length - 1 && ', '}
-                                    </span>
-                                  ))
-                                : 'NA'}
-                            </Typography>
-                          </Box>
-                        </Grid>
-
-                        {/* Package Options */}
-                        <Grid item size={{ xs: 12, sm: 6 }}>
-                          <Box>
-                            {/* Row with Available Packages and Add Variant Button */}
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: {sm: 'flex-start', lg: 'center'},
-                                mb: 2
-                              }}
-                            >
-                              <Typography variant='body2' component='div'>
-                                <Box
-                                  component='span'
-                                  sx={{
-                                    color: 'customColors.neutralSecondary',
-                                    fontWeight: 400,
-                                    fontSize: '14px'
-                                  }}
-                                >
-                                  Available Packages:
-                                </Box>{' '}
-                                <Box
-                                  component='span'
-                                  sx={{
-                                    color: 'primary.light',
-                                    fontWeight: 500,
-                                    fontSize: '14px'
-                                  }}
-                                >
-                                  ({productDetails?.package}) of
-                                </Box>
-                              </Typography>
-                              <Grid item size = {{xs: 'auto'}}>
+                            <Grid item size={{ xs: 'auto' }}>
                               {selectedPharmacy.type === 'central' &&
                                 (selectedPharmacy.permission.key === 'allow_full_access' ||
                                   selectedPharmacy.permission.key === 'ADD') && (
@@ -505,103 +596,77 @@ const ProductDetailsList = () => {
                                     Add Variant
                                   </Button>
                                 )}
-                                </Grid>
-                            </Box>
+                            </Grid>
+                          </Box>
 
-                            <Box
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display: 'flex',
+                              gap: 1,
+                              flexWrap: 'wrap'
+                            }}
+                          >
+                            {displayedVariants.map((option, inx) => (
+                              <Chip
+                                key={option?.id}
+                                label={`${option?.unit_multiplier}  ${productDetails?.product_form_label}`}
+                                variant='outlined'
+                                clickable
+                                sx={{
+                                  '&.MuiChip-outlined': {
+                                    borderColor: theme => alpha(theme.palette.primary.OnSurface, 0.4),
+                                    backgroundColor: 'customColors.displaybgPrimary'
+                                  },
+                                  marginBottom: '8px'
+                                }}
+                              />
+                            ))}
+                          </Box>
+
+                          {variantProductList.length > VISIBLE_COUNT && (
+                            <Typography
+                              onClick={() => setShowAllVariants(!showAllVariants)}
                               sx={{
                                 mt: 1,
-                                display: 'flex',
-                                gap: 1,
-                                flexWrap: 'wrap'
+                                color: theme.palette.primary.main,
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                '&:hover': {
+                                  textDecoration: 'underline'
+                                }
                               }}
                             >
-                              {variantProductList.map((option, inx) => (
-                                <Chip
-                                  key={option?.id}
-                                  label={`${option?.unit_multiplier}  ${productDetails?.product_form_label}`}
-                                  variant='outlined'
-                                  clickable
-                                  sx={{
-                                    '&.MuiChip-outlined': {
-                                      // borderColor: '#006D3566',
-                                      borderColor: theme => alpha(theme.palette.primary.OnSurface, 0.4),
-                                      backgroundColor: 'customColors.displaybgPrimary'
-                                    },
-                                    marginBottom: '8px'
-                                  }}
-                                />
-                              ))}
-                            </Box>
-                          </Box>
-                        </Grid>
+                              {showAllVariants
+                                ? 'Read less'
+                                : `Read more (${variantProductList.length - VISIBLE_COUNT} more)`}
+                            </Typography>
+                          )}
+                        </Box>
                       </Grid>
-
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          bgcolor: 'customColors.tableHeaderBg',
-                          p: 3,
-                          borderRadius: '8px'
-                        }}
-                      >
-                        <Grid container spacing={2}>
-                          <Grid item size={{ xs: 12, sm: 4 }}>
-                            <Typography
-                              variant='caption'
-                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                            >
-                              Manufacturer
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                            >
-                              {productDetails?.manufacturer_name}
-                            </Typography>
-                          </Grid>
-                          <Grid item size={{ xs: 12, sm: 4 }}>
-                            <Typography
-                              variant='caption'
-                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                            >
-                              Drugs Class
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                            >
-                              {/* Non-steroidal anti-inflammatory */}
-                              {productDetails?.drug_class_label || 'NA'}
-                            </Typography>
-                          </Grid>
-                          <Grid item size={{ xs: 12, sm: 4 }}>
-                            <Typography
-                              variant='caption'
-                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                            >
-                              Storage
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                            >
-                              {productDetails?.storage_value || 'NA'}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </Box>
                     </Grid>
+                    {isLargeScreen && (
+                      <Box sx={{ mt: 2 }}>
+                        {' '}
+                        <DetailsCard />{' '}
+                      </Box>
+                    )}
+
+                    {/* component will come */}
                   </Grid>
-                
+                  {!isLargeScreen && (
+                    <Grid item size={{ xs: 12 }}>
+                      <DetailsCard />
+                    </Grid>
+                  )}
+                </Grid>
               </PageCardLayout>
               <PageCardLayout>
                 <TabContext value={value}>
                   <TabList
-                  variant='scrollable'
-                  allowScrollButtonsMobile
+                    variant='scrollable'
+                    allowScrollButtonsMobile
                     onChange={handleChange}
                     sx={{
                       '& .MuiTabs-flexContainer': {
@@ -614,9 +679,8 @@ const ProductDetailsList = () => {
                     <Tab value='purchase' label='Purchase' />
                     <Tab value='dispatch' label='Dispatch' />
                     <Tab value='ledger' label='Ledger' />
-             
                   </TabList>
-                 
+
                   <TabPanel value='overview' sx={{ p: 0 }}>
                     <Overview
                       productDetails={productDetails}
@@ -628,8 +692,7 @@ const ProductDetailsList = () => {
                     />
                   </TabPanel>
                   <TabPanel value='purchase' sx={{ p: 0 }}>
-                    <Purchase tabValue={value} updateUrlParams={updateUrlParams} 
-                    />
+                    <Purchase tabValue={value} updateUrlParams={updateUrlParams} />
                   </TabPanel>
                   <TabPanel value='dispatch' sx={{ p: 0 }}>
                     <Dispatch tabValue={value} updateUrlParams={updateUrlParams} />
@@ -637,7 +700,6 @@ const ProductDetailsList = () => {
                   <TabPanel value='ledger' sx={{ p: 0 }}>
                     <Ledger tabValue={value} updateUrlParams={updateUrlParams} />
                   </TabPanel>
-                  
                 </TabContext>
               </PageCardLayout>
             </>

@@ -155,7 +155,8 @@ const PharmacySettingsList = () => {
     ...(pharmacyRole
       ? [
           {
-            width: 150,
+            minWidth: 150,
+            flex: 0.3,
             field: 'action',
             sortable: false,
             headerName: 'Action',

@@ -184,8 +184,7 @@ const ShipmentReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -201,8 +200,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'shiment_number',
       headerName: 'SHIPMENT NUMBER',
       sortable: true,
@@ -220,8 +219,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'REQUEST NUMBER',
       sortable: true,
@@ -239,8 +238,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      minWidth: 340,
+      flex: 0.2,
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -260,8 +259,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'batch',
       sortable: false,
       headerName: 'BATCH NUMBER',
@@ -279,8 +278,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -298,8 +297,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'shipment_date',
       headerName: 'SHIPMENT DATE',
       sortable: true,
@@ -317,8 +316,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      minWidth: 200,
+      flex: 0.2,
       field: 'total_shipped_qty',
       headerName: 'SHIPPED QUANTITY',
       sortable: true,
@@ -337,8 +336,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      minWidth: 200,
+      flex: 0.2,
       field: 'dispute_count',
       headerName: 'DISPUTE QUANTITY',
       sortable: true,
@@ -357,8 +356,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -378,8 +377,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'Total_shipping_value',
       headerName: 'TOTAL SHIPPING VALUE',
       sortable: true,
@@ -400,8 +399,8 @@ const ShipmentReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 220,
+      minWidth: 220,
+      flex: 0.2,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -425,8 +424,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 220,
+      minWidth: 220,
+      flex: 0.2,
       field: 'package',
       headerName: 'PACKAGE',
       sortable: false,
@@ -455,8 +454,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'to_store',
       headerName: 'TO STORE',
       sortable: true,
@@ -480,8 +479,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'shipment_status',
       sortable: false,
       headerName: 'SHIPMENT TYPE',
@@ -499,8 +498,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'person_shipping',
       headerName: 'PERSON SHIPPING',
       sortable: true,
@@ -518,8 +517,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'vehicle_no',
       sortable: false,
       headerName: 'VEHICLE NUMBER',
@@ -537,8 +536,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 200,
+      flex: 0.2,
       field: 'phone_number',
       sortable: false,
       headerName: 'PHONE NUMBER',
@@ -556,8 +555,8 @@ const ShipmentReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'receiver_name',
       sortable: false,
       headerName: 'RECEIVER NAME',
@@ -576,6 +575,7 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 200,
+      flex: 0.2,
       field: 'shipment_created_at',
       sortable: true,
       headerName: 'Created by ',
@@ -591,6 +591,7 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 250,
+      flex: 0.2,
       field: 'updated_by',
       sortable: false,
       headerName: 'Updated by',

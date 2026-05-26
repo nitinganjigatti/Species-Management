@@ -218,8 +218,7 @@ const PurchaseReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -234,8 +233,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'purchase_number',
       sortable: true,
       headerName: 'PURCHASE NUMBER',
@@ -253,8 +252,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      minWidth: 340,
+      flex: 0.2,
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -274,8 +273,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 200,
+      flex: 0.2,
       field: 'batch_no',
       sortable: false,
       headerName: 'BATCH NUMBER',
@@ -293,8 +292,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      minWidth: 160,
+      flex: 0.2,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -312,8 +311,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 180,
+      flex: 0.2,
       field: 'purchase_date',
       headerName: 'PURCHASE DATE',
       sortable: true,
@@ -331,8 +330,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 180,
+      flex: 0.2,
       field: 'qty',
       sortable: true,
       align: 'center',
@@ -351,8 +350,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 150,
+      minWidth: 150,
+      flex: 0.2,
       field: 'net_unit_price',
       sortable: true,
       align: 'right',
@@ -373,8 +372,8 @@ const PurchaseReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'purchase_value',
       sortable: true,
       align: 'right',
@@ -394,8 +393,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'supplier_name',
       sortable: true,
       headerName: 'SUPPLIER NAME',
@@ -409,8 +408,8 @@ const PurchaseReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 180
+              textOverflow: 'ellipsis'
+              // maxWidth: 180
             }}
           >
             <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
@@ -419,8 +418,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 250,
+      minWidth: 250,
+      flex: 0.2,
       field: 'manufacturer_name',
       sortable: false,
       headerName: 'MANUFACTURER NAME',
@@ -434,8 +433,8 @@ const PurchaseReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -444,8 +443,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'requested_by',
       sortable: true,
       headerName: 'REQUESTED BY',
@@ -463,8 +462,8 @@ const PurchaseReport = () => {
                   fontWeight: 400,
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
+                  textOverflow: 'ellipsis'
+                  // maxWidth: 200
                 }}
               >
                 {requestedBy}
@@ -491,8 +490,8 @@ const PurchaseReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'package',
       headerName: 'PACKAGE',
       sortable: false,
@@ -509,8 +508,8 @@ const PurchaseReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              textOverflow: 'ellipsis'
+              // maxWidth: 240
             }}
           >
             {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
@@ -520,8 +519,8 @@ const PurchaseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'comment',
       sortable: false,
       headerName: 'COMMENTS',
@@ -539,8 +538,8 @@ const PurchaseReport = () => {
                   fontWeight: 400,
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
+                  textOverflow: 'ellipsis'
+                  // maxWidth: 200
                 }}
               >
                 {comment}
@@ -568,6 +567,7 @@ const PurchaseReport = () => {
 
     {
       minWidth: 200,
+      flex: 0.2,
       field: 'purchase_created_at',
       sortable: true,
       headerName: 'Created by ',
@@ -583,6 +583,7 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 250,
+      flex: 0.2,
       field: 'purchase_updated_at',
       sortable: true,
       headerName: 'Updated by',

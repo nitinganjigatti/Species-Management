@@ -216,8 +216,7 @@ const AllRequestedItemsReport = () => {
 
   const columns = [
     {
-      width: 80,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -233,7 +232,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      width: 100,
+      minWidth: 120,
+      flex: 0.2,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
@@ -253,8 +253,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 180,
+      flex: 0.2,
       field: 'request_ID',
       headerName: 'REQUEST NUMBER',
       sortable: true,
@@ -272,8 +272,9 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      minWidth: 340,
+      flex: 0.4,
+
       field: 'product_name',
       align: 'left',
       sortable: true,
@@ -293,8 +294,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      minWidth: 190,
+      flex: 0.2,
       field: 'requested_quantity',
       headerName: 'REQUESTED QUANTITY',
       sortable: true,
@@ -313,8 +314,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      flex: 0.2,
+      minWidth: 190,
       field: 'pending_quantity',
       headerName: 'PENDING QUANTITY',
       sortable: true,
@@ -333,8 +334,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 220,
+      flex: 0.2,
+      minWidth: 220,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -348,8 +349,8 @@ const AllRequestedItemsReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 220
+              textOverflow: 'ellipsis'
+              // maxWidth: 220
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -358,8 +359,8 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 180,
+      flex: 0.2,
       field: 'request_from',
       headerName: 'REQUESTED FROM',
       sortable: true,
@@ -373,8 +374,8 @@ const AllRequestedItemsReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 180
+              textOverflow: 'ellipsis'
+              // maxWidth: 180
             }}
           >
             <span alt={params.row.request_from}> {params.row.request_from}</span>
@@ -384,6 +385,7 @@ const AllRequestedItemsReport = () => {
     },
     {
       minWidth: 200,
+      flex: 0.2,
       field: 'requested_date',
       sortable: true,
       headerName: 'REQUESTED BY ',

@@ -209,8 +209,8 @@ const ReturnReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
+
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -226,8 +226,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 170,
+      flex: 0.2,
+      minWidth: 170,
       field: 'return_number',
       headerName: 'RETURN NUMBER',
       sortable: true,
@@ -245,8 +245,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 170,
+      flex: 0.2,
+      minWidth: 170,
       field: 'shipment_id',
       headerName: 'SHIPMENT NUMBER',
       sortable: true,
@@ -264,8 +264,8 @@ const ReturnReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      flex: 1,
+      minWidth: 340,
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -285,8 +285,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'batch_no',
       sortable: false,
       headerName: 'BATCH NUMBER',
@@ -304,8 +304,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -323,8 +323,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'return_date',
       headerName: 'RETURN DATE',
       sortable: true,
@@ -342,8 +342,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'return_qty',
       headerName: 'TOTAL RETURN QUANTITY',
       sortable: true,
@@ -362,8 +362,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -383,8 +383,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'return_value',
       headerName: 'TOTAL RETURN VALUE',
       align: 'right',
@@ -404,8 +404,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: `${selectedPharmacy?.type === 'central' ? 'from_store' : 'to_store'}`,
       sortable: true,
       headerName: `${selectedPharmacy?.type === 'central' ? 'FROM STORE' : 'TO STORE'}`,
@@ -423,8 +423,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'manufacturer_name',
       sortable: false,
       headerName: 'MANUFACTURER NAME',
@@ -439,8 +439,8 @@ const ReturnReport = () => {
 
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -449,8 +449,8 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'package',
       headerName: 'PACKAGE',
       sortable: false,
@@ -467,8 +467,8 @@ const ReturnReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              textOverflow: 'ellipsis'
+              // maxWidth: 240
             }}
           >
             {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
@@ -478,6 +478,7 @@ const ReturnReport = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'return_created_at',
       sortable: true,

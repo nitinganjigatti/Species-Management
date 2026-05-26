@@ -33,7 +33,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getSuppliers, getSuppliersByParams } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import {
   addPurchase,
@@ -44,7 +44,8 @@ import {
   validatePurchaseProducts,
   postDeleteInvoiceById,
   productMappingForMlTraining,
-  printPurchaseInvoice
+  printPurchaseInvoice,
+  createPurchase
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -572,7 +573,8 @@ const AddPurchaseForm = () => {
       } else {
         var payloadData = { ...postData }
         payloadData.purchase_details = JSON.stringify(payloadData.purchase_details)
-        const response = await addPurchase(payloadData)
+        // const response = await addPurchase(payloadData)
+        const response = await createPurchase(payloadData)
 
         if (response?.success) {
           toast.success(response.message)
@@ -585,20 +587,23 @@ const AddPurchaseForm = () => {
               }
             })
 
-            try {
-              const mlResult = await productMappingForMlTraining(suggestionData)
-              toast.success(mlResult?.data)
+            //! Note
+            // don't remove this Commented code
+            //   const mlResult = await productMappingForMlTraining(suggestionData)
+            //   toast.success(mlResult?.data)
 
-              setEditParams(editParamsInitialState)
-              setSubmitLoader(false)
-              Router.push('/pharmacy/purchase/')
-            } catch (error) {
-              console.error('ML training error:', error)
-              toast.success('ML not trained successfully')
-              setEditParams(editParamsInitialState)
-              setSubmitLoader(false)
-              Router.push('/pharmacy/purchase/')
-            }
+            //   setEditParams(editParamsInitialState)
+            //   setSubmitLoader(false)
+            //   Router.push('/pharmacy/purchase/')
+            // } catch (error) {
+            //   console.error('ML training error:', error)
+            //   toast.success('ML not trained successfully')
+            //   setEditParams(editParamsInitialState)
+            //   setSubmitLoader(false)
+            //   Router.push('/pharmacy/purchase/')
+            // }
+            setSubmitLoader(false)
+            Router.push('/pharmacy/purchase/')
           } else {
             setEditParams(editParamsInitialState)
             setSubmitLoader(false)
@@ -616,6 +621,8 @@ const AddPurchaseForm = () => {
       }
     } catch (error) {
       console.log('error', error)
+    } finally {
+      setSubmitLoader(false)
     }
   }
 
@@ -650,8 +657,10 @@ const AddPurchaseForm = () => {
   }
 
   const getSuppliersLists = async () => {
+    const params = { status: 1 }
     try {
-      const response = await getSuppliers({})
+      // const response = await getSuppliers({})
+      const response = await getSuppliersByParams({ params: params })
 
       if (response.data.data.list_items?.length > 0) {
         setSuppliers(response.data.data.list_items)
@@ -1420,7 +1429,7 @@ const AddPurchaseForm = () => {
               <Box sx={{ width: '100%' }}>
                 <input
                   type='file'
-                  accept='.png,.jpg,.jpeg,.pdf'
+                  accept='.png,.jpg,.jpeg,.pdf,.xls,.xlsx'
                   onChange={e => handleInputImageChange(e)}
                   style={{ display: 'none' }}
                   name='invoice_transcript'

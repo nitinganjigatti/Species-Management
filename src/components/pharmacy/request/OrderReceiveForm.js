@@ -937,7 +937,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const columns = [
     {
-      width: 100,
+      minWidth: 100,
       field: 'uid',
       headerName: 'SL.NO',
       textAlign: 'center',
@@ -946,7 +946,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       }
     },
     {
-      width: 300,
+      minWidth: 200,
+      flex: 1,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -961,6 +962,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     },
     {
       minWidth: 150,
+      flex: 0.2,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -971,6 +973,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     },
     {
       minWidth: 150,
+      flex: 0.2,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       align: 'center',
@@ -992,6 +995,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     },
     {
       minWidth: 100,
+      flex: 0.2,
       field: 'count',
       headerName: 'qty',
       renderCell: params => (
@@ -1002,6 +1006,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     },
     {
       minWidth: 150,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'Request ID',
       renderCell: params => (
@@ -1031,8 +1036,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     // },
 
     {
-      width: 300,
-      minWidth: 300,
+      minWidth: 160,
+      flex: 0.2,
       field: 'status',
       // headerName: 'Status',
       headerName: selectedPharmacy?.id == orderData.to_store_id ? 'Actions' : 'Status',

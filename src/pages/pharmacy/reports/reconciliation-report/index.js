@@ -109,7 +109,7 @@ const ReconciliationReport = () => {
 
       // month: monthAndYear.month,
       // year: monthAndYear.year
-  })
+    })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -131,7 +131,7 @@ const ReconciliationReport = () => {
     selectedPharmacy.id,
     monthAndYear,
     filterSwitch,
-    activeStatus,
+    activeStatus
   ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -152,8 +152,8 @@ const ReconciliationReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
+
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -170,8 +170,8 @@ const ReconciliationReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 340,
+      minWidth: 340,
+      flex: 1,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
@@ -189,8 +189,8 @@ const ReconciliationReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 140,
+      flex: 0.2,
+      minWidth: 140,
       field: 'batch_no',
       headerName: 'BATCH NO',
       sortable: false,
@@ -217,8 +217,8 @@ const ReconciliationReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'opening_balance',
       headerName: '',
       sortable: false,
@@ -245,8 +245,8 @@ const ReconciliationReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'current_balance',
       headerName: '',
       sortable: false,
@@ -274,8 +274,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 140,
       field: 'purchase_qty_curr',
       headerName: '',
       sortable: false,
@@ -303,8 +303,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 140,
       field: 'request_qty_curr',
       headerName: '',
       sortable: false,
@@ -332,8 +332,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 140,
       field: 'dispatch_qty_curr',
       headerName: '',
       sortable: false,
@@ -361,8 +361,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 140,
       field: 'dispatch_dispute_qty_curr',
       headerName: '',
       sortable: false,
@@ -390,8 +390,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 140,
       field: 'return_qty_curr',
       headerName: '',
       sortable: false,
@@ -419,8 +419,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'return_dispute_qty_curr',
       headerName: '',
       sortable: false,
@@ -448,8 +448,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'dispatch_shipment_qty_curr',
       headerName: '',
       sortable: false,
@@ -477,8 +477,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'return_shipment_qty_curr',
       headerName: '',
       sortable: false,
@@ -506,8 +506,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'escrow_qty_curr',
       headerName: '',
       sortable: false,
@@ -535,8 +535,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'dispense_qty_curr',
       headerName: '',
       sortable: false,
@@ -564,8 +564,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'adjustment_qty_curr',
       headerName: '',
       sortable: false,
@@ -593,8 +593,8 @@ const ReconciliationReport = () => {
     },
 
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'discard_qty_curr',
       headerName: '',
       sortable: false,
@@ -673,9 +673,9 @@ const ReconciliationReport = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize
       })
-    } 
+    }
   }
-    const searchTableData = useCallback(
+  const searchTableData = useCallback(
     debounce(async (sort, q, column, page, limit) => {
       setSearchValue(q)
       try {
@@ -684,16 +684,15 @@ const ReconciliationReport = () => {
           q,
           column,
           page,
-          limit 
-      })
+          limit
+        })
 
-        updateUrlParams({        
-          sort: sort, 
+        updateUrlParams({
+          sort: sort,
           q: searchValue,
           column: sortColumn,
           page: paginationModel.page,
-          limit: paginationModel.pageSize,
-          
+          limit: paginationModel.pageSize
         })
       } catch (error) {
         console.error(error)
@@ -703,9 +702,9 @@ const ReconciliationReport = () => {
   )
 
   const handleSearch = value => {
-  setSearchValue(value)
-  searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
-}
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
+  }
 
   const datePickerHandleChange = newValue => {
     // debounce(newValue => {

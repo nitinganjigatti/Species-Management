@@ -101,8 +101,7 @@ const ListOfUOM = () => {
 
   const columns = [
     {
-      // flex: 0.2,
-      Width: 150,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -133,7 +132,7 @@ const ListOfUOM = () => {
     },
 
     {
-      // flex: 0.2,
+      flex: 0.2,
       minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
@@ -152,7 +151,7 @@ const ListOfUOM = () => {
       )
     },
     {
-      // flex: 0.2,
+      flex: 0.2,
       minWidth: 250,
       field: 'Action',
       headerName: 'Action',

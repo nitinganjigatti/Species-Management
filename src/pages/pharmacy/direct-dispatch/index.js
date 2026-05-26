@@ -4,7 +4,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 
-import {TabList, TabContext, TabPanel} from "@mui/lab"
+import { TabList, TabContext, TabPanel } from '@mui/lab'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** MUI Imports
@@ -241,7 +241,7 @@ const DirectDispatchList = () => {
                 pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
               })
             }
-            styles = {{
+            styles={{
               mr: 0
             }}
             fullWidth='fullWidth'
@@ -261,7 +261,7 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      width: 80,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -272,7 +272,8 @@ const DirectDispatchList = () => {
     },
 
     {
-      width: 160,
+      minWidth: 160,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -447,67 +448,64 @@ const DirectDispatchList = () => {
           <FallbackSpinner />
         ) : (
           <>
-            <PageCardLayout 
-              title = "Direct Dispatch List"
-              action = {headerAction}>
-                <Grid
-                  container
-                  spacing={4}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5 }} >
-                    <MUISearch
-                      width={'100%'}
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      onClear={() => handleSearch('')}
-                    />
-                  </Grid>
-
-                  {/* Switch Button */}
-                  {(status === 'all' || status === 'completed') && (
-                    <Grid size={{ xs: 'auto' }}>
-                      <MUISwitch
-                        label='Completed'
-                        formControlStyle={{
-                          margin: 0
-                        }}
-                        labelStyle={{
-                          color: theme.palette.customColors.customHeadingTextColor,
-                          fontSize: '14px',
-                          fontWeight: 400
-                        }}
-                        labelPlacement='end'
-                        defaultChecked={filterSwitch}
-                        onChange={e => {
-                          handleSwitchChange(e)
-                        }}
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-         
-
-                <Grid>
-                  <CommonTable
-                    onRowClick={onRowClick}
-                    indexedRows={indexedRows}
-                    total={total}
-                    columns={columns}
-                    paginationModel={paginationModel}
-                    handleSortModel={handleSortModel}
-                    setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
+            <PageCardLayout title='Direct Dispatch List' action={headerAction}>
+              <Grid
+                container
+                spacing={4}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5 }}>
+                  <MUISearch
+                    width={'100%'}
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    onClear={() => handleSearch('')}
                   />
                 </Grid>
-             </PageCardLayout>
+
+                {/* Switch Button */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid size={{ xs: 'auto' }}>
+                    <MUISwitch
+                      label='Completed'
+                      formControlStyle={{
+                        margin: 0
+                      }}
+                      labelStyle={{
+                        color: theme.palette.customColors.customHeadingTextColor,
+                        fontSize: '14px',
+                        fontWeight: 400
+                      }}
+                      labelPlacement='end'
+                      defaultChecked={filterSwitch}
+                      onChange={e => {
+                        handleSwitchChange(e)
+                      }}
+                    />
+                  </Grid>
+                )}
+              </Grid>
+
+              <Grid>
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
+            </PageCardLayout>
           </>
         )}
       </>
@@ -526,7 +524,7 @@ const DirectDispatchList = () => {
             />
           )}
           <Tab
-            // sx={{ ml: selectedPharmacy?.type === 'central' ? 0: 3 }} 
+            // sx={{ ml: selectedPharmacy?.type === 'central' ? 0: 3 }}
             value='shipped'
             label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
           />
@@ -540,16 +538,16 @@ const DirectDispatchList = () => {
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
-        <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
-        <TabPanel value='pending'>{tableData()}</TabPanel>
-        <TabPanel value='shipped'>{tableData()}</TabPanel>
-        <TabPanel value='disputed'>{tableData()}</TabPanel>
-        <TabPanel value='cancel'>{tableData()}</TabPanel>
-        {status === 'all' ? (
-          <TabPanel value='all'>{tableData()}</TabPanel>
-        ) : (
-          <TabPanel value='completed'>{tableData()}</TabPanel>
-        )}
+        <Box sx={{ '& .MuiTabPanel-root': { p: 0, mt: 3 } }}>
+          <TabPanel value='pending'>{tableData()}</TabPanel>
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
+          {status === 'all' ? (
+            <TabPanel value='all'>{tableData()}</TabPanel>
+          ) : (
+            <TabPanel value='completed'>{tableData()}</TabPanel>
+          )}
         </Box>
       </TabContext>
     </Grid>

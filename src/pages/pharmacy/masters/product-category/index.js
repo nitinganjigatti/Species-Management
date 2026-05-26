@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import TableWithFilter from 'src/components/TableWithFilter'
+
+import { getProductCategoriesList, addProductCategory, updateProductCategory } from 'src/lib/api/pharmacy/getCategories'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
 
-import { Box, Grid, Typography, IconButton, Tooltip } from '@mui/material'
+import { useTheme } from '@emotion/react'
+import { Box, Grid, Tooltip, IconButton, Typography } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
 import { debounce } from 'lodash'
 
-import { useTheme } from '@emotion/react'
-
-import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
-
-import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
+import AddProductCategory from 'src/views/pages/pharmacy/medicine/productCategory/addProductCategory'
 
 import toast from 'react-hot-toast'
 
@@ -26,26 +25,23 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
-const ManufacturerList = () => {
+const ListOfProductCategory = () => {
   const theme = useTheme()
 
-  const [packages, setPackages] = useState([])
   const [loader, setLoader] = useState(false)
 
-  const editParamsInitialState = { id: null, name: null, active: null }
+  /*** Drawer ****/
+  const editParamsInitialState = { id: null, category_name: null, description: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
   const [exportLoading, setExportLoading] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -53,22 +49,8 @@ const ManufacturerList = () => {
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpenSnackbar(false)
-  }
-
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
-
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null, name: null, active: null })
+    setEditParams(editParamsInitialState)
     setResetForm(true)
     setOpenDrawer(true)
   }
@@ -77,8 +59,9 @@ const ManufacturerList = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, name, active) => {
-    setEditParams({ id: id, name: name, active: active })
+  const handleEdit = async (id, category_name, description, active) => {
+    setEditParams({ id, category_name, description, active })
+    setResetForm(false)
     setOpenDrawer(true)
   }
 
@@ -87,6 +70,7 @@ const ManufacturerList = () => {
       minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -95,11 +79,11 @@ const ManufacturerList = () => {
     },
     {
       flex: 1,
-      minWidth: 250,
-      field: 'label',
-      headerName: 'Package',
+      minWidth: 220,
+      field: 'category_name',
+      headerName: 'CATEGORY NAME',
       renderCell: params => (
-        <Tooltip title={params.row.label}>
+        <Tooltip title={params.row.category_name}>
           <Typography
             variant='body2'
             sx={{
@@ -111,15 +95,37 @@ const ManufacturerList = () => {
               whiteSpace: 'nowrap'
             }}
           >
-            {params.row.label}
+            {params.row.category_name}
           </Typography>
         </Tooltip>
       )
     },
-
+    {
+      flex: 1,
+      minWidth: 250,
+      field: 'description',
+      headerName: 'DESCRIPTION',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip title={params.row.description || ''}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.description || '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
     {
       flex: 0.2,
-      minWidth: 250,
+      minWidth: 130,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -131,15 +137,44 @@ const ManufacturerList = () => {
             fontWeight: 500
           }}
         >
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
+          {params.row.active === '1' || params.row.active === 1 ? 'Active' : 'Inactive'}
         </Typography>
       )
     },
     {
       flex: 0.2,
-      minWidth: 250,
+      minWidth: 200,
+      field: 'created_by',
+      headerName: 'CREATED BY',
+      sortable: false,
+      renderCell: params => (
+        <UserAvatarDetails
+          profile_image={params?.row?.user_created_profile_pic}
+          user_name={params?.row?.created_by}
+          date={params?.row?.created_at}
+        />
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 200,
+      field: 'updated_by',
+      headerName: 'UPDATED BY',
+      sortable: false,
+      renderCell: params => (
+        <UserAvatarDetails
+          profile_image={params?.row?.user_updated_profile_pic}
+          user_name={params?.row?.updated_by}
+          date={params?.row?.updated_at}
+        />
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 100,
       field: 'Action',
-      headerName: 'Action',
+      headerName: 'ACTION',
+      sortable: false,
       renderCell: params => (
         <>
           {pharmacyRole && (
@@ -148,7 +183,9 @@ const ManufacturerList = () => {
                 <IconButton
                   size='small'
                   sx={{ mr: 0.5 }}
-                  onClick={() => handleEdit(params.row.id, params.row.label, params.row.active)}
+                  onClick={() =>
+                    handleEdit(params.row.id, params.row.category_name, params.row.description, params.row.active)
+                  }
                 >
                   <Icon icon='mdi:pencil-outline' />
                 </IconButton>
@@ -164,9 +201,10 @@ const ManufacturerList = () => {
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('category_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -184,21 +222,21 @@ const ManufacturerList = () => {
           limit: paginationModel.pageSize
         }
 
-        await getPackages({ params: params }).then(res => {
+        await getProductCategoriesList({ params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
-      } catch (e) {
-        console.log(e)
+      } catch {
         setLoading(false)
       }
     },
     [paginationModel]
   )
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy?.id])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -206,8 +244,6 @@ const ManufacturerList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      // setSort('asc')
-      // setSortColumn('label')
     }
   }
 
@@ -232,9 +268,8 @@ const ManufacturerList = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          {' '}
           <AddButtonContained
-            title='Add Package'
+            title='Add Product Category'
             action={() => addEventSidebarOpen()}
             fullWidth='fullWidth'
             styles={{
@@ -251,15 +286,18 @@ const ManufacturerList = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await updatePackage(editParams?.id, payload)
+        response = await updateProductCategory(editParams?.id, payload)
       } else {
-        response = await addPackages(payload)
+        response = await addProductCategory(payload)
       }
+
       if (response?.success) {
         toast.success(response?.message)
+
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
+
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
@@ -271,8 +309,8 @@ const ManufacturerList = () => {
         }
       }
     } catch (e) {
+      console.log(e)
       setSubmitLoader(false)
-
       toast.error(JSON.stringify(e))
     }
   }
@@ -294,7 +332,7 @@ const ManufacturerList = () => {
 
     try {
       setExportLoading(true)
-      const response = await getPackages({ params })
+      const response = await getProductCategoriesList({ params })
       if (response?.success && response?.data) {
         Utility.downloadFileFromURL(response?.data)
         setExportLoading(false)
@@ -314,28 +352,28 @@ const ManufacturerList = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <PageCardLayout title='Packages' action={headerAction}>
-                <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-                    <MUISearch
-                      sx={{
-                        width: {
-                          xs: '100%',
-                          sm: '250px'
-                        }
-                      }}
-                      width={'100%'}
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      onClear={() => handleSearch('')}
-                    />
-                  </Grid>
-                  <Grid>
-                    <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+              <PageCardLayout title='Product Category' action={headerAction}>
+                <Grid container>
+                  <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                      <MUISearch
+                        sx={{
+                          width: {
+                            xs: '100%',
+                            sm: '250px'
+                          }
+                        }}
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+                    <Grid>
+                      <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                    </Grid>
                   </Grid>
                 </Grid>
-
                 <Grid>
                   <CommonTable
                     onRowClick={''}
@@ -350,7 +388,7 @@ const ManufacturerList = () => {
                   />
                 </Grid>
               </PageCardLayout>
-              <AddPackages
+              <AddProductCategory
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
                 handleSidebarClose={handleSidebarClose}
@@ -359,12 +397,6 @@ const ManufacturerList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              {/* <UserSnackbar
-                status={openSnackbar}
-                message={snackbarMessage}
-                severity={severity}
-                handleClose={handleClose}
-              /> */}
             </>
           )}
         </>
@@ -377,4 +409,4 @@ const ManufacturerList = () => {
   )
 }
 
-export default ManufacturerList
+export default ListOfProductCategory

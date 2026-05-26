@@ -38,7 +38,7 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
 
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getSuppliers, getSuppliersByParams } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
 import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
@@ -442,8 +442,9 @@ const AddExistingPurchase = () => {
   }
 
   const getSuppliersLists = async () => {
+    const params = { status: 1 }
     try {
-      const response = await getSuppliers({})
+      const response = await getSuppliersByParams({ params: params })
 
       if (response.data.data.list_items?.length > 0) {
         setSuppliers(response.data.data.list_items)
@@ -788,7 +789,7 @@ const AddExistingPurchase = () => {
     getSuppliersLists()
     setSupplierDialog(false)
   }
-  const theme = useTheme();
+  const theme = useTheme()
   return (
     <PageCardLayout
       title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
@@ -805,7 +806,7 @@ const AddExistingPurchase = () => {
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: {sm: 'flex-end'}
+                justifyContent: { sm: 'flex-end' }
               }}
             >
               <AddButton
@@ -817,13 +818,11 @@ const AddExistingPurchase = () => {
                   margin: 0,
                   width: '100%'
                 }}
-                
               />
             </Box>
           )}
         </>
       }
-   
     >
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={6}>
@@ -981,12 +980,14 @@ const AddExistingPurchase = () => {
             </FormControl>
           </Grid>
         </Grid>
-        <Grid container 
-        sx = {{ 
-          display: 'flex',
-          justifyContent: 'flex-end', 
-          alignItems: 'center'
-          }}>
+        <Grid
+          container
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center'
+          }}
+        >
           <Grid
             item
             size={{ xs: 12, sm: 'auto' }}
@@ -1001,19 +1002,19 @@ const AddExistingPurchase = () => {
               }}
               styles={{
                 margin: 0,
-                width: '100%',
+                width: '100%'
               }}
             />
           </Grid>
         </Grid>
         <TableContainer>
           <Table>
-            <TableHead 
-              sx={{ 
+            <TableHead
+              sx={{
                 // backgroundColor: '#F5F5F7'
                 backgroundColor: 'theme.palette.customColors.tableHeaderBg'
-
-              }}>
+              }}
+            >
               <TableRow>
                 <TableCell width='30%'>Product Name</TableCell>
                 <TableCell width='20%'>Batch</TableCell>
@@ -1162,7 +1163,7 @@ const AddExistingPurchase = () => {
             </Card>
           </Grid>
         </Grid> */}
-        <Grid item size={{ xs: 12 }} sx = {{display: 'flex', justifyContent: 'flex-end', my: 4}}>
+        <Grid item size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', my: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 4 }}>
             <LoadingButton
               disabled={editParams.purchase_details.length > 0 ? false : true}
@@ -1192,33 +1193,33 @@ const AddExistingPurchase = () => {
           </Box>
         </Grid>
       </form>
-        <Grid container>
-          <CommonDialogBox
-            title={'Add Inventory Item'}
-            dialogBoxStatus={show}
-            formComponent={createForm()}
-            close={closeDialog}
-            show={showDialog}
-          />
-        </Grid>
+      <Grid container>
         <CommonDialogBox
-          title={'Add Supplier'}
-          dialogBoxStatus={supplierDialog}
-          formComponent={
-            <AddSupplier
-              closeSupplierDialog={() => {
-                closeSupplierDialog()
-              }}
-              supplierDialog={supplierDialog}
-            />
-          }
-          close={() => {
-            setSupplierDialog(false)
-          }}
-          show={() => {
-            setSupplierDialog(true)
-          }}
+          title={'Add Inventory Item'}
+          dialogBoxStatus={show}
+          formComponent={createForm()}
+          close={closeDialog}
+          show={showDialog}
         />
+      </Grid>
+      <CommonDialogBox
+        title={'Add Supplier'}
+        dialogBoxStatus={supplierDialog}
+        formComponent={
+          <AddSupplier
+            closeSupplierDialog={() => {
+              closeSupplierDialog()
+            }}
+            supplierDialog={supplierDialog}
+          />
+        }
+        close={() => {
+          setSupplierDialog(false)
+        }}
+        show={() => {
+          setSupplierDialog(true)
+        }}
+      />
     </PageCardLayout>
   )
 }

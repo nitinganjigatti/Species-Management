@@ -85,7 +85,7 @@ const GenericNamesList = () => {
 
   const columns = [
     {
-      Width: 100,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -119,6 +119,7 @@ const GenericNamesList = () => {
     },
 
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
@@ -137,6 +138,7 @@ const GenericNamesList = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'Action',
       headerName: 'Action',

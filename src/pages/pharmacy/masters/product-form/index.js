@@ -4,7 +4,7 @@ import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/a
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import { Box, Grid, Typography, IconButton } from '@mui/material'
+import { Box, Grid, Typography, IconButton, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -82,7 +82,7 @@ const ListOfDosageForms = () => {
 
   const columns = [
     {
-      minWidth: 60,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -97,20 +97,26 @@ const ListOfDosageForms = () => {
       field: 'label',
       headerName: 'Product Form',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          {params.row.label}
-        </Typography>
+        <Tooltip title={params.row.label}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.label}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'status',
       headerName: 'STATUS',
@@ -129,6 +135,7 @@ const ListOfDosageForms = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'Action',
       headerName: 'Action',

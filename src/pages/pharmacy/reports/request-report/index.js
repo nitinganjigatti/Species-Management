@@ -218,8 +218,7 @@ const RequestReport = () => {
 
   const columns = [
     {
-      width: 80,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -235,7 +234,8 @@ const RequestReport = () => {
       )
     },
     {
-      width: 100,
+      flex: 0.2,
+      minWidth: 120,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
@@ -255,8 +255,8 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'request_ID',
       headerName: 'REQUEST NUMBER',
       sortable: true,
@@ -274,8 +274,8 @@ const RequestReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      minWidth: 340,
+      flex: 0.2,
       field: 'product_name',
       align: 'left',
       sortable: true,
@@ -295,8 +295,8 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      flex: 0.2,
+      minWidth: 190,
       field: 'requested_quantity',
       headerName: 'REQUESTED QUANTITY',
       sortable: true,
@@ -315,8 +315,8 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      flex: 0.2,
+      minWidth: 190,
       field: 'pending_quantity',
       headerName: 'PENDING QUANTITY',
       sortable: true,
@@ -335,8 +335,8 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 220,
+      flex: 0.2,
+      minWidth: 220,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -360,8 +360,8 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'request_from',
       headerName: 'REQUESTED FROM',
       sortable: true,
@@ -385,6 +385,7 @@ const RequestReport = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'requested_date',
       sortable: true,

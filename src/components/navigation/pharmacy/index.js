@@ -266,6 +266,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/masters/driver'
   }
 
+  const productCategory = {
+    title: 'Product Category',
+    path: '/pharmacy/masters/product-category'
+  }
+
   const variant = {
     title: 'Variants',
     path: '/pharmacy/masters/variant'
@@ -588,7 +593,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       storage,
       supplierList,
       state,
-      driver
+      driver,
+      productCategory
     )
     if (selectedPharmacy?.type === 'central') {
       mastersParent.children.push(variant)

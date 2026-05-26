@@ -7,7 +7,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import toast from 'react-hot-toast'
 
 // ** MUI Imports
-import { Box, Typography, Grid } from '@mui/material'
+import { Box, Typography, Grid, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -126,7 +126,7 @@ const ListOfStates = () => {
 
   const columns = [
     {
-      minWidth: 90,
+      minWidth: 100,
       field: 'uid',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -137,26 +137,32 @@ const ListOfStates = () => {
     },
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       field: 'name',
       headerName: 'STATE NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row.name}
-        </Typography>
+        <Tooltip title={params.row.name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              textTransform: 'capitalize',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.name}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
-      minWidth: 180,
+      flex: 0.2,
+      minWidth: 250,
       field: 'code',
       headerName: 'STATE CODE',
       type: 'number',
@@ -176,7 +182,8 @@ const ListOfStates = () => {
       )
     },
     {
-      minWidth: 200,
+      flex: 0.2,
+      minWidth: 250,
       field: 'short_code',
       headerName: 'SHORT CODE',
       renderCell: params => (
@@ -194,7 +201,8 @@ const ListOfStates = () => {
       )
     },
     {
-      minWidth: 180,
+      flex: 0.2,
+      minWidth: 250,
 
       field: 'status',
       headerName: 'STATUS',
@@ -214,7 +222,8 @@ const ListOfStates = () => {
       )
     },
     {
-      minWidth: 180,
+      flex: 0.2,
+      minWidth: 250,
 
       field: 'Action',
       headerName: 'Action',

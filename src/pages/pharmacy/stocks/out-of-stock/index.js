@@ -130,7 +130,7 @@ const StockOut = () => {
     //   )
     // },
     {
-      flex: 1,
+      flex: 0.7,
       minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
@@ -142,6 +142,7 @@ const StockOut = () => {
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={'100%'}
           />
         </Box>
       )
@@ -160,7 +161,7 @@ const StockOut = () => {
     // },
 
     {
-      width: 250,
+      flex: 0.2,
       minWidth: 100,
       field: 'min_qty',
       headerName: 'Reorder level',
@@ -179,7 +180,7 @@ const StockOut = () => {
     },
 
     {
-      width: 100,
+      flex: 0.2,
       minWidth: 100,
       sortable: false,
       field: 'priority',
@@ -198,7 +199,7 @@ const StockOut = () => {
     },
 
     {
-      width: 150,
+      flex: 0.2,
       minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
@@ -222,7 +223,7 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      width: 80,
+      minWidth: 100,
       alignItems: 'right',
       field: 'id',
       headerName: 'SL',
@@ -270,7 +271,7 @@ const StockOut = () => {
     // },
 
     {
-      width: 150,
+      flex: 0.2,
       minWidth: 150,
       sortable: false,
       field: 'priority',
@@ -288,7 +289,7 @@ const StockOut = () => {
       )
     },
     {
-      width: 200,
+      flex: 0.2,
       minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',

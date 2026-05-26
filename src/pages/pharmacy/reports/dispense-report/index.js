@@ -192,8 +192,8 @@ const DispenseReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
+
       field: 'id',
       sortable: false,
       align: 'center',
@@ -209,8 +209,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      minWidth: 180,
+      flex: 0.2,
       field: 'dispense_id',
       headerName: 'DISPENSE NUMBER',
       sortable: true,
@@ -228,8 +228,8 @@ const DispenseReport = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      flex: 1,
+      minWidth: 340,
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -249,8 +249,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'batch_no',
       sortable: false,
       headerName: 'BATCH NUMBER',
@@ -268,8 +268,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -287,8 +287,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 170,
+      flex: 0.2,
+      minWidth: 170,
       field: 'dispense_qty',
       headerName: 'DISPENSE QUANTITY',
       sortable: true,
@@ -307,8 +307,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 170,
+      flex: 0.2,
+      minWidth: 170,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -328,8 +328,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      flex: 0.2,
+      minWidth: 190,
       field: 'total_consumption_cost',
       headerName: 'DISPENSE VALUE',
       sortable: true,
@@ -349,8 +349,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 250,
+      flex: 0.2,
+      minWidth: 250,
       field: 'manufacturer_name',
       sortable: false,
       headerName: 'MANUFACTURER NAME',
@@ -364,8 +364,8 @@ const DispenseReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -374,8 +374,8 @@ const DispenseReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'from_store',
       sortable: true,
       headerName: 'FROM STORE',
@@ -389,8 +389,8 @@ const DispenseReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.from_store}> {params.row.from_store}</span>
@@ -399,6 +399,7 @@ const DispenseReport = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'dispense_to_user_name',
       sortable: true,
@@ -423,8 +424,8 @@ const DispenseReport = () => {
                   fontWeight: 400,
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
+                  textOverflow: 'ellipsis'
+                  // maxWidth: 200
                 }}
               >
                 {params?.row?.dispense_to_user_name ? (
@@ -439,6 +440,7 @@ const DispenseReport = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'dispense_date',
       sortable: true,
