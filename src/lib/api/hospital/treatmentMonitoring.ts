@@ -28,72 +28,75 @@ import type {
   TreatmentMonitoringListParams,
   TreatmentMonitoringListResponse
 } from 'src/types/hospital'
+import { DeletePreviousEntryResponse, GetHospitalParamsFilterOptionsPayload, GetHospitalParamsFilterOptionsResponse, GetParametersBasedOnFiltersParams, GetParametersBasedOnFiltersResponse,GetTreatmentMonitoringListParams, GetTreatmentMonitoringListResponse, PreviousEntryParams, PreviousEntryResponse, UpdatePreviousEntryParams, UpdatePreviousEntryResponse } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring';
+import { AddIntervalForParameterPayload, AddIntervalForParametersResponse, AddMonitoringParameterPayload, AddMonitoringParameterResponse, DeleteMonitoringParameterPayload, DeleteMonitoringParameterResponse, GetHospitalParametersUnitResponse, GetParamsBasedOnTemplatesPayload, GetParamsBasedOnTemplatesResponse, GetTemplatesParamsListPayload, GetTemplatesParamsListResponse, GetTreatmentIntervalsResponse, MonitoringParametersPayload, MonitoringParametersResponse, SaveTemplatePayload, SaveTemplateResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit';
+import { AddTreatmentMonitoringParams, AddTreatmentMonitoringResponse } from 'src/types/hospital/api/TreatmentMonitoring/addTreatmentMonitoring';
 
-export const getTreatmentIntervals = async (): Promise<ApiResponse<unknown>> => {
+export const getTreatmentIntervals = async (): Promise<GetTreatmentIntervalsResponse> => {
   const response = await axiosGet({ url: `${GET_TREATMENT_PARAMETERS_INTERVALS}` })
 
   return response?.data
 }
 
 export const addIntervalsForParameters = async (
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddIntervalForParameterPayload
+): Promise<AddIntervalForParametersResponse> => {
   const response = await axiosPost({ url: `${SCHEDULE_INTERVALS_FOR_PARAMETERS}`, body: payload })
 
   return response?.data
 }
 
 export const getHospitalParamsFilterOptions = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetHospitalParamsFilterOptionsPayload
+): Promise<GetHospitalParamsFilterOptionsResponse> => {
   const response = await axiosGet({ url: `${GET_PARAMS_FILER_OPTIONS}`, params })
 
   return response?.data
 }
 
 export const getParametersBasedOnFilters = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetParametersBasedOnFiltersParams
+): Promise<GetParametersBasedOnFiltersResponse> => {
   const response = await axiosGet({ url: `${GET_PARAMETERS_ON_FILTERS}`, params })
 
   return response?.data
 }
 
 export const getHospitalParamsTemplatesList = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetTemplatesParamsListPayload
+): Promise<GetTemplatesParamsListResponse> => {
   const response = await axiosGet({ url: `${GET_HOSPITAL_PARAMS_TEMPLATE}`, params })
 
   return response?.data
 }
 
 export const getParametersBasedOnTemplates = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetParamsBasedOnTemplatesPayload
+): Promise<GetParamsBasedOnTemplatesResponse> => {
   const response = await axiosGet({ url: `${GET_PARAMS_OF_TEMPLATE}`, params })
 
   return response?.data
 }
 
 export const saveHospitalTemplate = async (
-  params: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: SaveTemplatePayload
+): Promise<SaveTemplateResponse> => {
   const response = await axiosFormPost({ url: `${SAVE_HOSPITAL_TEMPLATE}`, body: params })
 
   return response?.data
 }
 
 export const applyParamsToHospitalCaseId = async (
-  params: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: AddMonitoringParameterPayload
+): Promise<AddMonitoringParameterResponse> => {
   const response = await axiosFormPost({ url: `${APPLY_PARAMS_TO_CASE_ID}`, body: params })
 
   return response?.data
 }
 
 export const getTreatmentMonitoringData = async (
-  params: TreatmentMonitoringListParams
-): Promise<TreatmentMonitoringListResponse> => {
+  params: GetTreatmentMonitoringListParams
+): Promise<GetTreatmentMonitoringListResponse> => {
   const response = await axiosGet({ url: `${GET_TREATMENT_MONITORING_DATA}`, params })
 
   return response?.data
@@ -101,8 +104,8 @@ export const getTreatmentMonitoringData = async (
 
 export const getMonitoringParameters = async (
   id: string | number,
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params?: MonitoringParametersPayload
+): Promise<MonitoringParametersResponse> => {
   const response = await axiosGet({ url: `${GET_MONITORING_PARAMETERS}/${id}`, params })
 
   return response?.data
@@ -118,8 +121,8 @@ export const getMonitoringParamsHistory = async (
 
 export const addAssessmentToParams = async (
   animalId: string | number,
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: AddTreatmentMonitoringParams
+): Promise<AddTreatmentMonitoringResponse> => {
   const response = await axiosPost({ url: `${ADD_ASSESSMENT_VALUE_TO_PARAMS}/${animalId}`, body: params })
 
   return response?.data
@@ -127,15 +130,15 @@ export const addAssessmentToParams = async (
 
 export const getHospitalParametersUnitListing = async (
   id: string | number
-): Promise<ApiResponse<unknown>> => {
+): Promise<GetHospitalParametersUnitResponse> => {
   const response = await axiosGet({ url: `${GET_HOSPITAL_PARAMETERS_UNIT}/${id}` })
 
   return response?.data
 }
 
 export const getHospitalAssessmentHistory = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: PreviousEntryParams
+): Promise<PreviousEntryResponse> => {
   const response = await axiosGet({ url: `${GET_PARAMETER_ASSESSMENT_HISTORY}`, params })
 
   return response?.data
@@ -143,22 +146,22 @@ export const getHospitalAssessmentHistory = async (
 
 export const updateHospitalAssessmentHistory = async (
   id: string | number,
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: UpdatePreviousEntryParams
+): Promise<UpdatePreviousEntryResponse> => {
   const response = await axiosPost({ url: `${UPDATE_PARAMETER_ASSESSMENT_HISTORY}/${id}`, body: params })
 
   return response?.data
 }
 
-export const deleteAssessmentHistory = async (id: string | number): Promise<ApiResponse<unknown>> => {
+export const deleteAssessmentHistory = async (id: string | number): Promise<DeletePreviousEntryResponse> => {
   const response = await axiosGet({ url: `${DELETE_PARAMETER_ASSESSMENT_HISTORY}/${id}` })
 
   return response?.data
 }
 
 export const deleteMonitoringParameter = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: DeleteMonitoringParameterPayload
+): Promise<DeleteMonitoringParameterResponse> => {
   const response = await axiosFormPost({ url: `${DELETE_MONITORING_MONITORING}`, body: payload })
 
   return response?.data

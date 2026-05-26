@@ -11,17 +11,30 @@ import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { getSectionList } from 'src/lib/api/egg/egg/createAnimal'
 import { AuthContext } from 'src/context/AuthContext'
+import { Id } from 'src/types/hospital'
+import { DischargeAnimalParams } from 'src/types/hospital/api/Discharge/discharge'
+import {
+  SiteOption,
+  ZooWiseSiteItem,
+} from 'src/types/hospital/api/ZooWiseSitelists/siteLists'
+
+interface TransferEnclosureLoadingState {
+  sites: boolean
+  sections: boolean
+  enclosures: boolean
+  submit: boolean
+}
 
 function useTransferEnclosureDischarge() {
   const { t } = useTranslation()
   const authData: any = useContext(AuthContext)
   const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id || null
 
-  const [sites, setSites] = useState<any[]>([])
+  const [sites, setSites] = useState<SiteOption[]>([])
   const [sections, setSections] = useState<any[]>([])
   const [enclosures, setEnclosures] = useState<any[]>([])
 
-  const [loading, setLoading] = useState<any>({
+  const [loading, setLoading] = useState<TransferEnclosureLoadingState>({
     sites: false,
     sections: false,
     enclosures: false,
@@ -30,19 +43,20 @@ function useTransferEnclosureDischarge() {
 
   const { selectedHospital, updateHospitalStats } = useHospital()
 
-  const setLoader = (key: string, value: boolean) => setLoading((prev: any) => ({ ...prev, [key]: value }))
+  const setLoader = (key: keyof TransferEnclosureLoadingState, value: boolean) =>
+    setLoading(prev => ({ ...prev, [key]: value }))
 
   // Fetch and refresh hospital bed stats in context after successful discharge
-  const fetchAndUpdateHospitalStats = async (hospitalId: any) => {
+  const fetchAndUpdateHospitalStats = async (hospitalId: Id | undefined) => {
     if (!hospitalId) return
 
     try {
-      const statsResponse: any = await (getHospitalBedStats as any)(hospitalId)
-      if (statsResponse?.success) {
+      const statsResponse = await getHospitalBedStats(hospitalId, {})
+      if (statsResponse?.success && statsResponse.data) {
         updateHospitalStats(statsResponse.data)
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital stats:', error?.message || error)
+    } catch (error: unknown) {
+      console.error('Error fetching hospital stats:', (error as Error)?.message || error)
     }
   }
 
@@ -52,16 +66,17 @@ function useTransferEnclosureDischarge() {
       const params = { q, limit: 10, page_no: 1 }
       const res: any = await getZooWiseSiteLists(params)
       if (res?.success) {
-        const formatted = res?.data?.result?.map((item: any) => ({
-          value: item?.site_id,
-          label: item?.site_name
-        }))
+        const formatted: SiteOption[] =
+          res?.data?.result?.map((item: ZooWiseSiteItem) => ({
+            value: item?.site_id,
+            label: item?.site_name
+          })) || []
         setSites(formatted)
       } else {
         setSites([])
       }
-    } catch (error: any) {
-      console.error('Error fetchSites:', error?.message)
+    } catch (error: unknown) {
+      console.error('Error fetchSites:', (error as Error)?.message)
     } finally {
       setLoader('sites', false)
     }
@@ -172,11 +187,11 @@ function useTransferEnclosureDischarge() {
   }
 
   // Handle transfer to enclosure form submission
-  const handleSubmitData = async (payload: any) => {
+  const handleSubmitData = async (payload: DischargeAnimalParams) => {
     setLoader('submit', true)
 
     try {
-      const response: any = await addInpatientDischarge(payload)
+      const response = await addInpatientDischarge(payload)
 
       if (response?.success) {
         Toaster({
@@ -195,8 +210,8 @@ function useTransferEnclosureDischarge() {
       })
 
       return false
-    } catch (error: any) {
-      console.error('Transfer enclosure error:', error?.message)
+    } catch (error: unknown) {
+      console.error('Transfer enclosure error:', (error as Error)?.message)
 
       return false
     } finally {

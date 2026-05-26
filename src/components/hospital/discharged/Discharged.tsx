@@ -41,7 +41,12 @@ import toast from 'react-hot-toast'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { extractTextFromHtml } from 'src/utility'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-import { FilterDate, VisitTypeReason } from 'src/types/hospital/models'
+import { DateRangeValue, FilterDate, PatientData, SelectOption, VisitTypeReason } from 'src/types/hospital/models'
+import { DownloadDischargeParams } from 'src/types/hospital/api/Discharge/discharge'
+import { GridCellParams, GridColDef, GridPaginationModel, GridRenderCellParams, GridRowParams } from '@mui/x-data-grid'
+import { GetInpatientListFilters, GetPatientListResponse } from 'src/types/hospital/api/Inpatient/inpatient'
+import { MenuData } from '../inpatient/Inpatient'
+import { IndexedRows } from '../DoctorsAndStaffs/DoctorsList'
 
 const HospitalDischarged = () => {
   const theme: any = useTheme()
@@ -68,18 +73,18 @@ const HospitalDischarged = () => {
     { label: t('hospital_module.outpatient'), value: 'opd' }
   ]
 
-  const [selectedOptions, setSelectedOptions] = useState<any>({
+  const [selectedOptions, setSelectedOptions] = useState<MenuData>({
     'Chief Veterinarian': [],
     'Origin Site': []
   })
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<GetInpatientListFilters>({
     page: 1,
     limit: 50,
     q: ''
   })
 
-  const applyFilters = (selectedOptions: any) => {
+  const applyFilters = (selectedOptions: MenuData) => {
     setSelectedOptions(selectedOptions)
     setOpenFilterDrawer(false)
   }
@@ -96,14 +101,14 @@ const HospitalDischarged = () => {
     // setSearchValue(q)
   }, [router.query])
 
-  const prepareFilterParams = (key: string) => {
+  const prepareFilterParams = (key: keyof MenuData) => {
     return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
   }
 
-  const formatDate = (dateString: any) => {
+  const formatDate = (dateString: DateRangeValue | undefined): string | null => {
     if (!dateString) return null
 
-    return new Date(dateString).toISOString().split('T')[0]
+    return new Date(dateString as unknown as string | number | Date).toISOString().split('T')[0]
   }
 
   const fetchDischargedPatients = async () => {
@@ -112,7 +117,7 @@ const HospitalDischarged = () => {
     try {
       setLoading(true)
 
-      const res: any = await getIncomingPatients({
+      const res: GetPatientListResponse = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -121,8 +126,8 @@ const HospitalDischarged = () => {
         patient_category: 'discharge',
         from_date: formatDate(filterDate.startDate) ?? '',
         to_date: formatDate(filterDate.endDate) ?? '',
-        users: prepareFilterParams('Chief Veterinarian'), 
-        origin_site: prepareFilterParams('Origin Site'),
+        users: prepareFilterParams('Chief Veterinarian') ?? '', 
+        origin_site: prepareFilterParams('Origin Site') ?? '',
         discharge_treatment_type: selectedDischargeType || undefined
       })
 
@@ -148,7 +153,7 @@ const HospitalDischarged = () => {
     selectedDischargeType
   ])
 
-  const updateUrlParams = (updatedFilters: any) => {
+  const updateUrlParams = (updatedFilters: GetInpatientListFilters) => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value) {
@@ -159,7 +164,7 @@ const HospitalDischarged = () => {
     router.push(`${router.pathname}?${queryString}`)
   }
 
-  const handlePaginationModelChange = (model: any) => {
+  const handlePaginationModelChange = (model: GridPaginationModel) => {
     const updated = {
       ...filters,
       page: model.page + 1,
@@ -196,7 +201,7 @@ const HospitalDischarged = () => {
     debouncedSearch('')
   }
 
-  const handleDownloadDischargeSummary = async (row: any) => {
+  const handleDownloadDischargeSummary = async (row: GridRowParams) => {
     const rowId = row?.id
     if (!rowId) return
 
@@ -231,35 +236,36 @@ const HospitalDischarged = () => {
     try {
       setExcelDownload(true)
 
-      const params = {
+      const params: DownloadDischargeParams = {
         q: searchValue,
-        hospital_id: selectedHospital?.id,
+        hospital_id: selectedHospital?.id ?? '',
         patient_category: 'discharge',
         visit_type: selectedVisitType,
         export: true
       }
 
-      const response: any = await downloadDischargeListings(params)
+      const response = await downloadDischargeListings(params)
       if (response?.success === true && response) {
         (Utility as any).downloadFileFromURL(response?.data?.download_url, Utility.extractHoursAndMinutes)
         setExcelDownload(false)
       }
-    } catch (error: any) {
-      toast.error(error?.message)
+    } catch (error) {
+      const err = error as Error
+      toast.error(err?.message)
     } finally {
       setExcelDownload(false)
     }
   }
 
 
-  const columns: any[] = [
+  const columns: GridColDef[] = [
     {
       minWidth: 20,
       width: 80,
       sortable: false,
       field: 'sl_no',
       headerName: t('hospital_module.sl_no'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
         </Typography>
@@ -271,7 +277,7 @@ const HospitalDischarged = () => {
       sortable: false,
       field: 'animal_name',
       headerName: t('hospital_module.animal_name_and_id'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <AnimalCard
             data={{
@@ -295,7 +301,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'medical_record_code',
       headerName: t('hospital_module.medical_record_id'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <MedicalIdChip
           medId={params?.row?.medical_record_code}
           backgroundColor={theme.palette.customColors.mdAntzNeutral}
@@ -308,7 +314,7 @@ const HospitalDischarged = () => {
       field: 'discharge_reason',
       sortable: false,
       headerName: t('hospital_module.discharge_summary'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Tooltip title={(extractTextFromHtml as any)(params?.row?.discharge_reason || 'NA')}>
             <Box
@@ -340,7 +346,7 @@ const HospitalDischarged = () => {
       align: 'left',
       headerAlign: 'left',
 
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Box>
             <Typography
@@ -366,7 +372,7 @@ const HospitalDischarged = () => {
       align: 'left',
       headerAlign: 'left',
 
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Box>
             <Typography
@@ -391,7 +397,7 @@ const HospitalDischarged = () => {
       headerName: t('hospital_module.duration'),
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const totalDuration = Number(params.row.duration_days) + 1
 
         return (
@@ -407,7 +413,7 @@ const HospitalDischarged = () => {
       field: 'visit_type',
       sortable: false,
       headerName: t('hospital_module.visit_type'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <VisitType title={params.row.visit_type} />
         </>
@@ -419,7 +425,7 @@ const HospitalDischarged = () => {
       field: 'doctor_full_name',
       sortable: false,
       headerName: t('hospital_module.chief_veterinarian'),
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
             {params?.row?.doctor_full_name ? params?.row?.doctor_full_name : '-'}
@@ -430,11 +436,11 @@ const HospitalDischarged = () => {
 
     {
       width: 100,
-      miWidth: 20,
+      minWidth: 20,
       field: 'action',
       sortable: false,
       headerName: t('action'),
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const isRowLoading = downloadingRowId === params.row.id
 
         return (
@@ -448,7 +454,7 @@ const HospitalDischarged = () => {
     }
   ]
 
-  const handleRowClick = async (params: any) => {
+  const handleRowClick = async (params: GridCellParams) => {
     if (params?.field !== 'action') {
       const queryParams = new URLSearchParams({
         animal_id: params.row.animal_id,
@@ -496,7 +502,7 @@ const HospitalDischarged = () => {
               <Box sx={{ mr: 2, display: 'flex', alignItems: {xs: 'flex-start',sm: 'center'}, gap: 4, ml: 2, flexDirection: {xs: 'column', sm: 'row'} }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
-                  onChange={(s: any, e: any) => setFilterDate({ startDate: s, endDate: e })}
+                  onChange={(s: DateRangeValue, e: DateRangeValue) => setFilterDate({ startDate: s, endDate: e })}
                 />
                 <Box sx = {{display: 'flex', gap: 4}}>
                 <Select
@@ -505,7 +511,7 @@ const HospitalDischarged = () => {
                   displayEmpty
                   onChange={(e: SelectChangeEvent<VisitTypeReason>) => setSelectedVisitType(e.target.value)}
                 >
-                  {visitTypeOptions?.map((item: any, index: number) => (
+                  {visitTypeOptions?.map((item: SelectOption, index: number) => (
                     <MenuItem key={index} value={item?.value}>
                       {item?.label}
                     </MenuItem>
@@ -544,7 +550,7 @@ const HospitalDischarged = () => {
                   }
                 }}
               >
-                {dischargeTabs.map((tab: any) => (
+                {dischargeTabs.map((tab: SelectOption) => (
                   <Tab key={tab.value} label={tab.label} value={tab.value} />
                 ))}
               </Tabs>

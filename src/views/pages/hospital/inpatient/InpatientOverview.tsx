@@ -182,7 +182,7 @@ const InpatientOverview = ({
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('hospital_module.sl_no') as string,
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -191,7 +191,7 @@ const InpatientOverview = ({
     },
     {
       field: 'medical_record_code',
-      headerName: 'Medical Record',
+      headerName: t('hospital_module.medical_record') as string,
       width: 150,
       headerAlign: 'left',
       align: 'left',
@@ -204,7 +204,7 @@ const InpatientOverview = ({
     },
     {
       field: 'hospital_name',
-      headerName: 'Hospital & SITE',
+      headerName: t('hospital_module.hospital_and_site') as string,
       width: 200,
       headerAlign: 'left',
       align: 'left',
@@ -274,7 +274,7 @@ const InpatientOverview = ({
     },
     {
       field: 'admitted_at',
-      headerName: 'ADMISSION',
+      headerName: t('hospital_module.admission') as string,
       width: 150,
       headerAlign: 'left',
       align: 'left',
@@ -292,7 +292,7 @@ const InpatientOverview = ({
     },
     {
       field: 'discharge_at',
-      headerName: 'DISCHARGED',
+      headerName: t('hospital_module.discharged') as string,
       width: 150,
       headerAlign: 'left',
       align: 'left',
@@ -300,17 +300,17 @@ const InpatientOverview = ({
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {params?.row?.discharge_at ? Utility.convertUtcToLocalReadableDate(params?.row?.discharge_at) : 'NA'}
+            {params?.row?.discharge_at ? Utility.convertUtcToLocalReadableDate(params?.row?.discharge_at) : (t('hospital_module.na') as string)}
           </Typography>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}>
-            {params?.row?.discharge_at ? Utility.convertUTCToLocaltime(params?.row?.discharge_at) : 'NA'}
+            {params?.row?.discharge_at ? Utility.convertUTCToLocaltime(params?.row?.discharge_at) : (t('hospital_module.na') as string)}
           </Typography>
         </Box>
       )
     },
     {
       field: 'days_admitted',
-      headerName: 'DURATION',
+      headerName: t('hospital_module.duration') as string,
       width: 120,
       headerAlign: 'left',
       align: 'left',
@@ -320,14 +320,14 @@ const InpatientOverview = ({
 
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
+            {totalDuration} {totalDuration > 1 ? t('hospital_module.days') : t('hospital_module.day')}
           </Typography>
         )
       }
     },
     {
       field: 'visit_type',
-      headerName: 'CASE TYPE',
+      headerName: t('hospital_module.case_type') as string,
       width: 150,
       headerAlign: 'left',
       align: 'left',
@@ -340,7 +340,7 @@ const InpatientOverview = ({
     },
     {
       field: 'doctor_name',
-      headerName: 'CHIEF DOCTOR',
+      headerName: t('hospital_module.chief_doctor') as string,
       width: 200,
       headerAlign: 'left',
       align: 'left',
@@ -368,7 +368,7 @@ const InpatientOverview = ({
     },
     {
       field: 'action',
-      headerName: 'Actions',
+      headerName: t('actions') as string,
       width: 100,
       headerAlign: 'right',
       align: 'right',
@@ -401,7 +401,7 @@ const InpatientOverview = ({
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
                     >
-                      Purpose of Visit
+                      {t('hospital_module.purpose_of_visit')}
                     </Typography>
                     <VisitType title={patientData?.visit_type} />
                   </Box>
@@ -448,7 +448,7 @@ const InpatientOverview = ({
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
                   >
-                    Reason for Admission
+                    {t('hospital_module.reason_for_admission')}
                   </Typography>
                   <Tooltip title={overviewData?.reason_for_admission}>
                     <Typography
@@ -490,7 +490,7 @@ const InpatientOverview = ({
                     />
                   ) : (
                     <Typography variant='body2' color='text.secondary'>
-                      No media available
+                      {t('hospital_module.no_media_available')}
                     </Typography>
                   )}
                 </Grid>
@@ -502,7 +502,7 @@ const InpatientOverview = ({
               <Typography
                 sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Animal Visit History
+                {t('hospital_module.animal_visit_history')}
               </Typography>
               <CommonTable
                 columns={columns}
