@@ -8,10 +8,19 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useTranslation } from 'react-i18next'
+import { Id } from 'src/types/hospital'
+import { DischargeAnimalParams } from 'src/types/hospital/api/Discharge/discharge'
+import { HospitalLists } from 'src/types/hospital/models'
+import { GetHospitalListParams } from 'src/types/hospital/api/Masters/hospitalDetailTypes'
+
+interface HospitalOption {
+  value: Id
+  label: string
+}
 
 function TransferHospitalDischarge() {
   const { t } = useTranslation()
-  const [hospitalData, setHospitalData] = useState<any[]>([])
+  const [hospitalData, setHospitalData] = useState<HospitalOption[]>([])
   const [isLoadingHospital, setIsLoadingHospital] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
 
@@ -35,19 +44,20 @@ function TransferHospitalDischarge() {
     setIsLoadingHospital(true)
 
     try {
-      const params = { q: query, limit: 5, page: 1 }
-      const res: any = await getHospitalMaster({ params } as any)
+      const params: GetHospitalListParams['params'] = { q: query, limit: 5, page: 1 }
+      const res = await getHospitalMaster({ params })
 
       if (res?.success) {
-        const formatted = res?.data?.hospitals?.map((item: any) => ({
-          value: item?.id,
-          label: item?.hospital_name
-        }))
+        const formatted: HospitalOption[] =
+          res?.data?.hospitals?.map((item: HospitalLists) => ({
+            value: item?.id,
+            label: item?.hospital_name ?? ''
+          })) || []
 
         setHospitalData(formatted)
       }
-    } catch (error: any) {
-      console.error('Hospital fetch error:', error?.response?.data?.message || error?.message)
+    } catch (error: unknown) {
+      console.error('Hospital fetch error:', (error as Error)?.message)
     } finally {
       setIsLoadingHospital(false)
     }
@@ -75,11 +85,11 @@ function TransferHospitalDischarge() {
   }
 
   // Handle mortality form submission
-  const handleSubmitData = async (payload: any) => {
+  const handleSubmitData = async (payload: DischargeAnimalParams) => {
     setSubmitLoader(true)
 
     try {
-      const res: any = await addInpatientDischarge(payload)
+      const res = await addInpatientDischarge(payload)
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || t('hospital_module.transfer_hospital_submitted_successfully') })
@@ -92,10 +102,10 @@ function TransferHospitalDischarge() {
       Toaster({ type: 'error', message: res?.message || t('hospital_module.failed_submit_transfer_hospital') })
 
       return false
-    } catch (error: any) {
+    } catch (error: unknown) {
       Toaster({
         type: 'error',
-        message: error?.response?.data?.message || error?.message || 'Unexpected error'
+        message: (error as Error)?.message || 'Unexpected error'
       })
 
       return false

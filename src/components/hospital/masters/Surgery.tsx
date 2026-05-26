@@ -290,7 +290,7 @@ const Surgery = () => {
       } catch (error: unknown) {
         const err = error as ApiError
         console.error(err)
-        Toaster({ type: 'error', message: err?.message || 'An unexpected error occurred' })
+        Toaster({ type: 'error', message: err?.message || (t('hospital_module.an_unexpected_error_occurred') as string) })
       } finally {
         setSubmitLoader(false)
       }
@@ -469,7 +469,7 @@ const Surgery = () => {
   return (
     <>
       <DynamicBreadcrumbs
-        pageItems={[{ title: 'Hospital' }, { title: 'Masters' }, { title: 'Surgery' }]}
+        pageItems={[{ title: t('navigation.hospital') }, { title: t('navigation.masters') }, { title: t('hospital_module.surgery') }]}
         sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
       />
 

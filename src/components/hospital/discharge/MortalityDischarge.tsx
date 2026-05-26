@@ -8,15 +8,39 @@ import { addInpatientDischarge, getNecropsyCenter } from 'src/lib/api/hospital/i
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import { Id } from 'src/types/hospital'
+import { DischargeAnimalParams } from 'src/types/hospital/api/Discharge/discharge'
+interface MortalityLoadingState {
+  manner: boolean
+  condition: boolean
+  disposition: boolean
+  necropsy: boolean
+  submit: boolean
+}
+
+interface NecropsyCenterOption {
+  value: Id
+  label: string
+}
+
+interface NecropsyCenterApiItem {
+  id: Id
+  name: string
+}
+
+interface NecropsyCenterApiResponse {
+  status?: boolean
+  data?: { list?: NecropsyCenterApiItem[] }
+}
 
 function useMortalityDischarge() {
   const { t } = useTranslation()
   const [causeOfDeath, setCauseOfDeath] = useState<any[]>([])
   const [carcassCondition, setCarcassCondition] = useState<any[]>([])
   const [carcassDeposition, setCarcassDeposition] = useState<any[]>([])
-  const [necropsyCenter, setNecropsyCenter] = useState<any[]>([])
+  const [necropsyCenter, setNecropsyCenter] = useState<NecropsyCenterOption[]>([])
 
-  const [loading, setLoading] = useState<any>({
+  const [loading, setLoading] = useState<MortalityLoadingState>({
     manner: false,
     condition: false,
     disposition: false,
@@ -26,19 +50,20 @@ function useMortalityDischarge() {
 
   const { selectedHospital, updateHospitalStats } = useHospital()
 
-  const setLoader = (key: string, value: boolean) => setLoading((prev: any) => ({ ...prev, [key]: value }))
+  const setLoader = (key: keyof MortalityLoadingState, value: boolean) =>
+    setLoading(prev => ({ ...prev, [key]: value }))
 
   // Fetch and refresh hospital bed stats in context after successful discharge
-  const fetchAndUpdateHospitalStats = async (hospitalId: any) => {
+  const fetchAndUpdateHospitalStats = async (hospitalId: Id | undefined) => {
     if (!hospitalId) return
 
     try {
-      const statsResponse: any = await (getHospitalBedStats as any)(hospitalId)
+      const statsResponse = await (getHospitalBedStats as any)(hospitalId)
       if (statsResponse?.success) {
         updateHospitalStats(statsResponse.data)
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital stats:', error?.message || error)
+    } catch (error: unknown) {
+      console.error('Error fetching hospital stats:', (error as Error)?.message || error)
     }
   }
 
@@ -125,8 +150,8 @@ function useMortalityDischarge() {
       } else {
         setNecropsyCenter([])
       }
-    } catch (error: any) {
-      console.error('Error fetchNecropsyCenter:', error?.message)
+    } catch (error: unknown) {
+      console.error('Error fetchNecropsyCenter:', (error as Error)?.message)
     } finally {
       setLoader('necropsy', false)
     }
@@ -158,11 +183,11 @@ function useMortalityDischarge() {
   const handleNecropsyCenterSearch = (text: string) => debouncedFetchNecropsyCenter(text || '')
 
   // Handle mortality form submission
-  const handleSubmitData = async (payload: any) => {
+  const handleSubmitData = async (payload: DischargeAnimalParams) => {
     setLoader('submit', true)
 
     try {
-      const response: any = await addInpatientDischarge(payload)
+      const response = await addInpatientDischarge(payload)
 
       if (response?.success) {
         Toaster({
@@ -181,8 +206,8 @@ function useMortalityDischarge() {
       })
 
       return false
-    } catch (error: any) {
-      console.error('Mortality submission error:', error?.message)
+    } catch (error: unknown) {
+      console.error('Mortality submission error:', (error as Error)?.message)
 
       return false
     } finally {

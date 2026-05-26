@@ -349,7 +349,7 @@ const AdministerOrSkipSidesheet = ({
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Activity Icon' />
+                <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Activity Icon' />
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
@@ -653,7 +653,7 @@ const AdministerOrSkipSidesheet = ({
                   )}
 
                   {/* Hidden submit button for form submission */}
-                  <button type='submit' style={{ display: 'none' }} />
+                  <Box component='button' type='submit' sx={{ display: 'none' }} />
                 </Grid>
               </form>
             </CardContent>

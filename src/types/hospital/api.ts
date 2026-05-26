@@ -48,6 +48,7 @@ export type ApiError = {
   }
 }
 
+
 export type DateType = string | null | Date
 
 export type Availability = 'Available' | 'Occupied'
@@ -56,6 +57,12 @@ export interface AppliedFilters {
   Availability?: Availability[]
   Status?: StatusAction[]
   [key: string]: Availability[] | StatusAction[] | undefined
+}
+
+export interface Filters {
+  page: number
+  limit: number
+  q: string
 }
 
 
@@ -355,3 +362,14 @@ export interface RoomsAndEnclosuresParams extends PaginationParams {
 }
 
 export interface RoomsAndEnclosuresResponse extends ApiResponse<unknown> {}
+
+export interface UpdateDeleteApiResponse {
+  success: boolean
+  message: string
+}
+
+export interface DeleteApiResponse {
+  success: boolean
+  data: unknown[]
+  message: string
+}

@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
-import { Box, Card, Chip, Drawer, IconButton, Select, Typography, useTheme } from '@mui/material'
+import React, { useState, useCallback, useEffect, useMemo, HTMLAttributes } from 'react'
+import { AutocompleteChangeReason, AutocompleteInputChangeReason, Box, Card, Chip, Drawer, IconButton, Theme, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, ControllerRenderProps, FieldError, useForm } from 'react-hook-form'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { alpha, Grid } from '@mui/system'
@@ -14,10 +14,36 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { useTranslation } from 'react-i18next'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { MedicationFormData } from '../../shared/AddAnesthesiaRecordPage'
+import { DeliveryRoute, DeliveryStatus, Id, MedicationDrugOption, SelectOption, UnitParams } from 'src/types/hospital/models'
 
 dayjs.extend(customParseFormat)
+
+interface MedDrugRef {
+  id?: Id
+  name?: string
+}
+
+interface ExistingMedicationItem {
+  drug_name?: MedDrugRef | null
+  drug_id?: Id
+}
+
+interface MedicationEditData {
+  id?: Id
+  drug_name?: MedDrugRef | null
+  drug_id?: Id
+  purpose_stage?: string
+  amount?: string | number
+  unit?: Id
+  delivery_route?: MedicationFormData['delivery_route']
+  delivery_time?: string | Dayjs | Date | null
+  max_effect_time?: string | Dayjs | Date | null
+  delivery_status?: DeliveryStatus | string | null
+  notes?: string
+}
 
 const createSchema = (t: any) => {
   return yup.object().shape({
@@ -65,19 +91,7 @@ const createSchema = (t: any) => {
   })
 }
 
-interface FormValues {
-  drug_name: any
-  purpose_stage: string
-  amount: string
-  unit: string
-  delivery_route: any
-  delivery_time: any
-  delivery_status: any
-  max_effect_time: any
-  notes: string
-}
-
-const defaultValues: FormValues = {
+const defaultValues: MedicationFormData = {
   drug_name: null,
   purpose_stage: '',
   amount: '',
@@ -92,14 +106,14 @@ const defaultValues: FormValues = {
 interface AddMedicationDrawerProps {
   handleSidebarOpen: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (data: any) => Promise<void> | void
+  handleSubmitData: (data: MedicationFormData) => Promise<void> | void
   submitLoader?: boolean
-  editData?: any
-  drugOptions?: any[]
-  existingMedications?: any[]
-  purposeStageOptions?: any[]
-  unitList?: any[]
-  deliveryRouteOptions?: any[]
+  editData?: MedicationEditData | null
+  drugOptions?: MedicationDrugOption[]
+  existingMedications?: ExistingMedicationItem[]
+  purposeStageOptions?: SelectOption[]
+  unitList?: SelectOption[]
+  deliveryRouteOptions?: DeliveryRoute[]
   onLoadMoreDrugs?: () => void
   hasMoreDrugs?: boolean
   isLoadingDrugs?: boolean
@@ -122,17 +136,17 @@ function AddMedicationDrawer({
   isLoadingDrugs = false,
   onSearch
 }: AddMedicationDrawerProps) {
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const { t } = useTranslation()
 
   const schema = createSchema(t)
 
-  const deliveryStatus = [
+  const deliveryStatus: SelectOption<DeliveryStatus>[] = [
     { label: t('hospital_module.complete', 'Complete'), value: 'Complete' },
     { label: t('hospital_module.partial', 'Partial'), value: 'Partial' },
     { label: t('hospital_module.none', 'None'), value: 'None' }
   ]
-  const [selectedStatus, setSelectedStatus] = useState<any>(null)
+  const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | null>(null)
   const [drugNameTouched, setDrugNameTouched] = useState<boolean>(false)
   const {
     reset,
@@ -141,7 +155,7 @@ function AddMedicationDrawer({
     setValue,
     trigger,
     formState: { errors, isValid }
-  } = useForm<FormValues>({
+  } = useForm<MedicationFormData>({
     defaultValues,
     resolver: yupResolver(schema) as any,
     shouldUnregister: false,
@@ -149,21 +163,21 @@ function AddMedicationDrawer({
     reValidateMode: 'onChange'
   })
 
-  const filteredDrugOptions = useMemo(() => {
+  const filteredDrugOptions = useMemo<MedicationDrugOption[]>(() => {
     if (!Array.isArray(drugOptions) || !drugOptions.length) return []
-    const existing = Array.isArray(existingMedications) ? existingMedications : []
+    const existing: ExistingMedicationItem[] = Array.isArray(existingMedications) ? existingMedications : []
 
     const excludedIds = new Set(
       existing
-        .map((m: any) => m?.drug_name?.id ?? m?.drug_id ?? null)
+        .map((m: ExistingMedicationItem) => m?.drug_name?.id ?? m?.drug_id ?? null)
         .filter(Boolean)
-        .map((id: any) => String(id))
+        .map((id: Id | null) => String(id))
     )
 
     const editingId = editData?.drug_name?.id ?? editData?.drug_id ?? null
     const editingIdStr = editingId ? String(editingId) : null
 
-    return drugOptions.filter((opt: any) => {
+    return drugOptions.filter((opt: MedicationDrugOption) => {
       const optId = opt?.id ?? opt?.drug_id ?? null
       if (!optId) return true
       const idStr = String(optId)
@@ -176,14 +190,14 @@ function AddMedicationDrawer({
   useEffect(() => {
     if (!handleSidebarOpen) return
     if (editData) {
-      const parseTime = (t: any) => {
-        if (!t) return null
-        if (dayjs.isDayjs(t)) return t
-        if (t instanceof Date) return dayjs(t)
+      const parseTime = (value: string | Dayjs | Date | null | undefined): Dayjs | null => {
+        if (!value) return null
+        if (dayjs.isDayjs(value)) return value
+        if (value instanceof Date) return dayjs(value)
 
         const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'hh:mm A', 'hh:mm a']
         for (const format of formats) {
-          const parsed = dayjs(t, format, true)
+          const parsed = dayjs(value, format, true)
           if (parsed.isValid()) {
             if (format.includes('hh:mm') || format === 'HH:mm:ss') {
               const today = dayjs().format('YYYY-MM-DD')
@@ -198,18 +212,19 @@ function AddMedicationDrawer({
         return null
       }
 
-      Object.keys(defaultValues).forEach((key: any) => {
+      (Object.keys(defaultValues) as (keyof MedicationFormData)[]).forEach((key) => {
         if (key !== 'delivery_time' && key !== 'max_effect_time') {
-          setValue(key as any, editData[key] ?? (defaultValues as any)[key], { shouldValidate: true })
+          const editValue = (editData as Record<string, unknown>)[key]
+          setValue(key, (editValue ?? defaultValues[key]) as MedicationFormData[typeof key], { shouldValidate: true })
         }
       })
 
-      setValue('delivery_time' as any, parseTime(editData.delivery_time), { shouldValidate: true })
-      setValue('max_effect_time' as any, parseTime(editData.max_effect_time), { shouldValidate: true })
+      setValue('delivery_time', parseTime(editData.delivery_time), { shouldValidate: true })
+      setValue('max_effect_time', parseTime(editData.max_effect_time), { shouldValidate: true })
 
       if (editData.delivery_status) {
-        setSelectedStatus(editData.delivery_status)
-        setValue('delivery_status' as any, editData.delivery_status, { shouldValidate: true })
+        setSelectedStatus(editData.delivery_status as DeliveryStatus)
+        setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
 
       if (editData.drug_name) {
@@ -221,7 +236,7 @@ function AddMedicationDrawer({
         ...defaultValues,
         delivery_time: now,
         max_effect_time: now
-      } as any)
+      })
       setSelectedStatus(null)
       setDrugNameTouched(false)
     }
@@ -229,7 +244,7 @@ function AddMedicationDrawer({
 
   useEffect(() => {
     if (selectedStatus) {
-      setValue('delivery_status' as any, selectedStatus, { shouldValidate: true })
+      setValue('delivery_status', selectedStatus, { shouldValidate: true })
     }
   }, [selectedStatus, setValue])
 
@@ -239,7 +254,7 @@ function AddMedicationDrawer({
   }, [trigger])
 
   const handleDrugNameChange = useCallback(
-    (event: any, value: any) => {
+    (event: React.SyntheticEvent | null, value: MedDrugRef | null) => {
       if (event?.type === 'change' && !value?.id) {
         setDrugNameTouched(true)
       }
@@ -249,10 +264,10 @@ function AddMedicationDrawer({
   )
 
   const onSubmit = useCallback(
-    async (formData: FormValues) => {
-      const fmt = (v: any) => (v ? dayjs(v).format('hh:mm A') : null)
+    async (formData: MedicationFormData) => {
+      const fmt = (v: string | Dayjs | Date | null | undefined) => (v ? dayjs(v).format('hh:mm A') : null)
 
-      const payload = {
+      const payload: MedicationFormData = {
         ...(editData && editData.id ? { id: editData.id } : {}),
         drug_name: formData.drug_name,
         purpose_stage: formData.purpose_stage,
@@ -303,7 +318,7 @@ function AddMedicationDrawer({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt={t('hospital_module.anaesthesia_icon')} />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {editData ? t('hospital_module.edit_drug') : t('hospital_module.add_drug')}
@@ -331,28 +346,33 @@ function AddMedicationDrawer({
                 <Controller
                   name='drug_name'
                   control={control}
-                  render={({ field, fieldState: { error } }: any) => (
+                  render={({ field, fieldState: { error } }: { field: ControllerRenderProps<MedicationFormData, 'drug_name'>; fieldState: { error?: FieldError } }) => (
                     <ControlledAutocomplete
-                      {...(field as any)}
+                      {...field}
                       control={control}
                       name='drug_name'
                       errors={errors}
                       label={(t('hospital_module.enter_drug_name') as string)}
                       options={filteredDrugOptions}
-                      getOptionLabel={(option: any) => option?.name || ''}
-                      isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                      renderOption={(props: any, option: any) => (
-                        <li {...props} key={option.id}>
-                          {option.name}
-                        </li>
-                      )}
+                      getOptionLabel={(option: unknown) => (option as MedicationDrugOption)?.name || ''}
+                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as MedicationDrugOption)?.id === (value as MedicationDrugOption)?.id}
+                      renderOption={(props: HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                        const opt = option as MedicationDrugOption
+
+                        return (
+                          <Box component='li' {...props} key={opt.id}>
+                            {opt.name}
+                          </Box>
+                        )
+                      }}
                       loading={isLoadingDrugs}
                       autocompleteProps={{
-                        onBlur: (event: any) => {
+                        onBlur: (event: React.FocusEvent) => {
                           handleDrugNameBlur()
-                          field.onBlur(event)
+                          field.onBlur()
+                          void event
                         },
-                        onChange: (event: any, value: any, reason: any) => {
+                        onChange: (event: React.SyntheticEvent, value: MedicationDrugOption | null, reason: AutocompleteChangeReason) => {
                           field.onChange(value)
                           if (reason === 'selectOption') {
                             setDrugNameTouched(false)
@@ -360,7 +380,7 @@ function AddMedicationDrawer({
                             handleDrugNameChange(event, value)
                           }
                         },
-                        onInputChange: (_: any, value: any, reason: any) => {
+                        onInputChange: (_: React.SyntheticEvent, value: string, reason: AutocompleteInputChangeReason) => {
                           if (reason === 'input') {
                             onSearch?.(value)
                           }
@@ -371,7 +391,7 @@ function AddMedicationDrawer({
                         },
                         slotProps: {
                           listbox: {
-                            onScroll: (event: any) => {
+                            onScroll: (event: React.UIEvent<HTMLUListElement>) => {
                               const listboxNode = event.currentTarget
                               const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
                               const threshold = listboxNode.scrollHeight - 50
@@ -391,12 +411,7 @@ function AddMedicationDrawer({
                             }
                           }
                         },
-                        filterOptions: (options: any, params: any) => {
-                          const filtered = options.filter((option: any) =>
-                            option.name.toLowerCase().includes(params.inputValue.toLowerCase())
-                          )
-                          return filtered
-                        }
+                        filterOptions: (options: MedicationDrugOption[]) => options
                       }}
                       error={drugNameTouched || error ? Boolean(error) : false}
                       helperText={drugNameTouched || error ? error?.message : ''}
@@ -412,8 +427,8 @@ function AddMedicationDrawer({
                   errors={errors}
                   label={(t('hospital_module.enter_purpose_or_stage') as string)}
                   options={purposeStageOptions}
-                  getOptionLabel={(option: any) => option.label}
-                  getOptionValue={(option: any) => option.value}
+                  getOptionLabel={(option: SelectOption) => option.label}
+                  getOptionValue={(option: SelectOption) => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -434,8 +449,8 @@ function AddMedicationDrawer({
                   errors={errors}
                   label={(t('hospital_module.unit', 'Unit') as string)}
                   options={unitList}
-                  getOptionLabel={(option: any) => option.uom_abbr}
-                  getOptionValue={(option: any) => option.id}
+                  getOptionLabel={(option: UnitParams) => option.uom_abbr}
+                  getOptionValue={(option: UnitParams) => option.id}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -443,7 +458,7 @@ function AddMedicationDrawer({
                   control={control}
                   name={'delivery_time'}
                   label={(t('hospital_module.delivery_time', 'Delivery Time') as string)}
-                  {...({ format: 'hh:mm a' } as any)}
+                  format='hh:mm a'
                   errors={errors}
                 />
               </Grid>
@@ -452,15 +467,19 @@ function AddMedicationDrawer({
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label={(t('hospital_module.delivery_route') as string)}
+                  label={(t('navigation.delivery_route') as string)}
                   options={deliveryRouteOptions}
-                  getOptionLabel={(option: any) => option?.delivery || ''}
-                  isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                  renderOption={(props: any, option: any) => (
-                    <li {...props} key={option.id}>
-                      {option.delivery}
-                    </li>
-                  )}
+                  getOptionLabel={(option: unknown) => String((option as DeliveryRoute)?.delivery ?? '')}
+                  isOptionEqualToValue={(option: unknown, value: unknown) => (option as DeliveryRoute)?.id === (value as DeliveryRoute)?.id}
+                  renderOption={(props: HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                    const opt = option as DeliveryRoute
+
+                    return (
+                      <Box component='li' {...props} key={opt.id}>
+                        {opt.delivery}
+                      </Box>
+                    )
+                  }}
                 />
               </Grid>
 
@@ -469,7 +488,7 @@ function AddMedicationDrawer({
                   {t('hospital_module.delivery_status_label')}{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                  {deliveryStatus.map((status: any, index: number) => (
+                  {deliveryStatus.map((status: SelectOption<DeliveryStatus>, index: number) => (
                     <Chip
                       key={index}
                       label={status.label}
@@ -506,7 +525,7 @@ function AddMedicationDrawer({
                   control={control}
                   name={'max_effect_time'}
                   label={(t('hospital_module.max_effect_time') as string)}
-                  {...({ format: 'hh:mm a' } as any)}
+                  format='hh:mm a'
                   errors={errors}
                 />
               </Grid>
@@ -519,7 +538,7 @@ function AddMedicationDrawer({
                   placeholder={(t('hospital_module.add_notes') as string)}
                   fullWidth
                   rows={2}
-                  inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
+                  inputBackgroundColor={alpha(theme.palette.customColors.antzNotes ?? '', 0.6)}
                 />
               </Grid>
             </Grid>

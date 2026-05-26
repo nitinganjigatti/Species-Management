@@ -4,11 +4,13 @@ import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import PrescriptionList from 'src/components/necropsy/PrescriptionList'
+import { Id } from 'src/types/hospital'
+import { t } from 'i18next'
 
 interface PrescriptionSidesheetProps {
   open: boolean
   onClose: () => void
-  animalId: any
+  animalId: Id
 }
 
 const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSidesheetProps) => {
@@ -60,7 +62,7 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSideshee
                 color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              Prescriptions
+              {t('hospital_module.prescriptions')}
             </Typography>
           </Box>
           <IconButton onClick={onClose} size='small'>

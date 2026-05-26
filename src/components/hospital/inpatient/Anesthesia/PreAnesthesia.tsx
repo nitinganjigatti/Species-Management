@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { Typography, styled, Box, useTheme, Grid, InputAdornment } from '@mui/material'
+import { Theme } from '@mui/material/styles'
 import { useFormContext, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
@@ -9,13 +10,14 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import CustomOtherPurposeSection from 'src/views/utility/CustomOtherPurposeSection'
 import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
+import { AnesthesiaAssessmentType, PreAnesthesiaSelectOption } from 'src/types/hospital/models'
 
 interface PreAnesthesiaProps {
-  physicalHealthStatusOptions?: any[]
-  bodyConditionOptions?: any[]
-  animalActivityOptions?: any[]
-  codeStatusOptions?: any[]
-  clinPathOptions?: any[]
+  physicalHealthStatusOptions?: PreAnesthesiaSelectOption[]
+  bodyConditionOptions?: PreAnesthesiaSelectOption[]
+  animalActivityOptions?: PreAnesthesiaSelectOption[]
+  codeStatusOptions?: PreAnesthesiaSelectOption[]
+  clinPathOptions?: AnesthesiaAssessmentType[]
 }
 
 function PreAnesthesia({
@@ -25,7 +27,7 @@ function PreAnesthesia({
   codeStatusOptions = [],
   clinPathOptions = []
 }: PreAnesthesiaProps) {
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const { t } = useTranslation()
   const {
     control,
@@ -59,7 +61,7 @@ function PreAnesthesia({
     }
 
     const normalizedNewItem = normalizeName(trimmed)
-    const isInClinPathOptions = clinPathOptions.some((option: any) => normalizeName(option.name) === normalizedNewItem)
+    const isInClinPathOptions = clinPathOptions.some((option: AnesthesiaAssessmentType) => normalizeName(option.name) === normalizedNewItem)
     const isInCustomItems = currentItems.some((item: string) => normalizeName(item) === normalizedNewItem)
 
     if (isInClinPathOptions || isInCustomItems) {
@@ -124,8 +126,8 @@ function PreAnesthesia({
             errors={errors}
             label={(t('hospital_module.physical_health_status') as string)}
             options={physicalHealthStatusOptions}
-            getOptionLabel={(opt: any) => opt.label}
-            getOptionValue={(opt: any) => opt.value}
+            getOptionLabel={(opt: PreAnesthesiaSelectOption) => opt.label}
+            getOptionValue={(opt: PreAnesthesiaSelectOption) => opt.value}
           />
         </Grid>
 
@@ -136,8 +138,8 @@ function PreAnesthesia({
             errors={errors}
             label={(t('hospital_module.body_condition') as string)}
             options={bodyConditionOptions}
-            getOptionLabel={(opt: any) => opt.label}
-            getOptionValue={(opt: any) => opt.value}
+            getOptionLabel={(opt: PreAnesthesiaSelectOption) => opt.label}
+            getOptionValue={(opt: PreAnesthesiaSelectOption) => opt.value}
           />
         </Grid>
 
@@ -148,8 +150,8 @@ function PreAnesthesia({
             errors={errors}
             label={(t('hospital_module.animal_activity') as string)}
             options={animalActivityOptions}
-            getOptionLabel={(opt: any) => opt.label}
-            getOptionValue={(opt: any) => opt.value}
+            getOptionLabel={(opt: PreAnesthesiaSelectOption) => opt.label}
+            getOptionValue={(opt: PreAnesthesiaSelectOption) => opt.value}
           />
         </Grid>
 
@@ -163,8 +165,8 @@ function PreAnesthesia({
             label={(t('hospital_module.fasting_time') as string)}
             placeholder={(t('hospital_module.enter_fasting_time') as string)}
             type='number'
-            getOptionLabel={(option: any) => option.label}
-            getOptionValue={(option: any) => option.value}
+            getOptionLabel={(option: PreAnesthesiaSelectOption) => option.label}
+            getOptionValue={(option: PreAnesthesiaSelectOption) => option.value}
             showEmptyMenuItem={false}
             showEmptyMenuItemLabel={false}
             min={1}
@@ -189,8 +191,8 @@ function PreAnesthesia({
             errors={errors}
             label={(t('hospital_module.code_status') as string)}
             options={codeStatusOptions}
-            getOptionLabel={(opt: any) => opt.label}
-            getOptionValue={(opt: any) => opt.value}
+            getOptionLabel={(opt: PreAnesthesiaSelectOption) => opt.label}
+            getOptionValue={(opt: PreAnesthesiaSelectOption) => opt.value}
           />
         </Grid>
 
@@ -204,8 +206,8 @@ function PreAnesthesia({
             label={(t('hospital_module.weight') as string)}
             placeholder={(t('hospital_module.weight') as string)}
             type='number'
-            getOptionLabel={(option: any) => option.label}
-            getOptionValue={(option: any) => option.value}
+            getOptionLabel={(option: PreAnesthesiaSelectOption) => option.label}
+            getOptionValue={(option: PreAnesthesiaSelectOption) => option.value}
           />
         </Grid>
 
@@ -237,17 +239,17 @@ function PreAnesthesia({
         </Grid>
 
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-          {clinPathOptions.map((option: any) => (
+          {clinPathOptions.map((option: AnesthesiaAssessmentType) => (
             <Controller
               key={option.id}
               name={`preAnesthesia.clin_path.selected.${option.id}`}
               control={control}
-              render={({ field }: any) => (
+              render={({ field }) => (
                 <MUICheckbox
                   {...({
                     checked: !!field.value,
                     label: option.name,
-                    onChange: (_: any, checked: boolean) => field.onChange(checked)
+                    onChange: (_: React.SyntheticEvent, checked: boolean) => field.onChange(checked)
                   } as any)}
                 />
               )}
@@ -260,13 +262,13 @@ function PreAnesthesia({
             name='preAnesthesia.clin_path.custom'
             control={control}
             defaultValue={[]}
-            render={({ field }: any) => {
+            render={({ field }) => {
               return (
                 <CustomOtherPurposeSection
                   title={(t('hospital_module.add_new_other_item') as string)}
                   addedLabel={t('hospital_module.other_clin_path_items_added') as string}
                   value={field.value || []}
-                  onChange={(newValue: any) => {
+                  onChange={(newValue: string[]) => {
                     field.onChange(newValue)
                   }}
                   onAddItem={(newItem: string) => {
@@ -290,7 +292,7 @@ function PreAnesthesia({
 
 export default PreAnesthesia
 
-const StyledTypography = styled(Typography)(({ theme }: any) => ({
+const StyledTypography = styled(Typography)(({ theme }: { theme: Theme }) => ({
   fontSize: '1rem',
   fontWeight: 500,
   color: theme.palette.customColors.OnSurfaceVariant

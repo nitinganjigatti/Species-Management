@@ -11,14 +11,16 @@ const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse, ClinicalNoteListResponse } from 'src/types/hospital'
+import { AddClinicalNotesParams, AddClinicalNotesResponse, DeleteClinicalNotesResponse, GetClinicalNotesResponse } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes';
+import { ClinicalNotesParams } from 'src/types/hospital/models';
 
 export async function getClinicalNotes({
   animalId,
   params
 }: {
   animalId: string | number
-  params?: Record<string, unknown>
-}): Promise<ClinicalNoteListResponse> {
+  params?: ClinicalNotesParams
+}): Promise<GetClinicalNotesResponse> {
   try {
     if (!animalId) throw new Error('Animal Id is required')
 
@@ -34,7 +36,7 @@ export async function getClinicalNotes({
   }
 }
 
-export async function deleteClinicalNotes(noteId: string | number): Promise<ApiResponse<unknown>> {
+export async function deleteClinicalNotes(noteId: string | number): Promise<DeleteClinicalNotesResponse> {
   try {
     if (!noteId) throw new Error('Note Id is required')
 
@@ -53,8 +55,8 @@ export async function deleteClinicalNotes(noteId: string | number): Promise<ApiR
 export async function addClinicalNotes({
   payload
 }: {
-  payload: FormData | Record<string, unknown>
-}): Promise<ApiResponse<unknown>> {
+  payload: AddClinicalNotesParams
+}): Promise<AddClinicalNotesResponse> {
   try {
     const response = await axiosFormPost({ url: `${CREATE_CLINICAL_NOTES}`, body: payload })
 

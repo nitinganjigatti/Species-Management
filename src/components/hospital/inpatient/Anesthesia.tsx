@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import Skeleton from '@mui/material/Skeleton'
-import { alpha, useTheme } from '@mui/material/styles'
+import { alpha, useTheme, SxProps, Theme } from '@mui/material/styles'
 
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
@@ -31,6 +31,21 @@ import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/Loadin
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
+import { AnesthesiaRecordsResponse, AnesthesiaDetailResponse } from 'src/types/hospital/api/Anesthesia/anesthesia'
+import { ApiError } from 'src/types/hospital/api'
+import { AnesthesiaAssessmentType, AnesthesiaDetailOption, AnesthesiaDetails, AnesthesiaGasRow, AnesthesiaMedicationRow, AnesthesiaReversalRow, AnesthesiaSetupFields, Gas, Medications, PatientDetailsData, Reversal, VitalMonitoringFields, VitalMonitoringRecords, VitalMonitoringTimeSlots } from 'src/types/hospital/models'
+import { Id } from 'src/types/compliance'
+
+export interface VitalMonitoringRow {
+  key: string
+  label: string
+  values: Record<string, string>
+}
+
+export interface VitalMonitoringTableData {
+  timeSlots: VitalMonitoringTimeSlots[]
+  rows: VitalMonitoringRow[]
+}
 
 const tooltipSlotProps = {
   tooltip: {
@@ -58,28 +73,28 @@ const Tooltip = ({ slotProps, ...props }: any) => {
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
 
-const formatValueWithUnit = (value: any, unit: any) => {
+const formatValueWithUnit = (value: string | number | null, unit?: string | null) => {
   if (value === undefined || value === null || value === '') return '--'
   return unit ? `${value} ${unit}`.trim() : `${value}`
 }
 
-const formatTimeOnly = (time: any) => {
+const formatTimeOnly = (time: string | null) => {
   if (!time) return '--'
   const parsed = dayjs(`1970-01-01T${time}`)
   return parsed.isValid() ? parsed.format('hh:mm A') : time
 }
 
-const formatDateTime = (value: any) => {
+const formatDateTime = (value: string | null) => {
   if (!value) return '--'
-  const formatted = (Utility as any).convertUTCToLocalDateTime(value)
+  const formatted = Utility.convertUTCToLocalDateTime(value)
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
-const formatStaffNames = (list: any) => {
+const formatStaffNames = (list: Array<{ full_name?: string; name?: string }> | null) => {
   if (!Array.isArray(list) || !list.length) return '--'
 
   const names = list
-    .map((item: any) => item?.full_name || item?.name)
+    .map(item => item?.full_name || item?.name)
     .filter(Boolean)
     .join(', ')
 
@@ -87,12 +102,26 @@ const formatStaffNames = (list: any) => {
 }
 
 interface AnesthesiaProps {
-  hospitalCaseId?: any
-  medicalRecordId?: any
-  patientData?: any
-  overviewData?: any
+  hospitalCaseId?: Id
+  medicalRecordId?: Id
+  patientData?: PatientDetailsData
+  overviewData?: { status?: string; [key: string]: unknown }
   patientDischarged?: boolean
   category?: string
+}
+
+interface AnesthesiaSetupSectionField {
+  key: string
+  label: string
+  value: string
+}
+
+interface AnesthesiaSetupSectionView {
+  id: Id | string
+  sectionName: string
+  stringId?: string
+  fields: AnesthesiaSetupSectionField[]
+  monitoringItems: string[]
 }
 
 function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false, category }: AnesthesiaProps) {
@@ -115,9 +144,9 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     isLoading: isAnesthesiaLoading,
     error: anesthesiaError,
     isFetching: isFetchingRecords
-  } = useInfiniteQuery<any>({
+  } = useInfiniteQuery<AnesthesiaRecordsResponse>({
     queryKey: ['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId],
-    queryFn: ({ pageParam = 1 }: any) =>
+    queryFn: ({ pageParam = 1 }: { pageParam?: number }) =>
       getAnesthesiaList({
         params: {
           hospital_case_id: resolvedHospitalCaseId,
@@ -126,7 +155,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
           page_no: pageParam
         }
       } as any),
-    getNextPageParam: (lastPage: any) => {
+    getNextPageParam: (lastPage: AnesthesiaRecordsResponse) => {
       const pagination = lastPage?.data
 
       if (!pagination) return undefined
@@ -140,10 +169,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     initialPageParam: 1
   } as any)
 
-  const anesthesiaRecords = useMemo<any[]>(() => {
+  const anesthesiaRecords = useMemo<AnesthesiaDetails[]>(() => {
     if (!anesthesiaPages?.pages?.length) return []
 
-    return anesthesiaPages.pages.flatMap((page: any) => (Array.isArray(page?.data?.records) ? page.data.records : []))
+    return anesthesiaPages.pages.flatMap((page: AnesthesiaRecordsResponse) =>
+      Array.isArray(page?.data?.records) ? page.data.records : []
+    )
   }, [anesthesiaPages])
 
   const [activeRecordId, setActiveRecordId] = useState<string>('')
@@ -171,8 +202,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     }
 
     const currentIds = anesthesiaRecords
-      .map((record: any) => record?.anaesthesia_id || record?.id)
-      .map((id: any) => (id == null ? '' : String(id)))
+      .map((record: AnesthesiaDetails) => record?.anaesthesia_id || (record as { id?: Id })?.id)
+      .map((id: Id | undefined) => (id == null ? '' : String(id)))
       .filter(Boolean)
 
     const preferredId = preferredAnesthesiaId ? String(preferredAnesthesiaId) : ''
@@ -213,8 +244,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     if (!container) return
 
     const el = container.querySelector(`[data-anesthesia-id='${activeRecordId}']`)
-    if (el && typeof (el as any).scrollIntoView === 'function') {
-      (el as any).scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+      (el as HTMLElement).scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
     }
   }, [activeRecordId])
 
@@ -223,7 +254,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
     if (activeRecordId) {
       const found = anesthesiaRecords.find(
-        (record: any) => String(record?.anaesthesia_id || record?.id || '') === String(activeRecordId)
+        (record: AnesthesiaDetails) => String(record?.anaesthesia_id || record?.id || '') === String(activeRecordId)
       )
 
       if (found) return found
@@ -238,7 +269,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     data: anesthesiaDetailResponse,
     refetch: refetchAnesthesiaDetail,
     isFetching: isAnesthesiaDetailFetching
-  } = useQuery<any>({
+  } = useQuery<AnesthesiaDetailResponse>({
     queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
     queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
     // queryFn: () => getAnesthesiaDetail(4),
@@ -249,7 +280,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
   const lastUpdatedValue = formatDateTime(
-    anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
+    anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at || null
   )
 
   const basicDetails = useMemo(() => {
@@ -270,13 +301,13 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   const purposeItems = useMemo(() => {
     if (Array.isArray(anesthesiaDetail?.purpose)) {
       return anesthesiaDetail.purpose
-        .map((item: any) => item?.name)
-        .filter((name: any) => typeof name === 'string' && name.trim() !== '')
+        .map((item) => item?.name)
+        .filter((name) => typeof name === 'string' && name.trim() !== '')
     }
 
     if (!Array.isArray(activeRecord?.purpose)) return []
 
-    return activeRecord.purpose.map((item: any) => item?.name).filter((name: any) => typeof name === 'string' && name.trim() !== '')
+    return activeRecord.purpose.map((item: AnesthesiaAssessmentType) => item?.name).filter((name: string) => typeof name === 'string' && name.trim() !== '')
   }, [anesthesiaDetail, activeRecord])
 
   const notesText = anesthesiaDetail?.notes?.trim()
@@ -288,38 +319,38 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   const anesthesiaSetupSections = useMemo(() => {
     if (!Array.isArray(anesthesiaDetail?.anaesthesia_setup)) return []
 
-    return anesthesiaDetail.anaesthesia_setup.map((section: any, sectionIndex: number) => ({
+    return anesthesiaDetail.anaesthesia_setup.map((section, sectionIndex: number) => ({
       id: section.section_id || section.string_id || `section-${sectionIndex}`,
       sectionName: section.section_name,
       stringId: section.string_id,
-      fields: (section.fields || []).map((field: any, index: number) => ({
+      fields: (section.fields || []).map((field: AnesthesiaSetupFields, index: number) => ({
         key: `${section.section_id || section.string_id || sectionIndex}-${field.field_id || index}`,
         label: field.field_label || field.field_key || 'Field',
         value: formatValueWithUnit(field.field_value, field.unit)
       })),
       monitoringItems: Array.isArray(section.monitoring_items)
         ? section.monitoring_items
-            .filter((item: any) => item?.is_selected === '1' || item?.is_selected === 1 || item?.is_selected === true)
-            .map((item: any) => item?.name)
+            .filter((item: AnesthesiaAssessmentType) => item?.is_selected === '1' || item?.is_selected === 1 || item?.is_selected === true)
+            .map((item: AnesthesiaAssessmentType) => item?.name)
             .filter(Boolean)
         : []
     }))
   }, [anesthesiaDetail])
 
   const nonMonitoringSetupSections = useMemo(
-    () => anesthesiaSetupSections.filter((section: any) => section.stringId !== 'monitoring' && section.fields.length),
+    () => anesthesiaSetupSections.filter((section: AnesthesiaSetupSectionView) => section.stringId !== 'monitoring' && section.fields.length),
     [anesthesiaSetupSections]
   )
 
   const monitoringItems = useMemo(() => {
-    const monitoringSection = anesthesiaSetupSections.find((section: any) => section.stringId === 'monitoring')
+    const monitoringSection = anesthesiaSetupSections.find((section: AnesthesiaSetupSectionView) => section.stringId === 'monitoring')
 
     if (!monitoringSection?.monitoringItems?.length) return []
 
-    const seen = new Set()
-    const items: any[] = []
+    const seen = new Set<string>()
+    const items: string[] = []
 
-    monitoringSection.monitoringItems.forEach((name: any) => {
+    monitoringSection.monitoringItems.forEach((name: string) => {
       const trimmed = typeof name === 'string' ? name.trim() : ''
       const key = trimmed.toLowerCase()
       if (!trimmed || seen.has(key)) return
@@ -333,10 +364,10 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   const setupFieldItems = useMemo(
     () =>
       nonMonitoringSetupSections
-        .map((section: any) => {
+        .map((section: AnesthesiaSetupSectionView) => {
           const combinedValue = section.fields
-            .map((field: any) => field.value)
-            .filter((val: any) => val && val !== '--')
+            .map((field: AnesthesiaSetupSectionField) => field.value)
+            .filter((val: string) => val && val !== '--')
             .join(' - ')
 
           return {
@@ -345,7 +376,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             value: combinedValue || '--'
           }
         })
-        .filter((item: any) => item.label),
+        .filter((item: { key: Id | string; label: string; value: string }) => item.label),
     [nonMonitoringSetupSections]
   )
 
@@ -390,26 +421,26 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
       : '--'
 
     return [
-      { label: 'Physical Health Status', value: preAnesthesiaDetail.physical_health_status || '--' },
-      { label: 'Body Condition', value: preAnesthesiaDetail.body_condition || '--' },
-      { label: 'Activity', value: preAnesthesiaDetail.animal_activity || '--' },
+      { label: t('hospital_module.physical_health_status'), value: preAnesthesiaDetail.physical_health_status || '--' },
+      { label: t('hospital_module.body_condition'), value: preAnesthesiaDetail.body_condition || '--' },
+      { label: t('hospital_module.activity'), value: preAnesthesiaDetail.animal_activity || '--' },
       {
-        label: 'Fasting Time',
+        label: t('hospital_module.fasting_time'),
         value: fastingTimeText
       },
       {
-        label: 'Previous Endotracheal Tube Size',
+        label: t('hospital_module.previous_endotracheal_tube_size'),
         value: preAnesthesiaDetail.previous_endotracheal_tube_size || '--'
       },
-      { label: 'Weight', value: weightText },
-      { label: 'Code Status', value: preAnesthesiaDetail.code_status || '--' }
+      { label: t('hospital_module.weight'), value: weightText },
+      { label: t('hospital_module.code_status'), value: preAnesthesiaDetail.code_status || '--' }
     ]
   }, [preAnesthesiaDetail])
 
   const riskOfConcernText = preAnesthesiaDetail?.pre_anesthesia_notes || ''
   const clinPathText = Array.isArray(preAnesthesiaDetail?.clin_path)
     ? preAnesthesiaDetail.clin_path
-        .map((item: any) => item?.name)
+        .map((item) => item?.name)
         .filter(Boolean)
         .join(', ')
     : ''
@@ -419,7 +450,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
     if (!Array.isArray(records)) return []
 
-    return records.map((record: any) => ({
+    return records.map((record: Medications) => ({
       id: record.id || `${record.drug_id}-${record.type}`,
       drug: record.drug_name || '--',
       purpose: record.purpose_stage || record.type || '--',
@@ -437,7 +468,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
     if (!Array.isArray(records)) return []
 
-    return records.map((record: any) => ({
+    return records.map((record: Gas) => ({
       id: record.id || `${record.drug_id}-${record.type}`,
       gas: record.drug_name || '--',
       o2: formatValueWithUnit(record.oxygen_l_min, 'L/Min'),
@@ -453,7 +484,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
     if (!Array.isArray(records)) return []
 
-    return records.map((record: any) => ({
+    return records.map((record: Reversal) => ({
       id: record.id || `${record.drug_id}-${record.type}`,
       drug: record.drug_name || '--',
       amount: formatValueWithUnit(record.amount, record.uom_abbr || record.unit_name),
@@ -472,13 +503,13 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     const hasRecoveryType = recoveryData.recovery_type && recoveryData.recovery_type !== '--'
 
     return [
-      { label: 'Recovery Type', value: recoveryData.recovery_type || '--' },
+      { label: t('hospital_module.recovery_type'), value: recoveryData.recovery_type || '--' },
       {
-        label: 'Recovery 1st Effect',
+        label: t('hospital_module.recovery_first_effect'),
         value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_first_effect_time) : '--'
       },
       {
-        label: 'Recovery Full Effect',
+        label: t('hospital_module.recovery_full_effect'),
         value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_full_effect_time) : '--'
       }
     ]
@@ -497,39 +528,39 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     [recoveryData]
   )
 
-  const hasAnyRating = Object.values(anaesthesiaRatings).some((v: any) => v !== '')
+  const hasAnyRating = Object.values(anaesthesiaRatings).some((v: string) => v !== '')
 
-  const vitalMonitoringData = useMemo(() => {
+  const vitalMonitoringData = useMemo<VitalMonitoringTableData>(() => {
     const monitoring = anesthesiaDetail?.vital_monitoring
 
     if (!monitoring) return { timeSlots: [], rows: [] }
 
-    const timeSlots = (monitoring.time_slots || [])
-      .map((slot: any) => {
+    const timeSlots: VitalMonitoringTimeSlots[] = (monitoring.time_slots || [])
+      .map((slot): VitalMonitoringTimeSlots | null => {
         const id = slot.id || slot.monitoring_time_id
 
         if (!id) return null
 
         return {
           id: String(id),
-          label: formatTimeOnly(slot.recorded_time)
+          label: formatTimeOnly(slot.recorded_time ?? '')
         }
       })
-      .filter(Boolean)
+      .filter((slot): slot is VitalMonitoringTimeSlots => slot !== null)
 
-    const rows: any[] = []
+    const rows: VitalMonitoringRow[] = []
 
-    ;(monitoring.records || []).forEach((section: any) => {
-      ;(section.fields || []).forEach((field: any, index: number) => {
+    ;(monitoring.records || []).forEach((section: VitalMonitoringRecords) => {
+      ;(section.fields || []).forEach((field: VitalMonitoringFields, index: number) => {
         const key = `${section.section_id || 'section'}-${field.field_id || index}-${index}`
         const label =
           section.section_name && field.field_label && field.field_label !== section.section_name
             ? `${section.section_name} - ${field.field_label}`
             : field.field_label || section.section_name || 'Field'
 
-        const values: any = {}
+        const values: Record<string, string> = {}
 
-        ;(field.values || []).forEach((value: any) => {
+        ;(field.values || []).forEach((value) => {
           if (!value?.monitoring_time_id) return
 
           const slotId = String(value.monitoring_time_id)
@@ -602,7 +633,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     setDeleteDialogOpen(false)
   }, [deleteLoading])
 
-  const handleEditClick = (value: any) => {
+  const handleEditClick = (value: AnesthesiaDetails) => {
     // const caseId =  router?.query?.id
     const caseId = resolvedHospitalCaseId || router?.query?.id
 
@@ -616,7 +647,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
     try {
       setDeleteLoading(true)
-      const response: any = await deleteAnesthesia(activeRecordAnesthesiaId)
+      const response = await deleteAnesthesia(activeRecordAnesthesiaId)
 
       if (response?.success || response?.status || response?.anaesthesia_id || response?.anesthesia_id) {
         toast.success(response?.message || 'Anesthesia deleted successfully.')
@@ -632,8 +663,9 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
         toast.error(message)
         setDeleteDialogOpen(false)
       }
-    } catch (error: any) {
-      const message = error?.response?.data?.message || error?.message || 'Failed to delete anesthesia record.'
+    } catch (error: unknown) {
+      const err = error as ApiError
+      const message = err?.response?.data?.message || err?.message || 'Failed to delete anesthesia record.'
       toast.error(message)
     } finally {
       setDeleteLoading(false)
@@ -659,8 +691,9 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     }
 
     if (anesthesiaError) {
+      const err = anesthesiaError as ApiError
       const message =
-        (anesthesiaError as any)?.response?.data?.message || (anesthesiaError as any)?.message || 'Failed to load anesthesia records.'
+        err?.response?.data?.message || err?.message || 'Failed to load anesthesia records.'
 
       return (
         <Typography color='error' sx={{ whiteSpace: 'nowrap' }}>
@@ -677,7 +710,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     //   )
     // }
 
-    return anesthesiaRecords.map((record: any, index: number) => {
+    return anesthesiaRecords.map((record: AnesthesiaDetails, index: number) => {
       const label = record?.code || `Record ${index + 1}`
       const selectionId = record?.anaesthesia_id ? String(record.anaesthesia_id) : ''
       if (!selectionId) return null
@@ -713,7 +746,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     })
   }
 
-  const tableStyles: any = {
+  const tableStyles: SxProps<Theme> = {
     '& thead tr': {
       height: '48px'
     },
@@ -743,7 +776,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   }
 
   // Helper to render each cell with tooltip
-  const renderCell = (text: any) => {
+  const renderCell = (text: string | number | null) => {
     const value = text !== undefined && text !== null && text !== '' ? text : '-'
 
     return (
@@ -927,7 +960,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <DetailsHeader text={t('hospital_module.basic_details')} />
               <Grid container spacing={4}>
-                {Object.entries(basicDetails).map(([label, value]: any) => (
+                {Object.entries(basicDetails).map(([label, value]: [string, string]) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }} key={label}>
                     <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
                       <Typography
@@ -970,11 +1003,11 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               <Typography
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
               >
-                Purpose of Anesthesia
+                {t('hospital_module.purpose_of_anesthesia')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {purposeItems.length ? (
-                  purposeItems.map((item: any, index: number) => (
+                  purposeItems.map((item: string, index: number) => (
                     <Tooltip key={`${item}-${index}`} title={item} placement='top'>
                       <Chip
                         label={item}
@@ -993,14 +1026,14 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                     </Tooltip>
                   ))
                 ) : (
-                  <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
+                  <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>{t('hospital_module.no_purpose_added')}</Typography>
                 )}
               </Box>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
               <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '14px', fontWeight: 400 }}>
-                Notes
+                {t('notes')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Typography
@@ -1034,7 +1067,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       <Typography
                         sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                       >
-                        Environmental Condition
+                        {t('hospital_module.environmental_condition')}
                       </Typography>
                     ) : (
                       ''
@@ -1043,10 +1076,10 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                   <Grid sx={{ px: '0px' }} container spacing={4}>
                     {
                       environmentalDetails.length
-                        ? environmentalDetails.map((item: any) => {
+                        ? environmentalDetails.map((item: AnesthesiaDetailOption) => {
                             const hasValue = item.value !== undefined && item.value !== null && item.value !== ''
                             const displayValue = hasValue ? item.value : '--'
-                            const unit = item.label === 'Temperature' ? '°C' : '%'
+                            const unit = item.label === t('hospital_module.temperature') ? '°C' : '%'
 
                             return (
                               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
@@ -1113,7 +1146,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       <Typography
                         sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                       >
-                        Pre Anesthetic Examination
+                        {t('hospital_module.pre_anesthetic_examination')}
                       </Typography>
                     </Box>
                   ) : (
@@ -1122,7 +1155,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                   <Grid container spacing={4}>
                     {
                       examDetails.length
-                        ? examDetails.map((item: any) => (
+                        ? examDetails.map((item: AnesthesiaDetailOption) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                               <Tooltip title={item.label} placement='bottom-start' arrow>
                                 <Typography
@@ -1181,7 +1214,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          Risk of Concern
+                          {t('hospital_module.risk_of_concern')}
                         </Typography>
                         <Tooltip title={riskOfConcernText} placement='bottom-start' arrow>
                           <Typography
@@ -1222,7 +1255,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          Clin Path
+                          {t('hospital_module.clin_path')}
                         </Typography>
                         <Tooltip title={clinPathText} placement='bottom-start' arrow>
                           <Typography
@@ -1267,7 +1300,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                           color: theme.palette.text.primary
                         }}
                       >
-                        Medication - {medicationRecords.length}
+                        {t('hospital_module.medication')} - {medicationRecords.length}
                       </Typography>
 
                       <TableContainer
@@ -1283,19 +1316,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         <Table size='small' sx={{ ...tableStyles, minWidth: 1100 }}>
                           <TableHead>
                             <TableRow>
-                              <TableCell>Drug</TableCell>
-                              <TableCell>Purpose/Stage</TableCell>
-                              <TableCell>Amount</TableCell>
-                              <TableCell>Route</TableCell>
-                              <TableCell>Delivery Time</TableCell>
-                              <TableCell>Delivery Status</TableCell>
-                              <TableCell>Max Effect</TableCell>
-                              <TableCell>Notes</TableCell>
+                              <TableCell>{t('hospital_module.drug')}</TableCell>
+                              <TableCell>{t('hospital_module.purpose_stage')}</TableCell>
+                              <TableCell>{t('amount')}</TableCell>
+                              <TableCell>{t('hospital_module.route')}</TableCell>
+                              <TableCell>{t('hospital_module.delivery_time')}</TableCell>
+                              <TableCell>{t('hospital_module.delivery_status')}</TableCell>
+                              <TableCell>{t('hospital_module.max_effect_label')}</TableCell>
+                              <TableCell>{t('notes')}</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             {medicationRecords.length ? (
-                              medicationRecords.map((record: any) => (
+                              medicationRecords.map((record: AnesthesiaMedicationRow) => (
                                 <TableRow key={record.id}>
                                   <TableCell>{renderCell(record.drug)}</TableCell>
                                   <TableCell>{renderCell(record.purpose)}</TableCell>
@@ -1311,7 +1344,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                               <TableRow>
                                 <TableCell colSpan={8}>
                                   <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                                    No medication data.
+                                   {t('hospital_module.no_medication_data')}
                                   </Typography>
                                 </TableCell>
                               </TableRow>
@@ -1335,7 +1368,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         color: theme.palette.text.primary
                       }}
                     >
-                      Gas - {gasRecords.length}
+                      {t('hospital_module.gas')} - {gasRecords.length}
                     </Typography>
 
                     <TableContainer
@@ -1351,17 +1384,17 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                         <TableHead>
                           <TableRow sx={{ height: '55px' }}>
-                            <TableCell>Gas</TableCell>
-                            <TableCell>O2 L/Min</TableCell>
-                            <TableCell>Concentration %</TableCell>
-                            <TableCell>Route</TableCell>
-                            <TableCell>Start Time</TableCell>
-                            <TableCell>End Time</TableCell>
+                            <TableCell>{t('hospital_module.gas')}</TableCell>
+                            <TableCell>{t('hospital_module.o2_l_min')}</TableCell>
+                            <TableCell>{t('hospital_module.concentration_percent')}</TableCell>
+                            <TableCell>{t('hospital_module.route')}</TableCell>
+                            <TableCell>{t('hospital_module.start_time')}</TableCell>
+                            <TableCell>{t('hospital_module.end_time')}</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {gasRecords.length ? (
-                            gasRecords.map((record: any) => (
+                            gasRecords.map((record: AnesthesiaGasRow) => (
                               <TableRow key={record.id}>
                                 <TableCell>{renderCell(record.gas)}</TableCell>
                                 <TableCell>{renderCell(record.o2)}</TableCell>
@@ -1375,7 +1408,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                             <TableRow>
                               <TableCell colSpan={6}>
                                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                                  No gas data.
+                                  {t('hospital_module.no_gas_data')}
                                 </Typography>
                               </TableCell>
                             </TableRow>
@@ -1409,7 +1442,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         color: theme.palette.text.primary
                       }}
                     >
-                      Reversal drug - {reversalRecords.length}
+                      {t('hospital_module.reversal_drug_section')} - {reversalRecords.length}
                     </Typography>
 
                     <TableContainer
@@ -1425,17 +1458,17 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                         <TableHead>
                           <TableRow>
-                            <TableCell>Drug Name</TableCell>
-                            <TableCell>Amount</TableCell>
-                            <TableCell>Route</TableCell>
-                            <TableCell>Delivery Time</TableCell>
-                            <TableCell>Delivery </TableCell>
-                            <TableCell>Max Effect</TableCell>
+                            <TableCell>{t('hospital_module.drug_name')}</TableCell>
+                            <TableCell>{t('amount')}</TableCell>
+                            <TableCell>{t('hospital_module.route')}</TableCell>
+                            <TableCell>{t('hospital_module.delivery_time')}</TableCell>
+                            <TableCell>{t('hospital_module.delivery')} </TableCell>
+                            <TableCell>{t('hospital_module.max_effect')}</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {reversalRecords.length ? (
-                            reversalRecords.map((record: any) => (
+                            reversalRecords.map((record: AnesthesiaReversalRow) => (
                               <TableRow key={record.id}>
                                 <TableCell>{renderCell(record.drug)}</TableCell>
                                 <TableCell>{renderCell(record.amount)}</TableCell>
@@ -1449,7 +1482,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                             <TableRow>
                               <TableCell colSpan={6}>
                                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                                  No reversal data.
+                                  {t('hospital_module.no_reversal_data')}
                                 </Typography>
                               </TableCell>
                             </TableRow>
@@ -1479,13 +1512,13 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       <Typography
                         sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                       >
-                        Recovery Details
+                        {t('hospital_module.recovery_details')}
                       </Typography>
                     </Box>
                     <Grid sx={{ px: '0px' }} container spacing={4}>
                       {
                         recoveryInfoList.length
-                          ? recoveryInfoList.map((item: any) => (
+                          ? recoveryInfoList.map((item: AnesthesiaDetailOption) => (
                               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                                 <Tooltip title={item.label} placement='bottom-start' arrow>
                                   <Typography
@@ -1575,7 +1608,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            Describe the Problem
+                            {t('hospital_module.describe_the_problem')}
                           </Typography>
                           <Tooltip title={recoveryProblemText} placement='bottom-start' arrow>
                             <Typography
@@ -1625,7 +1658,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          Notes
+                          {t('notes')}
                         </Typography>
                         <Tooltip
                           title={recoveryNotesText}
@@ -1681,11 +1714,11 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                               fontWeight: 600
                             }}
                           >
-                            Anesthesia Ratings
+                            {t('hospital_module.anesthesia_ratings_label')}
                           </Typography>
                         </Box>
                         <Grid sx={{ px: '0px' }} container spacing={4}>
-                          {Object.entries(anaesthesiaRatings).map(([label, value]: any) => (
+                          {Object.entries(anaesthesiaRatings).map(([label, value]: [string, string]) => (
                             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={label}>
                               <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
                                 <Typography
@@ -1739,7 +1772,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {setupFieldItems.length ? (
                     <Grid container spacing={{ xs: 3, sm: 4 }}>
-                      {setupFieldItems.map((field: any) => (
+                      {setupFieldItems.map((field) => (
                         <Grid size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
                           <Tooltip title={field.label} placement='bottom-start' arrow>
                             <Typography
@@ -1786,7 +1819,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                     <Typography
                       sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                     >
-                      Monitoring
+                      {t('hospital_module.monitoring')}
                     </Typography>
                   ) : (
                     ''
@@ -1794,7 +1827,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     {
                       monitoringItems.length
-                        ? monitoringItems.map((item: any, index: number) => (
+                        ? monitoringItems.map((item: string, index: number) => (
                             <Tooltip key={`${item}-${index}`} title={item} placement='top'>
                               <Chip
                                 label={item}
@@ -1828,7 +1861,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
         loading={deleteLoading}
         handleClose={handleDeleteDialogClose}
         action={handleDeleteConfirm}
-        message='Are you sure you want to delete this anesthesia record?'
+        message= {t('hospital_module.are_you_sure_you_want_to_delete_this_anesthesia_record')}
       />
     </>
   );

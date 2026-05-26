@@ -188,7 +188,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                                 fontWeight: 600
                               }}
                             >
-                              {activity?.oldIsChronical == 1 ? 'Yes' : 'No'}
+                              {activity?.oldIsChronical == 1 ? t('yes') : t('no')}
                             </Typography>
                           )}
 
@@ -201,7 +201,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                               }}
                             >
                               {activity?.oldIsChronical !== undefined && ` →`}{' '}
-                              {activity?.newIsChronical == 1 ? 'Yes' : 'No'}
+                              {activity?.newIsChronical == 1 ? t('yes') : t('no')}
                             </Typography>
                           )}
                         </Box>

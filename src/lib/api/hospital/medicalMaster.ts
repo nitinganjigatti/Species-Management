@@ -4,12 +4,13 @@ import { axiosGet as _axiosGet } from '../utility'
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse } from 'src/types/hospital'
+import { GetMedicalMasterDataResponse } from 'src/types/hospital/api/PrescriptionMonitoring/prescription';
 
-export async function getMedicalMasterData(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getMedicalMasterData(): Promise<GetMedicalMasterDataResponse> {
   try {
     const url = `${MEDICAL_MASTER_DATA}`
 
-    const response = await axiosGet({ url, params })
+    const response = await axiosGet({ url })
 
     return response?.data
   } catch (error) {

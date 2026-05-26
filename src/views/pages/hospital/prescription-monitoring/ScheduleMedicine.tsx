@@ -4,7 +4,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box, Typography, Button, Grid, Paper, IconButton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { useFieldArray, useWatch } from 'react-hook-form'
+import {
+  useFieldArray,
+  useWatch,
+  Control,
+  FieldErrors,
+  FieldValues,
+  UseFormSetValue,
+  UseFormGetValues,
+  UseFormReset
+} from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
@@ -20,27 +29,30 @@ import Utility from 'src/utility'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useSelector } from 'react-redux'
 import { useSearchParams } from 'next/navigation'
+import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+import { BatchListState } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
+import { AddPrescriptionScheduleDose, PatientDetailsData, SelectOption } from 'src/types/hospital/models'
 
 const STORAGE_KEY = 'medical_record_data'
 
 interface ScheduleMedicineProps {
-  control: any
-  errors: any
-  selectedMedicineTo?: any
-  medicalMasterData: any
+  control: Control<FieldValues>
+  errors: FieldErrors<FieldValues>
+  selectedMedicineTo?: string
+  medicalMasterData: MedicalMasterFormData
   isMedicineSelected?: boolean
-  batchList?: any[]
+  batchList?: BatchListState[]
   batchLoading?: boolean
-  handleBatchSearch?: (value: any) => void
+  handleBatchSearch?: (value: string) => void
   isControlledSubstance?: boolean
-  setValue: any
-  getValues: any
-  reset: any
+  setValue: UseFormSetValue<FieldValues>
+  getValues: UseFormGetValues<FieldValues>
+  reset: UseFormReset<FieldValues>
   isOneTimeFrequency?: boolean
-  stopDate?: any
-  endsOn?: any
+  stopDate?: string | Date | null
+  endsOn?: string
   loadingSideEffects?: boolean
-  patientData?: any
+  patientData?: PatientDetailsData | null
 }
 
 export default function ScheduleMedicine({
@@ -277,7 +289,7 @@ export default function ScheduleMedicine({
         batchNumber: firstBatch.batchNumber || null,
         batchImage: firstBatch.files || [],
 
-        schedules: editingMedicineData.schedule_doses?.map((s: any) => ({
+        schedules: editingMedicineData.schedule_doses?.map((s: AddPrescriptionScheduleDose) => ({
           time: s.time ? dayjs(convertTimeToToday(s.time)) : dayjs(),
           quantity: s.quantity || '',
           unit: s.unit_name || ''
@@ -389,8 +401,8 @@ export default function ScheduleMedicine({
                 control={control}
                 errors={errors}
                 options={prescriptionFrequency}
-                getOptionLabel={(option: any) => option.label}
-                getOptionValue={(option: any) => option.value}
+                getOptionLabel={(option: SelectOption) => option.label}
+                getOptionValue={(option: SelectOption) => option.value}
                 required
               />
             </Box>
@@ -424,14 +436,14 @@ export default function ScheduleMedicine({
                   control={control}
                   errors={errors}
                   options={intervalList}
-                  getOptionLabel={(option: any) => option.label}
-                  getOptionValue={(option: any) => option.value}
+                  getOptionLabel={(option: SelectOption) => option.label}
+                  getOptionValue={(option: SelectOption) => option.value}
                   required
                 />
               </Box>
             )}
 
-            {fields.map((field: any, idx: number) => (
+            {fields.map((field, idx: number) => (
               <Grid
                 container
                 spacing={2}
@@ -472,8 +484,8 @@ export default function ScheduleMedicine({
                       placeholder: t('hospital_module.enter_quantity'),
                       type: 'number',
                       selectWidth: { xs: 80, sm: 100, md: 100, lg: 120 },
-                      getOptionLabel: (option: any) => option.label,
-                      getOptionValue: (option: any) => option.value,
+                      getOptionLabel: (option: SelectOption) => option.label,
+                      getOptionValue: (option: SelectOption) => option.value,
                       sx: commonFieldStyles,
                       size: 'large',
                       required: true,
@@ -540,8 +552,8 @@ export default function ScheduleMedicine({
                 control={control}
                 errors={errors}
                 options={prescriptionDeliveryRoute}
-                getOptionLabel={(option: any) => option.label}
-                getOptionValue={(option: any) => option.value}
+                getOptionLabel={(option: SelectOption) => option.label}
+                getOptionValue={(option: SelectOption) => option.value}
                 required
               />
             </Box>
@@ -618,8 +630,8 @@ export default function ScheduleMedicine({
                       errors={errors}
                       options={prescriptionDuration}
                       required
-                      getOptionLabel={(option: any) => option.label}
-                      getOptionValue={(option: any) => option.value}
+                      getOptionLabel={(option: SelectOption) => option.label}
+                      getOptionValue={(option: SelectOption) => option.value}
                     />
                   </Grid>
                 </Grid>
@@ -677,15 +689,16 @@ export default function ScheduleMedicine({
                       }}
                     >
                       {t('hospital_module.add_wastage_batch_number')}
-                      <span
-                        style={{
-                          color: theme.palette.customColors.neutralSecondary,
+                      <Box
+                        component='span'
+                        sx={{
+                          color: 'customColors.neutralSecondary',
                           fontSize: '14px',
-                          fontWeight: '500'
+                          fontWeight: 500
                         }}
                       >
                         ({t('optional')})
-                      </span>
+                      </Box>
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6, md: 6, lg: 6 }}>
@@ -716,8 +729,8 @@ export default function ScheduleMedicine({
                       control={control}
                       errors={errors}
                       options={prescriptionDosageMeasurementType}
-                      getOptionLabel={(option: any) => option.label}
-                      getOptionValue={(option: any) => option.value}
+                      getOptionLabel={(option: SelectOption) => option.label}
+                      getOptionValue={(option: SelectOption) => option.value}
                     />
                   </Grid>
                 </Grid>
@@ -767,20 +780,22 @@ export default function ScheduleMedicine({
                       isControlledSubstance ? t('hospital_module.enter_batch_number_required') || "" : t('hospital_module.enter_batch_number_optional') || ""
                     }
                     options={batchList}
-                    getOptionLabel={(option: any) => {
+                    getOptionLabel={(option: unknown) => {
                       if (typeof option === 'string') return option
+                      const batch = option as BatchListState | undefined
 
-                      return option?.batch_no || ''
+                      return String(batch?.batch_no || '')
                     }}
-                    getOptionValue={(option: any) => {
+                    getOptionValue={(option: unknown) => {
                       if (typeof option === 'string') return option
+                      const batch = option as BatchListState | undefined
 
-                      return option?.batch_no || ''
+                      return String(batch?.batch_no || '')
                     }}
-                    isOptionEqualToValue={(option: any, value: any) => {
+                    isOptionEqualToValue={(option: unknown, value: unknown) => {
                       if (!option || !value) return false
-                      const optionVal = typeof option === 'string' ? option : option?.batch_no
-                      const valueVal = typeof value === 'string' ? value : value?.batch_no
+                      const optionVal = typeof option === 'string' ? option : (option as BatchListState)?.batch_no
+                      const valueVal = typeof value === 'string' ? value : (value as BatchListState)?.batch_no
 
                       return optionVal === valueVal
                     }}

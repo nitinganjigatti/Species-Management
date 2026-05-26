@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Typography, Box, Button, IconButton, Skeleton, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import { alpha, useTheme } from '@mui/material/styles'
+import { alpha, useTheme, Theme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -14,20 +14,22 @@ import RichTextEditor from 'src/components/RichTextEditor'
 import { useSelector } from 'react-redux'
 import { createEmptyRichTextValue, getRichTextContent, getRichTextHtmlValue } from 'src/utility'
 import 'quill/dist/quill.snow.css'
+import { AddClinicalNotesParams } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes'
+import { ClinicalNotesList, PatientDetailsData } from 'src/types/hospital/models'
 
 const STORAGE_KEY = 'medical_record_data'
 
 interface InpatientClinicalNotesProps {
-  clinicalNotesData?: any[]
-  onSubmitNote?: any
-  onDeleteNote?: any
+  clinicalNotesData?: ClinicalNotesList[]
+  onSubmitNote?: (payload: AddClinicalNotesParams) => Promise<boolean>
+  onDeleteNote?: (noteId: string) => void
   isInitialLoading?: boolean
   isLoading?: boolean
   isSubmitting?: boolean
-  lastClinicalNoteRef?: any
+  lastClinicalNoteRef?: (node: HTMLElement | null) => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
-  patientData?: any
+  patientData?: PatientDetailsData
 }
 
 const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
@@ -44,11 +46,11 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
     patientData
   } = props
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const [clinicalNote, setClinicalNote] = useState<any>(null)
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({})
   const [truncatedNotes, setTruncatedNotes] = useState<Record<string, boolean>>({})
-  const noteRefs = useRef<Record<string, any>>({})
+  const noteRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const toggleNoteExpand = (noteId: string) => {
     setExpandedNotes(prev => ({
@@ -81,7 +83,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
   const { handleSubmit } = useForm()
 
   useEffect(() => {
-    clinicalNotesData?.forEach((data: any) => {
+    clinicalNotesData?.forEach((data: ClinicalNotesList) => {
       const htmlContent = getRichTextHtmlValue(data?.note)
       if (htmlContent) {
         checkIfTruncated(data?.note_id, htmlContent)
@@ -92,13 +94,13 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
   const noteText = getRichTextContent(clinicalNote)?.trim()
 
   const onSubmit = async () => {
-    const payload: any = {
+    const payload: AddClinicalNotesParams = {
       medical_record_id: medical_record_id,
       note: getRichTextContent(clinicalNote),
       hospital_case_id: hospital_case_id
     }
 
-    const success = await onSubmitNote(payload)
+    const success = await onSubmitNote?.(payload)
 
     if (success) {
       setClinicalNote(createEmptyRichTextValue())
@@ -176,7 +178,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
       {/* Clinical Notes List or Skeletons */}
       {(clinicalNotesData?.length ?? 0) > 0 && (
         <>
-          {clinicalNotesData?.map((data: any, index: number) => {
+          {clinicalNotesData?.map((data: ClinicalNotesList, index: number) => {
             const isLast = index === (clinicalNotesData?.length ?? 0) - 1
 
             return (
@@ -187,7 +189,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                   p: 6,
                   mb: 5,
                   mt: 6,
-                  background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+                  background: alpha(theme.palette.customColors.antzNotes80 ?? '', 0.2),
                   borderRadius: '8px'
                 }}
               >
@@ -227,7 +229,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                           tempContainer.innerHTML = htmlContent
 
                           const firstThreeElements = Array.from(tempContainer.children).slice(0, 3)
-                          const firstThreeHtml = firstThreeElements.map((el: any) => el.outerHTML).join('')
+                          const firstThreeHtml = firstThreeElements.map((el: Element) => el.outerHTML).join('')
 
                           return truncatedNotes[data?.note_id] ? `${firstThreeHtml}<p>...</p>` : firstThreeHtml || '<p>NA</p>'
                         })()
@@ -254,7 +256,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
 
                   {(status == 'admitted' || status == 'discharge') && (
                     <IconButton
-                      onClick={() => onDeleteNote(data?.note_id)}
+                      onClick={() => onDeleteNote?.(data?.note_id)}
                       sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3, flexShrink: 0 }}
                     >
                       <CancelOutlinedIcon fontSize='medium' />
@@ -281,7 +283,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                         }
                       }}
                     >
-                      {expandedNotes[data?.note_id] ? 'Read Less' : 'Read More'}
+                      {expandedNotes[data?.note_id] ? t('read_less') : t('read_more')}
                     </Button>
                   </Box>
                 )}
@@ -327,8 +329,8 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
 export default InpatientClinicalNotes
 
 // Skeleton loader
-function ClinicalNotesSkeleton({ clinicalNotesData }: { clinicalNotesData?: any[] }) {
-  const theme: any = useTheme()
+function ClinicalNotesSkeleton({ clinicalNotesData }: { clinicalNotesData?: ClinicalNotesList[] }) {
+  const theme: Theme = useTheme()
 
   return (
     <>
@@ -371,7 +373,7 @@ function ClinicalNotesSkeleton({ clinicalNotesData }: { clinicalNotesData?: any[
           sx={{
             p: 6,
             mb: 4,
-            background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+            background: alpha(theme.palette.customColors.antzNotes80 ?? '', 0.2),
             borderRadius: '8px'
           }}
         >

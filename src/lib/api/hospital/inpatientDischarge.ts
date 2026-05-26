@@ -5,10 +5,12 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse } from 'src/types/hospital'
+import { DischargeAnimalParams, DischargeAnimalResponse } from 'src/types/hospital/api/Discharge/discharge';
+import { GetNecropsyCenterParams, GetNecropsyCenterResponse } from 'src/types/hospital/api/Discharge/mortality';
 
 export async function addInpatientDischarge(
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: DischargeAnimalParams
+): Promise<DischargeAnimalResponse> {
   const response = await axiosFormPost({ url: `${ADD_DISCHARGE}`, body: payload })
 
   return response?.data

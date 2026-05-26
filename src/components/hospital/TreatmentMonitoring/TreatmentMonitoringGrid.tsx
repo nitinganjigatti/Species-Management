@@ -40,6 +40,9 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import { DeleteMonitoringParameterPayload, GetTreatmentIntervalsResponse, MonitoringParametersResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
+import { GetTreatmentMonitoringListResponse } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
+import { AssessmentDetails, PatientDetailsData, RemoveParameterPeriod, TreatmentMonitoringData } from 'src/types/hospital/models'
 
 const Grid: any = MuiGrid
 
@@ -185,8 +188,33 @@ const useRealtimeTooltip = (scrollContainerRef: any, timeSlots: any[], isToday: 
 
 interface PatientMonitoringProps {
   metrics?: any[]
-  patientData?: any
+  patientData?: PatientDetailsData
   refetchPatient?: () => void
+}
+
+export interface TimeSlotRecord {
+  value: string
+  unit: string
+  total: number
+  recorded_time: string
+}
+
+export interface TimeSlotFormData {
+  time: string
+  isActive: boolean
+  record?: TimeSlotRecord
+}
+
+export interface DisplayMetric extends TreatmentMonitoringData {
+  timeSlots: TimeSlotFormData[]
+  canEdit: boolean
+  hasEntries?: boolean 
+}
+
+export interface ParamsDetails {
+  interval: string
+  date: string
+  parameter: DisplayMetric | null
 }
 
 const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatient }: PatientMonitoringProps) => {
@@ -218,28 +246,28 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState<boolean>(false)
   const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState<boolean>(false)
   const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState<boolean>(false)
-  const [dates, setDates] = useState<any>(null)
-  const [selectedDate, setSelectedDate] = useState<any>(getDefaultDate())
+  const [dates, setDates] = useState<string[] | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>(getDefaultDate())
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
-  const [paramData, setParamData] = useState<any>(null)
-  const [deleteScope, setDeleteScope] = useState<string>('only_today')
+  const [paramData, setParamData] = useState<DisplayMetric | null>(null)
+  const [deleteScope, setDeleteScope] = useState<RemoveParameterPeriod>('only_today')
 
   const isToday = dayjs(selectedDate).isSame(dayjs(), 'day')
 
-  const [paramsDetails, setParamsDetails] = useState<any>({
+  const [paramsDetails, setParamsDetails] = useState<ParamsDetails>({
     interval: '',
     date: '',
     parameter: null
   })
 
-  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery<any>({
+  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery<GetTreatmentIntervalsResponse>({
     queryKey: ['hospital-treatment-interval'],
     queryFn: () => getTreatmentIntervals()
   })
 
   const intervalList = treatmentIntervals?.data?.map(
-    (item: any) => ({
+    (item) => ({
       id: item?.id,
       label: item?.frequency_label,
       duration: item?.duration_minutes
@@ -250,9 +278,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
     data: monitoringParams,
     isLoading: monitoringParamsLoading,
     refetch: refetchMonitoringParams
-  } = useQuery<any>({
+  } = useQuery<MonitoringParametersResponse>({
     queryKey: ['treatment-monitoring-parameters'],
-    queryFn: () => (getMonitoringParameters as any)(id),
+    queryFn: () => getMonitoringParameters(id),
     enabled: !!id
   })
 
@@ -273,10 +301,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
     data: monitoringDataListings,
     isLoading: monitoringLoading,
     refetch: monitoringRefetch
-  } = useQuery<any>({
+  } = useQuery<GetTreatmentMonitoringListResponse>({
     queryKey: ['hospital-treatment-monitoring-listings', id, selectedDate],
     queryFn: () =>
-      (getTreatmentMonitoringData as any)({
+      getTreatmentMonitoringData({
         date: selectedDate,
         hospital_case_id: id
       })
@@ -285,13 +313,13 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   const monitoringData = useMemo(() => {
     if (!monitoringDataListings?.data) return []
 
-    return monitoringDataListings.data.map((item: any) => {
-      const slots: any[] = createTimeSlotStructure(timeSlots)
+    return monitoringDataListings.data.map((item: TreatmentMonitoringData) => {
+      const slots: TimeSlotFormData[] = createTimeSlotStructure(timeSlots)
 
-      item.assessment_details?.forEach((detail: any) => {
+      item.assessment_details?.forEach((detail: AssessmentDetails) => {
         const istRecordTime = detail?.record_time_ist
         const slotLabel = getLabelForHour(parseInt(istRecordTime.split(':')[0]))
-        const slot: any = slots.find((s: any) => s.time === slotLabel)
+        const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
 
@@ -328,9 +356,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
 
   const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
 
-  const displayMetrics: any[] = metrics?.length > 0 ? metrics : defaultMetrics
+  const displayMetrics: DisplayMetric[] = metrics?.length > 0 ? metrics : defaultMetrics
 
-  const handleTimeSlotClick = ({ interval, date, parameter }: any) => {
+  const handleTimeSlotClick = ({ interval, date, parameter }: ParamsDetails) => {
     setOpenParamsEntryDrawer(true)
     setParamsDetails({ interval: interval, date: date, parameter: parameter })
   }
@@ -360,7 +388,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
     }
   }, [monitoringLoading])
 
-  const handleDateChange = (date: any) => {
+  const handleDateChange = (date: string) => {
     setSelectedDate(date)
   }
 
@@ -374,9 +402,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
     setDeleteLoading(true)
 
     try {
-      const payload: any = {
+      const payload: DeleteMonitoringParameterPayload = {
         hospital_case_id: id,
-        assessment_type_id: paramData?.assessment_type_id,
+        assessment_type_id: paramData?.assessment_type_id ?? '',
         scheduled_date_time: dayjs(selectedDate)
           .hour(dayjs().hour())
           .minute(dayjs().minute())
@@ -388,7 +416,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
         payload.remove_parameter_period = deleteScope
       }
 
-      await deleteMonitoringParameter(payload).then((res: any) => {
+      await deleteMonitoringParameter(payload).then((res) => {
         if (res?.status === true) {
           Toaster({ type: 'success', message: res?.message })
           setDeleteLoading(false)
@@ -418,9 +446,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
     : false
 
   const renderedMetrics = useMemo(() => {
-    return displayMetrics?.map((metric: any) => (
+    return displayMetrics?.map((metric: DisplayMetric) => (
       <TimeSlotGrid key={metric.assessment_type_id} numColumns={timeSlots.length}>
-        {metric?.timeSlots.map((timeSlot: any, index: number) => {
+        {metric?.timeSlots.map((timeSlot: TimeSlotFormData, index: number) => {
           const slotKey = `${metric.assessment_type_id}-${index}`
           const durationMinutes = metric?.duration_minutes
           const [h, ampm] = timeSlot.time.split(' ')
@@ -441,7 +469,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
           let isYellow = false
 
           if (durationMinutes) {
-            const intervalHours = durationMinutes / 60
+            const intervalHours = Number(durationMinutes) / 60
 
             let isIntervalSlot = false
 
@@ -577,7 +605,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
 
       <RadioGroup
         value={deleteScope}
-        onChange={(e: any) => setDeleteScope(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteScope(e.target.value as RemoveParameterPeriod)}
         sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
       >
         <FormControlLabel
@@ -766,7 +794,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                     </IconButton>
                   </HeaderContainer>
 
-                  {displayMetrics?.map((metric: any) => (
+                  {displayMetrics?.map((metric: DisplayMetric) => (
                     <MetricLabel key={metric.assessment_type_id}>
                       <Box
                         sx={{
@@ -791,7 +819,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                         <IconButton
                           size='small'
                           onClick={() => {
-                            const hasEntries = metric?.timeSlots?.some((slot: any) => slot.record)
+                            const hasEntries = metric?.timeSlots?.some((slot) => slot.record)
                             setParamData({
                               ...metric,
                               hasEntries
@@ -810,7 +838,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                 <ScrollableContainer ref={scrollContainerRef}>
                   <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 7 }}>
                     {timeSlots.map((time: string) => (
-                      <TimeHeader key={time} data-hour={time} ref={(el: any) => (hourRefs.current[time] = el)}>
+                      <TimeHeader key={time} data-hour={time} ref={(el: HTMLDivElement | null) => { hourRefs.current[time] = el }}>
                         {time}
                       </TimeHeader>
                     ))}

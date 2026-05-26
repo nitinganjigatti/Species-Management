@@ -12,10 +12,58 @@ import GenericMeasurementDialog from './vitalForms/GenericMeasurementDialog'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import { deleteVitalMonitoring } from 'src/lib/api/hospital/anesthesia'
+import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models'
+import { DeleteApiResponse } from 'src/types/hospital/api'
 
 const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
 const BASE_CELL_WIDTH = '164px'
+
+export interface VitalFieldEntry {
+  value?: string | number | null
+  unit?: string | null
+  field_key?: string
+}
+
+export interface VitalMonitoringCellEntry {
+  selection?: string | number | null
+  value?: string | number | null
+  unit?: string
+  fieldsById?: Record<string, VitalFieldEntry>
+  [key: string]: unknown
+}
+
+export interface VitalCellDisplay {
+  primary: string
+  secondary: string
+}
+
+export interface VitalActiveCell {
+  columnId: string
+  rowKey: string
+}
+
+export interface VitalColumnToDelete {
+  id: string
+  isTemp?: boolean
+  timeLabel?: string
+}
+
+export interface VitalMonitoringColumn {
+  id: string
+  timeLabel: string
+  entries?: Record<string, VitalMonitoringCellEntry>
+  isTemp?: boolean
+}
+
+interface VitalTimeFormPayload {
+  timeLabel: string
+}
+
+export interface VitalMonitoringRow {
+  key: string
+  label: string
+}
 
 const createStyles = (theme: any) => {
   const bodyBg = theme.palette.customColors?.bodyBg || theme.palette.background.default
@@ -191,7 +239,7 @@ const createStyles = (theme: any) => {
   }
 }
 
-function getCellDisplay(rowKey: string, entry: any, timeLabel: string): any {
+function getCellDisplay(rowKey: string, entry: VitalMonitoringCellEntry | null | undefined, timeLabel: string): VitalCellDisplay | null {
   if (!entry) return null
 
   const secondary = timeLabel || ''
@@ -209,10 +257,11 @@ function getCellDisplay(rowKey: string, entry: any, timeLabel: string): any {
 
   // canonical server-style map: fieldsById
   if (entry.fieldsById && typeof entry.fieldsById === 'object') {
-    const vals = Object.keys(entry.fieldsById)
+    const fieldsById = entry.fieldsById
+    const vals = Object.keys(fieldsById)
       .sort((a: string, b: string) => Number(a) - Number(b))
       .map((key: string) => {
-        const obj = entry.fieldsById[key]
+        const obj = fieldsById[key]
         if (!obj) return null
         const v = obj.value == null ? '' : String(obj.value).trim()
         if (!v) return null
@@ -223,7 +272,7 @@ function getCellDisplay(rowKey: string, entry: any, timeLabel: string): any {
     if (vals.length > 0) {
       // join with " / " (e.g. "120 mmHg / 80 mmHg") — this shows multiple fields like BP
       //return { primary: vals.join(' / '), secondary }
-      const unitFromFields = (Object.values(entry.fieldsById).find((f: any) => f?.unit) as any)?.unit
+      const unitFromFields = Object.values(fieldsById).find((f: VitalFieldEntry) => f?.unit)?.unit
       const unit = unitFromFields || entry.unit || ''
 
       const primary = unit ? `${vals.join(' / ')} ${unit}` : vals.join(' / ')
@@ -236,7 +285,7 @@ function getCellDisplay(rowKey: string, entry: any, timeLabel: string): any {
   if (flatKeys.length > 0) {
     const vals = flatKeys
       .map((k: string) => {
-        const v = entry[k]
+        const v = entry[k] as string | number | null | undefined
         if (v === undefined || v === null || String(v).trim() === '') return null
         return String(v).trim()
       })
@@ -253,7 +302,13 @@ function getCellDisplay(rowKey: string, entry: any, timeLabel: string): any {
 }
 
 interface VitalMonitoringProps {
-  vitalMonitorList?: any[]
+  vitalMonitorList?: AnesthesiaSetup[]
+}
+
+interface VitalEntrySubmissionData {
+  unit?: string
+  selection?: string | number | null
+  [key: string]: unknown
 }
 
 export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitoringProps) {
@@ -261,18 +316,18 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
   const theme: any = useTheme()
   const styles: any = useMemo(() => createStyles(theme), [theme])
   const { control, setValue } = useFormContext()
-  const columns: any[] = useWatch({ control, name: 'vitalMonitoring' }) || []
+  const columns: VitalMonitoringColumn[] = useWatch({ control, name: 'vitalMonitoring' }) || []
   const [isTimeFormOpen, setIsTimeFormOpen] = useState<boolean>(false)
-  const [activeCell, setActiveCell] = useState<any>(null)
+  const [activeCell, setActiveCell] = useState<VitalActiveCell | null>(null)
   const [hasOverflow, setHasOverflow] = useState<boolean>(false)
   const [isScrolledToEnd, setIsScrolledToEnd] = useState<boolean>(true)
-  const [editingColumnId, setEditingColumnId] = useState<any>(null)
+  const [editingColumnId, setEditingColumnId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
-  const [columnToDelete, setColumnToDelete] = useState<any>(null)
+  const [columnToDelete, setColumnToDelete] = useState<VitalColumnToDelete | null>(null)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
-  const handleEditTime = (columnId: any) => {
+  const handleEditTime = (columnId: string) => {
     setEditingColumnId(columnId)
     setIsTimeFormOpen(true)
   }
@@ -280,11 +335,11 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
   const ROWS = useMemo(() => {
     return [
       { key: 'recordedTime', label: t('hospital_module.recorded_time') },
-      ...(vitalMonitorList || []).map((s: any) => ({ key: s.string_id, label: s.section_name }))
+      ...(vitalMonitorList || []).map((s: AnesthesiaSetup) => ({ key: s.string_id ?? '', label: s.section_name }))
     ]
   }, [vitalMonitorList, t])
 
-  const updateColumns = (newColumns: any[]) => {
+  const updateColumns = (newColumns: VitalMonitoringColumn[]) => {
     setValue('vitalMonitoring', newColumns, {
       shouldDirty: true,
       shouldTouch: true,
@@ -292,21 +347,21 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
     })
   }
 
-  const handleAddColumn = ({ timeLabel }: any) => {
+  const handleAddColumn = ({ timeLabel }: VitalTimeFormPayload) => {
     const normalizedTime = timeLabel.trim().toUpperCase()
 
     if (editingColumnId) {
       const timeExists = columns.some(
-        (column: any) => column.id !== editingColumnId && column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime
+        (column: VitalMonitoringColumn) => column.id !== editingColumnId && column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime
       )
 
       if (timeExists) {
-        Toaster({ type: 'error', message: `Time ${timeLabel} already exists! Please choose a different time.` })
+        Toaster({ type: 'error', message: t('hospital_module.time_x_already_exists', { timeLabel }) })
 
         return
       }
 
-      const updatedColumns = columns.map((column: any) => {
+      const updatedColumns = columns.map((column: VitalMonitoringColumn) => {
         if (column.id === editingColumnId) {
           return {
             ...column,
@@ -322,9 +377,9 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
       return
     }
 
-    const exists = columns.some((column: any) => column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime)
+    const exists = columns.some((column: VitalMonitoringColumn) => column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime)
     if (exists) {
-      Toaster({ type: 'error', message: `Time ${timeLabel} already exists! Please choose a different time.` })
+      Toaster({ type: 'error', message: t('hospital_module.time_x_already_exists', { timeLabel }) })
 
       return
     }
@@ -339,7 +394,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
     setIsTimeFormOpen(false)
   }
 
-  const handleOpenCellForm = (columnId: any, rowKey: string) => {
+  const handleOpenCellForm = (columnId: string, rowKey: string) => {
     setActiveCell({ columnId, rowKey })
   }
 
@@ -347,23 +402,23 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
     setActiveCell(null)
   }
 
-  const handleSubmitEntry = (data: any) => {
+  const handleSubmitEntry = (data: VitalEntrySubmissionData) => {
     if (!activeCell) return
     const { columnId, rowKey } = activeCell
 
-    const sectionMeta = (vitalMonitorList || []).find((s: any) => s.string_id === rowKey)
+    const sectionMeta = (vitalMonitorList || []).find((s: AnesthesiaSetup) => s.string_id === rowKey)
 
-    const updatedColumns = columns.map((column: any) => {
+    const updatedColumns = columns.map((column: VitalMonitoringColumn) => {
       if (column.id !== columnId) return column
 
-      const existingEntry = column.entries?.[rowKey] ?? {}
-      const newEntry: any = { ...existingEntry }
+      const existingEntry: VitalMonitoringCellEntry = column.entries?.[rowKey] ?? {}
+      const newEntry: VitalMonitoringCellEntry = { ...existingEntry }
 
-      const fieldsById: any = { ...(existingEntry.fieldsById || {}) }
+      const fieldsById: Record<string, VitalFieldEntry> = { ...(existingEntry.fieldsById || {}) }
 
-      const keyToFields: any = {}
+      const keyToFields: Record<string, AnesthesiaSetupFields[]> = {}
       if (sectionMeta && Array.isArray(sectionMeta.fields)) {
-        sectionMeta.fields.forEach((f: any) => {
+        sectionMeta.fields.forEach((f: AnesthesiaSetupFields) => {
           if (!keyToFields[f.field_key]) keyToFields[f.field_key] = []
           keyToFields[f.field_key].push(f)
         })
@@ -429,12 +484,12 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
 
   const activeSectionMeta = useMemo(() => {
     if (!activeCell) return null
-    return vitalMonitorList.find((s: any) => s.string_id === activeCell.rowKey) || null
+    return vitalMonitorList.find((s: AnesthesiaSetup) => s.string_id === activeCell.rowKey) || null
   }, [activeCell, vitalMonitorList])
 
   const activeInitialData = useMemo(() => {
     if (!activeCell) return null
-    const column = columns.find((c: any) => c.id === activeCell.columnId)
+    const column = columns.find((c: VitalMonitoringColumn) => c.id === activeCell.columnId)
     return column?.entries?.[activeCell.rowKey] ?? null
   }, [activeCell, columns])
 
@@ -462,8 +517,8 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
     }
   }, [columns])
 
-  const handleDeleteColumn = (columnId: any) => {
-    const columnToDelete = columns.find((c: any) => c.id === columnId)
+  const handleDeleteColumn = (columnId: string) => {
+    const columnToDelete = columns.find((c: VitalMonitoringColumn) => c.id === columnId)
     const isTempId = columnId.startsWith('temp_')
     setColumnToDelete({
       id: columnId,
@@ -480,7 +535,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
 
     try {
       if (columnToDelete.isTemp) {
-        const updatedColumns = columns.filter((column: any) => column.id !== columnToDelete.id)
+        const updatedColumns = columns.filter((column: VitalMonitoringColumn) => column.id !== columnToDelete.id)
         updateColumns(updatedColumns)
 
         Toaster({
@@ -488,17 +543,17 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
           message: t('hospital_module.record_time_deleted_successfully')
         })
       } else {
-        const response: any = await deleteVitalMonitoring({
+        const response: DeleteApiResponse = await deleteVitalMonitoring({
           record_time_id: columnToDelete.id
         })
 
         if (response.success) {
-          const updatedColumns = columns.filter((column: any) => column.id !== columnToDelete.id)
+          const updatedColumns = columns.filter((column: VitalMonitoringColumn) => column.id !== columnToDelete.id)
           updateColumns(updatedColumns)
 
           Toaster({
             type: 'success',
-            message: response?.message || 'Time column deleted successfully'
+            message: response?.message || t('hospital_module.time_column_deleted')
           })
         } else {
           Toaster({
@@ -546,7 +601,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
         }}
       >
         <Box sx={{ flex: '0 0 auto', display: 'grid', rowGap: '8px' }}>
-          {ROWS.map((row: any) => (
+          {ROWS.map((row: VitalMonitoringRow) => (
             <Box
               key={row.key}
               sx={{
@@ -561,9 +616,9 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
 
         <Box sx={{ flex: 1, overflowX: 'auto', paddingBottom: '8px' }} ref={scrollContainerRef}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            {columns.map((column: any) => (
+            {columns.map((column) => (
               <Box key={column.id} sx={{ display: 'grid', rowGap: '8px' }}>
-                {ROWS.map((row: any, index: number) => {
+                {ROWS.map((row: VitalMonitoringRow, index: number) => {
                   if (index === 0) {
                     return (
                       <Box
@@ -629,7 +684,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
             ))}
 
             <Box sx={{ display: 'grid', rowGap: '8px' }}>
-              {ROWS.map((row: any, index: number) => {
+              {ROWS.map((row: VitalMonitoringRow, index: number) => {
                 if (index === 0) {
                   return (
                     <Box
@@ -688,7 +743,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
           setEditingColumnId(null)
         }}
         onSubmit={handleAddColumn}
-        initialValue={editingColumnId ? columns.find((c: any) => c.id === editingColumnId)?.timeLabel : ''}
+        initialValue={editingColumnId ? columns.find((c) => c.id === editingColumnId)?.timeLabel : ''}
       />
 
       <GenericMeasurementDialog
@@ -697,15 +752,15 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
         onSubmit={handleSubmitEntry}
         sectionMeta={activeSectionMeta}
         initialData={activeInitialData}
-        timeLabel={activeCell ? columns.find((c: any) => c.id === activeCell.columnId)?.timeLabel : ''}
+        timeLabel={activeCell ? columns.find((c) => c.id === activeCell.columnId)?.timeLabel : ''}
       />
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         handleClose={handleDeleteCancel}
         action={handleDeleteConfirm}
         loading={isDeleting}
-        {...({ title: 'Delete Time Column' } as any)}
-        message={`Are you sure you want to delete the time column for ${columnToDelete?.timeLabel}? `}
+        {...({ title: t('hospital_module.delete_time_column') } as any)}
+        message={t('hospital_module.confirm_delete_time_column', { timeLabel: columnToDelete?.timeLabel })}
       />
     </>
   )

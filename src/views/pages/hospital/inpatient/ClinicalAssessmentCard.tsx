@@ -31,7 +31,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
   const activity = Number(record.comment_count) - 1 > 0 ? `+${Number(record.comment_count) - 1}` : null
   const oldRecord = record?.latest_note?.notes_dump?.old_data?.clinical_assessment
   const newRecord = record?.latest_note?.notes_dump?.new_data?.clinical_assessment
-  const chronic = record.latest_note?.notes_dump?.new_data?.is_cronical ? (record.latest_note?.notes_dump?.new_data?.is_cronical ? t('yes') : t('no')) : null
+  const chronic = record.latest_note?.notes_dump?.new_data?.is_cronical === 1 ? t('yes') : null
   const prognosis = Utility.capitalizeFirstLetter(record?.prognosis)
   const notes = record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note
   const description = record.latest_note?.note || record.additional_info?.latest_note

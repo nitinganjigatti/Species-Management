@@ -1,13 +1,13 @@
 'use client'
 import React, { useState, useMemo, useCallback, useEffect, useContext } from 'react'
-import { Box, Typography, CircularProgress, Skeleton, Chip, Button } from '@mui/material'
+import { Box, Typography, CircularProgress, Skeleton, Chip, Button, Theme } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@emotion/react'
 import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import { debounce } from 'lodash'
-import { useDropzone } from 'react-dropzone'
+import { FileError, FileRejection, useDropzone } from 'react-dropzone'
 import Icon from 'src/@core/components/icon'
 import NewMediaCard from 'src/views/utility/NewMediaCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -17,28 +17,77 @@ import PatientMediaFilterDrawer from 'src/components/hospital/drawer/PatientMedi
 import { getPatientMedia, uploadPatientMedia, deletePatientMedia } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
+import { Id, PatientMediaData } from 'src/types/hospital/models'
+import { PatientMediaParams, PatientMediaResponse, UploadPatientMediaResponse } from 'src/types/hospital/api/Media/media'
 
 interface PatientMediaProps {
-  hospitalCaseId?: any
-  animalId?: any
-  medicalRecordId?: any
+  hospitalCaseId?: Id
+  animalId?: Id
+  medicalRecordId?: Id
+}
+
+type MediaTypeKey = 'image' | 'video' | 'audio' | 'document'
+
+export interface MediaFilters {
+  'Media Type': string[]
+  'Medical Record': string[]
+  Feature: string[]
+  [key: string]: string[]
+}
+
+interface MediaTypeStat {
+  count: number
+  totalSize: number
+}
+
+type MediaTypeStats = Record<MediaTypeKey, MediaTypeStat>
+
+interface UploadSettings {
+  MAX_NUMBER_IMAGE_FILE?: number
+  MAX_NUMBER_VIDEO_FILE?: number
+  MAX_NUMBER_AUDIO_FILE?: number
+  MAX_NUMBER_APPLICATION_FILE?: number
+  MAX_IMAGE_UPLOAD_SIZE?: number
+  MAX_VIDEO_UPLOAD_SIZE?: number
+  MAX_AUDIO_UPLOAD_SIZE?: number
+  MAX_APPLICATION_UPLOAD_SIZE?: number
+}
+
+interface AuthContextValue {
+  userData?: {
+    settings?: UploadSettings
+  } | null
+}
+
+interface MappedMediaFile extends PatientMediaData {
+  type: MediaTypeKey
+  user_profile: {
+    user_full_name: string
+    user_profile_pic: string
+  }
+}
+
+interface MediaPage {
+  result: PatientMediaData[]
+  nextPage?: number
+  total: number | string
 }
 
 const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMediaProps) => {
   const { t } = useTranslation()
-  const authData: any = useContext(AuthContext)
+  const authData = useContext(AuthContext) as unknown as AuthContextValue
 
-  const uploadSettings = authData?.userData?.settings
-  const theme: any = useTheme()
+  const uploadSettings: UploadSettings | undefined = authData?.userData?.settings
+  const theme = useTheme() as Theme
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   // State management
   const [filterDrawerOpen, setFilterDrawerOpen] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(1) // Start with 1 because "Current Medical Record" is default
   const [uploadLoading, setUploadLoading] = useState<boolean>(false)
-  const [deletingMediaId, setDeletingMediaId] = useState<any>(null)
+  const [deletingMediaId, setDeletingMediaId] = useState<Id | null>(null)
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<MediaFilters>({
     'Media Type': [],
     'Medical Record': ['current'], // Default to current medical record
     Feature: []
@@ -71,7 +120,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       'video/*': ['.mp4'],
       'audio/*': ['.mp3', '.ogg', '.m4a']
     },
-    validator: (file: any) => {
+    validator: (file: File): FileError | null => {
       const allowedExtensions = [
         '.png',
         '.jpg',
@@ -101,11 +150,11 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
 
       return null
     },
-    onDrop: async (acceptedFiles: any[], rejectedFiles: any[]) => {
+    onDrop: async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       // Show error for rejected files
       if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach(({ file, errors }: any) => {
-          errors.forEach((error: any) => {
+        rejectedFiles.forEach(({ file, errors }: FileRejection) => {
+          errors.forEach((error: FileError) => {
             Toaster({ type: 'error', message: `${file.name}: ${error.message}` })
           })
         })
@@ -120,7 +169,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       const audioExts = ['.mp3', '.ogg', '.m4a']
       const docExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx']
 
-      const getFileType = (fileName: string) => {
+      const getFileType = (fileName: string): MediaTypeKey => {
         const name = fileName.toLowerCase()
         if (imageExts.some((ext: string) => name.endsWith(ext))) return 'image'
         if (videoExts.some((ext: string) => name.endsWith(ext))) return 'video'
@@ -130,26 +179,26 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
         return 'document'
       }
 
-      const typeStats: any = {
+      const typeStats: MediaTypeStats = {
         image: { count: 0, totalSize: 0 },
         video: { count: 0, totalSize: 0 },
         audio: { count: 0, totalSize: 0 },
         document: { count: 0, totalSize: 0 }
       }
-      acceptedFiles.forEach((file: any) => {
+      acceptedFiles.forEach((file: File) => {
         const type = getFileType(file.name)
         typeStats[type].count++
         typeStats[type].totalSize += file.size
       })
 
-      const maxFileCountMap: any = {
+      const maxFileCountMap: Record<MediaTypeKey, number | undefined> = {
         image: uploadSettings?.MAX_NUMBER_IMAGE_FILE,
         video: uploadSettings?.MAX_NUMBER_VIDEO_FILE,
         audio: uploadSettings?.MAX_NUMBER_AUDIO_FILE,
         document: uploadSettings?.MAX_NUMBER_APPLICATION_FILE
       }
 
-      const maxSizeMap: any = {
+      const maxSizeMap: Record<MediaTypeKey, number | undefined> = {
         image: uploadSettings?.MAX_IMAGE_UPLOAD_SIZE,
         video: uploadSettings?.MAX_VIDEO_UPLOAD_SIZE,
         audio: uploadSettings?.MAX_AUDIO_UPLOAD_SIZE,
@@ -158,7 +207,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
 
       let hasValidationError = false
 
-      Object.entries(typeStats).forEach(([type, stats]: any) => {
+      ;(Object.entries(typeStats) as [MediaTypeKey, MediaTypeStat][]).forEach(([type, stats]) => {
         const { count, totalSize } = stats
         if (count === 0) return
 
@@ -198,9 +247,9 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
           // Create FormData for each file
           const formData = new FormData()
           formData.append('notes_files[]', file)
-          formData.append('medical_record_id', medicalRecordId)
+          formData.append('medical_record_id', String(medicalRecordId ?? ''))
 
-          const response: any = await uploadPatientMedia(formData)
+          const response: UploadPatientMediaResponse = await uploadPatientMedia(formData as unknown as Parameters<typeof uploadPatientMedia>[0])
 
           if (response?.success) {
             successCount++
@@ -233,9 +282,9 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
   })
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, refetch, error, isError } =
-    useInfiniteQuery<any>({
+    useInfiniteQuery<MediaPage>({
       queryKey: ['patient-media', hospitalCaseId, medicalRecordId, animalId, filters, search],
-      queryFn: async ({ pageParam = 1 }: any) => {
+      queryFn: async ({ pageParam = 1 }) => {
         // Prepare file_type parameter
         let fileType = 'all'
         if (filters['Media Type'].length > 0) {
@@ -250,12 +299,12 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
           moduleParam = filters['Feature'].join(',')
         }
 
-        const params: any = {
+        const params: Partial<PatientMediaParams> & { medical_record_id?: Id } = {
           medical_record_id: filters['Medical Record'].includes('current') ? medicalRecordId : undefined,
           current_medical_record_id: medicalRecordId,
           file_type: fileType,
           module: moduleParam,
-          page: pageParam,
+          page: pageParam as number,
           limit: PAGE_SIZE,
           animal_id: animalId
         }
@@ -265,7 +314,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
           params.q = search
         }
 
-        const response: any = await getPatientMedia(params)
+        const response: PatientMediaResponse = await getPatientMedia(params as PatientMediaParams)
 
         // The API returns: { success: true, data: { result: [...], total_count: number } }
         const mediaData = response?.data?.result || []
@@ -274,22 +323,22 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
 
         return {
           result: mediaData,
-          nextPage: hasMore ? pageParam + 1 : undefined,
+          nextPage: hasMore ? (pageParam as number) + 1 : undefined,
           total: totalCount
         }
       },
-      getNextPageParam: (lastPage: any) => lastPage.nextPage,
+      getNextPageParam: (lastPage: MediaPage) => lastPage.nextPage,
       enabled: !!hospitalCaseId && !!medicalRecordId && !!animalId,
       initialPageParam: 1
-    } as any)
+    })
 
-  const mediaFiles = useMemo(() => {
-    const files = data?.pages.flatMap((page: any) => page.result) || []
+  const mediaFiles = useMemo<MappedMediaFile[]>(() => {
+    const files: PatientMediaData[] = data?.pages.flatMap((page: MediaPage) => page.result) || []
 
     // Map API response to expected format and determine file type
-    const mappedFiles = files.map((file: any) => {
+    const mappedFiles: MappedMediaFile[] = files.map((file: PatientMediaData) => {
       const fileName = file.file_original_name?.toLowerCase() || ''
-      let fileType = 'document'
+      let fileType: MediaTypeKey = 'document'
 
       // Determine file type from extension
       if (fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/)) {
@@ -313,7 +362,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
     return mappedFiles
   }, [data])
 
-  const total = useMemo(() => data?.pages?.[0]?.total || 0, [data])
+  const total = useMemo<number>(() => Number(data?.pages?.[0]?.total) || 0, [data])
 
   const loadMore = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
@@ -325,7 +374,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
   }, [inView, loadMore])
 
   // Handlers
-  const handleApplyFilters = useCallback((newFilters: any) => {
+  const handleApplyFilters = useCallback((newFilters: MediaFilters) => {
     setFilters(newFilters)
 
     // Filter count is handled by the drawer's setFilterCount callback
@@ -342,26 +391,26 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
     debouncedSearch('')
   }
 
-  const handleRemoveFilter = (filterCategory: string, filterValue: any) => {
-    setFilters((prev: any) => {
-      const newFilters: any = {
+  const handleRemoveFilter = (filterCategory: keyof MediaFilters, filterValue: string) => {
+    setFilters((prev: MediaFilters) => {
+      const newFilters: MediaFilters = {
         ...prev,
-        [filterCategory]: prev[filterCategory].filter((val: any) => val !== filterValue)
+        [filterCategory]: prev[filterCategory].filter((val: string) => val !== filterValue)
       }
 
       // Update filter count
-      const count = Object.values(newFilters).reduce((acc: number, curr: any) => acc + curr.length, 0)
+      const count = Object.values(newFilters).reduce((acc: number, curr: string[]) => acc + curr.length, 0)
       setFilterCount(count)
 
       return newFilters
     })
   }
 
-  const handleDeleteMedia = async (mediaId: any) => {
+  const handleDeleteMedia = async (mediaId: Id) => {
     try {
       setDeletingMediaId(mediaId)
 
-      const response: any = await deletePatientMedia(mediaId)
+      const response = await deletePatientMedia(mediaId)
 
       if (response?.success) {
         Toaster({ type: 'success', message: t('hospital_module.medical_attachments_deleted_successfully') })
@@ -382,8 +431,8 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
   // Use filterCount from state (managed by drawer)
 
   // Get display labels for filter values
-  const getFilterLabel = (category: string, value: any) => {
-    const labels: any = {
+  const getFilterLabel = (category: string, value: string) => {
+    const labels: Record<string, string> = {
       image: t('hospital_module.images'),
       document: t('hospital_module.documents'),
       video: t('hospital_module.videos'),
@@ -494,11 +543,11 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       {/* Active Filter Chips */}
       {filterCount > 0 && (
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
-          {Object.entries(filters).map(([category, values]: any) =>
-            values.map((value: any) => (
+          {(Object.entries(filters) as [keyof MediaFilters, string[]][]).map(([category, values]) =>
+            values.map((value: string) => (
               <Chip
                 key={`${category}-${value}`}
-                label={getFilterLabel(category, value)}
+                label={getFilterLabel(String(category), value)}
                 size='small'
                 onDelete={() => handleRemoveFilter(category, value)}
                 color='primary'
@@ -513,7 +562,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       {/* Media Grid */}
       <Box>
         <Grid container spacing={4}>
-          {mediaFiles.map((file: any) => (
+          {mediaFiles.map((file: MappedMediaFile) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.id}>
               <NewMediaCard
                 fileUrl={file.file}

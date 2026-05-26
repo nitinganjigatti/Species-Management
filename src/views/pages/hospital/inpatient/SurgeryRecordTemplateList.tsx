@@ -11,14 +11,27 @@ import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemp
 import SurgeryTemplateCard from './SurgeryTemplateCard'
 import Toaster from 'src/components/Toaster'
 import { deleteTemplate, updateTemplate } from 'src/lib/api/hospital/surgeryMaster'
+import { Theme } from '@mui/material/styles'
+import { Id } from 'src/types/hospital'
+import { TemplateList } from 'src/types/hospital/models'
+
+export interface SurgeryTemplate extends TemplateList {
+  title?: string
+  category?: string
+}
+
+interface EditTemplateFormData {
+  name: string
+  description: string
+}
 
 interface SurgeryRecordTemplateListProps {
   openSurgeryTemplateDrawer?: boolean
-  setOpenSurgeryTemplateDrawer?: any
-  templates?: any[]
+  setOpenSurgeryTemplateDrawer?: React.Dispatch<React.SetStateAction<boolean>>
+  templates?: SurgeryTemplate[]
   loading?: boolean
-  onApplyTemplate?: (template: any) => void
-  onTemplatesUpdated?: () => any
+  onApplyTemplate?: (template: SurgeryTemplate) => void
+  onTemplatesUpdated?: () => void | Promise<void>
 }
 
 const SurgeryRecordTemplateList = ({
@@ -30,13 +43,13 @@ const SurgeryRecordTemplateList = ({
   onTemplatesUpdated = () => {}
 }: SurgeryRecordTemplateListProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<SurgeryTemplate | null>(null)
   const [openEditPopup, setOpenEditPopup] = useState<boolean>(false)
-  const [editingTemplate, setEditingTemplate] = useState<any>(null)
+  const [editingTemplate, setEditingTemplate] = useState<SurgeryTemplate | null>(null)
   const [actionLoading, setActionLoading] = useState<boolean>(false)
-  const [deletingTemplateId, setDeletingTemplateId] = useState<any>(null)
+  const [deletingTemplateId, setDeletingTemplateId] = useState<Id | null>(null)
 
   const filteredTemplates = useMemo(() => {
     const list = Array.isArray(templates) ? templates : []
@@ -45,7 +58,7 @@ const SurgeryRecordTemplateList = ({
 
     const value = searchValue.toLowerCase()
 
-    return list.filter((template: any) => {
+    return list.filter(template => {
       const title = template?.title?.toLowerCase() || ''
       const description = template?.description?.toLowerCase() || ''
       const category = template?.category?.toLowerCase() || ''
@@ -58,7 +71,7 @@ const SurgeryRecordTemplateList = ({
     if (!selectedTemplate) return
 
     const list = Array.isArray(templates) ? templates : []
-    const match = list.find((template: any) => template.id === selectedTemplate.id)
+    const match = list.find(template => template.id === selectedTemplate.id)
 
     if (!match) {
       setSelectedTemplate(null)
@@ -71,28 +84,28 @@ const SurgeryRecordTemplateList = ({
     }
   }, [templates, selectedTemplate])
 
-  const handleTemplateSelect = (template: any) => {
-    setSelectedTemplate((prev: any) => (prev?.id === template.id ? null : template))
+  const handleTemplateSelect = (template: SurgeryTemplate) => {
+    setSelectedTemplate(prev => (prev?.id === template.id ? null : template))
   }
 
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
       onApplyTemplate(selectedTemplate)
-      setOpenSurgeryTemplateDrawer(false)
+      setOpenSurgeryTemplateDrawer?.(false)
     }
   }
 
   const handleEditTemplateClose = () => {
-    setOpenSurgeryTemplateDrawer(false)
+    setOpenSurgeryTemplateDrawer?.(false)
   }
 
-  const handleEditTemplateOpen = (template: any) => {
+  const handleEditTemplateOpen = (template: SurgeryTemplate) => {
     setEditingTemplate(template)
     setOpenEditPopup(true)
   }
 
   const handleUpdateTemplate = useCallback(
-    async (formData: any) => {
+    async (formData: EditTemplateFormData) => {
       if (!editingTemplate?.id) {
         Toaster({ type: 'error', message: 'Template not found for update' })
 
@@ -102,9 +115,9 @@ const SurgeryRecordTemplateList = ({
       try {
         setActionLoading(true)
 
-        const payload: any = { id: editingTemplate.id, template_name: formData.name, description: formData.description }
+        const payload = { id: editingTemplate.id, template_name: formData.name, description: formData.description }
 
-        const response: any = await updateTemplate(payload)
+        const response = await updateTemplate(payload)
 
         if (response?.success) {
           Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
@@ -116,11 +129,11 @@ const SurgeryRecordTemplateList = ({
         } else {
           Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
         }
-      } catch (error: any) {
-        console.error('Error updating template:', error?.message)
+      } catch (error: unknown) {
+        console.error('Error updating template:', (error as Error)?.message)
         Toaster({
           type: 'error',
-          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+          message: (error as Error)?.message || 'An unexpected error occurred'
         })
       } finally {
         setActionLoading(false)
@@ -130,7 +143,7 @@ const SurgeryRecordTemplateList = ({
   )
 
   const handleDeleteTemplate = useCallback(
-    async (templateId: any) => {
+    async (templateId: Id) => {
       if (!templateId) {
         Toaster({ type: 'error', message: 'Template not found for delete' })
 
@@ -140,7 +153,7 @@ const SurgeryRecordTemplateList = ({
       try {
         setActionLoading(true)
         setDeletingTemplateId(templateId)
-        const response: any = await deleteTemplate({ id: templateId })
+        const response = await deleteTemplate({ id: templateId })
 
         if (response?.success) {
           Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
@@ -157,11 +170,11 @@ const SurgeryRecordTemplateList = ({
         } else {
           Toaster({ type: 'error', message: response?.message || 'Failed to delete template' })
         }
-      } catch (error: any) {
-        console.error('Delete template error:', error?.response?.data?.message || error?.message || error)
+      } catch (error: unknown) {
+        console.error('Delete template error:', (error as Error)?.message || error)
         Toaster({
           type: 'error',
-          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+          message: (error as Error)?.message || 'An unexpected error occurred'
         })
       } finally {
         setActionLoading(false)
@@ -201,7 +214,7 @@ const SurgeryRecordTemplateList = ({
           }}
         >
           <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-            <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+            <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
@@ -266,7 +279,7 @@ const SurgeryRecordTemplateList = ({
                 <CircularProgress size={32} />
               </Box>
             ) : filteredTemplates?.length > 0 ? (
-              filteredTemplates?.map((template: any) => (
+              filteredTemplates?.map(template => (
                 <SurgeryTemplateCard
                   key={template.id}
                   template={template}
@@ -306,7 +319,7 @@ const SurgeryRecordTemplateList = ({
           justifyContent: 'center',
           gap: 5,
           display: 'flex',
-          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark ?? '', 0.1)}`,
           zIndex: 123
         }}
       >

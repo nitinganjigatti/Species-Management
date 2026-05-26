@@ -14,6 +14,7 @@ import {
   RadioGroup,
   Skeleton,
   TextField,
+  Theme,
   Typography,
   useTheme
 } from '@mui/material'
@@ -31,13 +32,27 @@ import {
 } from 'src/lib/api/hospital/treatmentMonitoring'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
+import { AddMonitoringParameterPayload, GetTemplatesParamsListResponse, SaveTemplatePayload, TemplateAssessmentCategory } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
+import { TemplateAssessmentTypes } from 'src/types/hospital/models'
+
+export interface AssessmentFormItem {
+  id: string
+  label: string
+  isExisting?: boolean
+  isManuallyAdded?: boolean
+}
+
+export interface TemplateOption {
+  label: string
+  value: string
+}
 
 interface AddParameterDrawerProps {
   open?: boolean
-  setOpen?: any
-  hospitalCaseId?: any
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  hospitalCaseId?: string | number
   refetchMonitoringData?: any
-  selectedDate?: any
+  selectedDate?: string
   refetchMonitoringParams?: any
 }
 
@@ -50,21 +65,21 @@ const AddParameterDrawer = ({
   refetchMonitoringParams
 }: AddParameterDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const { selectedHospital }: any = useHospital()
 
-  const [selectedTemplates, setSelectedTemplates] = useState<any[]>([])
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([])
   const [openSelectParamDrawer, setOpenSelectParamDrawer] = useState<boolean>(false)
-  const [selectedAssessments, setSelectedAssessments] = useState<any[]>([])
-  const [parameters, setParameters] = useState<any[]>([])
-  const [apiParameters, setApiParameters] = useState<any[]>([])
+  const [selectedAssessments, setSelectedAssessments] = useState<AssessmentFormItem[]>([])
+  const [parameters, setParameters] = useState<AssessmentFormItem[]>([])
+  const [apiParameters, setApiParameters] = useState<AssessmentFormItem[]>([])
   const [saveTemplate, setSaveTemplate] = useState<boolean>(false)
   const [templateName, setTemplateName] = useState<string>('')
   const [loadingParams, setLoadingParams] = useState<boolean>(false)
   const [saveLoading, setSaveLoading] = useState<boolean>(false)
   const [applyLoading, setApplyLoading] = useState<boolean>(false)
   const [monitoringLoading, setMonitoringLoading] = useState<boolean>(false)
-  const [todayOnly, setTodayOnly] = useState<any>(0)
+  const [todayOnly, setTodayOnly] = useState<number | null>(0)
   const [todayOnlyError, setTodayOnlyError] = useState<boolean>(false)
   const [showAllTemplates, setShowAllTemplates] = useState<boolean>(false)
 
@@ -72,10 +87,10 @@ const AddParameterDrawer = ({
     const fetchMonitoringParameters = async () => {
       setMonitoringLoading(true)
       try {
-        await getMonitoringParameters(hospitalCaseId, { monitoring_date: selectedDate }).then((res: any) => {
+        await getMonitoringParameters(hospitalCaseId ?? '', { monitoring_date: selectedDate ?? '' }).then((res) => {
           if (res?.status === true) {
-            const apiParams: any[] =
-              res?.data?.assessments?.map((item: any) => ({
+            const apiParams: AssessmentFormItem[] =
+              res?.data?.assessments?.map((item) => ({
                 id: String(item?.assessment_type_id),
                 label: item?.label,
                 isExisting: true
@@ -99,29 +114,29 @@ const AddParameterDrawer = ({
     data: templateData,
     isLoading: templateLoading,
     refetch: refetchTemplates
-  } = useQuery<any>({
+  } = useQuery<GetTemplatesParamsListResponse>({
     queryKey: ['hospital-parameters-templates'],
-    queryFn: () => getHospitalParamsTemplatesList({ ref_type: 'hospital', hospital_id: selectedHospital?.id })
+    queryFn: () => getHospitalParamsTemplatesList({ ref_type: 'hospital', hospital_id: String(selectedHospital?.id ?? '') })
   })
 
-  const templateList: any[] = templateData?.data?.result?.map((item: any) => ({
+  const templateList: TemplateOption[] = templateData?.data?.result?.map((item) => ({
     label: item?.template_name,
     value: item?.assessment_template_id
-  }))
+  })) ?? []
 
   const handleDrawerClose = () => {
-    setOpen(false)
+    setOpen?.(false)
     setTemplateName('')
     setSaveTemplate(false)
   }
 
-  const handleTemplateClick = async (value: any) => {
+  const handleTemplateClick = async (value: string) => {
     const isAlreadySelected = selectedTemplates.includes(value)
 
     if (isAlreadySelected) {
       setSelectedTemplates([])
-      const apiParamsWithFlag = apiParameters.map((p: any) => ({ ...p, isExisting: true }))
-      const manualParams = parameters.filter((p: any) => p.isManuallyAdded)
+      const apiParamsWithFlag = apiParameters.map((p) => ({ ...p, isExisting: true }))
+      const manualParams = parameters.filter((p) => p.isManuallyAdded)
       const allParams = [...apiParamsWithFlag, ...manualParams]
       setParameters(allParams)
       setSelectedAssessments(allParams)
@@ -129,29 +144,32 @@ const AddParameterDrawer = ({
       setLoadingParams(true)
 
       try {
-        const res: any = await getParametersBasedOnTemplates({ assessment_template_id: value })
+        const res = await getParametersBasedOnTemplates({ assessment_template_id: value })
 
-        const fetchedParams: any[] =
+        const fetchedParams: AssessmentFormItem[] =
           res?.data?.assessment_category?.flatMap(
-            (category: any) =>
-              category.assessment_types?.map((type: any) => ({
+            (category: TemplateAssessmentCategory) =>
+              category.assessment_types?.map((type: TemplateAssessmentTypes) => ({
                 id: String(type.assessment_type_id),
                 label: type.assessments_type_label,
                 isExisting: false
               })) || []
           ) || []
 
-        const newParams = fetchedParams.map((p: any) => ({
+        const newParams = fetchedParams.map((p) => ({
           ...p,
-          isExisting: apiParameters.some((api: any) => api.id === p.id)
+          isExisting: apiParameters.some((api) => api.id === p.id)
         }))
 
-        const apiParamsWithFlag = apiParameters.map((p: any) => ({ ...p, isExisting: true }))
+        const apiParamsWithFlag = apiParameters.map((p) => ({ ...p, isExisting: true }))
 
-        const manualParams = parameters.filter((p: any) => p.isManuallyAdded)
+        const manualParams = parameters.filter((p) => p.isManuallyAdded)
 
-        const allParams = [...apiParamsWithFlag, ...manualParams, ...newParams]
-        const unique = allParams.filter((param: any, index: number, self: any[]) => index === self.findIndex((p: any) => p.id === param.id))
+        const allParams: AssessmentFormItem[] = [...apiParamsWithFlag, ...manualParams, ...newParams]
+        const unique = allParams.filter(
+          (param, index: number, self: AssessmentFormItem[]) =>
+            index === self.findIndex((p) => p.id === param.id)
+        )
 
         setParameters(unique)
         setSelectedAssessments(unique)
@@ -165,52 +183,58 @@ const AddParameterDrawer = ({
     }
   }
 
-  const handleAddParameters = (params: any[]) => {
-    const newManualParams = params.map((p: any) => ({
+  const handleAddParameters = (params: AssessmentFormItem[]) => {
+    const newManualParams: AssessmentFormItem[] = params.map((p) => ({
       ...p,
       id: String(p.id),
       isExisting: false,
       isManuallyAdded: true
     }))
 
-    setParameters((prev: any[]) => {
-      const existingApiParams = prev.filter((p: any) => apiParameters.some((api: any) => api.id === p.id))
-      const nonApiParams = prev.filter((p: any) => !apiParameters.some((api: any) => api.id === p.id))
+    setParameters((prev) => {
+      const existingApiParams = prev.filter((p) => apiParameters.some((api) => api.id === p.id))
+      const nonApiParams = prev.filter((p) => !apiParameters.some((api) => api.id === p.id))
 
-      const apiParamsWithFlag = existingApiParams.map((p: any) => ({ ...p, isExisting: true }))
+      const apiParamsWithFlag = existingApiParams.map((p) => ({ ...p, isExisting: true }))
 
       const allParams = [...apiParamsWithFlag, ...nonApiParams, ...newManualParams]
-      const unique = allParams.filter((param: any, index: number, self: any[]) => index === self.findIndex((p: any) => p.id === param.id))
+      const unique = allParams.filter(
+        (param, index: number, self: AssessmentFormItem[]) =>
+          index === self.findIndex((p) => p.id === param.id)
+      )
 
       return unique
     })
-    setSelectedAssessments((prev: any[]) => {
-      const combined = [...prev, ...params]
-      const unique = combined.filter((param: any, index: number, self: any[]) => index === self.findIndex((p: any) => p.id === param.id))
+    setSelectedAssessments((prev: AssessmentFormItem[]) => {
+      const combined: AssessmentFormItem[] = [...prev, ...params]
+      const unique = combined.filter(
+        (param, index: number, self: AssessmentFormItem[]) =>
+          index === self.findIndex((p) => p.id === param.id)
+      )
 
       return unique
     })
   }
 
-  const handleRemoveParameter = (id: any) => {
-    setParameters((prev: any[]) => prev.filter((item: any) => item.id !== id))
-    setSelectedAssessments((prev: any[]) => prev.filter((item: any) => item.id !== id))
+  const handleRemoveParameter = (id: string) => {
+    setParameters((prev: AssessmentFormItem[]) => prev.filter((item) => item.id !== id))
+    setSelectedAssessments((prev: AssessmentFormItem[]) => prev.filter((item) => item.id !== id))
   }
 
   const handleSaveTemplate = async () => {
     setSaveLoading(true)
     try {
-      const payload: any = {
+      const payload: SaveTemplatePayload = {
         template_name: templateName,
         hospital_id: selectedHospital?.id,
         description: 'this is for test'
       }
 
-      parameters.forEach((param: any, index: number) => {
+      parameters.forEach((param, index: number) => {
         payload[`type_ids[${index}]`] = param.id
       })
 
-      await saveHospitalTemplate(payload).then((res: any) => {
+      await saveHospitalTemplate(payload).then((res) => {
         if (res?.status === true) {
           setSaveLoading(false)
           Toaster({ type: 'success', message: res?.message })
@@ -239,19 +263,19 @@ const AddParameterDrawer = ({
     setTodayOnlyError(false)
 
     try {
-      const newParams = parameters.filter((param: any) => !param.isExisting)
+      const newParams = parameters.filter((param) => !param.isExisting)
 
-      const payload: any = {
-        hospital_case_id: hospitalCaseId,
-        parameter_date: selectedDate,
-        today_only: todayOnly
+      const payload: AddMonitoringParameterPayload = {
+        hospital_case_id: String(hospitalCaseId),
+        parameter_date: selectedDate ?? '',
+        today_only: String(todayOnly ?? '')
       }
 
-      newParams.forEach((param: any, index: number) => {
+      newParams.forEach((param, index: number) => {
         payload[`assessment_ids[${index}]`] = param.id
       })
 
-      await applyParamsToHospitalCaseId(payload).then((res: any) => {
+      await applyParamsToHospitalCaseId(payload).then((res) => {
         if (res?.status === true) {
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
@@ -269,7 +293,7 @@ const AddParameterDrawer = ({
     }
   }
 
-  const hasNewParameters = parameters.some((p: any) => !p.isExisting)
+  const hasNewParameters = parameters.some((p) => !p.isExisting)
 
   const visibleTemplates = showAllTemplates ? templateList : templateList?.slice(0, 5)
 
@@ -312,7 +336,7 @@ const AddParameterDrawer = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Parameters
+                {t('hospital_module.add_parameters')}
               </Typography>
             </Box>
 
@@ -337,7 +361,7 @@ const AddParameterDrawer = ({
                 }}
                 startIcon={<Icon icon='mdi:plus' fontSize={30} />}
               >
-                Add Parameter
+                {t('hospital_module.add_parameter')}
               </Button>
             </Box>
             {(loadingParams || monitoringLoading) && (
@@ -350,7 +374,7 @@ const AddParameterDrawer = ({
                 <Typography
                   sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Selected ({parameters?.filter((p: any) => !p.isExisting)?.length})
+                  {t('selected')} ({parameters?.filter((p) => !p.isExisting)?.length})
                 </Typography>
                 <Box
                   sx={{
@@ -362,7 +386,7 @@ const AddParameterDrawer = ({
                     borderRadius: 1
                   }}
                 >
-                  {[...new Map(parameters.map((p: any) => [p.id, p])).values()].map((item: any) => (
+                  {[...new Map(parameters.map((p: AssessmentFormItem) => [p.id, p])).values()].map((item: AssessmentFormItem) => (
                     <Box
                       key={item?.id}
                       sx={{
@@ -470,8 +494,8 @@ const AddParameterDrawer = ({
                         opacity: hasNewParameters ? 1 : 0.5
                       }}
                       onClick={() => {
-                        setParameters((prev: any[]) => prev.filter((item: any) => item?.isExisting === true))
-                        setSelectedAssessments((prev: any[]) => prev.filter((item: any) => item?.isExisting === true))
+                        setParameters((prev: AssessmentFormItem[]) => prev.filter((item: AssessmentFormItem) => item?.isExisting === true))
+                        setSelectedAssessments((prev: AssessmentFormItem[]) => prev.filter((item: AssessmentFormItem) => item?.isExisting === true))
 
                         setSelectedTemplates([])
                       }}
@@ -515,7 +539,7 @@ const AddParameterDrawer = ({
                 ) : (
                   <>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {visibleTemplates?.map((template: any, index: number) => {
+                      {visibleTemplates?.map((template: TemplateOption, index: number) => {
                         const isSelected = selectedTemplates.includes(template.value)
 
                         return (
@@ -651,10 +675,10 @@ const AddParameterDrawer = ({
                   height: '56px'
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button variant='contained' fullWidth onClick={onApplyClick} sx={{ height: '56px' }}>
-                {applyLoading ? <CircularProgress size={24} /> : 'APPLY'}
+               {applyLoading ? <CircularProgress size={24} /> : t('apply')}
               </Button>
             </Box>
           </Box>
@@ -666,7 +690,7 @@ const AddParameterDrawer = ({
           setOpen={setOpenSelectParamDrawer}
           selectedAssessments={selectedAssessments}
           setSelectedAssessments={setSelectedAssessments}
-          onAddSelected={(params: any[]) => handleAddParameters(params)}
+          onAddSelected={(params: AssessmentFormItem[]) => handleAddParameters(params)}
         />
       )}
     </>

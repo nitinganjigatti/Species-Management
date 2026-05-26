@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
+import { Theme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -13,17 +14,20 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { useTranslation } from 'react-i18next'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import type { TFunction } from 'i18next'
+import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models'
+import { ReversalDrugFormItem } from 'src/components/hospital/shared/AddAnesthesiaRecordPage'
 dayjs.extend(customParseFormat)
 
-const createSchema = (t: any) => {
+const createSchema = (t: TFunction) => {
   return yup.object().shape({
     drug_name: yup
       .object()
       .nullable()
       .required(t('hospital_module.drug_is_required', 'Please select a drug from the list'))
-      .test('is-valid-drug', t('hospital_module.please_select_valid_drug', 'Please select a valid drug from the list'), function (value: any) {
+      .test('is-valid-drug', t('hospital_module.please_select_valid_drug', 'Please select a valid drug from the list'), function (value: MedicationDrugOption | null | undefined) {
         if (!value) return false
         return Boolean(value.id && value.name)
       }),
@@ -31,7 +35,7 @@ const createSchema = (t: any) => {
       .string()
       .trim()
       .required(t('hospital_module.amount_is_required', 'Amount is required'))
-      .test('is-valid-amount', t('hospital_module.amount_must_be_greater_than_zero', 'Amount must be greater than 0'), (value: any) => {
+      .test('is-valid-amount', t('hospital_module.amount_must_be_greater_than_zero', 'Amount must be greater than 0'), (value: string | undefined) => {
         if (!value) return false
         const num = parseFloat(value)
         return !isNaN(num) && num > 0
@@ -48,7 +52,7 @@ const createSchema = (t: any) => {
       .nullable()
       .required(t('hospital_module.max_effect_time_is_required', 'Max Effect Time is required'))
       .typeError(t('hospital_module.please_select_valid_max_effect_time', 'Please select a valid max effect time'))
-      .test('is-after-delivery', t('hospital_module.max_effect_time_cannot_be_less_than_delivery_time', 'Max effect time cannot be less than delivery time'), function (value: any) {
+      .test('is-after-delivery', t('hospital_module.max_effect_time_cannot_be_less_than_delivery_time', 'Max effect time cannot be less than delivery time'), function (value: Date | null | undefined) {
         const { delivery_time } = this.parent
         if (!delivery_time || !value) return true
 
@@ -61,17 +65,17 @@ const createSchema = (t: any) => {
   })
 }
 
-interface FormValues {
-  drug_name: any
+interface ReversalDrugFormData {
+  drug_name: MedicationDrugOption | null
   amount: string
   unit: string
-  delivery_route: any
-  delivery_time: any
-  delivery_status: any
-  max_effect_time: any
+  delivery_route: DeliveryRoute | null
+  delivery_time: Dayjs | Date | string | null
+  delivery_status: string | null
+  max_effect_time: Dayjs | Date | string | null
 }
 
-const defaultValues: FormValues = {
+const defaultValues: ReversalDrugFormData = {
   drug_name: null,
   amount: '',
   unit: '',
@@ -84,13 +88,13 @@ const defaultValues: FormValues = {
 interface AddReversalDrugProps {
   handleSidebarOpen: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (data: any) => Promise<void> | void
+  handleSubmitData: (data: ReversalDrugFormData) => Promise<void> | void
   submitLoader?: boolean
-  editData?: any
-  drugOptions?: any[]
-  existingMedications?: any[]
-  unitList?: any[]
-  deliveryRouteOptions?: any[]
+  editData?: ReversalDrugFormItem | null
+  drugOptions?: MedicationDrugOption[]
+  existingMedications?: ReversalDrugFormItem[]
+  unitList?: UnitParams[]
+  deliveryRouteOptions?: DeliveryRoute[]
   onLoadMoreDrugs?: () => void
   hasMoreDrugs?: boolean
   isLoadingDrugs?: boolean
@@ -112,7 +116,7 @@ function AddReversalDrug({
   isLoadingDrugs = false,
   onSearch
 }: AddReversalDrugProps) {
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const { t } = useTranslation()
 
   const schema = createSchema(t)
@@ -122,7 +126,7 @@ function AddReversalDrug({
     { label: t('hospital_module.partial', 'Partial'), value: 'Partial' },
     { label: t('hospital_module.none', 'None'), value: 'None' }
   ]
-  const [selectedStatus, setSelectedStatus] = useState<any>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [drugNameTouched, setDrugNameTouched] = useState<boolean>(false)
 
   const {
@@ -133,9 +137,9 @@ function AddReversalDrug({
     watch,
     trigger,
     formState: { errors, isValid }
-  } = useForm<FormValues>({
+  } = useForm<ReversalDrugFormData>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -155,14 +159,14 @@ function AddReversalDrug({
     const existing = Array.isArray(existingMedications) ? existingMedications : []
     const excludedIds = new Set(
       existing
-        .map((m: any) => m?.drug_name?.id ?? m?.drug_id ?? null)
+        .map((m: ReversalDrugFormItem) => m?.drug_name?.id ?? m?.drug_id ?? null)
         .filter(Boolean)
-        .map((id: any) => String(id))
+        .map((id) => String(id))
     )
 
     const editingId = editData?.drug_name?.id ?? editData?.drug_id ?? null
     const editingIdStr = editingId ? String(editingId) : null
-    return drugOptions.filter((opt: any) => {
+    return drugOptions.filter((opt: MedicationDrugOption) => {
       const optId = opt?.id ?? opt?.drug_id ?? null
       if (!optId) return true
       const idStr = String(optId)
@@ -175,7 +179,7 @@ function AddReversalDrug({
     if (!handleSidebarOpen) return
 
     if (editData) {
-      const parseTime = (t: any) => {
+      const parseTime = (t: string | Dayjs | Date | null | undefined) => {
         if (!t) return null
 
         if (dayjs.isDayjs(t)) return t
@@ -195,18 +199,19 @@ function AddReversalDrug({
         return null
       }
 
-      Object.keys(defaultValues).forEach((key: any) => {
-        if (key !== 'delivery_time' && key !== 'max_effect_time') {
-          setValue(key as any, editData[key] ?? (defaultValues as any)[key], { shouldValidate: true })
+      Object.keys(defaultValues).forEach((key) => {
+        const k = key as keyof ReversalDrugFormData
+        if (k !== 'delivery_time' && k !== 'max_effect_time') {
+          setValue(k, (editData as Record<string, unknown>)[k] as ReversalDrugFormData[typeof k] ?? defaultValues[k], { shouldValidate: true })
         }
       })
 
-      setValue('delivery_time' as any, parseTime(editData.delivery_time), { shouldValidate: true })
-      setValue('max_effect_time' as any, parseTime(editData.max_effect_time), { shouldValidate: true })
+      setValue('delivery_time', parseTime(editData.delivery_time), { shouldValidate: true })
+      setValue('max_effect_time', parseTime(editData.max_effect_time), { shouldValidate: true })
 
       if (editData.delivery_status) {
         setSelectedStatus(editData.delivery_status)
-        setValue('delivery_status' as any, editData.delivery_status, { shouldValidate: true })
+        setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
       if (editData.drug_name) {
         setDrugNameTouched(true)
@@ -217,14 +222,14 @@ function AddReversalDrug({
         ...defaultValues,
         delivery_time: now,
         max_effect_time: now
-      } as any)
+      })
       setSelectedStatus(null)
       setDrugNameTouched(false)
     }
   }, [editData, setValue, reset, handleSidebarOpen])
 
   useEffect(() => {
-    setValue('delivery_status' as any, selectedStatus, { shouldValidate: true })
+    setValue('delivery_status', selectedStatus, { shouldValidate: true })
   }, [selectedStatus, setValue])
 
   const handleDrugNameBlur = useCallback(() => {
@@ -233,7 +238,7 @@ function AddReversalDrug({
   }, [trigger])
 
   const handleDrugNameChange = useCallback(
-    (event: any, value: any) => {
+    (event: React.SyntheticEvent | null, value: MedicationDrugOption | null) => {
       if (event?.type === 'change' && !value?.id) {
         setDrugNameTouched(true)
       }
@@ -243,8 +248,8 @@ function AddReversalDrug({
   )
 
   const onSubmit = useCallback(
-    async (formData: FormValues) => {
-      const fmt = (v: any) => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
+    async (formData: ReversalDrugFormData) => {
+      const fmt = (v: string | Dayjs | Date | null | undefined) => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
 
       const payload = {
         ...(editData && editData.id ? { id: editData.id } : {}),
@@ -295,7 +300,8 @@ function AddReversalDrug({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+          {/* <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' /> */}
+          <Box component = 'img' src = '/icons/activity_icon.png' sx = {{ width: '30px', height: '30px'}} alt = 'Hospital Icon'/>
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {editData ? t('hospital_module.edit_reversal_drug') : t('hospital_module.add_reversal_drug')}
@@ -324,28 +330,31 @@ function AddReversalDrug({
                 <Controller
                   name='drug_name'
                   control={control}
-                  render={({ field, fieldState: { error } }: any) => (
+                  render={({ field, fieldState: { error } }) => (
                     <ControlledAutocomplete
-                      {...(field as any)}
+                      {...field}
                       control={control}
                       name='drug_name'
                       errors={errors}
                       label={(t('hospital_module.enter_drug_name') as string)}
                       options={filteredDrugOptions}
-                      getOptionLabel={(option: any) => option?.name || ''}
-                      isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                      renderOption={(props: any, option: any) => (
-                        <li {...props} key={option.id}>
-                          {option.name}
-                        </li>
-                      )}
+                      getOptionLabel={(option: unknown) => (option as MedicationDrugOption)?.name || ''}
+                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as MedicationDrugOption)?.id === (value as MedicationDrugOption)?.id}
+                      renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                        const opt = option as MedicationDrugOption
+                        return (
+                          <Box component='li' {...props} key={opt.id}>
+                            {opt.name}
+                          </Box>
+                        )
+                      }}
                       loading={isLoadingDrugs}
                       autocompleteProps={{
-                        onBlur: (event: any) => {
+                        onBlur: (event: React.FocusEvent) => {
                           handleDrugNameBlur()
-                          field.onBlur(event)
+                          field.onBlur()
                         },
-                        onChange: (event: any, value: any, reason: any) => {
+                        onChange: (event: React.SyntheticEvent, value: MedicationDrugOption | null, reason: string) => {
                           field.onChange(value)
                           if (reason === 'selectOption') {
                             setDrugNameTouched(false)
@@ -353,7 +362,7 @@ function AddReversalDrug({
                             handleDrugNameChange(event, value)
                           }
                         },
-                        onInputChange: (_: any, value: any, reason: any) => {
+                        onInputChange: (_: React.SyntheticEvent, value: string, reason: string) => {
                           if (reason === 'input') {
                             onSearch?.(value)
                           }
@@ -364,7 +373,7 @@ function AddReversalDrug({
                         },
                         slotProps: {
                           listbox: {
-                            onScroll: (event: any) => {
+                            onScroll: (event: React.UIEvent<HTMLElement>) => {
                               const listboxNode = event.currentTarget
                               const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
                               const threshold = listboxNode.scrollHeight - 50
@@ -384,9 +393,9 @@ function AddReversalDrug({
                             }
                           }
                         },
-                        filterOptions: (options: any, params: any) => {
-                          const filtered = options.filter((option: any) =>
-                            option.name.toLowerCase().includes(params.inputValue.toLowerCase())
+                        filterOptions: (options: MedicationDrugOption[], params: { inputValue: string }) => {
+                          const filtered = options.filter((option: MedicationDrugOption) =>
+                            (option.name || '').toLowerCase().includes(params.inputValue.toLowerCase())
                           )
                           return filtered
                         }
@@ -415,9 +424,9 @@ function AddReversalDrug({
                   name='unit'
                   errors={errors}
                   label={(t('hospital_module.unit', 'Unit') as string)}
-                  options={unitList}
-                  getOptionLabel={(option: any) => option.uom_abbr}
-                  getOptionValue={(option: any) => option.id}
+                  options={unitList as unknown as { value: string | number; label: string }[]}
+                  getOptionLabel={(option: UnitParams) => option.uom_abbr}
+                  getOptionValue={(option: UnitParams) => option.id}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -434,15 +443,18 @@ function AddReversalDrug({
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label={(t('hospital_module.delivery_route') as string)}
+                  label={(t('navigation.delivery_route') as string)}
                   options={deliveryRouteOptions}
-                  getOptionLabel={(option: any) => option?.delivery || ''}
-                  isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
-                  renderOption={(props: any, option: any) => (
-                    <li {...props} key={option.id}>
-                      {option.delivery}
-                    </li>
-                  )}
+                  getOptionLabel={(option: unknown) => (option as DeliveryRoute)?.delivery?.toString() || ''}
+                  isOptionEqualToValue={(option: unknown, value: unknown) => (option as DeliveryRoute)?.id === (value as DeliveryRoute)?.id}
+                  renderOption={(props: React.HTMLAttributes<HTMLLIElement>, option: unknown) => {
+                    const opt = option as DeliveryRoute
+                    return (
+                      <Box component='li' {...props} key={opt.id}>
+                        {opt.delivery}
+                      </Box>
+                    )
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -450,7 +462,7 @@ function AddReversalDrug({
                   {t('hospital_module.delivery_status_label')}{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                  {deliveryStatus.map((status: any, index: number) => (
+                  {deliveryStatus.map((status: { label: string; value: string }, index: number) => (
                     <Chip
                       key={index}
                       label={status.label}
@@ -483,7 +495,7 @@ function AddReversalDrug({
                 </Box>
                 {errors.delivery_status && (
                   <Typography variant='caption' color='error' sx={{ ml: 2 }}>
-                    {(errors.delivery_status as any).message}
+                    {errors.delivery_status.message}
                   </Typography>
                 )}
               </Grid>

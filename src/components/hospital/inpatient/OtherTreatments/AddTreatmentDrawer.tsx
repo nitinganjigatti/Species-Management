@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react'
 import dayjs from 'dayjs'
 import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
@@ -11,20 +12,23 @@ import { useTranslation } from 'react-i18next'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import type { AddTreatmentFormState, TreatmentOption } from './index'
+import { SystemStyleObject } from '@mui/system'
+
 
 interface AddTreatmentDrawerProps {
   open: boolean
   onClose: () => void
-  formData: any
-  onChange: (field: string, value: any) => void
+  formData: AddTreatmentFormState
+  onChange: (field: keyof AddTreatmentFormState, value: AddTreatmentFormState[keyof AddTreatmentFormState]) => void
   onSubmit: () => void
-  treatmentOptions?: any[]
+  treatmentOptions?: TreatmentOption[]
   onSearchTreatment?: (value: string) => void
   optionsLoading?: boolean
   onInputValueChange?: (value: string) => void
   isSubmitting?: boolean
-  admissionDate?: any
-  dischargedDate?: any
+  admissionDate?: dayjs.Dayjs | null
+  dischargedDate?: dayjs.Dayjs | null
 }
 
 const AddTreatmentDrawer = ({
@@ -42,15 +46,15 @@ const AddTreatmentDrawer = ({
   dischargedDate
 }: AddTreatmentDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
 
-  const resolveLabel = (value: any) => {
+  const resolveLabel = (value: TreatmentOption | string | null): string => {
     if (typeof value === 'string') return value
 
     return value?.label || value?.value || ''
   }
 
-  const handleTreatmentInputChange = (value: any, reason: any) => {
+  const handleTreatmentInputChange = (value: TreatmentOption | string | null, reason: string) => {
     if (reason === 'input') {
       const label = resolveLabel(value)
       onInputValueChange?.(label)
@@ -73,7 +77,7 @@ const AddTreatmentDrawer = ({
     }
   }
 
-  const handleTreatmentSelect = (value: any) => {
+  const handleTreatmentSelect = (value: TreatmentOption | string | null) => {
     onChange('treatmentName', value)
 
     const label = resolveLabel(value)
@@ -100,7 +104,7 @@ const AddTreatmentDrawer = ({
     })
   }, [formData.treatmentName, formData.notes, reset, open])
 
-  const commonFieldStyles: any = {
+  const commonFieldStyles: SystemStyleObject<Theme> = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '8px',
       backgroundColor: theme.palette.primary.contrastText
@@ -169,7 +173,7 @@ const AddTreatmentDrawer = ({
                 sx={{
                   fontWeight: 400,
                   fontSize: '14px',
-                  color: theme.palette.primary.deepDark
+                  color: theme.palette.customColors.deepDark
                 }}
               >
                 {t('hospital_module.treatment_start_date')}
@@ -177,7 +181,7 @@ const AddTreatmentDrawer = ({
               <MUIDatePicker
                 {...({
                   value: formData.startDate,
-                  onChange: (value: any) => onChange('startDate', value),
+                  onChange: (value: dayjs.Dayjs | null) => onChange('startDate', value),
                   label: '',
                   format: 'DD MMM YYYY',
                   minDate: admissionDate,
@@ -185,7 +189,7 @@ const AddTreatmentDrawer = ({
                   sx: {
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
-                      ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      ...((commonFieldStyles['& .MuiOutlinedInput-root'] as Record<string, unknown>) || {}),
                       height: '56px'
                     },
                     '& .MuiInputBase-input': {
@@ -217,9 +221,9 @@ const AddTreatmentDrawer = ({
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
-                getOptionLabel={(option: any) => option?.label || option || ''}
-                isOptionEqualToValue={(option: any, value: any) =>
-                  (option?.value && option?.value === value?.value) || option === value
+                getOptionLabel={(option: TreatmentOption | string) => (typeof option === 'string' ? option : option?.label) || ''}
+                isOptionEqualToValue={(option: TreatmentOption | string, value: TreatmentOption | string) =>
+                  (typeof option !== 'string' && typeof value !== 'string' && option?.value === value?.value) || option === value
                 }
                 onChangeOverride={handleTreatmentSelect}
                 {...({ onInputChange: handleTreatmentInputChange } as any)}
@@ -229,7 +233,7 @@ const AddTreatmentDrawer = ({
                   sx: {
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
-                      ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      ...((commonFieldStyles['& .MuiOutlinedInput-root'] as Record<string, unknown>) || {}),
                       height: '56px'
                     }
                   },
@@ -257,12 +261,12 @@ const AddTreatmentDrawer = ({
                 {...({ required: t('hospital_module.notes_required') } as any)}
                 rows={4}
                 placeholder={t('hospital_module.add_notes_placeholder') as any}
-                onChangeOverride={(event: any) => onChange('notes', event?.target?.value || '')}
+                onChangeOverride={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange('notes', event?.target?.value || '')}
                 inputBackgroundColor={theme.palette.primary.contrastText}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {
-                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                    ...((commonFieldStyles['& .MuiOutlinedInput-root'] as Record<string, unknown>) || {}),
                     minHeight: '120px'
                   }
                 }}

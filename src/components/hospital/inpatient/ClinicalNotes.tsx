@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useMemo, useCallback, useRef } from 'react'
-import { useTheme } from '@emotion/react'
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { useTheme, Theme } from '@mui/material'
+import { useMutation, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
@@ -11,20 +11,31 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
 import { useSelector } from 'react-redux'
+import { AddClinicalNotesParams, AddClinicalNotesResponse, DeleteClinicalNotesResponse } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes'
+import { ClinicalNotesList, PatientDetailsData } from 'src/types/hospital/models'
 
 const STORAGE_KEY = 'medical_record_data'
 
 interface ClinicalNotesProps {
-  patientData?: any
+  patientData?: PatientDetailsData
+}
+
+interface ClinicalNotesPage {
+  total_count: number
+  data: ClinicalNotesList[]
+}
+
+interface FetchClinicalNotesArgs {
+  pageParam?: number
 }
 
 const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
   const { t } = useTranslation()
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false)
-  const [selectedItemToDelete, setSelectedItemToDelete] = useState<any>(null)
+  const [selectedItemToDelete, setSelectedItemToDelete] = useState<ClinicalNotesList | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
 
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
   const id = routerParams?.id || router.query?.id
@@ -44,37 +55,39 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
     []
   )
 
-  const fetchClinicalNotes = async ({ pageParam = 1 }: any) => {
+  const fetchClinicalNotes = async ({ pageParam = 1 }: FetchClinicalNotesArgs) => {
     try {
-      const res: any = await getClinicalNotes({
+      const res = await getClinicalNotes({
         animalId: animal_id,
         params: { ...queryParams, page: pageParam }
       } as any)
 
-      return {
-        total_count: res?.data?.total_count,
-        data: res?.data?.result || []
+      if (res?.success === true) {
+        return {
+          total_count: res.data.total_count,
+          data: res.data.result || []
+        }
       }
-    } catch (error: any) {
-      console.error('Error fetching clinical notes:', error?.message || error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching clinical notes:', err?.message || error)
     }
   }
 
-  const getNextPage = (lastPage: any, pages: any[]) => {
+  const getNextPage = (lastPage: ClinicalNotesPage, pages: ClinicalNotesPage[]) => {
     const totalCount = Number(lastPage?.total_count) || 0
-    const fetchedCount = pages?.reduce((sum: number, page: any) => sum + (page?.data?.length || 0), 0)
+    const fetchedCount = pages?.reduce((sum: number, page: ClinicalNotesPage) => sum + (page?.data?.length || 0), 0)
 
     return fetchedCount < totalCount ? pages?.length + 1 : undefined
   }
 
   const {
     data: clinicalNotesData,
-    isFetching,
     isLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteQuery<any>({
+  } = useInfiniteQuery<ClinicalNotesPage, Error, InfiniteData<ClinicalNotesPage>>({
     queryKey: ['clinicalNotes', animal_id, queryParams],
     queryFn: fetchClinicalNotes,
     getNextPageParam: getNextPage,
@@ -83,8 +96,8 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
     initialPageParam: 1
   } as any)
 
-  const allClinicalEntries = useMemo(() => {
-    return clinicalNotesData?.pages?.flatMap((page: any) => page?.data || []) || []
+  const allClinicalEntries: ClinicalNotesList[] = useMemo(() => {
+    return clinicalNotesData?.pages?.flatMap((page: ClinicalNotesPage) => page?.data || []) || []
   }, [clinicalNotesData])
 
   const canFetchNotes = !!animal_id
@@ -108,10 +121,10 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
     [isFetchingNextPage, hasNextPage, fetchNextPage]
   )
 
-  const handleSubmitData = async (payload: any) => {
+  const handleSubmitData = async (payload: AddClinicalNotesParams): Promise<boolean> => {
     setIsSubmitLoading(true)
     try {
-      const response: any = await addClinicalNotes({ payload } as any)
+      const response: AddClinicalNotesResponse = await addClinicalNotes({ payload })
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.note_added_successfully') })
@@ -124,8 +137,9 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
 
         return false
       }
-    } catch (error: any) {
-      console.error('Submit Error:', error?.message || error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Submit Error:', err?.message || err)
 
       return false
     } finally {
@@ -133,22 +147,22 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
     }
   }
 
-  const deleteClinicalNotesMutation: any = useMutation({
-    mutationFn: (noteId: any) => deleteClinicalNotes(noteId),
-    onSuccess: async (response: any) => {
+  const deleteClinicalNotesMutation = useMutation<DeleteClinicalNotesResponse, Error, string>({
+    mutationFn: (noteId: string) => deleteClinicalNotes(noteId),
+    onSuccess: async (response) => {
       Toaster({ type: 'success', message: response?.message || t('hospital_module.note_deleted_successfully') })
 
       queryClient.invalidateQueries({ queryKey: ['clinicalNotes'] })
       handleDeleteDialogClose()
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Delete Error:', error?.message || error)
       Toaster({ type: 'error', message: error?.message || t('hospital_module.error_occurred_while_deleting') })
     }
   })
 
-  const handleDeleteNote = (noteId: any) => {
-    const selectedNote = allClinicalEntries?.find((item: any) => item?.note_id === noteId)
+  const handleDeleteNote = (noteId: string) => {
+    const selectedNote = allClinicalEntries?.find((item: ClinicalNotesList) => item?.note_id === noteId)
 
     if (selectedNote?.note_id) {
       setSelectedItemToDelete(selectedNote)
