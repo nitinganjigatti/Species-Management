@@ -417,6 +417,28 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         }
       }
 
+      // WhatsApp-style tick in sidebar — only for own messages that are not
+      // deleted-for-everyone or system messages. Color follows WhatsApp:
+      //   blue double = seen, grey double = delivered, grey single = sent.
+      const isOwnLastMessage = Boolean(
+        lastMessage &&
+          !lastMessage.isDeletedForEveryone &&
+          lastMessage.contentType !== 'system' &&
+          currentUserIdForPresence &&
+          String(lastMessage.senderId) === currentUserIdForPresence
+      )
+      const lastMsgTick = isOwnLastMessage && lastMessage?.feedback ? (() => {
+        const { isSent, isDelivered, isSeen } = lastMessage.feedback
+        if (!isSent && !isDelivered && !isSeen) return null
+        const icon = (isSeen || isDelivered) ? 'mdi:check-all' : 'mdi:check'
+        const color = isSeen ? '#53BDEB' : activeCondition ? 'rgba(255,255,255,0.75)' : '#7A8A8E'
+        return (
+          <Box component='span' sx={{ display: 'inline-flex', flexShrink: 0, color, mr: 0.5 }}>
+            <Icon icon={icon} fontSize='0.875rem' />
+          </Box>
+        )
+      })() : null
+
       return (
         <ListItem
           key={`chat-${chat.id}-${index}`}
@@ -584,19 +606,22 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       {displayLastMessageText || 'System message'}
                     </Typography>
                   ) : lastMessage.message && !isFilename ? (
-                    <Typography
-                      component='span'
-                      noWrap
-                      variant='body2'
-                      sx={{ display: 'block', ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                    >
-                      {senderPrefix ? (
-                        <Box component='span' sx={{ fontWeight: 600 }}>
-                          {senderPrefix}
-                        </Box>
-                      ) : null}
-                      {displayLastMessageText}
-                    </Typography>
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                      {lastMsgTick}
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{ display: 'block', flex: 1, minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
+                      >
+                        {senderPrefix ? (
+                          <Box component='span' sx={{ fontWeight: 600 }}>
+                            {senderPrefix}
+                          </Box>
+                        ) : null}
+                        {displayLastMessageText}
+                      </Typography>
+                    </Box>
                   ) : lastMessage.attachments?.length || lastMessage.contentType === 'attachment' || isFilename ? (
                     (() => {
                       // Derive icon + label from attachment metadata or filename — mirrors mobile ChatListCard logic.
@@ -621,6 +646,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
                       return (
                         <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          {lastMsgTick}
                           <Box
                             component='span'
                             sx={{

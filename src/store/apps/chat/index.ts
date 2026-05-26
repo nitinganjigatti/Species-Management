@@ -2183,6 +2183,14 @@ export const appChatSlice = createSlice({
             m.feedback.isSeen = true
             m.feedback.isDelivered = true // read implies delivered
           }
+          // Keep lastMessage.feedback in sync so the sidebar tick is accurate.
+          if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+            if (isDelivered === true) chat.chat.lastMessage.feedback.isDelivered = true
+            if (isSeen === true) {
+              chat.chat.lastMessage.feedback.isSeen = true
+              chat.chat.lastMessage.feedback.isDelivered = true
+            }
+          }
           matchedIds.push(m.id)
           touchedChatIds.add(chat.id)
         })
