@@ -108,13 +108,19 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
   const [openModal, setOpenModal] = useState<boolean>(false)
 
   const handleClickOpen = () => {
-    console.log(dietDetails, 'dietDetails')
     if (
-      dietDetails?.total_animals !== '0' ||
-      dietDetails?.total_species !== '0' || dietDetails?.total_site_species != 0
-    ) {
+      checkForSite === "site_species" && dietDetails?.total_site_species != 0) {
       setOpenModal(true)
-    } else {
+    }
+    else if (
+      checkForSite !== "site_species" && selectionType === "species" && dietDetails?.total_species !== '0') {
+      setOpenModal(true)
+    }
+    else if (
+      checkForSite !== "site_species" && selectionType === "animals" && dietDetails?.total_animals !== '0') {
+      setOpenModal(true)
+    }
+    else {
       setOpenModal(false)
       handleAdd()
     }

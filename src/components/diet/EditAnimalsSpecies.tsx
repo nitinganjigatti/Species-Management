@@ -1067,7 +1067,11 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                               pb: 1
                             }}
                           >
-                            {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
+                            {selectionType !== 'site_species' && (
+                              <>
+                                {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
+                              </>
+                            )}
                           </Typography>
                         )
                       ) : (
