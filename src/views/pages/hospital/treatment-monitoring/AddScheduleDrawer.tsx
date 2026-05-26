@@ -21,19 +21,40 @@ import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { addIntervalsForParameters } from 'src/lib/api/hospital/treatmentMonitoring'
+import { AddIntervalForParameterPayload, MonitoringParametersResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
+import { MonitoringParameters } from 'src/types/hospital/models'
+
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 
 interface AddScheduleDrawerProps {
   open?: boolean
-  setOpen?: any
-  hospitalCaseId?: any
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  hospitalCaseId?: string
   refetchMonitoringData?: any
-  intervalList?: any[]
+  intervalList?: IntervalOption[]
   intervalLoading?: boolean
-  monitoringParams?: any
+  monitoringParams?: MonitoringParametersResponse
   refetchMonitoringParams?: any
+}
+export interface MonitoringFormItem {
+  id: string
+  label: string
+  defaultInterval: string
+}
+
+export interface IntervalOption {
+  id?: string
+  label?: string
+  value?: string | number
+}
+export interface AddIntervalFormData {
+  setAsDefault: string | boolean
+  hospitalCaseId: string
+  monitoring_start_time: string | dayjs.Dayjs
+  monitoring_start_date: string | dayjs.Dayjs
+  [parameterId: string]: string | boolean | dayjs.Dayjs
 }
 
 const AddScheduleDrawer = ({
@@ -49,12 +70,12 @@ const AddScheduleDrawer = ({
   const { t } = useTranslation()
   const theme: any = useTheme()
 
-  const [selectedInterval, setSelectedInterval] = useState<any>('1')
+  const [selectedInterval, setSelectedInterval] = useState<string | null>('1')
   const [addScheduleLoading, setScheduleLoading] = useState<boolean>(false)
 
-  const monitoring: any[] = useMemo(() => {
+  const monitoring: MonitoringFormItem[] = useMemo(() => {
     return (
-      monitoringParams?.data?.assessments?.map((item: any) => ({
+      monitoringParams?.data?.assessments?.map((item: MonitoringParameters) => ({
         id: String(item?.assessment_type_id),
         label: item?.label,
         defaultInterval: item?.assessment_interval ? String(item.assessment_interval) : '1'
@@ -69,18 +90,18 @@ const AddScheduleDrawer = ({
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm()
+  } = useForm<AddIntervalFormData>()
 
   const watchedValues: any = watch()
 
   useEffect(() => {
     if (!monitoring?.length) return
 
-    const intervals = monitoring.map((m: any) => watchedValues[m.id]).filter(Boolean)
+    const intervals = monitoring.map((m: MonitoringFormItem) => watchedValues[m.id]).filter(Boolean)
 
     if (!intervals.length) return
 
-    const allSame = intervals.every((v: any) => v === intervals[0])
+    const allSame = intervals.every((v: string | boolean) => v === intervals[0])
 
     setSelectedInterval(allSame ? intervals[0] : null)
   }, [watchedValues, monitoring])
@@ -90,13 +111,13 @@ const AddScheduleDrawer = ({
 
     const now = dayjs()
 
-    const values: any = {
+    const values: Partial<AddIntervalFormData> = {
       setAsDefault: false,
       monitoring_start_date: now,
       monitoring_start_time: now
     }
 
-    monitoring.forEach((param: any) => {
+    monitoring.forEach((param: MonitoringFormItem) => {
       values[param.id] = param.defaultInterval || '1'
     })
 
@@ -106,31 +127,31 @@ const AddScheduleDrawer = ({
   useEffect(() => {
     if (!monitoring?.length) return
 
-    const intervals = monitoring.map((m: any) => m.defaultInterval)
-    const allSame = intervals.every((v: any) => v === intervals[0])
+    const intervals = monitoring.map((m: MonitoringFormItem) => m.defaultInterval)
+    const allSame = intervals.every((v: string) => v === intervals[0])
 
     setSelectedInterval(allSame ? intervals[0] : null)
   }, [monitoring])
 
-  const handleIntervalClick = (id: any) => {
+  const handleIntervalClick = (id: string) => {
     setSelectedInterval(id)
-    monitoring?.forEach((param: any) => setValue(param.id, id))
+    monitoring?.forEach((param) => setValue(param.id, id))
   }
 
-  const handleDrawerClose = () => setOpen(false)
+  const handleDrawerClose = () => setOpen?.(false)
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AddIntervalFormData) => {
     setScheduleLoading(true)
     try {
-      const scheduleData: any = {
+      const scheduleData: AddIntervalForParameterPayload = {
         is_schedule_for_today: data.setAsDefault === true ? '1' : '0',
         parameters: [],
         start_date: dayjs(data?.monitoring_start_date).format('YYYY-MM-DD'),
         start_time: dayjs(data?.monitoring_start_time).format('HH:mm'),
-        hospital_case_id: hospitalCaseId
+        hospital_case_id: hospitalCaseId ?? ''
       }
 
-      monitoring?.forEach((item: any) => {
+      monitoring?.forEach((item: MonitoringFormItem) => {
         if (data[item.id]) {
           scheduleData.parameters.push({
             parameter_id: String(item.id),
@@ -139,7 +160,7 @@ const AddScheduleDrawer = ({
         }
       })
 
-      await addIntervalsForParameters(scheduleData).then((res: any) => {
+      await addIntervalsForParameters(scheduleData).then((res) => {
         if (res?.status === 'success') {
           Toaster({ type: 'success', message: res?.message })
           setScheduleLoading(false)
@@ -252,10 +273,10 @@ const AddScheduleDrawer = ({
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {intervalList?.map((item: any) => (
+                {intervalList?.map((item) => (
                   <Box
                     key={item?.id}
-                    onClick={() => handleIntervalClick(item.id)}
+                    onClick={() => handleIntervalClick(item.id ?? '')}
                     sx={{
                       px: 3,
                       py: 2,
@@ -308,7 +329,7 @@ const AddScheduleDrawer = ({
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {monitoring?.map((item: any) => (
+                {monitoring?.map((item) => (
                   <Grid
                     key={item?.id}
                     container
@@ -325,10 +346,10 @@ const AddScheduleDrawer = ({
                         control={control}
                         errors={errors}
                         name={item?.id}
-                        options={intervalList}
+                        options={intervalList as unknown as { value: string | number; label: string }[]}
                         label={(t('hospital_module.select_intervals') as string)}
-                        getOptionLabel={(option: any) => option.label}
-                        getOptionValue={(option: any) => option.id}
+                        getOptionLabel={(option: IntervalOption) => option.label}
+                        getOptionValue={(option: IntervalOption) => option.id}
                         sx={{ background: theme.palette.customColors.OnPrimary }}
                       />
                     </Grid>

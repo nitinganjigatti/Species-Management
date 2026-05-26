@@ -216,7 +216,7 @@ const Treatment: NextPage = () => {
   }
 
   const handleExport = async (): Promise<void> => {
-    const params = {
+    const params: any = {
       response_type: 'csv',
       sort: filters.sort,
       column: filters.sortColumn,

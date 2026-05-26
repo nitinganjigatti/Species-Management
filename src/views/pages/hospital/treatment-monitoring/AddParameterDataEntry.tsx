@@ -35,6 +35,11 @@ import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import moment from 'moment'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { GetHospitalParametersUnitResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
+import { PreviousEntryResponse } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
+import { PreviousAssessmentEntry, SelectOption } from 'src/types/hospital/models'
+import { ParamsDetails } from 'src/components/hospital/TreatmentMonitoring/TreatmentMonitoringGrid'
+import { AddTreatmentMonitoringParams } from 'src/types/hospital/api/TreatmentMonitoring/addTreatmentMonitoring'
 
 const convertTo24HourFormat = (interval: any) => {
   if (!interval) return null
@@ -62,36 +67,31 @@ const parseIntervalToTimeRange = (interval: any) => {
   return { start, end }
 }
 
-const defaultValues: any = {
+const defaultValues: ObservationFormData = {
   observation_time: dayjs(),
   observation_value: '',
   value_unit: null,
   note: ''
 }
 
-const getSchema = (resType: any, measurementType: any) =>
-  yup.object().shape({
-    observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
-      ? yup.string().required('Observation Value is required')
-      : yup.mixed().notRequired(),
-    observation_time: yup.string().required('Observation time is required'),
-    value_unit:
-      resType === 'numeric_value' && measurementType.trim() !== ''
-        ? yup.string().required('Unit is required')
-        : yup.mixed().notRequired()
-  })
+export interface ObservationFormData {
+  observation_time: dayjs.Dayjs
+  observation_value: string
+  value_unit: string | null
+  note: string
+}
 
 interface AddParameterDataEntryProps {
   open?: boolean
-  setOpen?: any
-  data?: any
-  medicalRecordId?: any
-  hospitalCaseId?: any
-  animalId?: any
-  refetchMonitoringData?: any
-  selectedDate?: any
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  data?: ParamsDetails
+  medicalRecordId?: string
+  hospitalCaseId?: string | number
+  animalId?: string | number
+  refetchMonitoringData?: () => void
+  selectedDate?: string
   isPatientDischarged?: boolean
-  refetchPatient?: any
+  refetchPatient?: () => void
 }
 
 const AddParameterDataEntry = ({
@@ -112,29 +112,29 @@ const AddParameterDataEntry = ({
   const [addLoading, setAddLoading] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState<number>(0)
   const [openEditHistoryDrawer, setOpenEditHistoryDrawer] = useState<boolean>(false)
-  const [editHistoryData, setEditHistoryData] = useState<any>(null)
+  const [editHistoryData, setEditHistoryData] = useState<(PreviousAssessmentEntry & { unitsData: SelectOption[] }) | null>(null)
 
-  const { data: parameterUnit, isLoading: unitLoading } = useQuery<any>({
+  const { data: parameterUnit, isLoading: unitLoading } = useQuery<GetHospitalParametersUnitResponse>({
     queryKey: ['hospital-parameters-units-listing', data?.parameter?.assessment_type_id, open],
-    queryFn: () => getHospitalParametersUnitListing(data?.parameter?.assessment_type_id),
+    queryFn: () => getHospitalParametersUnitListing(data?.parameter?.assessment_type_id ?? ''),
     enabled: !!data?.parameter?.assessment_type_id
   })
 
   const { resType, unitsData, measurementType } = useMemo(() => {
     const responseType = parameterUnit?.data?.[0]?.response_type
-    const measurementType = parameterUnit?.data?.[0]?.measurement_type
+    const measurementType = parameterUnit?.data?.[0]?.measurement_type ?? ''
     let formattedUnits: any[] = []
 
     if (responseType === 'numeric_value' && measurementType !== '') {
       formattedUnits =
-        parameterUnit?.data?.[0]?.measurement_units_dropdown?.map((item: any) => ({
+        parameterUnit?.data?.[0]?.measurement_units_dropdown?.map((item) => ({
           label: item?.uom_abbr,
           value: item?.id,
           name: item?.unit_name
         })) || []
     } else if (responseType === 'numeric_scale' || responseType === 'list') {
       formattedUnits =
-        parameterUnit?.data?.[0]?.dropdown_values?.map((item: any) => ({
+        parameterUnit?.data?.[0]?.dropdown_values?.map((item) => ({
           label: item?.label,
           value: item?.id
         })) || []
@@ -148,13 +148,13 @@ const AddParameterDataEntry = ({
     isLoading: historyLoading,
     isFetching: historyFetching,
     refetch: refetchHistory
-  } = useQuery<any>({
+  } = useQuery<PreviousEntryResponse>({
     queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, data?.date, hospitalCaseId],
     queryFn: () =>
       getHospitalAssessmentHistory({
         date: `${data?.date} ${convertTo24HourFormat(data?.interval)}`,
-        hospital_case_id: hospitalCaseId,
-        assessment_type_id: data?.parameter?.assessment_type_id
+        hospital_case_id: String(hospitalCaseId ?? ''),
+        assessment_type_id: data?.parameter?.assessment_type_id ?? ''
       }),
     enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id,
     keepPreviousData: true,
@@ -162,9 +162,9 @@ const AddParameterDataEntry = ({
     refetchOnWindowFocus: false
   } as any)
 
-  const historyList: any[] = historyData?.data || []
+  const historyList: PreviousAssessmentEntry[] = historyData?.data || []
 
-  const formatInterval = (interval: any) => {
+  const formatInterval = (interval: string): string => {
     if (!interval) return ''
     if (interval.includes(':')) return interval
     const [hour, ampm] = interval.split(' ')
@@ -178,26 +178,26 @@ const AddParameterDataEntry = ({
   }
 
   const handleDrawerClose = () => {
-    setOpen(false)
-    refetchMonitoringData()
+    setOpen?.(false)
+    refetchMonitoringData?.()
   }
 
-  const onSubmit = async (params: any) => {
+  const onSubmit = async (params: ObservationFormData) => {
     setAddLoading(true)
 
     try {
-      const payload: any = {
-        assessment_type_id: data?.parameter?.assessment_type_id,
+      const payload: AddTreatmentMonitoringParams = {
+        assessment_type_id: data?.parameter?.assessment_type_id ?? '',
         assessment_value: params?.observation_value,
         assessment_unit_id: params?.value_unit,
         comments: params?.note,
-        medical_record_id: medicalRecordId,
-        hospital_case_id: hospitalCaseId,
+        medical_record_id: medicalRecordId ?? '',
+        hospital_case_id: String(hospitalCaseId ?? ''),
         recorded_date_time:
-          moment(selectedDate).format('YYYY-MM-DD') + ' ' + moment(params?.observation_time).format('HH:mm:ss')
+          moment(selectedDate).format('YYYY-MM-DD') + ' ' + moment(params?.observation_time as any).format('HH:mm:ss')
       }
 
-      await addAssessmentToParams(animalId, payload).then((res: any) => {
+      await addAssessmentToParams(animalId ?? '', payload).then((res) => {
         if (res?.success === true) {
           setAddLoading(false)
           Toaster({ type: 'success', message: res?.message })
@@ -214,7 +214,20 @@ const AddParameterDataEntry = ({
     }
   }
 
-  const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
+  const schema = useMemo(
+    () =>
+      yup.object().shape({
+        observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType ?? '')
+          ? yup.string().required(t('hospital_module.observation_value_is_required') as string)
+          : yup.mixed().notRequired(),
+        observation_time: yup.string().required(t('hospital_module.observation_time_is_required') as string),
+        value_unit:
+          resType === 'numeric_value' && (measurementType ?? '').trim() !== ''
+            ? yup.string().required(t('hospital_module.unit_is_required') as string)
+            : yup.mixed().notRequired()
+      }),
+    [resType, measurementType, t]
+  )
 
   const {
     control,
@@ -277,7 +290,7 @@ const AddParameterDataEntry = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                {data?.parameter.label}
+                {data?.parameter?.label}
               </Typography>
 
               <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -305,8 +318,8 @@ const AddParameterDataEntry = ({
                 }
               }}
             >
-              <Tab label='ADD NEW ENTRY' />
-              <Tab label='VIEW PREVIOUS ENTRY' />
+              <Tab label={t('hospital_module.add_new_entry_upper')} />
+              <Tab label={t('hospital_module.view_previous_entry_upper')} />
             </Tabs>
           </Box>
           <Box sx={{ flex: 1, overflow: 'auto', p: 6 }}>
@@ -350,7 +363,7 @@ const AddParameterDataEntry = ({
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Selected time slot
+                          {t('hospital_module.selected_time_slot')}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Icon icon={'ci:clock'} />
@@ -361,7 +374,7 @@ const AddParameterDataEntry = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {formatInterval(data?.interval)}
+                            {formatInterval(data?.interval ?? '')}
                           </Typography>
                         </Box>
                       </Box>
@@ -385,12 +398,12 @@ const AddParameterDataEntry = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Observation Time
+                            {t('hospital_module.observation_time')}
                           </Typography>
                           <ControlledTimePicker
                             control={control}
                             name={'observation_time'}
-                            label='Time'
+                            label={t('time') as string}
                             minTime={parseIntervalToTimeRange(data?.interval)?.start || null}
                             maxTime={parseIntervalToTimeRange(data?.interval)?.end || null}
                           />
@@ -405,7 +418,7 @@ const AddParameterDataEntry = ({
                                 color: theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Enter Observation
+                              {t('hospital_module.enter_observation')}
                             </Typography>
                           </Grid>
 
@@ -442,11 +455,11 @@ const AddParameterDataEntry = ({
                                 <ControlledSelect
                                   control={control}
                                   errors={errors}
-                                  label='Select Unit'
+                                  label={t('hospital_module.select_unit') as string}
                                   name='value_unit'
                                   options={unitsData}
-                                  getOptionLabel={(option: any) => option.label}
-                                  getOptionValue={(option: any) => option.value}
+                                  getOptionLabel={(option: SelectOption) => option.label}
+                                  getOptionValue={(option: SelectOption) => option.value}
                                   required
                                   sx={{
                                     backgroundColor: theme.palette.customColors.Surface,
@@ -462,11 +475,11 @@ const AddParameterDataEntry = ({
                               <ControlledSelect
                                 control={control}
                                 errors={errors}
-                                label='Select Value'
+                                label={t('hospital_module.select_value') as string}
                                 name='observation_value'
                                 options={unitsData}
-                                getOptionLabel={(option: any) => option.label}
-                                getOptionValue={(option: any) => option.value}
+                                getOptionLabel={(option: SelectOption) => option.label}
+                                getOptionValue={(option: SelectOption) => option.value}
                                 required
                                 sx={{
                                   backgroundColor: theme.palette.customColors.Surface,
@@ -496,7 +509,7 @@ const AddParameterDataEntry = ({
                         <ControlledTextField
                           control={control}
                           name={'note'}
-                          placeholder='Notes(Optional)'
+                          placeholder={t('hospital_module.notes_optional') as string}
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               '& fieldset': { border: 'none' },
@@ -544,7 +557,7 @@ const AddParameterDataEntry = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Selected time slot
+                      {t('hospital_module.selected_time_slot')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Icon icon={'ci:clock'} />
@@ -555,7 +568,7 @@ const AddParameterDataEntry = ({
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {formatInterval(data?.interval)}
+                        {formatInterval(data?.interval ?? '')}
                       </Typography>
                     </Box>
                   </Box>
@@ -585,7 +598,7 @@ const AddParameterDataEntry = ({
                         </Box>
                       ))
                     ) : historyList?.length > 0 ? (
-                      historyList?.map((item: any) => (
+                      historyList?.map((item: PreviousAssessmentEntry) => (
                         <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <Typography
                             sx={{
@@ -683,7 +696,7 @@ const AddParameterDataEntry = ({
                                     color: theme.palette.customColors.neutralSecondary
                                   }}
                                 >
-                                  Edited
+                                  {t('hospital_module.edited')}
                                 </Typography>
                               ) : null}
                             </Box>
@@ -720,7 +733,7 @@ const AddParameterDataEntry = ({
                   height: '56px'
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 onClick={handleSubmit(onSubmit)}
@@ -728,7 +741,7 @@ const AddParameterDataEntry = ({
                 fullWidth
                 sx={{ height: '56px', backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
               >
-                {addLoading ? <CircularProgress size={24} /> : 'ADD'}
+                {addLoading ? <CircularProgress size={24} /> : t('hospital_module.add_upper')}
               </Button>
             </Box>
           )}
