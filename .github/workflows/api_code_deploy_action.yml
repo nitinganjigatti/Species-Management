@@ -19,6 +19,8 @@ jobs:
     name: Deploy Antz Project
     runs-on: ubuntu-latest
     container: node:23
+    environment:
+      name: ${{ github.ref == 'refs/heads/dev-release' && 'development' || github.ref == 'refs/heads/uat-release' && 'uat' || github.ref == 'refs/heads/release/farm' && 'farm' || github.ref == 'refs/heads/prod-release' && 'production' || '' }}
     steps:
       - run: apt-get update -qq
         name: Update System Repositories
@@ -47,11 +49,25 @@ jobs:
           npm install -g npm@latest  # Optional: Update npm to latest
       - name: Install Next.js Dependencies
         run: npm install # Install project dependencies
-      - name: Copy environment file for dev-release
+      - name: Write .env for dev-release from GitHub Environment
         if: github.ref == 'refs/heads/dev-release'
         run: |
-          rm -r .env
-          cp -r env.development .env
+          cat > .env <<'ENVEOF'
+          NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_BRANDING=${{ vars.NEXT_PUBLIC_BRANDING }}
+          NEXT_PUBLIC_ML_OPERATIONS_BASE_URL=${{ vars.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL }}
+          NEXT_PUBLIC_WSO2_AUTH_ENABLED=${{ vars.NEXT_PUBLIC_WSO2_AUTH_ENABLED }}
+          NEXT_PUBLIC_WSO2_BASE_URL=${{ vars.NEXT_PUBLIC_WSO2_BASE_URL }}
+          NEXT_PUBLIC_WSO2_TENANT=${{ vars.NEXT_PUBLIC_WSO2_TENANT }}
+          NEXT_PUBLIC_WSO2_CLIENT_ID=${{ secrets.NEXT_PUBLIC_WSO2_CLIENT_ID }}
+          NEXT_PUBLIC_WSO2_REDIRECT_URI=${{ vars.NEXT_PUBLIC_WSO2_REDIRECT_URI }}
+          NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_CHAT_API_URL=${{ vars.NEXT_PUBLIC_CHAT_API_URL }}
+          NEXT_PUBLIC_GEOFENCE_ENABLED=${{ vars.NEXT_PUBLIC_GEOFENCE_ENABLED }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          NEXT_PUBLIC_LIMS_BASE_URL=${{ vars.NEXT_PUBLIC_LIMS_BASE_URL }}
+          ENVEOF
 
       - name: Copy environment file for uat-release
         if: github.ref == 'refs/heads/uat-release'
@@ -74,7 +90,6 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=4096
         run: |
-          cat .env
           npm run build
       - name: Sanitize Branch Name
         id: sanitize
