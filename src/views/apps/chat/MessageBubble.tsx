@@ -289,7 +289,7 @@ const MessageBubble = ({
                   variant='caption'
                   sx={{ ml: 1, opacity: 0.7, fontStyle: 'italic', color: 'inherit' }}
                 >
-                  (edited)
+                  (Edited)
                 </Typography>
               ) : null}
             </Typography>
