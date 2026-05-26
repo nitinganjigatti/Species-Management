@@ -516,6 +516,8 @@ export const GET_DYNAMIC_SPECIES_FORMDATA = 'v1/species/generate-section'
 
 export const ADD_TAXONOMY_SPECIES = 'v1/master/create/taxonomy/species'
 
+export const PRODUCT_CATEGORY = 'product/category'
+
 // Housing
 
 export const HOUSING_SITE_ANALYTICS = 'zoo/home'
