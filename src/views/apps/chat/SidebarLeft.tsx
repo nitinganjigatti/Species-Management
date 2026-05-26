@@ -49,6 +49,11 @@ import ComposePopover from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
+// ** Single source of truth for system-message perspective rewriting —
+// shared with ChatLog + ChatContent banner. Keeps all three surfaces
+// in lockstep across actor / target / bystander views.
+import { resolveSystemMessageText } from 'src/lib/chat/systemMessagePerspective'
+
 // Mirror of mobile ChatListCard's filename→label/icon helpers.
 // Used to convert raw filenames (e.g. "sample-9s.mp3") from the SDK's
 // contentPreview into friendly labels + MDI icons with primary color.
@@ -362,6 +367,16 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       // mismatch. Pure render-time transformation; no state, socket, or
       // REST changes; survives hard refresh because it re-runs on every
       // render once userProfile is loaded.
+      // Delegate all perspective rewriting to the shared resolver
+      // (src/lib/chat/systemMessagePerspective.ts) so the sidebar
+      // preview matches the in-chat pill exactly across all three
+      // perspectives (actor / target / bystander) and all event types.
+      //
+      // For NON-system messages we still consult `isActorPrefixedSelfMessage`
+      // so a server-stored "actor-prefixed" event that isn't tagged with
+      // contentType='system' (e.g. some "X created group Y" variants)
+      // still rewrites to "You ..." when the actor is the current user.
+      // That branch also drives the `senderPrefix` suppression below.
       const meIdStrForRewrite = String(store?.userProfile?.id ?? '')
       const myNameForRewrite = store?.userProfile?.fullName ?? ''
       const lastMsgText = lastMessage?.message ?? ''
@@ -373,9 +388,13 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       const isActorPrefixedSelfMessage = Boolean(
         actorIsMe && myNameForRewrite && lastMsgText.startsWith(myNameForRewrite + ' ')
       )
-      const displayLastMessageText = isActorPrefixedSelfMessage
-        ? 'You ' + lastMsgText.slice(myNameForRewrite.length + 1)
-        : lastMsgText
+
+      const displayLastMessageText = lastMessage
+        ? resolveSystemMessageText(lastMessage, {
+            meId: meIdStrForRewrite,
+            meName: myNameForRewrite
+          })
+        : ''
 
       let senderPrefix = ''
       if (
@@ -391,10 +410,10 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         if (meIdStr && senderIdStr === meIdStr) {
           senderPrefix = 'You: '
         } else if (lastMessage.senderName) {
-          senderPrefix = `${lastMessage.senderName.split(' ')[0]}: `
+          senderPrefix = `${lastMessage.senderName}: `
         } else {
           const sender = store?.contacts?.find(c => String(c.id) === senderIdStr)
-          if (sender?.fullName) senderPrefix = `${sender.fullName.split(' ')[0]}: `
+          if (sender?.fullName) senderPrefix = `${sender.fullName}: `
         }
       }
 

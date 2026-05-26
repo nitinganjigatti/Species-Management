@@ -30,6 +30,10 @@ import AddMembersDrawer from 'src/views/apps/chat/AddMembersDrawer'
 
 // ** Chat API
 import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
+
+// ** Shared system-message perspective resolver — used here for the
+// composer-placeholder banner. See src/lib/chat/systemMessagePerspective.ts.
+import { isSelfLeftMessage } from 'src/lib/chat/systemMessagePerspective'
 import { formatLastSeen } from 'src/lib/chat/formatLastSeen'
 
 // ** SDK presence store — auto-updates from `user_online` / `user_offline`.
@@ -619,18 +623,29 @@ const ChatContent = (props: ChatContentType) => {
                   backgroundColor: 'customColors.Surface'
                 }}
               >
-                {/* v1.1.3 — when the chat carries `removedBy`, the current
-                    user was kicked by an admin (not a self-exit). Surface
-                    that distinction in the read-only placeholder so the
-                    user understands why they can't message. Defaults to
-                    the generic "no longer a member" copy when removedBy
-                    is absent (covers self-exit and legacy/refresh cases). */}
+                {/* Banner copy varies by exit type:
+                    • Self-exit  → "You left the group."
+                    • Admin-kick / unknown → "You're no longer a member of this group."
+                    The active-voice "<Actor> removed you" copy already
+                    appears as the in-chat pill above the composer, so the
+                    banner intentionally uses neutral / actor-free wording
+                    here to avoid duplicating that line. Self-exit is
+                    detected from `chat.lastMessage` — if it's a
+                    `user_left`/`participant_left` system event whose
+                    `senderId` IS the current user, we know this user
+                    walked out themselves. Falls back to the generic
+                    copy when the signal isn't available (cold load with
+                    metadata stripped). Gated on `loadingMessages` so
+                    text only appears once load settles. */}
                 <Typography variant='caption' sx={{ color: '#44544A', lineHeight: 'normal' }}>
-                  {selectedChat.contact.removedBy
-                    ? selectedChat.contact.removedByName
-                      ? `You were removed from this group by ${selectedChat.contact.removedByName}.`
-                      : 'You were removed from this group.'
-                    : "You're no longer a member of this group."}
+                  {!store.loadingMessages &&
+                    (selectedChat.contact.selfLeft ||
+                    isSelfLeftMessage(selectedChat.chat.lastMessage, {
+                      meId: String(store.userProfile?.id ?? ''),
+                      meName: store.userProfile?.fullName ?? ''
+                    })
+                      ? 'You left the group.'
+                      : "You're no longer a member of this group.")}
                 </Typography>
               </Box>
             )}

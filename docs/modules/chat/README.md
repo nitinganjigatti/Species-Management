@@ -11,6 +11,9 @@ The Chat module is the standard Materio chat template ported into the Antz Web D
 - [antzsoft-chat-core.md](./antzsoft-chat-core.md) — Full `@antzsoft/chat-core` SDK reference (the data layer for when the chat backend lands)
 - [chat-core-starter.md](./chat-core-starter.md) — Integration playbook for when the chat backend URL arrives
 - [integration-api-reference.md](./integration-api-reference.md) — Antz Chat Integration API v1.0 (server-to-server adapter the chat backend consumes; browser never calls these)
+- [system-message-perspective.md](./system-message-perspective.md) — Three-perspective (sender / receiver / bystander) rendering across sidebar / in-chat pill / banner. Documents the shared resolver module + declarative template table + cold-load localStorage caches + optimistic admin actions.
+- [kicked-user-fix.md](./kicked-user-fix.md) — Kicked-user UX path: synthesis for the kicked socket (server doesn't deliver `user_removed` `new_message` to it), idempotent `applyParticipantLeft`, and the four-guard defense that keeps post-kick activity out of the kicked user's UI.
+- [api-integration-status.md](./api-integration-status.md) — Backend quirks list (v1.2.1 gaps the client compensates for)
 
 ## Module Location
 
