@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux'
 import { GetAnimalJournalLogsParams, GetAnimalJournalLogsResponse } from 'src/types/housing/api/animal'
 import { AnimalJournalLog } from 'src/types/housing/models'
 import { FilterDate } from 'src/types/hospital/models'
+import { Id } from 'src/types/compliance'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -27,7 +28,7 @@ export interface MedicalSummaryFilterDate {
 }
 
 export interface MedicalSummarySelectedOptions {
-  User: number[]
+  User: Id[]
   'Medical Type'?: string[]
 }
 

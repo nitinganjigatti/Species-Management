@@ -48,6 +48,7 @@ export type ApiError = {
   }
 }
 
+
 export type DateType = string | null | Date
 
 export type Availability = 'Available' | 'Occupied'
@@ -56,6 +57,12 @@ export interface AppliedFilters {
   Availability?: Availability[]
   Status?: StatusAction[]
   [key: string]: Availability[] | StatusAction[] | undefined
+}
+
+export interface Filters {
+  page: number
+  limit: number
+  q: string
 }
 
 

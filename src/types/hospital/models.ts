@@ -24,7 +24,7 @@ export interface UserAvatarInfo {
   role_name?: string
 }
 
-export type DateRangeValue = Dayjs | null
+export type DateRangeValue = null | string | number | Date | moment.Moment
 
 export type FilterDate = {
   startDate?: DateRangeValue | null
@@ -571,6 +571,7 @@ export interface Template {
   modified_at: string
   deleted_at?: string | null
   is_deleted?: string | null
+  title?: string
 }
 export interface TemplateItems {
   id: Id
@@ -957,6 +958,11 @@ export type PrescriptionScheduleStatus =
   | 'Administered'
   | 'Stopped'
   | 'Skipped'
+  | 'pending'
+  | 'administrator'
+  | 'withheld'
+  | 'stopped'
+  | 'administered'
 
   export type DurationType = 
   | 'Days'
@@ -1059,7 +1065,7 @@ export interface PrescriptionDosageMeasurementType {
   created_by?: Id
   created_on?: string
   value: string
-  unit_name?: string
+  unit_name: string
   uom_abbr?: string
 }
 
@@ -1099,7 +1105,8 @@ export interface PrescriptionDeliveryRoute {
   created_by?: Id
   modified_by?: Id | null
   label?: string
-  value?: string
+  value: string
+  delivery_route_string_id?: string
 }
 
 export interface MedicalRecommendedAdvice {
@@ -1240,9 +1247,10 @@ export interface PrescriptionDetails {
   side_effect?: string | number
   created_for?: string
   prescription_created_for?: string
-  medicine_timings: PrescriptionMedicineTiming[]
+  medicine_timings?: PrescriptionMedicineTiming[]
   dose_count?: number
   show_stop_button?: boolean
+  group_prescription_id?: Id
 }
 
 export interface PrescriptionMasterData {
@@ -1257,18 +1265,15 @@ export interface PrescriptionMasterData {
     recentlyUsedLabTests: MedicalMostUsedLabTest[]
     mostUsedLabTests: MedicalMostUsedLabTest[]
     defaultVitals: MedicalDefaultVital[]
+    intervalList?: unknown[]
 }
 
 export interface PrescriptionFrequencyList {
   id: Id
   value?: Id
-  label: PrescriptionFrequency
+  label: PrescriptionFrequency | string
   string_id?: string
   translation_string_id?: string
-}
-
-export interface TransformedPrescriptionFrequency extends PrescriptionFrequencyList{
-  value: Id
 }
 
 export interface PrescriptionIntervalList {
@@ -1288,6 +1293,7 @@ export interface AddPrescriptionScheduleDose {
   string_id: string                     
   old_time?: string
   created_at?: string     
+  unit: string
 }
 
 export interface AddPrescriptionParamList {
@@ -1455,8 +1461,10 @@ export interface RestartStopMedicineItem {
 export interface PrescriptionDates {
   date: string
   pending_count: string
-  group_prescription_id?: Id
-  id?: Id
+  group_prescription_id: Id
+  id: Id
+  customDate: string
+  administrative_ids: Id
 }
 
 export interface AdministerDoseBatchDetails {
@@ -1471,7 +1479,7 @@ export interface AdministerDoseBatchDetails {
 export interface AddDosageScheduleInfo {
   time: string
   quantity: number
-  unit_id: Id
+  unit_id: Id 
   dosageQuantity: number
   dosageUnit: string
 }
@@ -1486,6 +1494,7 @@ export interface DirectAdministerScheduleDose {
   string_id?: Id
   batch_list: PrescriptionMedicineBatchDetail[] | null
   files: string | null
+  unit: string
 }
 
 export interface AddDirectAdministerPastSlotParams {
@@ -1516,7 +1525,7 @@ export interface RestartMedicineDetails {
   group_prescription_id: Id
   id: Id
   interval: string
-  interval_id?: string
+  interval_id?: Id
   interval_string_id?: string
   label: string
   name: string
@@ -2301,7 +2310,7 @@ export interface SurgeryMaster {
   deleted_by: Id | null
 }
 
-export interface SurgeryTemplateList {
+export interface TemplateList {
   id: Id
   template_name: string
   type: string
@@ -2312,7 +2321,7 @@ export interface SurgeryTemplateList {
   created_at: string
 }
 
-export interface SurgeryTemplateAction {
+export interface TemplateAction {
   template_id: Id
 }
 
@@ -2363,4 +2372,159 @@ export interface PatientMediaNotes {
   date: string
 }
 
+// ==================== Discharge ====================
+
+export interface PrescriptionRecord {
+  prescription_id: Id
+  when: string | null
+  group_prescription_id: Id
+  id: Id
+  controlled_substance: boolean
+  side_effect: boolean
+  medical_record_id: Id
+  created_for: string
+  dose_type: string
+  weight_dose: WeightDose
+  delivery_route_id: Id
+  delivery_route_name: string
+  delivery_route: string
+  delivery_route_string_id: string
+  frequency: PrescriptionFrequency
+  frequency_compare: PrescriptionFrequency
+  frequency_string_id: string
+  interval_id: Id
+  interval: string
+  interval_string_id: string
+  notes: string
+  start_date: string
+  stop_date: string | null
+  end_date: string | null
+  status: StatusAction
+  stop_reason: string
+  is_new_data: Id
+  restart_reason: string
+  will_restart: boolean
+  duration_qty: string | number
+  dosage: string | null
+  duration: string
+  duration_type: string
+  duration_string_id: string
+  duration_id: Id
+  created_at: string
+  dosage_count: string
+  gid: Id
+  type: string
+  name: string
+  label: string
+  generic_name: string
+  composition: null
+  schedule_dose: AddPrescriptionScheduleDose[]
+  created_by_name: string
+  medical_record_code: string
+  dose_type_label: string
+  frequency_id: Id
+  frequency_key: PrescriptionFrequency
+}
+
+export interface PrescriptionMedicationParams {
+  id: Id
+  label: string
+  name: string
+  generic_name: string | null
+  total_qty: string
+  total_central_store_qty: string
+  total_local_store_qty: string
+  frequency_key: PrescriptionFrequency
+  frequency_id: Id
+  frequency: string | number
+  frequency_string_id: string
+  frequency_name: PrescriptionFrequency
+  schedule_doses: AddPrescriptionScheduleDose[]
+  interval: string
+  interval_id: Id
+  interval_string_id: string
+  duration_qty: number | string
+  duration_id: Id
+  duration: string
+  duration_string_id: string
+  duration_type: string
+  notes: string
+  delivery_route_name: string
+  delivery_route_id: Id
+  delivery_route_string_id: string
+  delivery_route_label: string
+  start_date: string
+  end_date: string
+  restart_reason: string
+  stop_reason: string
+  will_restart: boolean
+  side_effect: boolean
+  created_for: string
+  administer_date: string
+  batch_list?: PrescriptionMedicineBatchDetail[] | []
+  dose_type: string
+  select_medicine_type: 'Schedule' | 'Direct Administer'
+}
+
+// ==================== Zoo Wise Site List ====================
+
+export interface ZooWiseSiteList {
+  site_id: Id
+  zoo_id: Id
+  cluster_id: Id
+  site_name: string
+  site_description: string
+  site_latitude: string
+  site_longitude: string
+  site_incharge: string
+  site_incharge_number: string
+  status: StatusAction
+  created_at: string
+  modified_at: string | null
+  is_deleted: string | number
+  geofence_radius_m: null
+  site_image: string
+}
+
+// ==================== Enclosure wise Section List ====================
+
+export interface EnclosureListSectionWise {
+  enclosure_id: Id
+  user_enclosure_name: string
+  section_id: Id
+  section_name: string
+  site_name: string
+  site_id: Id
+  enclosure_parent_id: Id | null
+  enclosure_type: string
+  parent_enclosure_name: string | null
+  enclosure_wise_animal_count: string | number
+  species_count: string | number
+  sub_enclosure_count: string | number
+  image: string
+}
+
+// ==================== Mortality Discharge ====================
+
+export interface GetNecropsyCenter {
+  id: Id
+  name: string
+  description: string
+  zoo_id: Id
+  site_id: Id
+  site_name: string
+  entity_type: string
+  created_by: UserAvatarInfo
+}
+
+export interface Carcass {
+  id: Id
+  name: string
+  string_id: string
+  zoo_id: Id | null
+  description: string
+  active: string | number
+  created_by: Id
+  created_at: string
+}
 
