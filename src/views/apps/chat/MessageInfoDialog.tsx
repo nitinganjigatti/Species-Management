@@ -155,14 +155,25 @@ const MessageInfoDialog = () => {
     return { name: userId }
   }
 
-  // Exclude the current user (sender) from both lists.
-  const displayedRead = fetchedReadBy.filter(r => String(r.userId) !== currentUserId)
+  // Exclude the current user (sender) and deduplicate by userId — the server
+  // can include the same recipient multiple times in readBy[] / deliveredTo[].
+  const seenReadIds = new Set<string>()
+  const displayedRead = fetchedReadBy.filter(r => {
+    const id = String(r.userId)
+    if (id === currentUserId || seenReadIds.has(id)) return false
+    seenReadIds.add(id)
+    return true
+  })
 
-  // "Delivered to" = delivered but NOT yet read.
+  // "Delivered to" = delivered but NOT yet read. Also deduplicate.
   const readUserIds = new Set(displayedRead.map(r => String(r.userId)))
-  const displayedDelivered = fetchedDelivered.filter(
-    d => String(d.userId) !== currentUserId && !readUserIds.has(String(d.userId))
-  )
+  const seenDeliveredIds = new Set<string>()
+  const displayedDelivered = fetchedDelivered.filter(d => {
+    const id = String(d.userId)
+    if (id === currentUserId || readUserIds.has(id) || seenDeliveredIds.has(id)) return false
+    seenDeliveredIds.add(id)
+    return true
+  })
 
   // "Not received" = active group participants who are neither in readBy nor
   // deliveredTo. These members haven't received the message yet (offline /
