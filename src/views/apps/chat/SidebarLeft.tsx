@@ -54,6 +54,7 @@ import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 // shared with ChatLog + ChatContent banner. Keeps all three surfaces
 // in lockstep across actor / target / bystander views.
 import { resolveSystemMessageText } from 'src/lib/chat/systemMessagePerspective'
+import { isForwarded, stripForwardMarker } from 'src/lib/chat/forwardMarker'
 
 // Mirror of mobile ChatListCard's filename→label/icon helpers.
 // Used to convert raw filenames (e.g. "sample-9s.mp3") from the SDK's
@@ -400,12 +401,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         actorIsMe && myNameForRewrite && lastMsgText.startsWith(myNameForRewrite + ' ')
       )
 
-      const displayLastMessageText = lastMessage
+      const rawDisplayText = lastMessage
         ? resolveSystemMessageText(lastMessage, {
             meId: meIdStrForRewrite,
             meName: myNameForRewrite
           })
         : ''
+      const isLastMsgForwarded = Boolean(
+        lastMessage &&
+          !lastMessage.isDeletedForEveryone &&
+          lastMessage.contentType !== 'system' &&
+          !lastMessage.systemOperationType &&
+          isForwarded(lastMessage.message)
+      )
+      const displayLastMessageText = stripForwardMarker(rawDisplayText)
 
       let senderPrefix = ''
       if (
@@ -627,9 +636,22 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       {displayLastMessageText || 'System message'}
                     </Typography>
-                  ) : lastMessage.message && !isFilename ? (
+                  ) : displayLastMessageText && !isFilename ? (
                     <Box component='span' sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                       {lastMsgTick}
+                      {isLastMsgForwarded ? (
+                        <Box
+                          component='span'
+                          sx={{
+                            display: 'inline-flex',
+                            flexShrink: 0,
+                            mr: 0.5,
+                            color: activeCondition ? 'rgba(255,255,255,0.75)' : 'customColors.neutralSecondary'
+                          }}
+                        >
+                          <Icon icon='mdi:share' fontSize='1.1rem' />
+                        </Box>
+                      ) : null}
                       <Typography
                         component='span'
                         noWrap
