@@ -201,7 +201,7 @@ const Treatment = () => {
 
     try {
       setExportLoading(true)
-      const response = (await getTreatmentMasterList(params)) as ApiResponse
+      const response = (await getTreatmentMasterList(params as any)) as ApiResponse
       if (response?.success && response?.data?.download_url) {
         Utility.downloadFileFromURL(response.data.download_url)
       }
