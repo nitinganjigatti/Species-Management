@@ -421,19 +421,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
       : '--'
 
     return [
-      { label: 'Physical Health Status', value: preAnesthesiaDetail.physical_health_status || '--' },
-      { label: 'Body Condition', value: preAnesthesiaDetail.body_condition || '--' },
-      { label: 'Activity', value: preAnesthesiaDetail.animal_activity || '--' },
+      { label: t('hospital_module.physical_health_status'), value: preAnesthesiaDetail.physical_health_status || '--' },
+      { label: t('hospital_module.body_condition'), value: preAnesthesiaDetail.body_condition || '--' },
+      { label: t('hospital_module.activity'), value: preAnesthesiaDetail.animal_activity || '--' },
       {
-        label: 'Fasting Time',
+        label: t('hospital_module.fasting_time'),
         value: fastingTimeText
       },
       {
-        label: 'Previous Endotracheal Tube Size',
+        label: t('hospital_module.previous_endotracheal_tube_size'),
         value: preAnesthesiaDetail.previous_endotracheal_tube_size || '--'
       },
-      { label: 'Weight', value: weightText },
-      { label: 'Code Status', value: preAnesthesiaDetail.code_status || '--' }
+      { label: t('hospital_module.weight'), value: weightText },
+      { label: t('hospital_module.code_status'), value: preAnesthesiaDetail.code_status || '--' }
     ]
   }, [preAnesthesiaDetail])
 
@@ -503,13 +503,13 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     const hasRecoveryType = recoveryData.recovery_type && recoveryData.recovery_type !== '--'
 
     return [
-      { label: 'Recovery Type', value: recoveryData.recovery_type || '--' },
+      { label: t('hospital_module.recovery_type'), value: recoveryData.recovery_type || '--' },
       {
-        label: 'Recovery 1st Effect',
+        label: t('hospital_module.recovery_first_effect'),
         value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_first_effect_time) : '--'
       },
       {
-        label: 'Recovery Full Effect',
+        label: t('hospital_module.recovery_full_effect'),
         value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_full_effect_time) : '--'
       }
     ]
@@ -1079,7 +1079,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         ? environmentalDetails.map((item: AnesthesiaDetailOption) => {
                             const hasValue = item.value !== undefined && item.value !== null && item.value !== ''
                             const displayValue = hasValue ? item.value : '--'
-                            const unit = item.label === 'Temperature' ? '°C' : '%'
+                            const unit = item.label === t('hospital_module.temperature') ? '°C' : '%'
 
                             return (
                               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>

@@ -14,12 +14,6 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
-const schema = yup.object().shape({
-  surgery_name: yup.string().trim().required('Surgery name is required'),
-  description: yup.string().trim().required('Description is required'),
-  status: yup.boolean().default(true)
-})
-
 interface FormValues {
   surgery_name: string
   description: string
@@ -61,6 +55,12 @@ const AddEditSurgeryDrawer = ({
 }: AddEditSurgeryDrawerProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
+
+  const schema = yup.object().shape({
+    surgery_name: yup.string().trim().required(t('hospital_module.surgery_name_is_required') as string),
+    description: yup.string().trim().required(t('hospital_module.description_is_required') as string),
+    status: yup.boolean().default(true)
+  })
 
   const {
     control,
@@ -167,17 +167,17 @@ const AddEditSurgeryDrawer = ({
               control={control}
               name='surgery_name'
               label={(t('hospital_module.name_of_surgery') as string)}
-              placeholder='Enter surgery name'
+              placeholder={t('hospital_module.enter_surgery_name') as string}
               errors={errors}
               borderRadius='8px'
               inputBackgroundColor={theme.palette.background.paper}
             />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Description</Typography>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{t('description')}</Typography>
               <ControlledTextArea
                 control={control}
                 name='description'
-                placeholder='Enter description'
+                placeholder={t('enter_description') as string}
                 rows={3}
                 errors={errors}
                 sx={{
@@ -217,7 +217,7 @@ const AddEditSurgeryDrawer = ({
                   color: theme.palette.customColors.Outline
                 }}
               >
-                Status
+                {t('status')}
               </Typography>
 
               <Box
@@ -240,7 +240,7 @@ const AddEditSurgeryDrawer = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  {statusValue ? 'Active' : 'Inactive'}
+                  {statusValue ? t('active') : t('inactive')}
                 </Typography>
                 <ControlledSwitch
                   name='status'
@@ -272,7 +272,7 @@ const AddEditSurgeryDrawer = ({
                 color: theme.palette.customColors.Outline
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <LoadingButton
               type='submit'

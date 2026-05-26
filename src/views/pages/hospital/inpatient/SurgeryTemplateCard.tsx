@@ -2,23 +2,24 @@
 
 import React from 'react'
 import { Box, Typography, IconButton, Tooltip, CircularProgress } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Theme, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
+import { SurgeryTemplate } from './SurgeryRecordTemplateList'
 
 interface SurgeryTemplateCardProps {
-  template: any
-  selectedTemplate?: any
-  onSelect: (template: any) => void
-  onEdit: (template: any) => void
-  onDelete: (template: any) => void
+  template: SurgeryTemplate
+  selectedTemplate?: SurgeryTemplate | null
+  onSelect: (template: SurgeryTemplate) => void
+  onEdit: (template: SurgeryTemplate) => void
+  onDelete: (template: SurgeryTemplate) => void
   disabled?: boolean
   isDeleting?: boolean
 }
 
 const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onDelete, disabled = false, isDeleting }: SurgeryTemplateCardProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
 
   return (
     <Box

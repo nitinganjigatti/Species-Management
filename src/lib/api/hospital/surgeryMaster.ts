@@ -19,12 +19,14 @@ const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; 
 
 import type { ApiResponse, SurgeryListParams, SurgeryListResponse } from 'src/types/hospital'
 import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse, SurgeryParams, SurgeryResponse, } from 'src/types/hospital/api/Masters/surgery';
+import { AddSurgeryRecordParams, AddSurgeryRecordResponse,DeleteSurgeryRecordResponse, GetPatientSurgeryListParams, GetPatientSurgeryListResponse, GetSurgeryMasterParams, GetSurgeryMasterResponse } from 'src/types/hospital/api/Surgery/surgery';
+import { CreateTemplateParams, DeleteTemplateParams, GetTemplatesResponse, TemplateActionResponse, UpdateTemplateParams } from 'src/types/hospital/api/Template/template';
 
 export const getSurgeryMaster = async ({
   params
 }: {
-  params: SurgeryParams
-}): Promise<SurgeryResponse> => {
+  params: GetSurgeryMasterParams
+}): Promise<GetSurgeryMasterResponse> => {
   const response = await axiosGet({ url: GET_MASTERS_SURGERY, params })
 
   return response?.data
@@ -63,16 +65,16 @@ export const deleteSurgeryMaster = async (id: string | number): Promise<ApiRespo
 }
 
 export const addSurgeryRecord = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddSurgeryRecordParams
+): Promise<AddSurgeryRecordResponse> => {
   const response = await axiosFormPost({ url: ADD_SURGERY_RECORD, body: payload })
 
   return response?.data
 }
 
 export const getSurgeryTemplates = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: GetSurgeryMasterParams
+): Promise<GetTemplatesResponse> => {
   const response = await axiosGet({ url: LIST_SURGERY_TEMPLATES, params })
 
   return response?.data
@@ -81,8 +83,8 @@ export const getSurgeryTemplates = async (
 export const getPatientSurgeryList = async ({
   params
 }: {
-  params: SurgeryListParams
-}): Promise<SurgeryListResponse> => {
+  params: GetPatientSurgeryListParams
+}): Promise<GetPatientSurgeryListResponse> => {
   const response = await axiosGet({ url: GET_PATIENT_SURGERY_LIST, params })
 
   return response?.data
@@ -90,7 +92,7 @@ export const getPatientSurgeryList = async ({
 
 export const deleteSurgeryRecord = async (
   surgeryRecordId: string | number
-): Promise<ApiResponse<unknown>> => {
+): Promise<DeleteSurgeryRecordResponse> => {
   const payload = new FormData()
   payload.append('surgery_record_id', String(surgeryRecordId))
 
@@ -100,24 +102,24 @@ export const deleteSurgeryRecord = async (
 }
 
 export const createSurgeryTemplate = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: CreateTemplateParams
+): Promise<TemplateActionResponse> => {
   const response = await axiosFormPost({ url: CREATE_SURGERY_TEMPLATE, body: payload })
 
   return response?.data
 }
 
 export const deleteTemplate = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: DeleteTemplateParams
+): Promise<TemplateActionResponse> => {
   const response = await axiosFormPost({ url: DELETE_TEMPLATE, body: payload })
 
   return response?.data
 }
 
 export const updateTemplate = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: UpdateTemplateParams
+): Promise<TemplateActionResponse> => {
   const response = await axiosFormPost({ url: UPDATE_TEMPLATE, body: payload })
 
   return response?.data
