@@ -799,7 +799,20 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     // Skip attachments + reactions on tombstones — the placeholder is the
     // only thing that should render. Matches applyMessageDelete reducer.
     ...(!isDeletedForEveryone && attachments && attachments.length ? { attachments } : {}),
-    ...(msg.content?.type ? { contentType: msg.content.type } : {}),
+    // Normalize contentType — REST sometimes strips `content.type` from
+    // `conv.lastMessage` in the listConversations response, leaving it
+    // undefined. When `systemOperationType` IS present, we know it's a
+    // system message regardless of what content.type says (it must be
+    // 'system' for the metadata to exist). Forcing the field here means
+    // every downstream consumer (sidebar prefix guard, ChatLog system
+    // pill branch, banner logic) gets a single reliable signal — no
+    // duplicate "Anil Rathod: Anil Rathod dismissed you as admin"
+    // because the sidebar prefix block thought it was a regular message.
+    ...(msg.content?.type
+      ? { contentType: msg.content.type }
+      : systemMeta?.systemOperationType
+        ? { contentType: 'system' as const }
+        : {}),
     ...(normalizedTargetUserId ? { targetUserId: normalizedTargetUserId } : {}),
     ...(normalizedTargetUserName ? { targetUserName: normalizedTargetUserName } : {}),
     ...(systemMeta?.systemOperationType

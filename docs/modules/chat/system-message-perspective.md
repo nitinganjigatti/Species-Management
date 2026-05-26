@@ -138,8 +138,8 @@ The name-based fallback exists because the slim `conversation_updated` socket pa
 | 1 | Self-exit | "You left the group" | — | "Anil left the group" |
 | 2 | Admin kick | "You removed Ajay" | "Anil removed you" | "Anil removed Ajay" |
 | 3 | Admin add | "You added Ajay" | "Anil added you" | "Anil added Ajay" |
-| 4 | Promote | "You made Ajay an admin" | "You're now an admin" | "Anil made Ajay an admin" |
-| 5 | Demote | "You dismissed Ajay as admin" | "You're no longer an admin" | "Anil dismissed Ajay as admin" |
+| 4 | Promote | "You made Ajay an admin" | "Anil made you an admin" (falls back to "You're now an admin" if actor name missing) | "Anil made Ajay an admin" |
+| 5 | Demote | "You dismissed Ajay as admin" | "Anil dismissed you as admin" (falls back to "You're no longer an admin" if actor name missing) | "Anil dismissed Ajay as admin" |
 | 6 | Group created | "You created group X" (actor-prefix) | — | "Anil created group X" |
 | 7 | Group renamed | "You changed the subject to X" (actor-prefix) | — | Raw |
 | 8 | Description / icon changed | "You changed …" (actor-prefix) | — | Raw |

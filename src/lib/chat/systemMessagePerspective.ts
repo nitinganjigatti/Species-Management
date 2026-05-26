@@ -138,13 +138,15 @@ export const SYSTEM_MESSAGE_TEMPLATES: Record<string, TemplateFn> = {
 
   // Role changes
   admin_promoted: (msg, p) => {
-    if (p === 'target') return "You're now an admin"
+    if (p === 'target' && msg.senderName) return `${msg.senderName} made you an admin`
+    if (p === 'target') return "You're now an admin" // fallback when actor name missing
     if (p === 'actor' && msg.targetUserName) return `You made ${msg.targetUserName} an admin`
 
     return undefined
   },
   admin_demoted: (msg, p) => {
-    if (p === 'target') return "You're no longer an admin"
+    if (p === 'target' && msg.senderName) return `${msg.senderName} dismissed you as admin`
+    if (p === 'target') return "You're no longer an admin" // fallback when actor name missing
     if (p === 'actor' && msg.targetUserName) return `You dismissed ${msg.targetUserName} as admin`
 
     return undefined

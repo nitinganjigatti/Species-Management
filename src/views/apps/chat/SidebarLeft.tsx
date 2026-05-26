@@ -403,6 +403,13 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         lastMessage.senderId &&
         !lastMessage.isDeletedForEveryone &&
         lastMessage.contentType !== 'system' &&
+        // Belt-and-suspenders — `systemOperationType` presence implies
+        // a system event even if upstream stripped `contentType`. Stops
+        // the sidebar from prepending "<sender>: " to text the resolver
+        // already rewrote into actor / target voice ("Anil Rathod
+        // dismissed you as admin"), which would render duplicated
+        // "Anil Rathod: Anil Rathod dismissed you as admin".
+        !lastMessage.systemOperationType &&
         !isActorPrefixedSelfMessage
       ) {
         const senderIdStr = String(lastMessage.senderId)
@@ -592,7 +599,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       This message was deleted
                     </Typography>
-                  ) : lastMessage.contentType === 'system' ? (
+                  ) : lastMessage.contentType === 'system' || lastMessage.systemOperationType ? (
+                    // System events render as italic preview, never with a
+                    // "<sender>: " prefix. `systemOperationType` is a
+                    // belt-and-suspenders check for cases where REST
+                    // stripped `contentType` from `conv.lastMessage`.
                     <Typography
                       component='span'
                       noWrap
