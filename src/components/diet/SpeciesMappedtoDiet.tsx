@@ -161,11 +161,17 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
   }
 
   const handleSelectedclick = (val: string) => {
-    if (val === 'select') {
+
+    if (val === 'select' && checkForSite !== "site_species") {
       setIsOpennew(true)
       setCheckForSite('')
       setspeciesview(val)
-    } else {
+    } else if (val === 'select' && checkForSite === "site_species") {
+      setCheckForSite('site_species')
+      setIsOpennew(true)
+      setspeciesview(val)
+    }
+    else {
       setIsOpennew(true)
       setIsOpen(false)
       setspeciesview(val)
@@ -285,16 +291,16 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
             {selectionType === 'species'
               ? 'Select the Species'
               : selectionType === 'animals'
-              ? 'Select the Animals'
-              : ''}
+                ? 'Select the Animals'
+                : ''}
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}>
           {authData?.userData?.roles?.settings?.assign_diet === true &&
-          checkForSite === 'site_species' &&
-          hasMappedSpecies &&
-          !loading ? (
+            checkForSite === 'site_species' &&
+            hasMappedSpecies &&
+            !loading ? (
             <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
               <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
             </IconButton>
@@ -485,8 +491,8 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
             {tempSelectedSpecies?.length > 0 && speciesData?.length > 0 && !loading
               ? `Selected ${tempSelectedSpecies?.length} / ${speciestotalcount}`
               : selectionType === 'species'
-              ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
-              : `All animals${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`}
+                ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
+                : `All animals${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`}
           </Typography>
           {speciesData?.length ? (
             <Box
@@ -500,7 +506,7 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
                 sx={{
                   color:
                     !loading &&
-                    tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
                       : theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '12px',
@@ -531,12 +537,12 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
                     border: '2px dotted',
                     borderColor:
                       !loading &&
-                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                         ? theme.palette.primary.main
                         : theme.palette.customColors.OnSurfaceVariant,
                     color:
                       !loading &&
-                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                         ? theme.palette.primary.main
                         : theme.palette.customColors.OnSurfaceVariant
                   },
