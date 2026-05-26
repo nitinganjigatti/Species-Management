@@ -587,20 +587,23 @@ const AddPurchaseForm = () => {
               }
             })
 
-            try {
-              const mlResult = await productMappingForMlTraining(suggestionData)
-              toast.success(mlResult?.data)
+            //! Note
+            // don't remove this Commented code
+            //   const mlResult = await productMappingForMlTraining(suggestionData)
+            //   toast.success(mlResult?.data)
 
-              setEditParams(editParamsInitialState)
-              setSubmitLoader(false)
-              Router.push('/pharmacy/purchase/')
-            } catch (error) {
-              console.error('ML training error:', error)
-              toast.success('ML not trained successfully')
-              setEditParams(editParamsInitialState)
-              setSubmitLoader(false)
-              Router.push('/pharmacy/purchase/')
-            }
+            //   setEditParams(editParamsInitialState)
+            //   setSubmitLoader(false)
+            //   Router.push('/pharmacy/purchase/')
+            // } catch (error) {
+            //   console.error('ML training error:', error)
+            //   toast.success('ML not trained successfully')
+            //   setEditParams(editParamsInitialState)
+            //   setSubmitLoader(false)
+            //   Router.push('/pharmacy/purchase/')
+            // }
+            setSubmitLoader(false)
+            Router.push('/pharmacy/purchase/')
           } else {
             setEditParams(editParamsInitialState)
             setSubmitLoader(false)

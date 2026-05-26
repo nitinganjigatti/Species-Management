@@ -46,7 +46,7 @@ const PurchaseInvoiceUpload = ({
   const [capturedImage, setCapturedImage] = useState(null)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [hasPermission, setHasPermission] = useState(false)
-  const [tabStatus, setTabStatus] = useState('by_camera')
+  const [tabStatus, setTabStatus] = useState('by_input')
   const [file, setFile] = useState([])
   const [error, setError] = useState('')
 
@@ -584,7 +584,10 @@ const PurchaseInvoiceUpload = ({
         mb: 4
       }}
     >
-      <TabContext value={tabStatus}>
+      {/*
+        //! Note
+      don't remove this Commented code */}
+      {/* <TabContext value={tabStatus}>
         <TabList
           onChange={handleChange}
           aria-label='simple tabs example'
@@ -860,7 +863,7 @@ const PurchaseInvoiceUpload = ({
                   type='file'
                   ref={fileInputRef}
                   style={{ display: 'none' }}
-                  accept='.jpeg, .jpg, .png, .xls, .xlsx'
+                  accept=' .xls, .xlsx'
                   multiple
                   onChange={e => {
                     const files = Array.from(e.target.files)
@@ -955,7 +958,7 @@ const PurchaseInvoiceUpload = ({
                         display: 'flex'
                       }}
                     >
-                      Supported formats JPEG, PNG, XLS, XLSX
+                      Supported formats XLS, XLSX
                     </Typography>
                   </Box>
                 </Box>
@@ -1052,7 +1055,197 @@ const PurchaseInvoiceUpload = ({
             </Grid>
           </Grid>
         </TabPanel>
-      </TabContext>
+      </TabContext> */}
+      <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
+        <FormControl fullWidth sx={{ my: 4 }}>
+          <input
+            type='file'
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            accept=' .xls, .xlsx'
+            multiple
+            onChange={e => {
+              const files = Array.from(e.target.files)
+              if (files.length === 0) return
+              const allowedImageTypes = ['image/jpeg', 'image/png']
+              const validFiles = files.filter(f => allowedImageTypes.includes(f.type) || isExcelFile(f))
+              if (validFiles.length !== files.length) {
+                setError('Some files are not allowed. Please upload only JPEG, PNG, XLS or XLSX.')
+
+                return
+              }
+
+              setFile(prev => {
+                const result = validateAndMerge(validFiles, prev)
+                setError(result.error)
+
+                return result.files
+              })
+            }}
+          />
+
+          <Box
+            disabled={true}
+            {...getRootProps({ className: 'dropzone' })}
+            onClick={handleClick}
+            ref={browseButtonRef}
+            sx={{
+              gap: 2,
+              paddingTop: '24px',
+              paddingRight: '12px',
+              paddingBottom: '24px',
+              paddingLeft: '24px',
+              backgroundColor: 'customColors.Surface',
+              border: Boolean(error) ? '1px dashed red' : 'none',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: 'customColors.Surface',
+                border: `1px dashed ${theme.palette.customColors.Outline}`
+              },
+              display: 'flex',
+              justifyContent: 'start',
+              alignItems: 'center',
+              minHeight: '115px',
+              maxHeight: '115px',
+              pointerEvents: invoiceSubmitLoader ? 'none !important' : ''
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 48,
+                height: 48,
+                borderRadius: '8px',
+                padding: '8px',
+                backgroundColor: 'white',
+                border: `1px dashed ${theme.palette.customColors.neutralSecondary}`
+              }}
+            >
+              <Icon icon='material-symbols-light:attach-file-add-rounded' color='#006D35' width='24' height='24' />
+            </Box>
+
+            <Box
+              sx={{
+                mx: 2
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  margin: '0px',
+                  padding: '0px',
+                  color: 'primary.dark'
+                }}
+              >
+                Upload Files
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  margin: '0px',
+                  padding: '0px',
+                  color: 'customColor.neutralSecondary',
+                  display: 'flex'
+                }}
+              >
+                Supported formats XLS, XLSX
+              </Typography>
+            </Box>
+          </Box>
+          {error && (
+            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+              {error}
+            </FormHelperText>
+          )}
+        </FormControl>
+      </Grid>
+      <Grid
+        item
+        size={{ xs: 12, sm: 12, md: 6 }}
+        sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          ...customScrollbar
+        }}
+      >
+        {file &&
+          file?.length > 0 &&
+          file.map((el, index) => {
+            if (isExcelFile(el)) {
+              return (
+                <Card
+                  key={index}
+                  sx={{
+                    position: 'relative',
+                    width: 200,
+                    height: 150,
+                    minWidth: 200,
+                    minHeight: 150,
+                    backgroundColor: theme.palette.customColors.displaybgPrimary,
+                    borderRadius: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1,
+                    padding: 2,
+                    boxShadow: 'none',
+                    mx: 1,
+                    my: 1
+                  }}
+                >
+                  <Box
+                    onClick={() => handleDeleteFile(index)}
+                    sx={{
+                      position: 'absolute',
+                      top: 2,
+                      right: 2,
+                      width: 25,
+                      height: 25,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'white',
+                      cursor: invoiceSubmitLoader ? 'not-allowed' : 'pointer',
+                      pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
+                    }}
+                  >
+                    <Icon icon='mdi:close' fontSize={18} />
+                  </Box>
+                  <Icon icon='mdi:file-excel-outline' fontSize={48} color={theme.palette.primary.OnSurface} />
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      maxWidth: '100%',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textAlign: 'center'
+                    }}
+                  >
+                    {el?.name}
+                  </Typography>
+                </Card>
+              )
+            }
+
+            return (
+              <ImagePreview
+                // imageDetails={el}
+                loader={invoiceSubmitLoader}
+                key={index}
+                onClose={() => {
+                  handleDeleteFile(index)
+                }}
+                imageSrc={URL.createObjectURL(el)}
+              />
+            )
+          })}
+      </Grid>
       <Grid
         item
         sx={{
