@@ -207,7 +207,7 @@ interface MediaScrollerProps {
 }
 
 const MediaScroller = ({ items = [] }: MediaScrollerProps) => {
-  const theme: Theme = useTheme()
+  const theme: any = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
 
   if (!Array.isArray(items) || items.length === 0) {

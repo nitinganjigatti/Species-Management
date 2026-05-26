@@ -66,7 +66,7 @@ function useTransferEnclosureDischarge() {
       const params = { q, limit: 10, page_no: 1 }
       const res: any = await getZooWiseSiteLists(params)
       if (res?.success) {
-        const formatted: SiteOption[] =
+        const formatted =
           res?.data?.result?.map((item: ZooWiseSiteItem) => ({
             value: item?.site_id,
             label: item?.site_name

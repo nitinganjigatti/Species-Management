@@ -31,37 +31,40 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import RenderUtility from 'src/utility/render'
+import { AdministerSubmitData, BatchListState, SelectedSlotState } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
+import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+import { SelectOption } from 'src/types/hospital'
 
 // Enable custom parse format plugin for dayjs
 dayjs.extend(customParseFormat)
 
 interface AdministerMedicineSidesheetProps {
-  scheduleDosage?: any
+  scheduleDosage?: SelectedSlotState
   handleSidebarOpen?: boolean
   handleSidebarClose: () => void
-  onSubmit: (data: any) => void
+  onSubmit: (data: AdministerSubmitData) => void
   submitLoader?: boolean
-  batchList?: any[]
+  batchList?: BatchListState[]
   batchLoading?: boolean
-  handleBatchSearch?: (value: any) => void
+  handleBatchSearch?: (value: string) => void
   isControlledSubstance?: boolean
-  selectedDate?: any
-  medicalMasterData?: any
+  selectedDate?: string
+  medicalMasterData?: MedicalMasterFormData
   mastersDataLoading?: boolean
 }
 
 interface FormValues {
-  time: any
-  quantity: any
+  time: Dayjs | null
+  quantity: string | number
   quantityUnit: string
   wastageQuantity: string
   wastageUnit: string
   notes: string
-  batchNumber: any
-  attachment: any
+  batchNumber: BatchListState | null
+  attachment: File[] | null
 }
 
 const AdministerMedicineSidesheet = ({
@@ -191,7 +194,7 @@ const AdministerMedicineSidesheet = ({
     return parsedTime.isValid() ? parsedTime : null
   }
 
-  const formatTimeTo12Hour = (timeString: string) => {
+  const formatTimeTo12Hour = (timeString?: string) => {
     if (!timeString) return ''
 
     try {
@@ -229,9 +232,9 @@ const AdministerMedicineSidesheet = ({
 
   useEffect(() => {
     if (scheduleDosage && medicalMasterData) {
-      let updatedQuantity: any = ''
+      let updatedQuantity = ''
       let updatedQuantityUnit = ''
-      let updatedTime: any = null
+      let updatedTime: Dayjs | null = null
 
       if (scheduleDosage?.scheduledTime) {
         updatedTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
@@ -252,13 +255,13 @@ const AdministerMedicineSidesheet = ({
         updatedQuantity = value
 
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-          (item: any) => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
+          (item) => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
 
         updatedQuantityUnit = foundUnit ? foundUnit.unit_name : ''
       }
 
-      reset((prev: any) => ({
+      reset(prev => ({
         ...prev,
         time: updatedTime,
         quantity: updatedQuantity,
@@ -318,7 +321,7 @@ const AdministerMedicineSidesheet = ({
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+                <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Filter Icon' />
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
@@ -422,8 +425,8 @@ const AdministerMedicineSidesheet = ({
                             placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
-                            getOptionLabel: (option: any) => option.label,
-                            getOptionValue: (option: any) => option.value,
+                            getOptionLabel: (option: SelectOption) => option.label,
+                            getOptionValue: (option: SelectOption) => option.value,
                             required: true,
                             selectWidth: { xs: 50, sm: 80 },
                             showEmptyMenuItem: { xs: false, md: true },
@@ -459,8 +462,8 @@ const AdministerMedicineSidesheet = ({
                             placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
-                            getOptionLabel: (option: any) => option.label,
-                            getOptionValue: (option: any) => option.value,
+                            getOptionLabel: (option: SelectOption) => option.label,
+                            getOptionValue: (option: SelectOption) => option.value,
                             required: true,
                             selectWidth: 80,
                             loading: mastersDataLoading
@@ -537,8 +540,8 @@ const AdministerMedicineSidesheet = ({
                               sx={commonFieldStyles}
                               errors={errors}
                               options={medicalMasterData?.prescriptionDosageMeasurementType}
-                              getOptionLabel={(option: any) => option.label}
-                              getOptionValue={(option: any) => option.value}
+                              getOptionLabel={(option: SelectOption) => option.label}
+                              getOptionValue={(option: SelectOption) => option.value}
                               loading={mastersDataLoading}
                             />
                           </Grid>
@@ -568,20 +571,22 @@ const AdministerMedicineSidesheet = ({
                                   : t('hospital_module.enter_batch_number_optional') || ""
                               }
                               options={batchList}
-                              getOptionLabel={(option: any) => {
+                              getOptionLabel={(option: unknown) => {
                                 if (typeof option === 'string') return option
+                                const batch = option as BatchListState | undefined
 
-                                return option?.batch_no || ''
+                                return String(batch?.batch_no || '')
                               }}
-                              getOptionValue={(option: any) => {
+                              getOptionValue={(option: unknown) => {
                                 if (typeof option === 'string') return option
+                                const batch = option as BatchListState | undefined
 
-                                return option?.batch_no || ''
+                                return String(batch?.batch_no || '')
                               }}
-                              isOptionEqualToValue={(option: any, value: any) => {
+                              isOptionEqualToValue={(option: unknown, value: unknown) => {
                                 if (!option || !value) return false
-                                const optionVal = typeof option === 'string' ? option : option?.batch_no
-                                const valueVal = typeof value === 'string' ? value : value?.batch_no
+                                const optionVal = typeof option === 'string' ? option : (option as BatchListState)?.batch_no
+                                const valueVal = typeof value === 'string' ? value : (value as BatchListState)?.batch_no
 
                                 return optionVal === valueVal
                               }}
@@ -589,7 +594,7 @@ const AdministerMedicineSidesheet = ({
                               onInputChange={handleBatchSearch}
                               required={isControlledSubstance}
                               autocompleteProps={{
-                                filterOptions: (x: any) => x,
+                                filterOptions: (x: unknown[]) => x,
                                 noOptionsText: batchLoading ? t('loading') : t('hospital_module.type_to_search_batches')
                               }}
                             />
@@ -613,7 +618,7 @@ const AdministerMedicineSidesheet = ({
                 </Grid>
 
                 {/* Hidden submit button for form submission */}
-                <button type='submit' style={{ display: 'none' }} />
+                <Box component='button' type='submit' sx={{ display: 'none' }} />
               </form>
             </CardContent>
           </Card>

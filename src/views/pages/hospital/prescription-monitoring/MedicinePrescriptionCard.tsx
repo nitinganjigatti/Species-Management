@@ -40,7 +40,39 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import { AdministerFormData, BatchListState, MedicineDetailState, SelectedItem, SingleOrMultipleDoseAdministerOrSkipTransformedData, StopMedicineFormData } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
+import { Id } from 'src/types/hospital'
+import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+import { PrescriptionDetails } from 'src/types/hospital/models'
 
+
+
+  export interface PrescriptionCardDosageEntry extends MedicineDetailState {
+    scheduled_time?: string
+    scheduled_quantity?: string | number
+    scheduled_unit_name?: string
+    administritive_time?: string
+    quantity_administered?: string | number
+    wastage_quantity?: string | number
+    status?: string
+    user_full_name?: string
+    user_profile_pic?: string | null
+    modified_at?: string | null
+    batch_details?: Array<{ batch_number?: string | number } & Record<string, unknown>>
+  }
+
+  export interface MedicinePrescriptionCardData extends PrescriptionDetails {
+    defaultTab?: number | string
+    medId?: Id
+    startDate?: string
+    endDate?: string
+    dosage?: string
+    deliveryRoute?: string
+    lastEdited?: string
+    prescription_required: string
+    name: string
+    administritive_ids: Id
+  }   
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -120,29 +152,29 @@ const DosageHeader = styled(Box)<{ variant?: string }>(({ theme, variant }) => (
 interface MedicinePrescriptionCardProps {
   open: boolean
   onClose: () => void
-  medicineData?: any
-  dosageEntries?: any[]
-  dateOptions?: any[]
-  onStopMedicine?: (data: any) => void
+  medicineData: MedicinePrescriptionCardData
+  dosageEntries?: PrescriptionCardDosageEntry[]
+  dateOptions?: string[]
+  onStopMedicine?: (data: StopMedicineFormData) => void
   onAddNewDosage?: (medicine: any) => void
-  onRefreshEntry?: (entryId: any, medicine: any) => void
-  handleDateChange?: (date: any) => void
+  onRefreshEntry?: (entryId: Id, medicine: MedicineDetailState) => void
+  handleDateChange?: (date: string) => void
   isDetailLoading?: boolean
   isDatesLoading?: boolean
-  selectedDate?: any
-  onAdministerSelected?: (items: any[], medicineData: any, formData?: any) => void
-  onSkipSelected?: (items: any[], medicineData: any, formData?: any) => void
+  selectedDate: string
+  onAdministerSelected?: (items: SelectedItem[], medicineData: MedicineDetailState, formData?: AdministerFormData) => void
+  onSkipSelected?: (items: SelectedItem[], medicineData: MedicineDetailState, formData?: AdministerFormData) => void
   isAdministerLoading?: boolean
   isSkipLoading?: boolean
-  selectedMedications: any[]
+  selectedMedications: Id[]
   isStopMedicineLoading?: boolean
-  setSelectedMedications: React.Dispatch<React.SetStateAction<any[]>>
+  setSelectedMedications: React.Dispatch<React.SetStateAction<Id[]>>
   onRestartMedicine?: () => void
-  batchList?: any[]
+  batchList?: BatchListState[]
   batchLoading?: boolean
-  handleBatchSearch?: (value: any) => void
+  handleBatchSearch?: (value: string) => void
   isControlledSubstance?: boolean
-  medicalMasterData?: any
+  medicalMasterData?: MedicalMasterFormData
   mastersDataLoading?: boolean
   onUpdateMedicine?: () => void
 }
@@ -163,7 +195,7 @@ interface FormValues {
 const MedicinePrescriptionCard = ({
   open,
   onClose,
-  medicineData = {},
+  medicineData = {} as MedicinePrescriptionCardData,
   dosageEntries = [],
   dateOptions = [],
   onStopMedicine,
@@ -297,7 +329,7 @@ const MedicinePrescriptionCard = ({
   const tabs = dateOptions?.length > 0 ? dateOptions : []
 
   const pendingMedications = dosageEntries?.filter(
-    (item: any) => !item?.status || item?.status?.toLowerCase() === 'pending'
+    (item) => !item?.status || item?.status?.toLowerCase() === 'pending'
   )
 
   const allSelected = pendingMedications?.length > 0 && selectedMedications.length === pendingMedications.length
@@ -317,19 +349,19 @@ const MedicinePrescriptionCard = ({
     if (!open || isDetailLoading || isDatesLoading) return
 
     const pendingMedications = dosageEntries?.filter(
-      (item: any) => !item?.status || item?.status?.toLowerCase() === 'pending'
+      (item) => !item?.status || item?.status?.toLowerCase() === 'pending'
     )
 
     if (pendingMedications?.length === 1) {
       const singlePendingId = pendingMedications[0]?.administritive_id
-      if (!selectedMedications.includes(singlePendingId)) {
+      if (!selectedMedications.includes(singlePendingId ?? '')) {
         const isControlledSubstance = pendingMedications[0]?.controlled_substance == 1
 
-        setSelectedMedications((prev: any[]) => {
+        setSelectedMedications((prev: Id[]) => {
           if (isControlledSubstance) {
-            return [singlePendingId]
+            return [singlePendingId ?? '']
           } else {
-            return [...prev, singlePendingId]
+            return [...prev, singlePendingId ?? '']
           }
         })
       }
@@ -348,7 +380,7 @@ const MedicinePrescriptionCard = ({
     setStopMedicineModalOpen(true)
   }
 
-  const handleStopMedicineConfirm = (data: any) => {
+  const handleStopMedicineConfirm = (data: StopMedicineFormData) => {
     if (onStopMedicine) {
       onStopMedicine(data)
     }
@@ -360,21 +392,21 @@ const MedicinePrescriptionCard = ({
     }
   }
 
-  const handleRefreshEntry = (entryId: any) => {
+  const handleRefreshEntry = (entryId: Id) => {
     if (onRefreshEntry) {
       onRefreshEntry(entryId, medicine)
     }
   }
 
-  const handleMedicationSelect = (medicationId: any, checked: boolean, isControlledSubstance: boolean) => {
-    setSelectedMedications((prev: any[]) => {
+  const handleMedicationSelect = (medicationId: Id, checked: boolean, isControlledSubstance: boolean) => {
+    setSelectedMedications(prev => {
       if (isControlledSubstance) {
         return checked ? [medicationId] : []
       } else {
         if (checked) {
           return [...prev, medicationId]
         } else {
-          return prev.filter((id: any) => id !== medicationId)
+          return prev.filter(id => id !== medicationId)
         }
       }
     })
@@ -384,15 +416,15 @@ const MedicinePrescriptionCard = ({
     if (allSelected) {
       setSelectedMedications([])
     } else {
-      const allPendingIds = pendingMedications?.map((item: any) => item?.administritive_id) || []
+      const allPendingIds = pendingMedications?.map((item) => item?.administritive_id ?? '') || []
       setSelectedMedications(allPendingIds)
     }
   }
 
   const handleAdministerSelected = () => {
     if (onAdministerSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter((item) =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onAdministerSelected(selectedItems, medicineData)
 
@@ -402,8 +434,8 @@ const MedicinePrescriptionCard = ({
 
   const handleSkipSelected = () => {
     if (onSkipSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter(item =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onSkipSelected(selectedItems, medicineData)
 
@@ -411,20 +443,20 @@ const MedicinePrescriptionCard = ({
     }
   }
 
-  const handleAdministerSelectedControlSubstanceProduct = (formData: any) => {
+  const handleAdministerSelectedControlSubstanceProduct = (formData: AdministerFormData) => {
     if (onAdministerSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter(item =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onAdministerSelected(selectedItems, medicineData, formData)
       setIsSelectionMode(false)
     }
   }
 
-  const handleSkipSelectedControlSubstanceProduct = (formData: any) => {
+  const handleSkipSelectedControlSubstanceProduct = (formData: AdministerFormData) => {
     if (onSkipSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter(item =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onSkipSelected(selectedItems, medicineData, formData)
       setIsSelectionMode(false)
@@ -447,9 +479,10 @@ const MedicinePrescriptionCard = ({
     onClose()
   }
 
-  const handleAddNewDosageTimeCheck = (data: any) => {
+  const handleAddNewDosageTimeCheck = (data: Pick<SingleOrMultipleDoseAdministerOrSkipTransformedData, 'scheduledTime'> | string) => {
+    const scheduledTime = typeof data === 'string' ? '' : data?.scheduledTime ?? ''
     const datePart = selectedDate.split(' ')[0]
-    const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime)}`)
+    const targetDateTime = new Date(`${datePart}T${convertTo24Hour(scheduledTime)}`)
     const now = new Date()
 
     if (isNaN(targetDateTime.getTime())) {
@@ -1011,9 +1044,9 @@ const MedicinePrescriptionCard = ({
               </>
             ) : (
               <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {dosageEntries?.map((item: any) => {
+                {dosageEntries?.map(item => {
                   const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
-                  const isSelected = selectedMedications.includes(item?.administritive_id)
+                  const isSelected = selectedMedications.includes(item?.administritive_id ?? '')
                   const isControlledSubstance = item?.controlled_substance == 1 ? true : false
 
                   const isFutureTime = () => {
@@ -1043,12 +1076,12 @@ const MedicinePrescriptionCard = ({
                   return isPending ? (
                     <MedicationTimeCard
                       key={item?.administritive_id}
-                      time={formatTime(item?.scheduled_time)}
+                      time={formatTime(item?.scheduled_time ?? '')}
                       dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={(checked: boolean) =>
-                        handleMedicationSelect(item?.administritive_id, checked, isControlledSubstance)
+                        handleMedicationSelect(item?.administritive_id ?? '', checked, isControlledSubstance)
                       }
                       disabled={!isAllowedDate()}
                       isControlledSubstance={isControlledSubstance}
@@ -1057,7 +1090,7 @@ const MedicinePrescriptionCard = ({
                     renderDosageEntry({
                       id: item?.administritive_id,
                       scheduledTime: item?.scheduled_time,
-                      time: formatTime(item?.administritive_time),
+                      time: formatTime(item?.administritive_time ?? ''),
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       amount:
@@ -1263,7 +1296,7 @@ const MedicinePrescriptionCard = ({
                   </Box>
                 )}
 
-                {stopMedicineModalOpen && !isStopDatePassed(medicineData?.stop_date) ? (
+                {stopMedicineModalOpen && !isStopDatePassed(medicineData?.stop_date ?? '') ? (
                   <StopMedicine
                     open={stopMedicineModalOpen}
                     onClose={() => setStopMedicineModalOpen(false)}
@@ -1312,8 +1345,8 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : (isStopDatePassed(medicineData?.stop_date) ||
-                        isLocalStopDatePassed(medicineData?.stop_date)) &&
+                    ) : (isStopDatePassed(medicineData?.stop_date ?? '') ||
+                        isLocalStopDatePassed(medicineData?.stop_date ?? '')) &&
                       medicineData?.will_restart != 0 ? (
                       <Button
                         variant='text'
@@ -1343,7 +1376,7 @@ const MedicinePrescriptionCard = ({
                       <Box></Box>
                     )}
                     {handleAddNewDosageTimeCheck(selectedDate) &&
-                      !isStopDatePassed(medicineData?.stop_date) &&
+                      !isStopDatePassed(medicineData?.stop_date ?? '') &&
                       medicineData?.prescription_frequency !== 'one_time' &&
                       medicineData?.prescription_created_for !== 'direct_administer' && (
                         <Button
