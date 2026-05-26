@@ -113,7 +113,8 @@ const PurchaseDetailsTable = ({ purchaseDetails, onEdit, onDelete, isEditMode })
                     </TableCell>
                     <TableCell>
                       <Typography sx={{ color: (!el?.purchase_stock_item_id || !el?.medicine_name) && 'error.main' }}>
-                        {el?.medicine_name}
+                        {/* {el?.ml_generated_name} */}
+                        {el?.medicine_name ? el?.medicine_name : el?.ml_generated_name}
                       </Typography>
                       <Typography variant='body2'>{el?.package_details}</Typography>
                       <Typography variant='body2'>{el?.manufacture}</Typography>

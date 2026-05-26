@@ -558,9 +558,9 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
         ) : selectionType === 'species' ? (
           <List>
             {speciesData?.length > 0 ? (
-              speciesData.map(species => (
+              speciesData.map((species, idx) => (
                 <Box
-                  key={species.species_id}
+                  key={species.species_id || idx}
                   sx={{
                     position: 'relative',
                     background:
@@ -657,9 +657,9 @@ const SpeciesMappedtoDiet: React.FC<SpeciesMappedtoDietProps> = ({
         ) : (
           <List>
             {speciesData?.length > 0 ? (
-              speciesData.map(species => (
+              speciesData.map((species, idx) => (
                 <Box
-                  key={species.animal_id}
+                  key={species.animal_id || idx}
                   sx={{
                     position: 'relative',
                     background:

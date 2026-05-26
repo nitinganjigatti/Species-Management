@@ -54,7 +54,9 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
+
 import { productCategoryOptions } from 'src/constants/PharmacyConstants'
+import { getProductCategoriesList } from 'src/lib/api/pharmacy/getCategories'
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
@@ -157,20 +159,19 @@ const schema = yup.object().shape({
   category: yup.array().nullable()
 })
 
-const mapCategoryResponseToOptions = category => {
-  if (!category) return []
-
-  return category
-    ?.split(',')
-    ?.map(c => {
-      const trimmed = c?.trim()
-      const match = productCategoryOptions?.find(opt => opt?.value === trimmed || opt?.id === trimmed)
-
-      return match ? { label: match?.label, value: match?.value } : { label: trimmed, value: trimmed }
-    })
-    ?.filter(Boolean)
-}
-
+// const mapCategoryResponseToOptions = category => {
+//   if (!category) return []
+//
+//   return category
+//     ?.split(',')
+//     ?.map(c => {
+//       const trimmed = c?.trim()
+//       const match = productCategoryOptions?.find(opt => opt?.value === trimmed || opt?.id === trimmed)
+//
+//       return match ? { label: match?.label, value: match?.value } : { label: trimmed, value: trimmed }
+//     })
+//     ?.filter(Boolean)
+// }
 const AddMedicine = () => {
   // ** Hooks
   const {
@@ -204,7 +205,6 @@ const AddMedicine = () => {
 
   const { settings } = useSettings()
   const { skin } = settings
-
   const [drugsClassList, setDrugsClass] = useState([])
   const [gstList, setGstList] = useState([])
   const [files, setFiles] = useState([])
@@ -221,6 +221,27 @@ const AddMedicine = () => {
   const [medicineType, setMedicineType] = useState('allopathy')
   const [uomList, setUom] = useState([])
   const [storageList, setStorageList] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getProductCategoriesList({
+          params: { active: '1', sort: 'asc', column: 'name' }
+        })
+        const items = res?.data?.list_items || []
+        setCategoryOptions(
+          items.map(row => ({
+            id: row.id,
+            label: row.category_name,
+            value: row.id
+          }))
+        )
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchCategories()
+  }, [selectedPharmacy?.id])
 
   const [packageQuantity, setPackageQuantity] = useState('')
 
@@ -466,12 +487,17 @@ const AddMedicine = () => {
                   }
                 ],
           status: response?.data?.active,
-          priority: response?.data?.priority,
+          // priority: response?.data?.priority,
+          priority: response?.data?.priority === 'critical' ? 'critical' : '',
           url: response?.data?.url || '',
           side_effects: response?.data?.side_effects || '',
           uses: response?.data?.uses || '',
           safety_advice: response?.data?.safety_advice || '',
-          category: mapCategoryResponseToOptions(response?.data?.category)
+          // category: mapCategoryResponseToOptions(response?.data?.category)
+          category: (response?.data?.category_data || []).map(row => ({
+            label: row.category_name,
+            value: row.id
+          }))
         })
       }
       setLoader(false)
@@ -679,7 +705,8 @@ const AddMedicine = () => {
       status: active,
       url,
       priority,
-      category: category?.length > 0 ? category.map(item => item?.value || item).join(',') : ''
+      // category: category?.length > 0 ? category.map(item => item?.value || item).join(',') : ''
+      category_id: category?.length > 0 ? category.map(item => item?.value || item).join(',') : ''
     }
     if (files.length > 0) {
       payload.image = files[0]
@@ -1286,7 +1313,8 @@ const AddMedicine = () => {
                             control={control}
                             errors={errors}
                             multiple={true}
-                            options={productCategoryOptions}
+                            // options={productCategoryOptions}
+                            options={categoryOptions}
                             getOptionLabel={option => option?.label || ''}
                             getOptionValue={option => option?.value || ''}
                             isOptionEqualToValue={(option, value) => option?.value === value?.value}
@@ -1348,6 +1376,7 @@ const AddMedicine = () => {
                                 image={uploadedImage}
                                 files={files}
                                 onRemoveImage={handleRemoveImage}
+                                sizeValidation={true}
                               />
                             </CardContent>
                           </Card>

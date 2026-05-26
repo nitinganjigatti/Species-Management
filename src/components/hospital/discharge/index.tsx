@@ -34,6 +34,25 @@ import {
 } from 'src/lib/api/hospital/prescription'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { Theme } from '@mui/material/styles'
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
+import { PatientDetailsData, PrescriptionRecord } from 'src/types/hospital/models'
+import { Id } from 'src/types/hospital'
+import { PrescriptionRecordParams } from 'src/types/hospital/api/Discharge/prescriptionRecord'
+import { StopMedicineParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
+import { DischargeAnimalParams } from 'src/types/hospital/api/Discharge/discharge'
+
+interface PendingDischargeData {
+  title: string
+  description?: string
+  additionalDescription?: string
+  onConfirm: () => Promise<unknown>
+}
+
+interface DischargeEnclosureMedicine {
+  id: Id
+  [key: string]: unknown
+}
 
 const MortalityDischargeForm: any = MortalityDischargeFormRaw
 const EnclosureDischargeForm: any = EnclosureDischargeFormRaw
@@ -42,7 +61,7 @@ const STORAGE_KEY = 'medical_record_data'
 const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
 interface InpatientDischargeProps {
-  patientData?: any
+  patientData?: PatientDetailsData | null
   refetchPatient?: () => void
 }
 
@@ -52,7 +71,7 @@ interface DischargeFormValues {
 
 const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const router = useSafeRouter()
   const routerParams: any = useParams()
   // Get id from dynamic route params (App Router) or from router.query fallback
@@ -76,7 +95,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   const enclosureMedicines = hospitalData.enclosure_medicines || []
   const enclosureTempMedicines = hospitalData.enclosure_temp_medicines || []
 
-  const [prescription, setPrescription] = useState<any[]>([])
+  const [prescription, setPrescription] = useState<PrescriptionRecord[]>([])
   const [isPrescriptionLoading, setIsPrescriptionLoading] = useState<boolean>(false)
   const [isStopPrescriptionLoading, setIsStopPrescriptionLoading] = useState<boolean>(false)
 
@@ -85,10 +104,10 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   const [isTransferEnclosureDirty, setIsTransferEnclosureDirty] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string>('TransferEnclosure')
   const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
-  const [pendingTabValue, setPendingTabValue] = useState<any>(null)
+  const [pendingTabValue, setPendingTabValue] = useState<string | null>(null)
 
   const [dischargeConfirmOpen, setDischargeConfirmOpen] = useState<boolean>(false)
-  const [pendingDischargeData, setPendingDischargeData] = useState<any>(null)
+  const [pendingDischargeData, setPendingDischargeData] = useState<PendingDischargeData | null>(null)
 
   const { control, watch, setValue } = useForm<DischargeFormValues>({
     defaultValues: { discharge_type: (router.query as any).discharge_tab || 'TransferEnclosure' }
@@ -142,8 +161,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     const load = async () => {
       try {
         await Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
-      } catch (error: any) {
-        console.error('Initial fetch failed:', error?.message)
+      } catch (error: unknown) {
+        console.error('Initial fetch failed:', (error as Error)?.message)
       }
     }
 
@@ -156,13 +175,13 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
 
     const saved = sessionStorage.getItem('transfer_enclosure_form')
 
-    let siteId: any = null
+    let siteId: Id | null = null
     let siteLabel = ''
 
-    let sectionId: any = null
+    let sectionId: Id | null = null
     let sectionLabel = ''
 
-    let enclosureId: any = null
+    let enclosureId: Id | null = null
     let enclosureLabel = ''
 
     if (saved) {
@@ -217,7 +236,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     try {
       setIsPrescriptionLoading(true)
 
-      const payload = {
+      const payload: PrescriptionRecordParams = {
         hospital_case_id: id,
 
         // medical_record_id: medical_record_id, // removed
@@ -225,26 +244,26 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
         status: 'active',
         type: 'prescription'
       }
-      const response: any = await getPrescriptionsByRecord(payload)
+      const response = await getPrescriptionsByRecord(payload)
 
       if (response?.success) {
         setPrescription(response.data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
-      console.error('Error fetching medicine:', error?.message || error)
+    } catch (error: unknown) {
+      console.error('Error fetching medicine:', (error as Error)?.message || error)
     } finally {
       setIsPrescriptionLoading(false)
     }
   }, [id, animal_id])
 
   // Stop prescription
-  const handleStopPrescription = async (row: any) => {
+  const handleStopPrescription = async (row: PrescriptionRecord) => {
     try {
       setIsStopPrescriptionLoading(true)
 
-      const payload = {
+      const payload: StopMedicineParams = {
         medical_record_id: row?.medical_record_id,
         prescription_id: row?.id,
         type: 'prescription',
@@ -256,7 +275,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
         main_prescription_id: row?.prescription_id
       }
 
-      const response: any = await stopPrescription(payload)
+      const response = await stopPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.medicine_stopped_successfully') })
@@ -264,22 +283,22 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
-      console.error('Error stopping medicine:', error?.message || error)
+    } catch (error: unknown) {
+      console.error('Error stopping medicine:', (error as Error)?.message || error)
     } finally {
       setIsStopPrescriptionLoading(false)
     }
   }
 
   // Active prescription table columns
-  const prescriptionsColumns: any[] = [
+  const prescriptionsColumns: GridColDef[] = [
     {
       field: 'id',
       headerName: 'Sl.NO',
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params?.row?.sl_no}
         </StyledTypography>
@@ -291,7 +310,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       minWidth: 200,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params?.row?.name || '-'}
@@ -311,7 +330,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       minWidth: 250,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const dosage = params?.row?.dosage_count
         const frequency = params?.row?.frequency
 
@@ -353,7 +372,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Starting Date',
       minWidth: 140,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
           {Utility.convertUtcToLocalReadableDate(params?.row?.start_date)}
         </StyledTypography>
@@ -364,7 +383,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Ending Date',
       minWidth: 180,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const endDate = params?.row?.end_date
         const formattedDate = endDate ? Utility.convertUtcToLocalReadableDate(endDate) : null
 
@@ -401,7 +420,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'duration',
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params?.row?.duration}
         </StyledTypography>
@@ -412,7 +431,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Actions',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) =>
+      renderCell: (params: GridRenderCellParams) =>
         isStopPrescriptionLoading ? (
           <CircularProgress size={20} />
         ) : (
@@ -437,21 +456,21 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   // Add prescription rows with serial numbers
   const prescriptionIndexedRows = useMemo(
     () =>
-      prescription?.map((row: any, index: number) => ({
+      prescription?.map((row, index: number) => ({
         ...row,
         sl_no: index + 1
       })),
     [prescription]
   )
 
-  const medicationsColumns: any[] = [
+  const medicationsColumns: GridColDef[] = [
     {
       field: 'id',
       headerName: 'Sl.NO',
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params?.row?.sl_no}
         </StyledTypography>
@@ -463,7 +482,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       minWidth: 200,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{
             display: 'flex',
@@ -501,7 +520,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       minWidth: 250,
       flex: 1,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={`${params?.row?.schedule_doses?.length} Time / ${params?.row?.frequency_name}`}
@@ -520,7 +539,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Starting Date',
       minWidth: 140,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
           {Utility.convertUtcToLocalReadableDate(params?.row?.start_date)}
         </StyledTypography>
@@ -531,7 +550,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Ending Date',
       minWidth: 140,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
           {Utility.convertUtcToLocalReadableDate(params?.row?.end_date)}
         </StyledTypography>
@@ -542,7 +561,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'duration',
       minWidth: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params?.row?.frequency_key === 'one_time' ? '1 day' : params?.row?.duration}
         </StyledTypography>
@@ -553,7 +572,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Delivery Route',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params?.row?.delivery_route_label}
@@ -572,7 +591,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       headerName: 'Actions',
       width: 120,
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title='Edit'>
             <IconButton size='small' onClick={() => {}}>
@@ -604,8 +623,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     const merged = [...existing]
     let hasChanges = false
 
-    enclosureTempMedicines.forEach((newMed: any) => {
-      const idx = merged.findIndex((med: any) => med.id === newMed.id)
+    enclosureTempMedicines.forEach((newMed: DischargeEnclosureMedicine) => {
+      const idx = merged.findIndex((med: DischargeEnclosureMedicine) => med.id === newMed.id)
 
       if (idx >= 0) {
         // ID found update
@@ -637,7 +656,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   }
 
   // Discharge confirmation handlers
-  const handleMortalitySubmitWithConfirmation = async (payload: any) => {
+  const handleMortalitySubmitWithConfirmation = async (payload: DischargeAnimalParams) => {
     return new Promise(resolve => {
       setPendingDischargeData({
         title: 'Are you sure you want to discharge this animal as Mortality?',
@@ -858,7 +877,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
         {purpose_of_visit && (
           <Box
             sx={{
-              background: alpha(theme.palette.customColors.antzNotes, 0.6),
+              background: alpha(theme.palette.customColors.antzNotes ?? '', 0.6),
               p: 6,
               borderRadius: 1,
               display: 'flex',
@@ -880,7 +899,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
             control={control}
             render={({ field }) => (
               <Grid container spacing={6}>
-                {dischargeTypeOptions?.map((item: any, index: number) => (
+                {dischargeTypeOptions?.map((item, index: number) => (
                   <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
                     <TreatmentTypeRadioButtons
                       label={item.label}

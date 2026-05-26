@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getRequestReturnList } from 'src/lib/api/pharmacy/returnRequest'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { TabList, TabContext, TabPanel } from "@mui/lab"
+import { TabList, TabContext, TabPanel } from '@mui/lab'
 import { debounce } from 'lodash'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 // ** MUI Imports
 import Router from 'next/router'
-import {
-  Chip,
-  Grid,
-  Tab,
-  Typography,
-  useMediaQuery,
-  Box 
-} from '@mui/material'
+import { Chip, Grid, Tab, Typography, useMediaQuery, Box } from '@mui/material'
 import { useTheme } from '@emotion/react'
 
 import Icon from 'src/@core/components/icon'
@@ -30,7 +23,6 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
-
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -374,7 +366,7 @@ const ReturnRequestList = () => {
                 pathname: '/pharmacy/return-product/add-request'
               })
             }
-            styles= {{
+            styles={{
               mr: 0
             }}
           />
@@ -393,8 +385,9 @@ const ReturnRequestList = () => {
 
   const columns = [
     {
-      width: 80,
+      minWidth: 100,
       field: 'sl_no',
+      sortable: false,
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -402,7 +395,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {Number(params.row.sl_no) + '.'}
@@ -411,7 +404,8 @@ const ReturnRequestList = () => {
     },
 
     {
-      width: 160,
+      minWidth: 160,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'Request Number',
       headerClassName: 'custom-header',
@@ -421,7 +415,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.request_number}
@@ -439,8 +433,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
+            fontWeight: 500
           }}
         >
           {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
@@ -469,6 +462,7 @@ const ReturnRequestList = () => {
     // },
     {
       minWidth: 160,
+      flex: 0.2,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -477,7 +471,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
@@ -486,6 +480,7 @@ const ReturnRequestList = () => {
     },
     {
       minWidth: 140,
+      flex: 0.2,
       field: 'product_count',
       headerName: 'Total items',
       type: 'number',
@@ -497,7 +492,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.product_count}
@@ -506,6 +501,8 @@ const ReturnRequestList = () => {
     },
     {
       minWidth: 160,
+      flex: 0.2,
+      sortable: false,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -549,6 +546,7 @@ const ReturnRequestList = () => {
     },
     {
       minWidth: 220,
+      flex: 0.2,
       field: 'created_by_user_name',
       headerName: 'Returned by ',
       headerAlign: 'left',
@@ -629,17 +627,36 @@ const ReturnRequestList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <PageCardLayout
-              title = 'Product Return Request'
-              action = {headerAction}>
+          <PageCardLayout title='Product Return Request' action={headerAction}>
+            <Grid
+              container
+              spacing={4}
+              sx={{
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
               <Grid
-                container
-                spacing={4}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center'
+                size={{
+                  xs: 12,
+                  sm: 12,
+                  md: 3,
+                  lg: 3,
+                  xl: 2.5
                 }}
               >
+                <MUISearch
+                  width={'100%'}
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  onClear={() => handleSearch('')}
+                />
+              </Grid>
+              {/* Filters */}
+              {/* Filter by Stores */}
+              {selectedPharmacy.type === 'central' && (
                 <Grid
                   size={{
                     xs: 12,
@@ -648,61 +665,39 @@ const ReturnRequestList = () => {
                     lg: 3,
                     xl: 2.5
                   }}
-                >
-                  <MUISearch  
-                    width={'100%'}
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    onClear={() => handleSearch('')}
-                  />
-                </Grid>
-                {/* Filters */}
-                {/* Filter by Stores */}
-                {selectedPharmacy.type === 'central' && (
-                  <Grid
-                    size={{
-                      xs: 12,
-                      sm: 12,
-                      md: 3,
-                      lg: 3,
-                      xl: 2.5
-                    }}
-                    sx={{
-                      marginLeft: 'auto',
-                 
-                    }}
-                  >
-                    <MUIAutocomplete
-                      value={filterByStoreId}
-                      label='Filter by Stores'
-                      valueType='id'
-                      onChange={newValue => {
-                        setTotal(0)
-                        setPaginationModel({ page: 0, pageSize: 50 })
-
-                        if (newValue === null) {
-                          setFilterByStoreId('all')
-                        } else {
-                          setFilterByStoreId(newValue)
-                        }
-                        setSearchValue('')
-                      }}
-                      options={stores}
-                    />
-                  </Grid>
-                )}
-
-                {/* Filter by Days */}
-                <Grid
-                   size = {{xs: 12, sm: 12, md: 'auto'}}
                   sx={{
-                    ...(selectedPharmacy.type === 'local' && {
-                      marginLeft: 'auto'
-                    })
+                    marginLeft: 'auto'
                   }}
                 >
+                  <MUIAutocomplete
+                    value={filterByStoreId}
+                    label='Filter by Stores'
+                    valueType='id'
+                    onChange={newValue => {
+                      setTotal(0)
+                      setPaginationModel({ page: 0, pageSize: 50 })
+
+                      if (newValue === null) {
+                        setFilterByStoreId('all')
+                      } else {
+                        setFilterByStoreId(newValue)
+                      }
+                      setSearchValue('')
+                    }}
+                    options={stores}
+                  />
+                </Grid>
+              )}
+
+              {/* Filter by Days */}
+              <Grid
+                size={{ xs: 12, sm: 12, md: 'auto' }}
+                sx={{
+                  ...(selectedPharmacy.type === 'local' && {
+                    marginLeft: 'auto'
+                  })
+                }}
+              >
                 <MUISelect
                   value={selectDays}
                   label='Filter by days'
@@ -712,59 +707,57 @@ const ReturnRequestList = () => {
                     { id: '7', name: '3 to 7 Days' },
                     { id: '15', name: '7 to 15 Days' },
                     { id: '16', name: '15 Days' }
-                ]}
-                onChange={e=> {
-                   const value = e.target.value
-                    if (value=== null) {
+                  ]}
+                  onChange={e => {
+                    const value = e.target.value
+                    if (value === null) {
                       setSelectDays('all')
                       filterByDays('all')
                     } else {
                       filterByDays(value)
                       setSelectDays(value)
                     }
-                  }
-              }
-              
-              />
-                </Grid>
-
-                {/* Completed Switch */}
-                {(status === 'all' || status === 'completed') && (
-                  <Grid>
-                    <MUISwitch
-                      label='Completed'
-                      labelStyle={{
-                        color: theme.palette.customColors.customHeadingTextColor,
-                        fontSize: '14px',
-                        fontWeight: 400
-                      }}
-                      formControlStyle={{
-                        margin: 0
-                      }}
-                      labelPlacement='end'
-                      defaultChecked={filterSwitch}
-                      onChange={e => {
-                        handleSwitchChange(e)
-                      }}
-                    />
-                  </Grid>
-                )}
-              </Grid>
-
-              <Grid>
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
+                  }}
                 />
               </Grid>
-              </PageCardLayout>
+
+              {/* Completed Switch */}
+              {(status === 'all' || status === 'completed') && (
+                <Grid>
+                  <MUISwitch
+                    label='Completed'
+                    labelStyle={{
+                      color: theme.palette.customColors.customHeadingTextColor,
+                      fontSize: '14px',
+                      fontWeight: 400
+                    }}
+                    formControlStyle={{
+                      margin: 0
+                    }}
+                    labelPlacement='end'
+                    defaultChecked={filterSwitch}
+                    onChange={e => {
+                      handleSwitchChange(e)
+                    }}
+                  />
+                </Grid>
+              )}
+            </Grid>
+
+            <Grid>
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </PageCardLayout>
         )}
       </>
     )
@@ -781,9 +774,11 @@ const ReturnRequestList = () => {
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
           )}
-          <Tab 
-          //  sx={{ ml: selectedPharmacy?.type === 'central' ? 3 : 0 }} 
-          value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
+          <Tab
+            //  sx={{ ml: selectedPharmacy?.type === 'central' ? 3 : 0 }}
+            value='shipped'
+            label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+          />
           <Tab
             value='disputed'
             label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
@@ -799,16 +794,16 @@ const ReturnRequestList = () => {
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
-        <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
-        {selectedPharmacy?.type === 'local' && <TabPanel value='pending'>{tableData()}</TabPanel>}
-        <TabPanel value='shipped'>{tableData()}</TabPanel>
-        <TabPanel value='disputed' >{tableData()}</TabPanel>
-        {selectedPharmacy?.type === 'local' && <TabPanel value='cancel' >{tableData()}</TabPanel>}
-        {status === 'all' ? (
-          <TabPanel value='all'>{tableData()}</TabPanel>
-        ) : (
-          <TabPanel value='completed'>{tableData()}</TabPanel>
-        )}
+        <Box sx={{ '& .MuiTabPanel-root': { p: 0, mt: 3 } }}>
+          {selectedPharmacy?.type === 'local' && <TabPanel value='pending'>{tableData()}</TabPanel>}
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          {selectedPharmacy?.type === 'local' && <TabPanel value='cancel'>{tableData()}</TabPanel>}
+          {status === 'all' ? (
+            <TabPanel value='all'>{tableData()}</TabPanel>
+          ) : (
+            <TabPanel value='completed'>{tableData()}</TabPanel>
+          )}
         </Box>
       </TabContext>
     </Grid>

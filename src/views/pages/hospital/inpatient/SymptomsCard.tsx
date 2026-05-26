@@ -118,10 +118,10 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
       if (response?.success) {
         setActivityListData(response?.data || [])
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to fetch notes.' })
+        Toaster({ type: 'error', message: response?.message || (t('hospital_module.failed_to_fetch_notes') as string) })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+      Toaster({ type: 'error', message: t('hospital_module.error_fetching_notes') as string })
     } finally {
       setactivityLoader(false)
     }
@@ -191,7 +191,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
       const response = await updateSymptoms(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Symptom updated successfully!' })
+        Toaster({ type: 'success', message: response?.message || (t('hospital_module.symptom_updated_successfully') as string) })
 
         setSelectedSymptoms(pendingDetails)
         setSymptomDrawerNewOpen(false)
@@ -199,11 +199,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         setPage(1)
         setDeleteLoading(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to update symptom.' })
+        Toaster({ type: 'error', message: response?.message || (t('hospital_module.failed_to_update_symptom') as string) })
         setDeleteLoading(false)
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'An error occurred while updating symptom.' })
+      Toaster({ type: 'error', message: t('hospital_module.error_updating_symptom') as string })
     } finally {
       setIsDeleteDialogOpen(false)
       setPendingDetails(null)
@@ -258,7 +258,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip
             leftImage
-            medId={record?.medical_record_code || 'N/A'}
+            medId={record?.medical_record_code || (t('na') as string)}
             rightDot={patientData?.medical_record_code === record?.medical_record_code}
             dotColor={theme.palette.primary.main}
             textColor={theme.palette.customColors.OnSurface}

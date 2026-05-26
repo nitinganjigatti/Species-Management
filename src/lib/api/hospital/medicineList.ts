@@ -3,13 +3,13 @@ import { axiosGet as _axiosGet } from '../utility'
 
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { MedicineListParams, MedicineListResponse } from 'src/types/hospital'
+import { GetMedicineListParams, GetMedicineListResponse } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch';
 
 export async function getMedicineList({
   params
 }: {
-  params: MedicineListParams
-}): Promise<MedicineListResponse> {
+  params: GetMedicineListParams
+}): Promise<GetMedicineListResponse> {
   try {
     const url = `${MEDICINE_LIST}`
     const response = await axiosGet({ url, params })

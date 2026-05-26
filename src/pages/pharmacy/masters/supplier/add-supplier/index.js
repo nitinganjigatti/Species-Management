@@ -19,6 +19,7 @@ import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSu
 
 import Utility from 'src/utility'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const defaultValues = {
@@ -31,7 +32,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     gst_number: '',
     state_id: '',
     opening_balance: 0,
-    description: ''
+    description: '',
+    status: '1'
   }
 
   const schema = yup.object().shape({
@@ -136,7 +138,12 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       const response = await getSupplierById(id)
 
       if (response != undefined) {
-        reset(response)
+        // reset(response)
+        const formData = {
+          ...response,
+          status: response.status === 'active' ? '1' : '0'
+        }
+        reset(formData)
       }
     } catch (e) {
       console.log(e)
@@ -153,7 +160,19 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { name, email, phone, mobile, address, state_id, gst_number, opening_balance, description, company_name } = {
+    const {
+      name,
+      email,
+      phone,
+      mobile,
+      address,
+      state_id,
+      gst_number,
+      opening_balance,
+      description,
+      company_name,
+      status
+    } = {
       ...params
     }
 
@@ -167,7 +186,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       gst_number,
       opening_balance,
       description,
-      company_name
+      company_name,
+      status
     }
     if (id !== undefined && action === 'edit' && supplierDialog !== true) {
       await updateSupplier(payload, id)
@@ -469,6 +489,25 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                   />
                 </FormControl>
               </Grid>
+
+              {id !== undefined && action === 'edit' && supplierDialog !== true && (
+                <Grid item size={{ xs: 12 }}>
+                  <ControlledRadioGroup
+                    name='status'
+                    control={control}
+                    errors={errors}
+                    label='Status'
+                    required
+                    options={[
+                      { label: 'Active', value: '1' },
+                      { label: 'Inactive', value: '0' }
+                    ]}
+                    row
+                    gap={4}
+                    // sx={{ mb: 6 }}
+                  />
+                </Grid>
+              )}
 
               {/* <Grid item size={{xs: 12}}>
             <FormControl fullWidth>

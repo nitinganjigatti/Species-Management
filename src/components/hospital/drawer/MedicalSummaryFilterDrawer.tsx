@@ -9,16 +9,18 @@ import FilterContent from 'src/components/drawers/FilterContent'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import { MedicalSummarySelectedOptions } from '../inpatient/InpatientMedicalSummary'
+import { Id } from 'src/types/compliance'
 
 const LEFT_MENU = ['Medical Type', 'User']
 
-const DEFAULT_OPTIONS: any = { 'Medical Type': [], User: [] }
+const DEFAULT_OPTIONS: MedicalSummarySelectedOptions = { 'Medical Type': [], User: [] }
 
 interface MedicalSummaryFilterDrawerProps extends BaseDrawerProps {
   onSubmitLoading?: boolean
-  onApplyFilters: (filters: any) => void
+  onApplyFilters: (filters: MedicalSummarySelectedOptions) => void
   setFilterCount: (count: number) => void
-  initialSelectedOptions?: any
+  initialSelectedOptions?: MedicalSummarySelectedOptions
 }
 
 const MedicalSummaryFilterDrawer = ({
@@ -31,8 +33,8 @@ const MedicalSummaryFilterDrawer = ({
 }: MedicalSummaryFilterDrawerProps) => {
   const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState('Medical Type')
-  const [selectedOptions, setSelectedOptions] = useState<any>(DEFAULT_OPTIONS)
-  const [menuData, setMenuData] = useState<any>({ User: [] })
+  const [selectedOptions, setSelectedOptions] = useState<MedicalSummarySelectedOptions>(DEFAULT_OPTIONS)
+  const [menuData, setMenuData] = useState<MedicalSummarySelectedOptions>({ User: [] })
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [drawerCount, setDrawerCount] = useState(0)
@@ -47,7 +49,7 @@ const MedicalSummaryFilterDrawer = ({
   ]
 
   // Count active filters
-  const calculateFilterCount = (filters: any) => {
+  const calculateFilterCount = (filters: MedicalSummarySelectedOptions) => {
     const type = filters['Medical Type']?.[0]
     const hasMedicalType = type && type !== '' // ignore "All Activities"
     const userCount = filters.User?.length || 0
@@ -80,8 +82,9 @@ const MedicalSummaryFilterDrawer = ({
       }
 
       setMenuData({ User: data })
-    } catch (error: any) {
-      console.error('Error fetching users:', error?.message || error)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching users:', err?.message || error)
     } finally {
       setSearchLoading(false)
     }
@@ -105,19 +108,25 @@ const MedicalSummaryFilterDrawer = ({
   }
 
   // User Selection
-  const handleCheckbox = (id: any) => {
-    setSelectedOptions((prev: any) => {
-      const selected = prev.User.includes(id) ? prev.User.filter((item: any) => item !== id) : [...prev.User, id]
+  const handleCheckbox = (id: Id) => {
+  setSelectedOptions((prev: MedicalSummarySelectedOptions) => {
+    const selected = prev.User.includes(id)
+      ? prev.User.filter((item: Id) => item !== id)
+      : [...prev.User, id]
 
-      const updated = { ...prev, User: selected }
-      setDrawerCount(calculateFilterCount(updated)) // local only
+    const updated: MedicalSummarySelectedOptions = {
+      ...prev,
+      User: selected
+    }
 
-      return updated
-    })
-  }
+    setDrawerCount(calculateFilterCount(updated))
+
+    return updated
+  })
+}
 
   const handleSelectAll = () => {
-    setSelectedOptions((prev: any) => {
+    setSelectedOptions((prev) => {
       const allIds = menuData.User.map((item: any) => item.value)
       const isAllSelected = prev.User.length === allIds.length
       const updatedUsers = isAllSelected ? [] : allIds

@@ -50,7 +50,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import { getSuppliers, getSuppliersByParams } from 'src/lib/api/pharmacy/getSupplierList'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -152,8 +152,9 @@ const AddDiscardProducts = () => {
   }
 
   const getSupplierList = async () => {
+    const params = { status: 1 }
     try {
-      const response = await getSuppliers()
+      const response = await getSuppliersByParams({ params: params })
 
       let listWithId = response?.data?.data?.list_items
         ? response?.data?.data?.list_items.map((el, i) => {

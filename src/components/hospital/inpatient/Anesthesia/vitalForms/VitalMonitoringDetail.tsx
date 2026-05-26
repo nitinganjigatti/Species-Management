@@ -10,11 +10,13 @@ const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
 const BASE_CELL_WIDTH = '164px'
 
-const hasMonitoringData = ({ timeSlots, rows }: any) =>
+import { VitalMonitoringRow, VitalMonitoringTableData } from '../../Anesthesia'
+
+const hasMonitoringData = ({ timeSlots, rows }: VitalMonitoringTableData) =>
   Array.isArray(timeSlots) && timeSlots.length && Array.isArray(rows) && rows.length
 
 interface VitalMonitoringDetailProps {
-  data?: any
+  data: VitalMonitoringTableData
 }
 
 export default function VitalMonitoringDetail({ data }: VitalMonitoringDetailProps) {
@@ -40,7 +42,7 @@ export default function VitalMonitoringDetail({ data }: VitalMonitoringDetailPro
     )
   }
 
-  const rowLabels = [t('hospital_module.recorded_time'), ...monitoringData.rows.map((row: any) => row.label)]
+  const rowLabels = [t('hospital_module.recorded_time'), ...monitoringData.rows.map((row: VitalMonitoringRow) => row.label)]
 
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -95,7 +97,7 @@ export default function VitalMonitoringDetail({ data }: VitalMonitoringDetailPro
           </Box>
 
           <Box sx={{ display: 'flex', gap: '8px' }}>
-            {monitoringData.timeSlots.map((slot: any) => (
+            {monitoringData.timeSlots.map((slot) => (
               <Box key={slot.id} sx={{ display: 'grid', rowGap: '8px' }}>
                 {rowLabels.map((label: any, index: number) => {
                   if (index === 0) {

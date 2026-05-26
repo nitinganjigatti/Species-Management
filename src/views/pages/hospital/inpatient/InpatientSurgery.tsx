@@ -16,11 +16,43 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
 import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
+import { Theme } from '@mui/material/styles'
+import { TooltipProps } from '@mui/material'
+import { Id } from 'src/types/hospital'
+import { SurgeryRecords, SurgeryDetails, SurgeryAttachments, AnesthesiaDetails } from 'src/types/hospital/models'
+import { SecondarySurgeonOption } from 'src/components/hospital/shared/AddSurgeryRecord'
+
+interface SurgeonDetail {
+  id?: Id
+  user_full_name?: string
+  full_name?: string
+  name?: string
+}
+
+interface RichTextOp {
+  insert?: string | object
+  attributes?: Record<string, unknown>
+}
+
+interface RichTextValue {
+  delta?: { ops?: RichTextOp[] }
+}
+
+interface InpatientSurgeryDetails extends SurgeryDetails {
+  findings?: unknown
+  hemostasis?: unknown
+  closure?: unknown
+  procedure_performed?: unknown
+}
+
+interface InpatientSurgeryRecord extends Omit<SurgeryRecords, 'detail'> {
+  detail: InpatientSurgeryDetails
+}
 
 interface FieldTooltipProps {
-  title?: any
-  placement?: any
-  children?: any
+  title?: React.ReactNode
+  placement?: TooltipProps['placement']
+  children: React.ReactElement
 }
 
 const FieldTooltip = ({ title = '', placement = 'top-start', children }: FieldTooltipProps) => {
@@ -55,7 +87,7 @@ const TabSkeletons = () => (
   </>
 )
 
-const htmlToPlainText = (value: any): string => {
+const htmlToPlainText = (value: unknown): string => {
   if (!value) return ''
   if (typeof value !== 'string') return String(value)
 
@@ -171,7 +203,7 @@ const getRecordCode = (record: any): string => {
 }
 
 interface MediaScrollerProps {
-  items?: any[]
+  items?: SurgeryAttachments[]
 }
 
 const MediaScroller = ({ items = [] }: MediaScrollerProps) => {
@@ -211,7 +243,7 @@ const MediaScroller = ({ items = [] }: MediaScrollerProps) => {
           px: 2
         }}
       >
-        {items.map((item: any, index: number) => {
+        {items.map((item, index: number) => {
           const key = item?.id ?? `${item?.file || item?.file_original_name || 'attachment'}-${index}`
 
           return (
@@ -239,19 +271,19 @@ const MediaScroller = ({ items = [] }: MediaScrollerProps) => {
 }
 
 interface InpatientSurgeryProps {
-  hospitalCaseId?: any
-  medicalRecordId?: any
+  hospitalCaseId?: Id
+  medicalRecordId?: Id
   patientDischarged?: boolean
-  category?: any
+  category?: string
 }
 
 function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false, category }: InpatientSurgeryProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
-  const router: any = useSafeRouter()
-  const headerBackground = alpha(theme.palette.customColors.displaybgPrimary, 153 / 255)
-  const [surgeryRecords, setSurgeryRecords] = useState<any[]>([])
+  const router = useSafeRouter()
+  const headerBackground = alpha(theme.palette.customColors.displaybgPrimary ?? '', 153 / 255)
+  const [surgeryRecords, setSurgeryRecords] = useState<InpatientSurgeryRecord[]>([])
   const [activeSurgeryId, setActiveSurgeryId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
@@ -279,14 +311,16 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       setError('')
 
       try {
-        const response: any = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } as any })
-        const records: any[] = Array.isArray(response?.data?.surgery_records) ? response.data.surgery_records : []
+        const response = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } })
+        const records: InpatientSurgeryRecord[] = Array.isArray(response?.data?.surgery_records)
+          ? (response.data.surgery_records as InpatientSurgeryRecord[])
+          : []
 
         if (!isMounted) return
 
         setSurgeryRecords(records)
         setActiveSurgeryId((prevActive: string) => {
-          if (prevActive && records.some((record: any) => getRecordIdentifier(record) === prevActive)) {
+          if (prevActive && records.some(record => getRecordIdentifier(record) === prevActive)) {
             return prevActive
           }
 
@@ -294,10 +328,10 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
           return firstRecord ? getRecordIdentifier(firstRecord) : ''
         })
-      } catch (fetchError: any) {
+      } catch (fetchError: unknown) {
         console.error('Failed to load surgery records', fetchError)
         if (!isMounted) return
-        const message = fetchError?.response?.data?.message || fetchError?.message || 'Failed to load surgery records.'
+        const message = (fetchError as Error)?.message || 'Failed to load surgery records.'
 
         setError(message)
         setSurgeryRecords([])
@@ -383,13 +417,13 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
     try {
       setDeleteLoading(true)
-      const response: any = await deleteSurgeryRecord(activeSurgeryRecordId)
+      const response = await deleteSurgeryRecord(activeSurgeryRecordId)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record deleted successfully.' })
-        setSurgeryRecords((prevRecords: any[]) => {
-          const updatedRecords = prevRecords.filter((record: any) => getRecordIdentifier(record) !== activeSurgeryRecordId)
-          const hasActive = updatedRecords.some((record: any) => getRecordIdentifier(record) === activeSurgeryId)
+        setSurgeryRecords(prevRecords => {
+          const updatedRecords = prevRecords.filter(record => getRecordIdentifier(record) !== activeSurgeryRecordId)
+          const hasActive = updatedRecords.some(record => getRecordIdentifier(record) === activeSurgeryId)
           if (!hasActive) {
             const nextRecord = updatedRecords[0]
             setActiveSurgeryId(nextRecord ? getRecordIdentifier(nextRecord) : '')
@@ -398,12 +432,11 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           return updatedRecords
         })
       } else {
-        const message =
-          response?.message || response?.reason || response?.data?.message || 'Unable to delete surgery record.'
+        const message = response?.message || 'Unable to delete surgery record.'
         Toaster({ type: 'error', message })
       }
-    } catch (deleteError: any) {
-      const message = deleteError?.response?.data?.message || deleteError?.message || 'Failed to delete surgery record.'
+    } catch (deleteError: unknown) {
+      const message = (deleteError as Error)?.message || 'Failed to delete surgery record.'
       Toaster({ type: 'error', message })
     } finally {
       setDeleteLoading(false)
@@ -943,7 +976,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                   sx={{
                     fontWeight: 600,
                     fontSize: '16px',
-                    color: theme.palette.primary.OnSurface || theme.palette.primary.main,
+                    color: theme.palette.customColors.OnSurface || theme.palette.primary.main,
                     cursor: canViewAnesthesia ? 'pointer' : 'not-allowed',
                     opacity: canViewAnesthesia ? 1 : 0.6
                   }}

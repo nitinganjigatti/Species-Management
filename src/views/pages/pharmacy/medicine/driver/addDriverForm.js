@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   driver_name: yup
@@ -65,7 +66,8 @@ const AddDriver = props => {
     const payload = {
       driver_name,
       phone_number,
-      vehicle_number
+      vehicle_number,
+      active: params.active
     }
     await handleSubmitData(payload)
   }
@@ -79,7 +81,8 @@ const AddDriver = props => {
             id: response.data.id,
             driver_name: response.data.driver_name,
             phone_number: response.data.phone_number,
-            vehicle_number: response.data.vehicle_number
+            vehicle_number: response.data.vehicle_number,
+            active: response.data.active
           })
         } else {
         }
@@ -166,7 +169,7 @@ const AddDriver = props => {
           />
           {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
+              <FormLabel>active</FormLabel>
               <Controller
                 name='active'
                 control={control}
@@ -195,6 +198,24 @@ const AddDriver = props => {
               )}
             </FormControl>
           ) : null} */}
+
+          {editParams?.id !== null && (
+            <ControlledRadioGroup
+              name='active'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: '1' },
+                { label: 'Inactive', value: '0' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
+          )}
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

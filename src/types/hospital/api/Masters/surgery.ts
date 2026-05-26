@@ -1,13 +1,17 @@
+import { Id } from "src/types/compliance"
 import { VisitTypeReason, SurgeryModel, StatusAction } from "../../models"
 export interface SurgeryResponse {
   success?: boolean
   message?: string
+  surgery_id?: Id
   data?: {
     surgeries?: SurgeryModel[]
     currentPage?: number
     per_page?: number
     total_pages?: number
     total_records?: number
+    surgery_id?: Id
+    id?: Id
   }
   total?: number
   count?: number

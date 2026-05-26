@@ -37,6 +37,13 @@ import MedicinePrescriptionCardForMultipleTimeSlotsRaw from 'src/views/pages/hos
 const ScheduleDosage: any = ScheduleDosageRaw
 const MedicinePrescriptionCardForMultipleTimeSlots: any = MedicinePrescriptionCardForMultipleTimeSlotsRaw
 import dayjs from 'dayjs'
+import { Id } from 'src/types/hospital'
+import { AddDosageScheduleInfo, ApplyDosage, DosePurpose, PrescriptionDates, PrescriptionList, PrescriptionMedicineTiming, PrescriptionScheduleItem } from 'src/types/hospital/models'
+import { AdditionalDosageParams, AdministerAllMedicineParams, AdministerDoseParams, DirectAdministerForPastSlotParams, GetPrescriptionListParams, PrescriptionDatesParams, StopMedicineParams, UndoPrescriptionParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
+import { GetPrescriptionDetailsParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails'
+import { MedicalMasterFormData } from './AddMedicineToPrescription'
+import { GetMedicineBatchListParams } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch'
+import { PurposeOption } from '../inpatient/AddAnesthesiaRecord'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -45,6 +52,182 @@ interface PrescriptionLayoutProps {
   overviewData?: any
   category?: any
 }
+
+export interface MedicineDetailState {
+  group_prescription_id?: Id
+  prescription_id?: Id
+  id?: Id
+  medical_record_id?: Id
+  medicine_id?: Id
+  medicine_name?: string
+  medical_record_code?: string
+  start_date?: string
+  end_date?: string
+  dose_count?: number
+  frequency?: string
+  duration?: string
+  delivery_route_name?: string
+  notes?: string
+  created_at?: string
+  updated_at?: string | null
+  medicine_timings?: PrescriptionMedicineTiming[]
+  controlled_substance?: number | string
+  customDate?: string
+  administrative_ids?: Id
+  administritive_id?: Id
+  status?: string
+  scheduled_time?: string
+}
+
+export interface StopMedicineFormData extends StopMedicineParams {
+  hasAdverseEffects: string
+}
+
+export interface BatchListState {
+  id: Id
+  batch_no: string | number
+  batchNumber?: {
+    batch_no: string | number
+    id: Id
+  }
+}
+
+export interface MedicineTimeSlot {
+  medicine_id: Id
+  administritive_id: Id
+  dosage: string
+}
+export interface SelectedSlotState {
+  status: string | number | boolean
+  scheduled_time: string
+  scheduledTime?: string
+  timeSlot: MedicineTimeSlot
+  dosage?: string
+  data: {
+    medicine_id: Id
+    medical_record_id: Id
+    prescription_id: Id
+    name: string
+    controlled_substance: number
+  }
+}
+
+export interface SelectedItem {
+  administritive_id?: Id
+}
+
+export interface SchedulePrescriptionQuery {
+  fromPage: 'editPrescription'
+  date: string
+  prescriptionId?: Id
+}
+
+export interface AdministerFormData {
+  wastageUnit?: string
+  wastageQuantity?: number | string
+  skipReason?: string
+  action?: DosePurpose | string
+  group_prescription_id?: Id
+  attachment?: File[] | null
+  id?: Id
+  batch_no?: string | number
+  batchNumber?: BatchListState['batchNumber'] | BatchListState | null
+}
+
+export interface AdministerSubmitData {
+  time: string
+  quantity: number | string
+  quantityUnit: number | string
+  wastageNotes?: string
+  batchImage?: File[]
+  wastageUnit: string
+  attachment?: File[] | null
+  wastageQuantity: number | string
+  notes: string
+  batchNumber?: BatchListState['batchNumber'] | BatchListState | null
+  id?: Id
+  batch_no?: string | number
+}
+
+export interface ScheduleSubmitFormData {
+  schedules: ScheduleData[]
+  apply_dosage?: ApplyDosage
+  applyDosage?: ApplyDosage | string
+}
+
+export interface ScheduleData {
+    time: string
+    dosageQuantity: number | string
+    dosageUnit: string | number
+}
+
+export interface DosageTime {
+  time: string
+  quantity: number | string
+  unit_id: Id
+}
+
+export interface MedicineIdentifier {
+  medical_record_id?: Id
+  medicine_id?: Id
+  administritive_id?: Id
+  group_prescription_id?: Id
+  id?: Id
+}
+
+export interface SingleOrMultipleDoseAdministerOrSkipTimeSlot {
+  time?: string
+  isActive?: boolean
+  value?: {
+    schedule_id?: Id
+    dosage?: string
+    status?: string
+    administered_time?: string | null
+    compliance_note?: string | null
+    scheduledTime?: string
+    medicine_id?: Id
+    administrative_ids?: Id[]
+  }
+}
+
+export interface SingleOrMultipleDoseAdministerOrSkipData {
+  id?: Id
+  prescription_id?: Id
+  medicine_id?: Id
+  medical_record_id?: Id
+  group_prescription_id?: Id
+  name?: string
+  frequency?: string
+  progress?: string
+  status?: string | null
+  controlled_substance?: number | string
+  canEdit?: boolean
+  sideEffects?: unknown
+  schedule?: PrescriptionScheduleItem[]
+  timeSlots?: SingleOrMultipleDoseAdministerOrSkipTimeSlot[]
+}
+
+export interface SingleOrMultipleDoseAdministerOrSkipTransformedData {
+  scheduledTime?: string
+  timeSlot?: {
+    administrative_ids?: Id[]
+    medicine_id?: Id
+    administritive_id?: Id
+    dosage?: string
+    status?: string
+  }
+  staus?: string
+  data?: {
+    id?: Id
+    medicine_id?: Id
+    medical_record_id?: Id
+    prescription_id?: Id
+    name?: string
+    controlled_substance?: number | string
+    status?: string | null
+  }
+}
+
 
 function PrescriptionLayout({ drawerType, overviewData, category }: PrescriptionLayoutProps) {
   const { t } = useTranslation()
@@ -64,12 +247,12 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
 
   const [openSchedule, setOpenSchedule] = useState<boolean>(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState<boolean>(false)
-  const [medicationData, setMedicationData] = useState<any[]>([])
-  const [dates, setDates] = useState<any>(null)
-  const [medicineDetails, setMedicineDetails] = useState<any>(null)
-  const [detailDates, setDetailDates] = useState<any>(null)
-  const [selectedDate, setSelectedDate] = useState<any>(date || today)
-  const [detailSelectedDate, setDetailSelectedDate] = useState<any>(selectedDate || new Date().toISOString().split('T')[0])
+  const [medicationData, setMedicationData] = useState<PrescriptionList[]>([])
+  const [dates, setDates] = useState<string[] | null>(null)
+  const [medicineDetails, setMedicineDetails] = useState<MedicineDetailState | null>(null)
+  const [detailDates, setDetailDates] = useState<string[]| null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>(date || today)
+  const [detailSelectedDate, setDetailSelectedDate] = useState<string>(selectedDate || new Date().toISOString().split('T')[0])
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false)
   const [isDatesLoading, setIsDatesLoading] = useState<boolean>(false)
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState<boolean>(true)
@@ -81,23 +264,23 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
   const [isSelectedAll, setIsSelectedAll] = useState<boolean>(false)
   const [isSkipLoading, setIsSkipLoading] = useState<boolean>(false)
   const [isAdministerLoading, setIsAdministerLoading] = useState<boolean>(false)
-  const [medicalMasterData, setMedicalMasterData] = useState<any>(null)
+  const [medicalMasterData, setMedicalMasterData] = useState<MedicalMasterFormData | null>(null)
   const [medicalMasterDataLoading, setMedicalMasterDataLoading] = useState<boolean>(false)
   const [administerModelOpen, setAdministerModelOpen] = useState<boolean>(false)
-  const [batchList, setBatchList] = useState<any[]>([])
+  const [batchList, setBatchList] = useState<BatchListState[]>([])
   const [batchSearchQuery, setBatchSearchQuery] = useState<string>('')
   const [batchLoading, setBatchLoading] = useState<boolean>(false)
-  const [selectedSlotData, setSelectedSlotData] = useState<any>(null)
+  const [selectedSlotData, setSelectedSlotData] = useState<SelectedSlotState | null>(null)
   const [isScheduleDosageModelOpen, setIsScheduleDosageModelOpen] = useState<boolean>(false)
   const [isAddDosageModelOpen, setIsAddDosageModelOpen] = useState<boolean>(false)
   const [isAdministerDosageModelOpen, setIsAdministerDosageModelOpen] = useState<boolean>(false)
-  const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState<any[]>([])
+  const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState<Id[]>([])
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState<boolean>(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState<boolean>(false)
   const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState<boolean>(false)
   const [isUndoLoading, setIsUndoLoading] = useState<boolean>(false)
-  const [selectedMetrics, setSelectedMetrics] = useState<any[]>([])
-  const [administrativeIds, setAdministrativeIds] = useState<any>([])
+  const [selectedMetrics, setSelectedMetrics] = useState<SingleOrMultipleDoseAdministerOrSkipData[]>([])
+  const [administrativeIds, setAdministrativeIds] = useState<Id[] | string | undefined>([])
   const [isAdministerSlotLoading, setIsAdministerSlotLoading] = useState<boolean>(false)
 
   const { selectedHospital: hospital }: any = useHospital()
@@ -121,7 +304,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     )
   }
 
-  const handleDateChange = (date: any) => {
+  const handleDateChange = (date: string) => {
     setSelectedDate(date)
     setDetailSelectedDate(date)
     setSelectedMetrics([])
@@ -129,13 +312,13 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
   }
 
   // Handle prescription card actions
-  const handleOpenPrescriptionCard = (data: any) => {
+  const handleOpenPrescriptionCard = (data: MedicineIdentifier) => {
     getPrescriptionDates(data)
     setDetailSelectedDate(selectedDate)
     setPrescriptionCardOpen(true)
   }
 
-  const handleOpenPrescriptionCardForMultipleSlots = (data: any) => {
+  const handleOpenPrescriptionCardForMultipleSlots = (data: MedicineDetailState) => {
     getDetails(data)
   }
 
@@ -144,23 +327,23 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     setPrescriptionCardOpen(false)
   }
 
-  const handleStopMedicine = async (data: any) => {
+  const handleStopMedicine = async (data: StopMedicineFormData) => {
     setIsStopMedicineLoading(true)
     try {
-      const payload = {
-        medical_record_id: medicineDetails?.medical_record_id,
-        prescription_id: medicineDetails?.medicine_id, // medicine_id
+      const payload: StopMedicineParams = {
+        medical_record_id: medicineDetails?.medical_record_id ?? '',
+        prescription_id: medicineDetails?.medicine_id ?? '', // medicine_id
         type: 'prescription',
         request_from: 'hospital_module',
         status: 'stop',
         note: data.note,
         side_effect: data.hasAdverseEffects === 'yes',
         case: 'single',
-        main_prescription_id: medicineDetails?.prescription_id, // prescription_id
+        main_prescription_id: medicineDetails?.prescription_id ?? '', // prescription_id
         stop_date: new Date().toISOString().split('T')[0] === detailSelectedDate ? null : detailSelectedDate
       }
 
-      const response: any = await stopPrescription(payload)
+      const response = await stopPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.medicine_stopped_success') })
@@ -176,9 +359,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error
       console.error('Error stopping medicine:', error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_stop_medicine') })
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_stop_medicine') })
     } finally {
       setIsStopMedicineLoading(false)
     }
@@ -189,18 +373,18 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     setIsAddDosageModelOpen(true)
   }
 
-  const handleRefreshEntry = async (entryId: any, medicineData: any) => {
+  const handleRefreshEntry = async (entryId: Id, medicineData: MedicineDetailState) => {
     try {
       setIsUndoLoading(true)
 
-      const payload = {
+      const payload: UndoPrescriptionParams = {
         administer_id: entryId,
-        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id,
+        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id || '',
         request_from: 'hospital_module',
         hospital_id: hospital?.id || ''
       }
 
-      const response: any = await undoPrescription(payload)
+      const response = await undoPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.entry_refreshed_success') })
@@ -215,9 +399,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
           getDetails(medicineData, selectedDate)
         }
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error
       console.error('Error refreshing entry:', error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_refresh_entry') })
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_refresh_entry') })
     } finally {
       setIsUndoLoading(false)
     }
@@ -227,7 +412,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     try {
       setIsPrescriptionListLoading(true)
 
-      const payload = {
+      const payload: GetPrescriptionListParams = {
         hospital_id: hospital?.id || '',
         animal_id: animal_id || '',
         medical_type: 'prescription',
@@ -237,7 +422,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         hospital_case_id: id || ''
       }
 
-      const response: any = await (getPrescriptions as any)(payload)
+      const response = await getPrescriptions(payload)
 
       if (response?.success) {
         if (response?.data?.schedulded_date?.length) {
@@ -248,7 +433,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         const dates = response?.data?.schedulded_date
         if (dates?.length && !selectedDate) setSelectedDate(selectedDate)
 
-        const prescriptions = response?.data?.prescriptions?.map((item: any) => ({
+        const prescriptions = response?.data?.prescriptions?.map((item) => ({
           ...item,
           status: item?.status ? item?.status?.toLowerCase() : null
         }))
@@ -256,7 +441,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching prescription list:', error)
 
       Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
@@ -265,25 +450,25 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const getDetails = async (data: any = {}, _extra?: any) => {
+  const getDetails = async (data?: MedicineDetailState | null, _extra?: any) => {
     try {
       setIsDetailLoading(true)
 
-      const payload = {
-        prescription_id: data?.id || medicineDetails?.prescription_id,
-        date: data?.customDate || detailSelectedDate || selectedDate,
-        group_prescription_id: data?.id || medicineDetails?.prescription_id,
+      const payload: GetPrescriptionDetailsParams = {
+        prescription_id: data?.id || medicineDetails?.prescription_id || '',
+        date: data?.customDate || detailSelectedDate || selectedDate ,
+        group_prescription_id: data?.id || medicineDetails?.prescription_id || '',
         administrative_ids: data?.administrative_ids || administrativeIds || '',
         hospital_id: hospital?.id || ''
       }
 
-      const response: any = await getPrescriptionDetails(payload)
+      const response = await getPrescriptionDetails(payload)
 
       if (response?.success) {
-        const data: any = {
+        const data = {
           ...response?.data,
           medicine_timings:
-            response?.data?.medicine_timings?.map((item: any) => ({
+            response?.data?.medicine_timings?.map((item) => ({
               ...item,
               id: item?.administritive_id,
               time: item?.administritive_time,
@@ -312,31 +497,31 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsDetailLoading(false)
     }
   }
 
-  const getPrescriptionDates = async (data: any) => {
+  const getPrescriptionDates = async (data: MedicineIdentifier) => {
     try {
       setIsDatesLoading(true)
 
-      const payload = {
-        from_date: dates?.length && dates[0],
+      const payload: PrescriptionDatesParams = {
+        from_date: (dates?.length && dates[0]) || '',
         to_date: new Date().toISOString().slice(0, 10),
         hospital_case_id: id,
         type: 'all',
-        prescription_id: data?.id,
-        group_prescription_id: data?.group_prescription_id || data?.id,
+        prescription_id: data?.id ?? '',
+        group_prescription_id: data?.group_prescription_id || data?.id || '',
         request_from: 'hospital'
       }
 
-      const response: any = await getDates(payload)
+      const response = await getDates(payload)
 
       if (response?.data) {
-        const mappedDates = response?.data?.map((item: any) => item?.date)
+        const mappedDates = response?.data?.map((item) => item?.date)
         if (response?.success) {
           setDetailDates(mappedDates)
         } else {
@@ -346,7 +531,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsDatesLoading(false)
@@ -355,13 +540,13 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
 
   const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
 
-  const handleAdministerOrSubmit = async (data: any, selectedItems: any, medicineData: any, action?: any) => {
+  const handleAdministerOrSubmit = async (data: AdministerFormData, selectedItems: SelectedItem[], medicineData: MedicineDetailState, action?: DosePurpose) => {
     setIsAdministerOrSkipPopupLoading(true)
     try {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-        (item: any) => item.uom_abbr === data?.wastageUnit
+        (item) => item.uom_abbr === data?.wastageUnit
       )
-      const selectedBatch = batchList?.find((item: any) => {
+      const selectedBatch = batchList?.find((item) => {
         const batchNo = typeof data?.batchNumber === 'object' ? data?.batchNumber?.batch_no : data?.batchNumber
 
         return item?.batch_no === batchNo
@@ -370,7 +555,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       let time24 = new Date().toLocaleTimeString('en-GB', { hour12: false })
 
       // Process the form data based on action type
-      const payload: any = {
+      const payload: AdministerDoseParams = {
         hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
@@ -398,9 +583,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
             : JSON.stringify([]),
         administritive_time: time24,
         group_prescription_id: data?.group_prescription_id || data?.id,
-        [selectedBatch && selectedBatch.id]: data?.attachment?.[0]
+        [selectedBatch && selectedBatch.id ? selectedBatch.id : ''] : data?.attachment?.[0]
       }
-      const response: any = await administerDose(payload)
+      const response = await administerDose(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
         setIsAdministerOrSkipPopupOpen(false)
@@ -420,7 +605,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error)
     } finally {
       setIsAdministerOrSkipPopupLoading(false)
@@ -437,34 +622,34 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     if (hospital?.id && animal_id) getPrescriptionList()
   }, [hospital?.id, selectedDate, isCurrentMedicalRecord, animal_id])
 
-  function toISTISOString(date: any) {
+  function toISTISOString(date: string | Date | null | number) {
     if (!date) return ''
 
     return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
-  function toUTCISOString(date: any) {
+  function toUTCISOString(date: string | Date | null | number) {
     if (!date) return ''
 
     return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
-  const handleAdministerSubmit = async (formData: any) => {
+  const handleAdministerSubmit = async (formData: AdministerSubmitData) => {
     try {
       setIsAdministerSlotLoading(true)
 
       // Find the selected batch from batchList
-      const selectedBatch = batchList?.find((item: any) => {
+      const selectedBatch = batchList?.find((item) => {
         const batchNo = typeof formData.batchNumber === 'object' ? formData.batchNumber?.batch_no : formData.batchNumber
 
         return item?.batch_no === batchNo
       })
 
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-        (item: any) => item.uom_abbr === formData?.wastageUnit
+        (item) => item.uom_abbr === formData?.wastageUnit
       )
 
-      const payload: any = {
+      const payload: DirectAdministerForPastSlotParams = {
         record_date: date
           ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
           : toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
@@ -475,7 +660,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
             id: selectedSlotData?.data?.medicine_id,
             start_date: toUTCISOString(new Date()),
             end_date: toUTCISOString(new Date()),
-            notes: (formData as any).notes || '',
+            notes: formData.notes || '',
             schedule_doses: [
               {
                 id: '',
@@ -518,17 +703,17 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
           }
         ]),
         request_from: 'hospital_module',
-        medical_record_id: selectedSlotData?.data?.medical_record_id,
+        medical_record_id: selectedSlotData?.data?.medical_record_id ?? '',
         is_unscheduled: 1,
-        prescription_id: selectedSlotData?.data?.prescription_id,
-        medicine_id: selectedSlotData?.data?.medicine_id,
+        prescription_id: selectedSlotData?.data?.prescription_id ?? '',
+        medicine_id: selectedSlotData?.data?.medicine_id ?? '',
         medical_record_type: 'SINGLE',
         hospital_case_id: id,
         case_type: 1,
         [selectedBatch ? `BATCH_${selectedBatch.id}` : 'BATCH_0']: formData.attachment?.[0] ? formData.attachment[0] : []
       }
 
-      const response: any = await directAdministerForPatSlot(payload)
+      const response = await directAdministerForPatSlot(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
         setIsAdministerDosageModelOpen(false)
@@ -536,14 +721,14 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error)
     } finally {
       setIsAdministerSlotLoading(false)
     }
   }
 
-  function convertUTCToLocaltime(date: any) {
+  function convertUTCToLocaltime(date: string | number | Date | null) {
     if (!date) return ''
 
     // If it's a dayjs object, format it directly
@@ -566,32 +751,32 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     return local
   }
 
-  const fetchUnit = (unit: any) => {
-    const unitData = medicalMasterData?.prescriptionDosageMeasurementType?.find((item: any) => item?.uom_abbr === unit)
+  const fetchUnit = (unit: string | number | undefined) => {
+    const unitData = medicalMasterData?.prescriptionDosageMeasurementType?.find((item) => item?.uom_abbr === unit)
 
     return unitData
   }
 
-  const handleScheduleSubmit = async (formData: any) => {
+  const handleScheduleSubmit = async (formData: ScheduleSubmitFormData) => {
     setIsAddNewDosageLoading(true)
     try {
-      const payload = {
+      const payload: AdditionalDosageParams = {
         animal_id: animal_id,
         hospital_case_id: id,
-        prescription_id: selectedSlotData?.data?.prescription_id,
-        medical_record_id: selectedSlotData?.data?.medical_record_id,
-        medicine_id: selectedSlotData?.data?.medicine_id,
-        medicine_name: selectedSlotData?.data?.name,
+        prescription_id: selectedSlotData?.data?.prescription_id ?? '',
+        medical_record_id: selectedSlotData?.data?.medical_record_id ?? '',
+        medicine_id: selectedSlotData?.data?.medicine_id ?? '',
+        medicine_name: selectedSlotData?.data?.name ?? '',
         schedule_date: selectedDate,
-        dosage_times: formData?.schedules.map((item: any) => ({
+        dosage_times: formData?.schedules.map((item): DosageTime => ({
           time: convertUTCToLocaltime(item?.time),
           quantity: item?.dosageQuantity,
-          unit_id: fetchUnit(item?.dosageUnit)?.id
+          unit_id: fetchUnit(item?.dosageUnit)?.id ?? ''
         })),
-        apply_dosage: formData?.apply_dosage
+        apply_dosage: formData?.apply_dosage as ApplyDosage
       }
 
-      const response: any = await schedulePrescription(payload)
+      const response = await schedulePrescription(payload)
       if (response?.success) {
         setIsScheduleDosageModelOpen(false)
         getPrescriptionList()
@@ -602,34 +787,34 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error)
     } finally {
       setIsAddNewDosageLoading(false)
     }
   }
 
-  const handleAddDosageSubmit = async (formData: any) => {
+  const handleAddDosageSubmit = async (formData: ScheduleSubmitFormData) => {
     try {
       setIsAddNewDosageLoading(true)
 
-      const payload = {
+      const payload: AdditionalDosageParams = {
         animal_id: animal_id,
         hospital_case_id: id,
-        prescription_id: medicineDetails?.prescription_id,
-        medical_record_id: medicineDetails?.medical_record_id,
-        medicine_id: medicineDetails?.medicine_id,
-        medicine_name: medicineDetails?.medicine_name,
+        prescription_id: medicineDetails?.prescription_id ?? '', 
+        medical_record_id: medicineDetails?.medical_record_id ?? '',
+        medicine_id: medicineDetails?.medicine_id ?? '',
+        medicine_name: medicineDetails?.medicine_name ?? '',
         schedule_date: detailSelectedDate,
-        dosage_times: formData?.schedules.map((item: any) => ({
+        dosage_times: formData?.schedules.map((item): DosageTime => ({
           time: convertUTCToLocaltime(item?.time),
           quantity: item?.dosageQuantity,
-          unit_id: fetchUnit(item?.dosageUnit)?.id
+          unit_id: fetchUnit(item?.dosageUnit)?.id ?? ''
         })),
-        apply_dosage: formData?.apply_dosage
+        apply_dosage: formData?.apply_dosage as ApplyDosage
       }
 
-      const response: any = await schedulePrescription(payload)
+      const response = await schedulePrescription(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
         getPrescriptionList()
@@ -640,23 +825,23 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error:', error)
     } finally {
       setIsAddNewDosageLoading(false)
     }
   }
 
-  const handleDetailDateChange = (date: any) => {
+  const handleDetailDateChange = (date: string) => {
     setDetailSelectedDate(date)
     setSelectedMedicationsFromDetail([])
   }
 
-  const handleSelectAllAdministerrOrSkip = async (purpose: string, data: any) => {
+  const handleSelectAllAdministerrOrSkip = async (purpose: DosePurpose, data: SingleOrMultipleDoseAdministerOrSkipData[]) => {
     try {
-      const medicalRecordIds = data?.map((item: any) => item?.medical_record_id)
+      const medicalRecordIds = data?.map((item) => item?.medical_record_id ?? '')
 
-      const payload = {
+      const payload: AdministerAllMedicineParams = {
         hospital_id: hospital?.id || '',
         administer_date: selectedDate,
         type: 'single',
@@ -670,7 +855,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         medical_record_id: medicalRecordIds
       }
 
-      const response: any = await administerAllMedicines(payload)
+      const response = await administerAllMedicines(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.medicines_administered_success') })
         setSelectedMetrics([])
@@ -678,7 +863,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') }) // TODO: Update to error message
       }
-    } catch (error: any) {
+    } catch (error) {
       Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
@@ -686,14 +871,14 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleSingleOrMultipleDoseAdministerOrSkip = async (data: any, purpose: string) => {
+  const handleSingleOrMultipleDoseAdministerOrSkip = async (data: SingleOrMultipleDoseAdministerOrSkipData[] | any , purpose: DosePurpose) => {
     try {
-      const medicineIds = data?.map((item: any) => item?.medicine_id).filter(Boolean)
-      const medicalRecordIds = data?.map((item: any) => item?.medical_record_id)
+      const medicineIds = data?.map((item: SingleOrMultipleDoseAdministerOrSkipData) => item?.medicine_id).filter(Boolean)
+      const medicalRecordIds = data?.map((item: SingleOrMultipleDoseAdministerOrSkipData) => item?.medical_record_id)
 
       const administerIds = JSON.stringify(
         data
-          ?.flatMap((item: any) => item?.timeSlots || []) // merge all timeSlots from all items
+          ?.flatMap((item: SingleOrMultipleDoseAdministerOrSkipData) => item?.timeSlots || []) // merge all timeSlots from all items
           .map((slot: any) => {
             if (
               slot?.value?.administrative_ids &&
@@ -709,7 +894,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
           .flat()
       )
 
-      const payload = {
+      const payload: AdministerDoseParams = {
         hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify(medicalRecordIds),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
@@ -723,7 +908,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         group_prescription_id: data?.group_prescription_id || data?.id
       }
 
-      const response: any = await administerDose(payload)
+      const response = await administerDose(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
         setSelectedMetrics([])
@@ -731,7 +916,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
-    } catch (error: any) {
+    } catch (error) {
       Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
@@ -739,7 +924,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleAdminister = async (data: any) => {
+  const handleAdminister = async (data: SingleOrMultipleDoseAdministerOrSkipData[]) => {
     setIsAdministerLoading(true)
     if ((SelectAll as any) && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('administer', data)
@@ -748,7 +933,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleSkip = async (data: any) => {
+  const handleSkip = async (data: SingleOrMultipleDoseAdministerOrSkipData[]) => {
     setIsSkipLoading(true)
     if ((SelectAll as any) && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('withheld', data)
@@ -760,7 +945,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
   const fetchMedicalMasterData = useCallback(async () => {
     try {
       setMedicalMasterDataLoading(true)
-      const response: any = await (getMedicalMasterData as any)()
+      const response = await (getMedicalMasterData as any)()
       if (response?.success) {
         setMedicalMasterData({
           ...response?.data,
@@ -787,17 +972,25 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
             }))?.sort((a: any, b: any) => a.label?.localeCompare(b.label)) || []
         })
       } else {
-        setMedicalMasterData([])
+          setMedicalMasterData({
+          caseTypes: [],
+          prescriptionFrequency: [],
+          prescriptionDosageMeasurementType: [],
+          prescriptionDuration: [],
+          prescriptionDeliveryRoute: [],
+          intervalList: []
+        })
       }
-    } catch (error: any) {
-      console.error('Error fetching medical master data:', error.message)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error fetching medical master data:', err.message)
     } finally {
       setMedicalMasterDataLoading(false)
     }
   }, [])
 
-  const handleAdministerOrSkipOpen = (data: any, type: string) => {
-    setSelectedSlotData(data)
+  const handleAdministerOrSkipOpen = (data: SingleOrMultipleDoseAdministerOrSkipTransformedData, type: string) => {
+    setSelectedSlotData(data as unknown as SelectedSlotState)
 
     if (!medicalMasterData) {
       fetchMedicalMasterData()
@@ -820,14 +1013,14 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleAdministerSelectedFromDrawer = async (selectedItems: any, medicineData: any) => {
+  const handleAdministerSelectedFromDrawer = async (selectedItems: SelectedItem[], medicineData: MedicineDetailState) => {
     try {
       setIsAdministerLoading(true)
 
       // Extract administritive_ids from selected items
-      const administerIds = JSON.stringify(selectedItems.map((item: any) => item?.administritive_id).filter(Boolean))
+      const administerIds = JSON.stringify(selectedItems.map((item: SelectedItem) => item?.administritive_id).filter(Boolean))
 
-      const payload = {
+      const payload: AdministerDoseParams = {
         hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
@@ -841,7 +1034,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         group_prescription_id: medicineData?.group_prescription_id || medicineData?.id
       }
 
-      const response: any = await administerDose(payload)
+      const response = await administerDose(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.medications_administered_success') })
@@ -859,15 +1052,16 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_administer_medications') })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error
       console.error('Error administering medications:', error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.something_went_wrong') })
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
     }
   }
 
-  const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems: any, medicineData: any, formData: any) => {
+  const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems: SelectedItem[], medicineData: MedicineDetailState, formData: AdministerFormData) => {
     if (selectedItems?.length === 1) {
       handleAdministerOrSubmit(formData, selectedItems, medicineData, 'administer')
     } else {
@@ -875,7 +1069,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems: any, medicineData: any, formData: any) => {
+  const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems: SelectedItem[], medicineData: MedicineDetailState, formData: AdministerFormData) => {
     if (selectedItems?.length === 1) {
       handleAdministerOrSubmit(formData, selectedItems, medicineData, 'withheld')
     } else {
@@ -883,14 +1077,14 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleSkipSelectedFromDrawer = async (selectedItems: any, medicineData: any) => {
+  const handleSkipSelectedFromDrawer = async (selectedItems: SelectedItem[], medicineData: MedicineDetailState) => {
     try {
       setIsSkipLoading(true)
 
       // Extract administritive_ids from selected items
-      const administerIds = JSON.stringify(selectedItems.map((item: any) => item?.administritive_id).filter(Boolean))
+      const administerIds = JSON.stringify(selectedItems.map((item) => item?.administritive_id).filter(Boolean))
 
-      const payload = {
+      const payload: AdministerDoseParams = {
         hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
@@ -904,7 +1098,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         group_prescription_id: medicineData?.group_prescription_id || medicineData?.id
       }
 
-      const response: any = await administerDose(payload)
+      const response = await administerDose(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.medications_skipped_success') })
@@ -922,16 +1116,17 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       } else {
         Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_skip_medications') })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error
       console.error('Error skipping medications:', error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.something_went_wrong') })
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.something_went_wrong') })
     } finally {
       setIsSkipLoading(false)
     }
   }
 
   const debouncedBatchSearch = useCallback(
-    debounce(async (medicineId: any, query: string = '') => {
+    debounce(async (medicineId: Id, query: string = '') => {
       if (!medicineId) {
         setBatchList([])
 
@@ -941,19 +1136,20 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       try {
         setBatchLoading(true)
 
-        const params = {
+        const params: GetMedicineBatchListParams = {
           medicine_id: medicineId,
           q: query
         }
 
-        const response: any = await getMedicineBatches(params)
+        const response = await getMedicineBatches(params)
         if (response?.success) {
-          setBatchList(response?.data?.result.map((item: any) => ({ ...item, label: item?.batch_no, value: item?.id })) || [])
+          setBatchList(response?.data?.result.map((item) => ({ ...item, label: item?.batch_no, value: item?.id })) || [])
         } else {
           setBatchList([])
         }
-      } catch (error: any) {
-        console.error('Error fetching medicine batches:', error.message)
+      } catch (error) {
+        const err = error as Error
+        console.error('Error fetching medicine batches:', err.message)
         setBatchList([])
       } finally {
         setBatchLoading(false)
@@ -963,7 +1159,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
   )
 
   const fetchMedicineBatches = useCallback(
-    (medicineId: any, query: string = '') => {
+    (medicineId: Id, query: string = '') => {
       debouncedBatchSearch(medicineId, query)
     },
     [debouncedBatchSearch]
@@ -975,11 +1171,11 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     const medicineId =
       selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id || medicineDetails?.medicine_id
 
-    fetchMedicineBatches(medicineId, value)
+    fetchMedicineBatches(medicineId ?? '', value)
   }
 
-  const addPrescriptionToTimeslot = async (type: string, data: any) => {
-    setSelectedSlotData(data)
+  const addPrescriptionToTimeslot = async (type: string, data: SingleOrMultipleDoseAdministerOrSkipTransformedData) => {
+    setSelectedSlotData(data as unknown as SelectedSlotState)
     if (!medicalMasterData) fetchMedicalMasterData()
     setBatchList([])
     if (type === 'past') {
@@ -989,7 +1185,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     }
   }
 
-  const handleRestartMedicine = async (_data?: any) => {
+  const handleRestartMedicine = async (_data?: SchedulePrescriptionQuery) => {
     const today = new Date().toISOString().split('T')[0]
     router.push({
       pathname: `/hospital/inpatient/${id}/schedule-prescription`,
@@ -1001,7 +1197,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     })
   }
 
-  const handleUpdateMedicine = async (_data?: any) => {
+  const handleUpdateMedicine = async (_data?: SchedulePrescriptionQuery) => {
     const today = new Date().toISOString().split('T')[0]
     router.push({
       pathname: `/hospital/inpatient/${id}/schedule-prescription`,

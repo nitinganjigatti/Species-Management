@@ -18,6 +18,10 @@ import Utility from 'src/utility'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import { AllMedicalEntries, MedicalSummaryFilterDate, MedicalSummaryFilters } from 'src/components/hospital/inpatient/InpatientMedicalSummary'
+import { DateRangeValue } from 'src/types/hospital/models'
+import { FilterDate } from 'src/types/hospital/models'
+import { Dayjs } from 'dayjs'
 
 
 const DETAIL_LABELS: Record<string, string> = {
@@ -328,7 +332,7 @@ const TimelineSection = ({ section }: TimelineSectionProps) => {
 }
 
 interface GroupedTimelineProps {
-  medicalSummaryData?: any
+  medicalSummaryData?: AllMedicalEntries[]
   isLoading?: boolean
   isRefetching?: boolean
   searchQuery?: string
@@ -336,13 +340,13 @@ interface GroupedTimelineProps {
   onMedicalTypeChange?: any
   medicalType?: any
   onClearSearch?: () => void
-  lastTimelineRef?: any
+  lastTimelineRef?: (node: HTMLDivElement | null) => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
-  setOpenFilterDrawer?: any
+  setOpenFilterDrawer?: React.Dispatch<React.SetStateAction<boolean>>
   filterCount?: number
-  filterDate?: any
-  setFilterDate?: any
+  filterDate?: FilterDate
+  setFilterDate?: React.Dispatch<React.SetStateAction<FilterDate>>
   hasActiveFilters?: boolean
 }
 
@@ -401,10 +405,10 @@ const GroupedTimeline = ({
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
         <CommonDateRangePickers
           filterDates={filterDate}
-          onChange={(start: any, end: any) => setFilterDate({ startDate: start, endDate: end })}
+          onChange={(start: DateRangeValue, end: DateRangeValue) => setFilterDate?.({ startDate: start, endDate: end })}
         />
 
-        <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
+        <FilterButtonWithNotification onClick={() => setOpenFilterDrawer?.(true)} appliedFiltersCount={filterCount} />
       </Box>
     </Box>
   )

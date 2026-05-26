@@ -19,17 +19,20 @@ import {
 import Icon from 'src/@core/components/icon'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useForm, FormProvider } from 'react-hook-form'
-import dayjs from 'dayjs'
+import { useForm, FormProvider, FieldErrors } from 'react-hook-form'
+import type { TFunction } from 'i18next'
+import dayjs, { Dayjs } from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
-import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
+import VitalMonitoring, { VitalMonitoringColumn } from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
 import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { DoctorDetails, Id, AnesthesiaDetails, AnesthesiaSetupSectionState, AnesthesiaMonitoringState, AnesthesiaSetup, AnesthesiaSetupFields, DeliveryStatus, Gas, Medications, UnitParams, PatientDetailsData, AnesthesiaAssessmentType, Reversal, VitalMonitoring as VitalMonitoringModel, VitalMonitoringFields, VitalMonitoringRecords, VitalMonitoringTimeSlots, VitalMonitoringValues } from 'src/types/hospital/models'
+import { PatientDetailsResponse } from 'src/types/hospital/api'
 import { useHospital } from 'src/context/HospitalContext'
 import Utility from 'src/utility'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
@@ -51,23 +54,173 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { DeleteAnesthesiaMedicationParams, UpdateMedicationParams } from 'src/types/hospital/api/Anesthesia/anesthesia'
+
+interface MedicationDrugRef {
+  id?: Id
+  name?: string
+}
+
+interface MedicationRouteRef {
+  id?: Id
+  delivery?: string
+}
+
+export interface MedicationFormData {
+  id?: Id
+  drug_name?: MedicationDrugRef | null
+  purpose_stage?: string
+  amount?: string | number
+  unit?: Id
+  delivery_route?: MedicationRouteRef | null
+  delivery_time?: string | Dayjs | null
+  delivery_status?: string | null
+  max_effect_time?: string | Dayjs | null
+  notes?: string
+  drug_id?: Id
+  unit_id?: Id
+}
+
+export interface GasFormData {
+  id?: Id
+  gas_name?: MedicationDrugRef | null
+  o2_flow?: string | number
+  concentration?: string | number
+  delivery_route?: MedicationRouteRef | null | string
+  route?: string
+  start_time?: string | Dayjs | null | undefined
+  end_time?: string | Dayjs | null | undefined
+  drug_id?: Id
+  oxygen_l_min?: string
+  delivery_status?: DeliveryStatus | null
+  notes?: string
+}
+
+export interface RecoveryFormData {
+  recovery_type?: string
+  recovery_first_effect?: string | Dayjs | null
+  recovery_full_effect?: string | Dayjs | null
+  describe_problem?: string
+  notes?: string
+  induction?: string
+  tolerance?: string
+  recovery?: string
+  overall?: string
+  delivery_time?: string | Dayjs | null
+  max_effect_time?: string | Dayjs | null
+}
+
+interface ReversalPayloadItem {
+  id?: Id
+  [key: string]: unknown
+}
+
+interface PreAnesthesiaFormData {
+  temperature?: string | number
+  humidity?: string | number
+  physical_health_status?: string
+  body_condition?: string
+  animal_activity?: string
+  fasting_time?: string | number
+  fasting_unit?: string
+  previous_endotracheal_tube_size?: string
+  code_status?: string
+  weight?: string | number
+  weight_unit?: string
+  pre_anesthesia_notes?: string
+  clin_path?: {
+    selected?: Record<string, boolean> | unknown[]
+    custom?: string[]
+  }
+  [key: string]: unknown
+}
+
+export interface ReversalDrugFormItem {
+  id?: Id
+  drug_id?: Id
+  drug_name?: MedicationDrugRef | null
+  amount?: string | number
+  unit?: Id
+  unit_id?: Id
+  delivery_route?: MedicationRouteRef | null
+  delivery_time?: string | Dayjs | null
+  delivery_status?: string | null
+  max_effect_time?: string | Dayjs | null
+  notes?: string
+  [key: string]: unknown
+}
+
+interface BasicDetailsFormData {
+  location?: string
+  anaesthesia_datetime?: string
+  anesthesia_datetime?: string
+  estimated_time_required?: string | number
+  estimated_time_unit?: string
+  veterinarian_id?: (DoctorDetails | string)[]
+  anesthetist_id?: (DoctorDetails | string)[]
+  selected?: string[]
+  custom?: string[]
+  newPurpose?: string
+  notes?: string
+}
+
+interface AssessmentListItem {
+  id?: Id
+  name?: string
+  other?: string | number | boolean
+}
+
+interface VitalFieldEntry {
+  value?: string | number | null
+  unit?: string | null
+}
+
+interface VitalCellEntry {
+  selection?: string | number | null
+  value?: string | number | null
+  unit?: string
+  fieldsById?: Record<string, VitalFieldEntry>
+  [key: string]: unknown
+}
+
+interface VitalMonitoringFormColumn {
+  id: string
+  timeLabel: string
+  recorded_time?: string
+  entries?: Record<string, VitalCellEntry>
+}
+
+interface AnesthesiaFormPayload {
+  basicDetails?: BasicDetailsFormData
+  preAnesthesia?: PreAnesthesiaFormData
+  anesthesiaSetup?: Record<string, AnesthesiaSetupSectionState>
+  vitalMonitoring?: VitalMonitoringColumn[]
+  medicationsGas?: {
+    medications?: MedicationFormData[]
+    gases?: GasFormData[]
+  }
+  recoveryAndReversal?: RecoveryFormData & {
+    reversalDrugs?: ReversalDrugFormItem[]
+  }
+  [key: string]: unknown
+}
 
 dayjs.extend(customParseFormat)
 
-export function serverVitalToFormColumns(serverVital: any = {}, vitalMeta: any[] = []) {
-  const timeSlots = Array.isArray(serverVital.time_slots) ? serverVital.time_slots : []
-  const records = Array.isArray(serverVital.records) ? serverVital.records : []
+export function serverVitalToFormColumns(serverVital: Partial<VitalMonitoringModel> = {}, vitalMeta: VitalMonitoringRecords[] = []) {
+  const timeSlots: VitalMonitoringTimeSlots[] = Array.isArray(serverVital.time_slots) ? serverVital.time_slots : []
+  const records: VitalMonitoringRecords[] = Array.isArray(serverVital.records) ? serverVital.records : []
 
-  const metaMap: any = {}
-  ;(vitalMeta || []).forEach((m: any) => {
-    metaMap[m.string_id] = m
+  const metaMap: Record<string, VitalMonitoringRecords> = {}
+  ;(vitalMeta || []).forEach((m: VitalMonitoringRecords) => {
+    if (m.string_id) metaMap[m.string_id] = m
   })
-  ;(records || []).forEach((r: any) => {
-    metaMap[r.string_id] = r
+  ;(records || []).forEach((r: VitalMonitoringRecords) => {
+    if (r.string_id) metaMap[r.string_id] = r
   })
 
-  const columns = (timeSlots || []).map((slot: any) => {
-    const col: any = {
+  const columns: VitalMonitoringFormColumn[] = (timeSlots || []).map((slot: VitalMonitoringTimeSlots) => {
+    const col: VitalMonitoringFormColumn = {
       id: slot.id ? String(slot.id) : `temp_${uuidv4()}`,
       timeLabel: slot.recorded_time || '',
       entries: {}
@@ -78,15 +231,15 @@ export function serverVitalToFormColumns(serverVital: any = {}, vitalMeta: any[]
       const fields = section.fields || []
       if (!fields.length) continue
 
-      let builtEntry: any = {}
-      const hasValuesArray = fields.some((f: any) => Array.isArray(f.values) && f.values.length > 0)
+      let builtEntry: VitalCellEntry = {}
+      const hasValuesArray = fields.some((f: VitalMonitoringFields) => Array.isArray(f.values) && f.values.length > 0)
 
       if (hasValuesArray) {
-        fields.forEach((f: any) => {
+        fields.forEach((f: VitalMonitoringFields) => {
           const values = f.values || []
 
           const vObj = values.find(
-            (v: any) => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
+            (v: VitalMonitoringValues) => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
           )
           if (vObj) {
             const fieldVal = vObj.field_value == null ? '' : String(vObj.field_value)
@@ -114,7 +267,7 @@ export function serverVitalToFormColumns(serverVital: any = {}, vitalMeta: any[]
           }
         })
       } else {
-        fields.forEach((f: any) => {
+        fields.forEach((f: VitalMonitoringFields) => {
           if (f.field_value !== undefined && f.field_value !== null) {
             if (fields.length === 1) {
               builtEntry.value = String(f.field_value)
@@ -134,7 +287,12 @@ export function serverVitalToFormColumns(serverVital: any = {}, vitalMeta: any[]
         })
       }
 
-      col.entries[string_id] = builtEntry
+    if (string_id != null) {
+      col.entries = {
+        ...(col.entries ?? {}),
+        [string_id]: builtEntry
+      }
+    }
     }
 
     return col
@@ -143,7 +301,7 @@ export function serverVitalToFormColumns(serverVital: any = {}, vitalMeta: any[]
   return columns
 }
 
-const extractFieldValueAndUnit = (fieldMeta: any, entry: any) => {
+const extractFieldValueAndUnit = (fieldMeta: AnesthesiaSetupFields, entry: VitalCellEntry) => {
   if (!fieldMeta || !entry) return { value: '', unit: null }
 
   // 3) radio shape
@@ -180,11 +338,11 @@ const extractFieldValueAndUnit = (fieldMeta: any, entry: any) => {
   return { value: '', unit: null }
 }
 
-export function formColumnsToVitalMonitoringBlocks(columns: any[] = [], vitalList: any[] = []) {
-  const blocks: any[] = []
+export function formColumnsToVitalMonitoringBlocks(columns: VitalMonitoringFormColumn[] = [], vitalList: AnesthesiaSetup[] = []) {
+  const blocks: Record<string, unknown>[] = []
 
   for (const col of columns || []) {
-    const block: any = {
+    const block: Record<string, unknown> & { sections: Record<string, unknown>[] } = {
       // Only include record_time_id if it's a real ID (not a temp ID)
       ...(col?.id && !col.id.startsWith('temp_') && { record_time_id: col.id }),
       recorded_time: col.timeLabel || '',
@@ -192,10 +350,10 @@ export function formColumnsToVitalMonitoringBlocks(columns: any[] = [], vitalLis
     }
 
     for (const section of vitalList || []) {
-      const entry = col.entries?.[section.string_id]
+      const entry = col.entries?.[section.string_id ?? '']
       if (!entry) continue
 
-      const fieldsArr = []
+      const fieldsArr: Record<string, unknown>[] = []
 
       for (const f of section.fields || []) {
         const { value, unit } = extractFieldValueAndUnit(f, entry)
@@ -227,12 +385,12 @@ export function formColumnsToVitalMonitoringBlocks(columns: any[] = [], vitalLis
   return blocks
 }
 
-const toBackendTime = (v: any) => {
+const toBackendTime = (v: unknown) => {
   if (!v) return ''
   if (dayjs.isDayjs(v) || v instanceof Date) {
     return dayjs(v).format('HH:mm:ss')
   }
-  const parsed = dayjs(v, ['hh:mm A', 'HH:mm', 'HH:mm:ss'], true)
+  const parsed = dayjs(v as string, ['hh:mm A', 'HH:mm', 'HH:mm:ss'], true)
   if (parsed.isValid()) {
     return parsed.format('HH:mm:ss')
   }
@@ -240,7 +398,7 @@ const toBackendTime = (v: any) => {
   return v
 }
 
-const formatDateTime = (value: any) => {
+const formatDateTime = (value: string | null) => {
   if (!value) return '--'
   const formatted = Utility.convertUTCToLocalDateTime(value)
 
@@ -249,7 +407,7 @@ const formatDateTime = (value: any) => {
 
 const TIME_ONLY_RE = /^\s*\d{1,2}:\d{2}(:\d{2})?(\s*[AaPp]\.?[Mm]\.?)?\s*$/
 
-const fmt = (v: any) => {
+const fmt = (v: string | Dayjs | Date | null | undefined) => {
   if (v == null || v === '') return ''
   if (dayjs.isDayjs(v)) return v.isValid() ? v.format('YYYY-MM-DD HH:mm:ss') : ''
   if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD HH:mm:ss')
@@ -272,9 +430,9 @@ const fmt = (v: any) => {
     : ''
 }
 
-const toTimeOnly = (v: any) => {
+const toTimeOnly = (v: string | Dayjs | Date | null | undefined) => {
   if (!v) return ''
-  let parsed: any = null
+  let parsed: Dayjs | null = null
   if (dayjs.isDayjs(v)) parsed = v
   else if (v instanceof Date) parsed = dayjs(v)
   else parsed = dayjs(String(v))
@@ -287,41 +445,13 @@ const toTimeOnly = (v: any) => {
   return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
 }
 
-export const anesthesiaSchema: any = yup.object({
-  basicDetails: yup
-    .object({
-      location: yup.string().trim().required('Location is required'),
-      anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
-      estimated_time_required: yup.string().trim().required('Estimated time is required'),
-      veterinarian_id: yup.array().min(1, 'Select at least one veterinarian'),
-      anesthetist_id: yup.array().min(1, 'Select at least one anesthetist'),
-      selected: yup.array().of(yup.string()).default([]),
-      custom: yup.array().of(yup.string().trim()).default([])
-    })
-    .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', (value: any) => {
-      if (!value) return false
+interface SectionEntry {
+  id: string
+  label: string
+  component: React.ElementType
+}
 
-      const selected = Array.isArray(value.selected) ? value.selected : []
-      const custom = Array.isArray(value.custom) ? value.custom : []
-
-      const hasSelected = selected.length > 0
-      const hasCustom = custom.some((v: any) => v && v.trim() !== '')
-
-      return hasSelected || hasCustom
-    }),
-  vitalMonitoring: yup
-    .array()
-    .of(
-      yup.object({
-        id: yup.string().required(),
-        timeLabel: yup.string().trim().required(),
-        entries: yup.object().default({})
-      })
-    )
-    .default([])
-})
-
-const getSections = (t: any) => [
+const getSections = (t: TFunction): SectionEntry[] => [
   { id: 'basicDetails', label: t('hospital_module.basic_detail'), component: BasicDetails },
   { id: 'preAnesthesia', label: t('hospital_module.pre_anesthesia'), component: PreAnesthesia },
   { id: 'medicationsGas', label: t('hospital_module.medications_gas'), component: MedicationsGasSection },
@@ -345,7 +475,7 @@ export default function AddAnesthesiaRecord() {
   const moduleLabel = moduleSlug ? moduleSlug.charAt(0).toUpperCase() + moduleSlug.slice(1) : 'Inpatient'
 
   // Store anaesthesia_id in state to ensure it's available throughout component lifecycle
-  const [anaesthesia_id, setAnaesthesia_id] = useState<any>(null)
+  const [anaesthesia_id, setAnaesthesia_id] = useState<Id | null>(null)
 
   useEffect(() => {
     // Try multiple ways to get anaesthesia_id to handle App Router inconsistencies
@@ -361,36 +491,36 @@ export default function AddAnesthesiaRecord() {
     setAnaesthesia_id(id_param)
   }, [searchParams])
 
-  const [expanded, setExpanded] = useState<any>('basicDetails')
+  const [expanded, setExpanded] = useState<string | false>('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState<boolean>(false)
   const [isApiSuccess, setIsApiSuccess] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-  const [assessmentList, setassessmentList] = useState<any[]>([])
-  const [anesthesiaSetupList, setanesthesiaSetupList] = useState<any[]>([])
-  const [clinPathList, setClinPathList] = useState<any[]>([])
-  const [doctors, setDoctors] = useState<any[]>([])
-  const [vetDoctors, setVetDoctors] = useState<any[]>([])
-  const [anesthetistDoctors, setAnesthetistDoctors] = useState<any[]>([])
-  const [masterVetDoctors, setMasterVetDoctors] = useState<any[]>([])
-  const [masterAnesthetistDoctors, setMasterAnesthetistDoctors] = useState<any[]>([])
+  const [assessmentList, setassessmentList] = useState<AssessmentListItem[]>([])
+  const [anesthesiaSetupList, setanesthesiaSetupList] = useState<AnesthesiaSetup[]>([])
+  const [clinPathList, setClinPathList] = useState<AssessmentListItem[]>([])
+  const [doctors, setDoctors] = useState<DoctorDetails[]>([])
+  const [vetDoctors, setVetDoctors] = useState<DoctorDetails[]>([])
+  const [anesthetistDoctors, setAnesthetistDoctors] = useState<DoctorDetails[]>([])
+  const [masterVetDoctors, setMasterVetDoctors] = useState<DoctorDetails[]>([])
+  const [masterAnesthetistDoctors, setMasterAnesthetistDoctors] = useState<DoctorDetails[]>([])
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState<boolean>(true)
   const [loading, setLoading] = useState<boolean>(false)
   const [loadingVet, setLoadingVet] = useState<boolean>(false)
   const [loadingAnesthetist, setLoadingAnesthetist] = useState<boolean>(false)
   const [patientLoading, setPatientLoading] = useState<boolean>(false)
-  const [patientData, setPatientData] = useState<any>(null)
-  const [unitList, setunitList] = useState<any[]>([])
-  const [vitalMonitorList, setVitalMonitorList] = useState<any[]>([])
-  const [anesthesiaDetail, setAnesthesiaDetail] = useState<any>(null)
+  const [patientData, setPatientData] = useState<PatientDetailsData | null>(null)
+  const [unitList, setunitList] = useState<UnitParams[]>([])
+  const [vitalMonitorList, setVitalMonitorList] = useState<AnesthesiaSetup[]>([])
+  const [anesthesiaDetail, setAnesthesiaDetail] = useState<AnesthesiaDetails | null>(null)
   const [addLoader, setAddLoader] = useState<boolean>(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
-  const [deleteTarget, setDeleteTarget] = useState<any>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number; id?: Id } | null>(null)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
-  const sectionRefs = React.useRef<any>({})
-  const scrollContainerRef = React.useRef<any>(null)
-  const vetSearchTimerRef = React.useRef<any>(null)
-  const anesthetistSearchTimerRef = React.useRef<any>(null)
+  const sectionRefs = React.useRef<Record<string, HTMLElement | null>>({})
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null)
+  const vetSearchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const anesthetistSearchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const theme: any = useTheme()
   const accordionIconColor = alpha(theme.palette.text.primary, 110 / 255)
 
@@ -406,7 +536,7 @@ export default function AddAnesthesiaRecord() {
     }, 100)
   }
 
-  const getUserLists = async (hospitalId: any, pageNo: number = 1) => {
+  const getUserLists = async (hospitalId: Id | null, pageNo: number = 1) => {
     if (!hospitalId || loading) return
 
     try {
@@ -416,44 +546,46 @@ export default function AddAnesthesiaRecord() {
         page_no: pageNo,
         limit: 10
       }
-      const res: any = await getHospitalStaff({ params })
+      const res = await getHospitalStaff({ params })
       const data = res?.data
       if (!data?.records?.length) {
         setHasMore(false)
         return
       }
 
-      const mapped = data.records.map((item: any) => ({
+      const mapped: DoctorDetails[] = data.records.map((item) => ({
+        user_id: item.user_id,
+        full_name: item.user_full_name ?? '',
         id: String(item.user_id),
-        name: item.user_full_name,
+        name: item.user_full_name ?? '',
         default_icon: item.user_profile_pic,
         role_name: item.role_name
       }))
 
-      setDoctors((prev: any[]) => {
+      setDoctors((prev: DoctorDetails[]) => {
         const merged = [...prev, ...mapped]
 
-        return Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+        return Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
       })
 
-      setVetDoctors((prev: any[]) => {
+      setVetDoctors((prev: DoctorDetails[]) => {
         const merged = [...prev, ...mapped]
-        const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+        const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
         setMasterVetDoctors(unique)
 
         return unique
       })
 
-      setAnesthetistDoctors((prev: any[]) => {
+      setAnesthetistDoctors((prev: DoctorDetails[]) => {
         const merged = [...prev, ...mapped]
-        const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+        const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
         setMasterAnesthetistDoctors(unique)
 
         return unique
       })
 
-      setHasMore(data.current_page < data.total_pages)
-      setPage(data.current_page)
+      setHasMore((data.current_page ?? 0) < (data.total_pages ?? 0))
+      setPage(data.current_page ?? 1)
     } catch (e) {
       console.error(e)
     } finally {
@@ -480,10 +612,12 @@ export default function AddAnesthesiaRecord() {
           limit: 10,
           q: search
         }
-        const res: any = await getHospitalStaff({ params })
-        const mapped = (res?.data?.records || []).map((item: any) => ({
+        const res = await getHospitalStaff({ params })
+        const mapped: DoctorDetails[] = (res?.data?.records || []).map((item) => ({
+          user_id: item.user_id,
+          full_name: item.user_full_name ?? '',
           id: String(item.user_id),
-          name: item.user_full_name,
+          name: item.user_full_name ?? '',
           default_icon: item.user_profile_pic,
           role_name: item.role_name
         }))
@@ -491,9 +625,9 @@ export default function AddAnesthesiaRecord() {
         setVetDoctors(mapped)
 
         vetSearchTimerRef.current = setTimeout(() => {
-          setMasterVetDoctors((prevMaster: any[]) => {
+          setMasterVetDoctors((prevMaster: DoctorDetails[]) => {
             const merged = [...prevMaster, ...mapped]
-            const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+            const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
             setVetDoctors(unique)
 
             return unique
@@ -527,10 +661,12 @@ export default function AddAnesthesiaRecord() {
           limit: 10,
           q: search
         }
-        const res: any = await getHospitalStaff({ params })
-        const mapped = (res?.data?.records || []).map((item: any) => ({
+        const res = await getHospitalStaff({ params })
+        const mapped: DoctorDetails[] = (res?.data?.records || []).map((item) => ({
+          user_id: item.user_id,
+          full_name: item.user_full_name ?? '',
           id: String(item.user_id),
-          name: item.user_full_name,
+          name: item.user_full_name ?? '',
           default_icon: item.user_profile_pic,
           role_name: item.role_name
         }))
@@ -538,9 +674,9 @@ export default function AddAnesthesiaRecord() {
         setAnesthetistDoctors(mapped)
 
         anesthetistSearchTimerRef.current = setTimeout(() => {
-          setMasterAnesthetistDoctors((prevMaster: any[]) => {
+          setMasterAnesthetistDoctors((prevMaster: DoctorDetails[]) => {
             const merged = [...prevMaster, ...mapped]
-            const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+            const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
             setAnesthetistDoctors(unique)
 
             return unique
@@ -556,11 +692,11 @@ export default function AddAnesthesiaRecord() {
   )
 
   const handleVetSelect = useCallback(
-    (selectedItem: any) => {
+    (selectedItem: DoctorDetails) => {
       if (vetSearchTimerRef.current) clearTimeout(vetSearchTimerRef.current)
-      setMasterVetDoctors((prevMaster: any[]) => {
+      setMasterVetDoctors((prevMaster: DoctorDetails[]) => {
         const merged = [...prevMaster, selectedItem]
-        const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+        const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
         setVetDoctors(unique)
 
         return unique
@@ -570,11 +706,11 @@ export default function AddAnesthesiaRecord() {
   )
 
   const handleAnesthetistSelect = useCallback(
-    (selectedItem: any) => {
+    (selectedItem: DoctorDetails) => {
       if (anesthetistSearchTimerRef.current) clearTimeout(anesthetistSearchTimerRef.current)
-      setMasterAnesthetistDoctors((prevMaster: any[]) => {
+      setMasterAnesthetistDoctors((prevMaster: DoctorDetails[]) => {
         const merged = [...prevMaster, selectedItem]
-        const unique = Array.from(new Map(merged.map((item: any) => [String(item.id), item])).values())
+        const unique = Array.from(new Map(merged.map((item: DoctorDetails) => [String(item.user_id ?? item.id ?? ''), item])).values())
         setAnesthetistDoctors(unique)
 
         return unique
@@ -586,14 +722,18 @@ export default function AddAnesthesiaRecord() {
   useEffect(() => {
     if (!anesthesiaDetail) return
 
-    const selectedUsers = [
-      ...(anesthesiaDetail.veterinarians || []).map((v: any) => ({
-        id: String(v.user_id),
+    const selectedUsers: DoctorDetails[] = [
+      ...(anesthesiaDetail.veterinarians || []).map((v: DoctorDetails) => ({
+        user_id: v.user_id,
+        full_name: v.full_name,
+        id: String(v.user_id ?? v.id ?? ''),
         name: v.full_name,
         role_name: v.role_name
       })),
-      ...(anesthesiaDetail.anesthetists || []).map((a: any) => ({
-        id: String(a.user_id),
+      ...(anesthesiaDetail.anesthetists || []).map((a: DoctorDetails) => ({
+        user_id: a.user_id,
+        full_name: a.full_name,
+        id: String(a.user_id ?? a.id ?? ''),
         name: a.full_name,
         role_name: a.role_name
       }))
@@ -601,12 +741,14 @@ export default function AddAnesthesiaRecord() {
 
     if (!selectedUsers.length) return
 
-    setDoctors((prev: any[]) => {
-      const map = new Map(prev.map((d: any) => [String(d.id), d]))
+    setDoctors((prev: DoctorDetails[]) => {
+      const keyFor = (d: DoctorDetails) => String(d.user_id ?? d.id ?? '')
+      const map = new Map(prev.map((d: DoctorDetails) => [keyFor(d), d]))
 
-      selectedUsers.forEach((user: any) => {
-        if (!map.has(user.id)) {
-          map.set(user.id, user)
+      selectedUsers.forEach((user: DoctorDetails) => {
+        const key = keyFor(user)
+        if (!map.has(key)) {
+          map.set(key, user)
         }
       })
 
@@ -619,10 +761,10 @@ export default function AddAnesthesiaRecord() {
       type: 'purpose'
     }
     try {
-      const response: any = await getAssesmentList(params)
+      const response = await getAssesmentList(params)
       if (response?.success && response?.data?.records?.length > 0) {
         setassessmentList(
-          response?.data?.records.map((item: any) => ({
+          response?.data?.records.map((item) => ({
             name: item?.name,
             id: item?.id,
             other: item?.is_other
@@ -639,10 +781,10 @@ export default function AddAnesthesiaRecord() {
       type: 'clin_path'
     }
     try {
-      const response: any = await getAssesmentList(params)
+      const response = await getAssesmentList(params)
       if (response?.success && response?.data?.records?.length > 0) {
         setClinPathList(
-          response?.data?.records.map((item: any) => ({
+          response?.data?.records.map((item) => ({
             name: item?.name,
             id: item?.id
           }))
@@ -658,7 +800,7 @@ export default function AddAnesthesiaRecord() {
       type: 'anaesthesia_setup'
     }
     try {
-      const response: any = await getAnesthesiaSetupList(params)
+      const response = await getAnesthesiaSetupList(params)
       if (response?.success && response?.data?.result?.length > 0) {
         setanesthesiaSetupList(response.data.result)
       } else {
@@ -671,9 +813,9 @@ export default function AddAnesthesiaRecord() {
     const getPatientInfo = async () => {
       setPatientLoading(true)
       try {
-        await getPatientDetails(id as any).then((res: any) => {
+        await getPatientDetails(id as Id).then((res: PatientDetailsResponse) => {
           if (res?.success === true) {
-            setPatientData(res?.data)
+            setPatientData(res?.data ?? null)
             setPatientLoading(false)
           } else {
             setPatientData(null)
@@ -690,7 +832,7 @@ export default function AddAnesthesiaRecord() {
 
   const fetchUnitList = async () => {
     try {
-      const response: any = await getUnitList({})
+      const response = await getUnitList({})
       if (response?.success && response?.data) {
         setunitList(response?.data?.prescriptionMeasurementType)
       } else {
@@ -709,10 +851,10 @@ export default function AddAnesthesiaRecord() {
         // limit:"",
         // anaesthesia_id:""
       }
-      const response: any = await getvitalMonitoringList(params)
+      const response = await getvitalMonitoringList(params)
 
       if (response?.success && response?.data) {
-        setVitalMonitorList(response?.data?.result)
+        setVitalMonitorList(response?.data?.result as unknown as AnesthesiaSetup[])
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
@@ -740,7 +882,7 @@ export default function AddAnesthesiaRecord() {
 
   const loadMoreDoctors = () => {
     if (!hasMore || loading) return
-    getUserLists(patientData?.hospital_id, page + 1)
+    getUserLists(patientData?.hospital_id ?? '', page + 1)
   }
 
   const purposeStageOptions = [
@@ -791,7 +933,41 @@ export default function AddAnesthesiaRecord() {
     { label: t('hospital_module.poor'), value: 'Poor' }
   ]
 
-  const methods = useForm<any>({
+ const anesthesiaSchema: any = yup.object({
+  basicDetails: yup
+    .object({
+      location: yup.string().trim().required(t('hospital_module.location_is_required')),
+      anaesthesia_datetime: yup.string().trim().required( t('date_time_required')),
+      estimated_time_required: yup.string().trim().required(t('estimated_time_required_label')),
+      veterinarian_id: yup.array().min(1, t('select_veterinarian')),
+      anesthetist_id: yup.array().min(1, t('hospital_module.select_at_least_one_anesthetist')),
+      selected: yup.array().of(yup.string()).default([]),
+      custom: yup.array().of(yup.string().trim()).default([])
+    })
+    .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', (value: any) => {
+      if (!value) return false
+
+      const selected = Array.isArray(value.selected) ? value.selected : []
+      const custom = Array.isArray(value.custom) ? value.custom : []
+
+      const hasSelected = selected.length > 0
+      const hasCustom = custom.some((v: any) => v && v.trim() !== '')
+
+      return hasSelected || hasCustom
+    }),
+  vitalMonitoring: yup
+    .array()
+    .of(
+      yup.object({
+        id: yup.string().required(),
+        timeLabel: yup.string().trim().required(),
+        entries: yup.object().default({})
+      })
+    )
+    .default([])
+})
+
+  const methods = useForm<AnesthesiaFormPayload>({
     defaultValues: {
       basicDetails: {
         location: '',
@@ -843,13 +1019,13 @@ export default function AddAnesthesiaRecord() {
       }
     },
     mode: 'onSubmit',
-    resolver: yupResolver(anesthesiaSchema) as any,
+    resolver: yupResolver(anesthesiaSchema),
     reValidateMode: 'onChange'
   })
 
   const handleCancel = async () => {
     appRouter.push(`/hospital/${moduleSlug}/${id}/?tab=anesthesia`)
-    await (queryClient.invalidateQueries as any)(['anesthesiaRecords', id, patientData?.medical_record_id])
+    await queryClient.invalidateQueries({ queryKey: ['anesthesiaRecords', id, patientData?.medical_record_id] }) 
   }
 
   const handleCancelNew = async () => {
@@ -931,19 +1107,19 @@ export default function AddAnesthesiaRecord() {
   const customPurposes = watch('basicDetails.custom')
   const notes = watch('basicDetails.notes')
 
-  const medications = watch('medicationsGas.medications')
-  const gases = watch('medicationsGas.gases')
-  const reversalDrugs = watch('recoveryAndReversal.reversalDrugs')
+  const medications = watch('medicationsGas.medications') ?? []
+  const gases = watch('medicationsGas.gases') ?? []
+  const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') ?? []
 
   const handleAddMedication = React.useCallback(
-    (medicationData: any) => {
+    (medicationData: MedicationFormData) => {
       setValue('medicationsGas.medications', [...medications, medicationData])
     },
     [medications, setValue]
   )
 
   const handleAddGas = React.useCallback(
-    (gasData: any) => {
+    (gasData: GasFormData) => {
       setValue('medicationsGas.gases', [...gases, gasData])
     },
     [gases, setValue]
@@ -954,17 +1130,17 @@ export default function AddAnesthesiaRecord() {
 
     setValue(
       'basicDetails.veterinarian_id',
-      (anesthesiaDetail.veterinarians || []).map((v: any) => String(v.user_id))
+      (anesthesiaDetail.veterinarians || []).map((v: DoctorDetails) => String(v.user_id))
     )
 
     setValue(
       'basicDetails.anesthetist_id',
-      (anesthesiaDetail.anesthetists || []).map((a: any) => String(a.user_id))
+      (anesthesiaDetail.anesthetists || []).map((a: DoctorDetails) => String(a.user_id))
     )
   }, [anesthesiaDetail, setValue])
 
   const handleUpdateMedication = React.useCallback(
-    async (index: number, medicationData: any) => {
+    async (index: number, medicationData: MedicationFormData) => {
       const updatedMedications = Array.isArray(medications) ? [...medications] : []
       const existing = updatedMedications[index] || {}
 
@@ -973,22 +1149,22 @@ export default function AddAnesthesiaRecord() {
         ...medicationData
       }
 
-      const payload = {
-        id: merged.id,
-        drug_id: merged.drug_name?.id ?? merged.drug_id,
+      const payload: UpdateMedicationParams = {
+        id: merged.id ?? '',
+        drug_id: merged.drug_name?.id ?? merged.drug_id ?? '',
         purpose_stage: merged.purpose_stage,
         amount: merged.amount,
         unit_id: merged.unit ?? merged.unit_id,
-        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        route: String(merged.delivery_route?.delivery ?? ''),
         delivery_time: toTimeOnly(merged.delivery_time),
-        delivery_status: merged.delivery_status,
+        delivery_status: (merged.delivery_status ?? '') as DeliveryStatus,
         max_effect: toTimeOnly(merged.max_effect_time),
         comments: merged.notes || '',
         type: 'medication',
-        anaesthesia_id: anaesthesia_id
+        anaesthesia_id: anaesthesia_id ?? ''
       }
       try {
-        const apiResponse: any = await updateMedication(payload)
+        const apiResponse = await updateMedication(payload)
         if (apiResponse?.success === true) {
           updatedMedications[index] = merged
           setValue('medicationsGas.medications', updatedMedications)
@@ -1010,7 +1186,7 @@ export default function AddAnesthesiaRecord() {
   )
 
   const handleUpdateGas = React.useCallback(
-    async (index: number, gasData: any) => {
+    async (index: number, gasData: GasFormData) => {
       const updatedGases = Array.isArray(gases) ? [...gases] : []
       const existing = updatedGases[index] || {}
 
@@ -1019,20 +1195,20 @@ export default function AddAnesthesiaRecord() {
         ...gasData
       }
 
-      const payload = {
-        id: merged.id,
-        drug_id: merged.gas_name?.id ?? merged.gas_id,
+      const payload: UpdateMedicationParams = {
+        id: merged.id ?? '',
+        drug_id: merged.gas_name?.id ?? merged.drug_id ?? '',
         oxygen_l_min: merged?.o2_flow,
         concentration: merged?.concentration,
-        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        route: String((merged.delivery_route as MedicationRouteRef | null)?.delivery ?? merged.route ?? ''),
         start_time: toTimeOnly(merged?.start_time),
         end_time: toTimeOnly(merged?.end_time),
-        delivery_status: merged?.delivery_status,
+        delivery_status: (merged?.delivery_status ?? '') as DeliveryStatus,
         type: 'gas',
-        anaesthesia_id: anaesthesia_id
+        anaesthesia_id: anaesthesia_id ?? ''
       }
       try {
-        const apiResponse: any = await updateMedication(payload)
+        const apiResponse = await updateMedication(payload)
         if (apiResponse?.success === true) {
           updatedGases[index] = merged
           setValue('medicationsGas.gases', updatedGases)
@@ -1053,17 +1229,17 @@ export default function AddAnesthesiaRecord() {
     [gases, setValue, anaesthesia_id]
   )
 
-  const handleDeleteMedication = (index: number, id: any) => {
+  const handleDeleteMedication = (index: number, id: Id) => {
     setDeleteTarget({ type: 'medication', index, id })
     setDeleteDialogOpen(true)
   }
 
-  const handleDeleteGas = (index: number, id: any) => {
+  const handleDeleteGas = (index: number, id: Id) => {
     setDeleteTarget({ type: 'gas', index, id })
     setDeleteDialogOpen(true)
   }
 
-  const onDeleteReversalDrug = (index: number, id: any) => {
+  const onDeleteReversalDrug = (index: number, id: Id) => {
     setDeleteTarget({ type: 'reversal', index, id })
     setDeleteDialogOpen(true)
   }
@@ -1071,25 +1247,26 @@ export default function AddAnesthesiaRecord() {
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return
 
-    const { type, index, id } = deleteTarget as any
+    const { type, index, id } = deleteTarget
     try {
       setDeleteLoading(true)
-      const payload = { id, type }
-      const res: any = await deleteAnesthesiaMedication(payload)
+      if (id == null) return
+      const payload: DeleteAnesthesiaMedicationParams  = { id, type }
+      const res = await deleteAnesthesiaMedication(payload)
 
       if (res?.success) {
         if (type === 'medication') {
-          const updated = medications.filter((_: any, i: number) => i !== index)
+          const updated = medications.filter((_: MedicationFormData, i: number) => i !== index)
           setValue('medicationsGas.medications', updated)
         }
 
         if (type === 'gas') {
-          const updated = gases.filter((_: any, i: number) => i !== index)
+          const updated = gases.filter((_: GasFormData, i: number) => i !== index)
           setValue('medicationsGas.gases', updated)
         }
 
         if (type === 'reversal') {
-          const updated = reversalDrugs.filter((_: any, i: number) => i !== index)
+          const updated = reversalDrugs.filter((_: ReversalDrugFormItem, i: number) => i !== index)
           setValue('recoveryAndReversal.reversalDrugs', updated)
         }
 
@@ -1108,7 +1285,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   const onAddReversalDrug = React.useCallback(
-    (drugData: any) => {
+    (drugData: ReversalDrugFormItem) => {
       const current = Array.isArray(reversalDrugs) ? reversalDrugs : []
       setValue('recoveryAndReversal.reversalDrugs', [...current, drugData], { shouldDirty: true, shouldTouch: true })
     },
@@ -1116,29 +1293,29 @@ export default function AddAnesthesiaRecord() {
   )
 
   const onUpdateReversalDrug = React.useCallback(
-    async (index: number, drugData: any) => {
+    async (index: number, drugData: ReversalDrugFormItem) => {
       const current = Array.isArray(reversalDrugs) ? [...reversalDrugs] : []
       if (index < 0 || index >= current.length) return
 
       const existing = current[index] || {}
       const merged = { ...existing, ...drugData }
 
-      const payload = {
-        id: merged.id,
-        drug_id: merged.drug_name?.id ?? merged.drug_id,
+      const payload: UpdateMedicationParams = {
+        id: merged.id ?? '',
+        drug_id: merged.drug_name?.id ?? merged.drug_id ?? '',
         amount: merged.amount,
         unit_id: merged.unit ?? merged.unit_id,
-        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        route: String(merged.delivery_route?.delivery ?? ''),
         delivery_time: toTimeOnly(merged.delivery_time),
-        delivery_status: merged.delivery_status,
+        delivery_status: (merged.delivery_status ?? '') as DeliveryStatus,
         max_effect: toTimeOnly(merged.max_effect_time),
         comments: merged.notes || '',
         type: 'reversal',
-        anaesthesia_id: anaesthesia_id
+        anaesthesia_id: anaesthesia_id ?? ''
       }
 
       try {
-        const apiResponse: any = await updateMedication(payload)
+        const apiResponse = await updateMedication(payload)
 
         if (apiResponse?.success === true) {
           current[index] = merged
@@ -1191,16 +1368,16 @@ export default function AddAnesthesiaRecord() {
     methods
   ])
 
-  const fetchAnesthesiaDetails = async (anaesthesia_id: any) => {
+  const fetchAnesthesiaDetails = async (anaesthesia_id: Id) => {
     if (!anaesthesia_id) return
 
     try {
       setAddLoader(true)
-      const response: any = await getAnesthesiaDetails(anaesthesia_id, {})
+      const response = await getAnesthesiaDetails(anaesthesia_id, {})
       if (response?.success && response?.data) {
         // Ensure anaesthesia_id is stored in state for submission
         setAnaesthesia_id(anaesthesia_id)
-        setAnesthesiaDetail(response.data)
+        setAnesthesiaDetail(response.data as unknown as AnesthesiaDetails)
         setAddLoader(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to fetch anesthesia details' })
@@ -1224,10 +1401,10 @@ export default function AddAnesthesiaRecord() {
     const detail = anesthesiaDetail
     const purposeArray = detail.purpose || []
 
-    const selectedPurposeIds: any[] = []
-    const customPurposeNames: any[] = []
+    const selectedPurposeIds: string[] = []
+    const customPurposeNames: string[] = []
 
-    purposeArray.forEach((p: any) => {
+    purposeArray.forEach((p: AnesthesiaAssessmentType) => {
       const isSelected = p.is_selected === '1' || p.is_selected === 1 || p.is_selected === true
 
       if (!isSelected) return
@@ -1245,13 +1422,13 @@ export default function AddAnesthesiaRecord() {
       }
     })
 
-    const veterinarians = (detail.veterinarians || []).map((v: any) => ({
+    const veterinarians = (detail.veterinarians || []).map((v: DoctorDetails) => ({
       id: String(v.user_id),
       name: v.full_name,
       role_name: v.role_name
     }))
 
-    const anesthetists = (detail.anesthetists || []).map((a: any) => ({
+    const anesthetists = (detail.anesthetists || []).map((a: DoctorDetails) => ({
       id: String(a.user_id),
       name: a.full_name,
       role_name: a.role_name
@@ -1277,7 +1454,7 @@ export default function AddAnesthesiaRecord() {
     const medicationRecords = anaesthesia_medications.medication?.records || []
     const gasRecords = anaesthesia_medications.gas?.records || []
 
-    const combineDateAndTime = (dateStr: any, timeStr: any): any => {
+    const combineDateAndTime = (dateStr: string | null | undefined, timeStr: string | null | undefined): Dayjs | null => {
       if (!timeStr) return null
 
       const datePart =
@@ -1288,7 +1465,7 @@ export default function AddAnesthesiaRecord() {
       return parsed.isValid() ? parsed : null
     }
 
-    const medicationsFromApi = medicationRecords.map((rec: any) => {
+    const medicationsFromApi = medicationRecords.map((rec: Medications) => {
       const createdAt = rec.created_at || null
 
       return {
@@ -1298,7 +1475,7 @@ export default function AddAnesthesiaRecord() {
         amount: rec.amount ? String(rec.amount) : '',
         unit: rec.unit_id ? String(rec.unit_id) : '',
         unit_id: rec.unit_id ? String(rec.unit_id) : '',
-        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        delivery_route: rec.route ? { id: '', delivery: String(rec.route) } : null,
         delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
         max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
         delivery_status: rec.delivery_status || null,
@@ -1306,7 +1483,7 @@ export default function AddAnesthesiaRecord() {
       }
     })
 
-    const gasFromApi = gasRecords.map((rec: any) => {
+    const gasFromApi = gasRecords.map((rec: Gas) => {
       const createdAt = rec.created_at || null
 
       return {
@@ -1314,7 +1491,7 @@ export default function AddAnesthesiaRecord() {
         gas_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
         o2_flow: rec.oxygen_l_min ? String(rec.oxygen_l_min) : '',
         concentration: rec.concentration ? String(rec.concentration) : '',
-        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        delivery_route: rec.route ? { id: '', delivery: String(rec.route) } : null,
         start_time: combineDateAndTime(createdAt, rec.start_time),
         end_time: combineDateAndTime(createdAt, rec.end_time),
         delivery_status: rec.delivery_status || null,
@@ -1326,10 +1503,10 @@ export default function AddAnesthesiaRecord() {
     const pre = detail.pre_anaesthesia || {}
     const clinPathArray = Array.isArray(pre.clin_path) ? pre.clin_path : []
 
-    const clinSelectedObj: any = {}
-    const clinCustomArr: any[] = []
+    const clinSelectedObj: Record<string, boolean> = {}
+    const clinCustomArr: string[] = []
 
-    clinPathArray.forEach((item: any) => {
+    clinPathArray.forEach((item: AnesthesiaAssessmentType) => {
       const isSelected = item.is_selected === '1' || item.is_selected === 1 || item.is_selected === true
       if (!isSelected) return
 
@@ -1387,7 +1564,7 @@ export default function AddAnesthesiaRecord() {
       overall: recoveryFromApi?.rating_overall || ''
     }
 
-    const reversalFromApi = reversalRecords.map((rec: any) => {
+    const reversalFromApi = reversalRecords.map((rec: Reversal) => {
       const createdAt = rec.created_at || null
 
       return {
@@ -1397,7 +1574,7 @@ export default function AddAnesthesiaRecord() {
         amount: rec.amount ? String(rec.amount) : '',
         unit: rec.unit_id ? String(rec.unit_id) : '',
         unit_id: rec.unit_id ? String(rec.unit_id) : '',
-        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        delivery_route: rec.route ? { id: '', delivery: String(rec.route) } : null,
         delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
         max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
         delivery_status: rec.delivery_status || null,
@@ -1436,48 +1613,47 @@ export default function AddAnesthesiaRecord() {
 
     const apiAnaesthesiaSetup = anesthesiaDetail.anaesthesia_setup || []
 
-    const toCamel = (s: any) =>
+    const toCamel = (s: string) =>
       String(s || '')
         .trim()
-        .replace(/_([a-zA-Z0-9])/g, (_: any, g1: string) => g1.toUpperCase())
+        .replace(/_([a-zA-Z0-9])/g, (_: string, g1: string) => g1.toUpperCase())
 
-    const anesthesiaSetupFlat: any = {}
+    const anesthesiaSetupFlat: Record<string, AnesthesiaSetupSectionState> = {}
 
-    apiAnaesthesiaSetup.forEach((section: any) => {
-      const key = section.string_id
+    apiAnaesthesiaSetup.forEach((section: AnesthesiaSetup) => {
+      const key = section.string_id ?? ''
 
-      const sectionObj: any = {
+      const sectionObj: AnesthesiaSetupSectionState = {
         checked: false,
         fields: {},
-        monitoring: { selected: [] as any[], otherItems: [] as any[] }
+        monitoring: { selected: [], otherItems: [] }
       }
 
       if (Array.isArray(section.fields)) {
-        section.fields.forEach((f: any) => {
+        section.fields.forEach((f: AnesthesiaSetupFields) => {
           const uiKey = toCamel(f.field_key)
           const rawVal = f.field_value === null || f.field_value === undefined ? '' : String(f.field_value)
           const unit = f.unit ?? (Array.isArray(f.units) && f.units.length ? f.units[0] : null)
 
           sectionObj[uiKey] = rawVal
-          sectionObj.fields[f.field_key] = { field_value: rawVal, unit }
+          sectionObj.fields![f.field_key] = { field_value: rawVal, unit: unit ?? undefined }
 
           if (rawVal !== '') sectionObj.checked = true
         })
       }
 
       if (Array.isArray(section.monitoring_items) && section.monitoring_items.length > 0) {
-        const selected: any[] = []
-        const otherItems: any[] = []
+        const selected: number[] = []
+        const otherItems: string[] = []
 
-        section.monitoring_items.forEach((mi: any) => {
+        section.monitoring_items.forEach((mi: AnesthesiaAssessmentType) => {
           const selectedFlag = mi.is_selected === '1' || mi.is_selected === 1 || mi.is_selected === true
           if (selectedFlag && mi.id) selected.push(Number(mi.id))
           if ((!mi.id || mi.id === '') && mi.name) otherItems.push(mi.name)
         })
 
         if (selected.length > 0 || otherItems.length > 0) sectionObj.checked = true
-        sectionObj.monitoring.selected = selected
-        sectionObj.monitoring.otherItems = otherItems
+        sectionObj.monitoring = { ...(sectionObj.monitoring ?? {}), selected, otherItems }
       }
 
       anesthesiaSetupFlat[key] = sectionObj
@@ -1490,7 +1666,7 @@ export default function AddAnesthesiaRecord() {
     }
   }, [anesthesiaDetail, setValue])
 
-  const recordedTimeToLabel = (timeStr: any) => {
+  const recordedTimeToLabel = (timeStr: string | null) => {
     if (!timeStr) return ''
     const d = dayjs(timeStr, ['HH:mm:ss', 'HH:mm', 'H:mm'], true)
     if (!d.isValid()) return ''
@@ -1506,7 +1682,7 @@ export default function AddAnesthesiaRecord() {
 
     const columns = serverVitalToFormColumns(detailVital)
 
-    const normalizedColumns = columns.map((col: any) => ({
+    const normalizedColumns = columns.map((col: VitalMonitoringFormColumn) => ({
       ...col,
       timeLabel: recordedTimeToLabel(col.timeLabel || col.recorded_time || '')
     }))
@@ -1518,13 +1694,13 @@ export default function AddAnesthesiaRecord() {
     }
   }, [anesthesiaDetail, setValue])
 
-  const handleChange = async (sectionId: any) => {
+  const handleChange = async (sectionId: string) => {
     if (sectionId !== 'basicDetails' && !isApiSuccess) {
       const valid = await methods.trigger('basicDetails')
       if (!valid) {
         setExpanded('basicDetails')
         setTimeout(() => {
-          const firstErrorField: any = document.querySelector('[data-field].Mui-error')
+          const firstErrorField = document.querySelector('[data-field].Mui-error') as HTMLElement | null
           firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }, 300)
 
@@ -1546,16 +1722,16 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  const toCamel = (s: any) =>
+  const toCamel = (s: string) =>
     String(s)
       .trim()
-      .replace(/_([a-zA-Z0-9])/g, (_: any, g1: string) => g1.toUpperCase())
+      .replace(/_([a-zA-Z0-9])/g, (_: string, g1: string) => g1.toUpperCase())
 
-  const uiKeyForField = (_sectionStringId: any, apiFieldKey: any) => {
+  const uiKeyForField = (_sectionStringId: string, apiFieldKey: string) => {
     return toCamel(apiFieldKey)
   }
 
-  const onValid = async (data: any) => {
+  const onValid = async (data: AnesthesiaFormPayload) => {
     setIsSubmitting(true)
 
     try {
@@ -1570,24 +1746,24 @@ export default function AddAnesthesiaRecord() {
       })
 
       const purposePayload = {
-        selected: Array.from(new Set(data.basicDetails.selected || [])),
-        custom: data.basicDetails.custom || []
+        selected: Array.from(new Set(data.basicDetails?.selected || [])),
+        custom: data.basicDetails?.custom || []
       }
 
-      const veterinarianIds = (data.basicDetails.veterinarian_id || []).map((v: any) => v.id)
-      const anesthetistIds = (data.basicDetails.anesthetist_id || []).map((a: any) => a.id)
+      const veterinarianIds = (data.basicDetails?.veterinarian_id || []).map((v: DoctorDetails | string) => typeof v === 'string' ? v : v.id)
+      const anesthetistIds = (data.basicDetails?.anesthetist_id || []).map((a: DoctorDetails | string) => typeof a === 'string' ? a : a.id)
 
-      let medsPayload: any[] = []
-      let gasPayload: any[] = []
-      let recoveryPayload: any = null
-      let reversalPayload: any[] = []
-      let blocks: any[] = []
-      let preAnaesthesiaPayload: any = null
-      let anaesthesiaSetupPayload: any[] = []
+      let medsPayload: Record<string, unknown>[] = []
+      let gasPayload: Record<string, unknown>[] = []
+      let recoveryPayload: Record<string, unknown> | null = null
+      let reversalPayload: Record<string, unknown>[] = []
+      let blocks: Record<string, unknown>[] = []
+      let preAnaesthesiaPayload: Record<string, unknown> | null = null
+      let anaesthesiaSetupPayload: Record<string, unknown>[] = []
 
       if (isEdit) {
         // MEDICATIONS
-        medsPayload = (methods.getValues('medicationsGas.medications') || []).map((m: any) => ({
+        medsPayload = (methods.getValues('medicationsGas.medications') || []).map((m: MedicationFormData) => ({
           id: m.id || '',
           drug_id: Number(m.drug_name?.id ?? m.drug_id ?? 0),
           purpose_stage: m.purpose_stage || '',
@@ -1601,12 +1777,12 @@ export default function AddAnesthesiaRecord() {
         }))
 
         // GAS
-        gasPayload = (methods.getValues('medicationsGas.gases') || []).map((g: any) => ({
+        gasPayload = (methods.getValues('medicationsGas.gases') || []).map((g: GasFormData) => ({
           id: g.id || '',
           drug_id: Number(g.gas_name?.id ?? g.drug_id ?? 0),
           oxygen_l_min: g.o2_flow || g.oxygen_l_min || '',
           concentration: g.concentration || '',
-          route: g.delivery_route?.delivery || '',
+          route: (g.delivery_route as MedicationRouteRef | null)?.delivery || g.route || '',
           start_time: fmt(g.start_time),
           end_time: fmt(g.end_time),
           delivery_status: g.delivery_status || '',
@@ -1614,8 +1790,8 @@ export default function AddAnesthesiaRecord() {
         }))
 
         // RECOVERY & REVERSAL
-        const recoveryForm: any = methods.getValues('recoveryAndReversal') || {}
-        const reversalDrugsForm: any[] = methods.getValues('recoveryAndReversal.reversalDrugs') || []
+        const recoveryForm: RecoveryFormData = methods.getValues('recoveryAndReversal') || {}
+        const reversalDrugsForm: ReversalDrugFormItem[] = methods.getValues('recoveryAndReversal.reversalDrugs') || []
 
         clearErrors(['recoveryAndReversal.recovery_first_effect', 'recoveryAndReversal.recovery_full_effect'])
 
@@ -1629,17 +1805,16 @@ export default function AddAnesthesiaRecord() {
           if (first.isValid() && full.isValid() && full.isBefore(first)) {
             setError('recoveryAndReversal.recovery_first_effect', {
               type: 'manual',
-              message: 'Recovery 1st Effect cannot be greater than Recovery Full Effect'
+              message: t('hospital_module.recovery_1st_greater_than_full')
             })
             setError('recoveryAndReversal.recovery_full_effect', {
               type: 'manual',
-              message: 'Recovery Full Effect cannot be less than Recovery 1st Effect'
+              message: t('hospital_module.recovery_full_less_than_1st')
             })
 
             Toaster({
               type: 'error',
-              message:
-                'Please correct Recovery timing – Recovery 1st Effect must be before or equal to Recovery Full Effect.'
+              message: t('hospital_module.please_correct_recovery_item')
             })
             scrollToSection('recoveryAndReversal')
             setIsSubmitting(false)
@@ -1660,7 +1835,7 @@ export default function AddAnesthesiaRecord() {
           rating_overall: recoveryForm.overall || ''
         }
 
-        reversalPayload = (reversalDrugsForm || []).map((r: any) => ({
+        reversalPayload = (reversalDrugsForm || []).map((r: ReversalDrugFormItem) => ({
           id: r.id || '',
           drug_id: Number(r.drug_name?.id ?? r.drug_id ?? 0),
           amount: r.amount || '',
@@ -1702,7 +1877,7 @@ export default function AddAnesthesiaRecord() {
 
 
         // VITAL BLOCKS
-        const columns: any[] = methods.getValues('vitalMonitoring') || []
+        const columns: VitalMonitoringColumn[] = (methods.getValues('vitalMonitoring')) || []
         const vitalMetaForBlocks = vitalMonitorList || []
 
         // console.log('columns:', JSON.stringify(columns, null, 2))
@@ -1710,20 +1885,20 @@ export default function AddAnesthesiaRecord() {
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
 
-        blocks = (blocks || []).map((block: any) => ({
+        blocks = (blocks || []).map((block: Record<string, unknown>) => ({
           ...block,
           recorded_time: toBackendTime(block.recorded_time)
         }))
 
         // console.log('blocks:', JSON.stringify(blocks, null, 2))
         // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
-        const invalidSections: any[] = []
+        const invalidSections: string[] = []
         clearErrors('anesthesiaSetup')
         let hasAnySetupError = false
 
         for (const meta of anesthesiaSetupList || []) {
-          const sectionKey = meta.string_id
-          const sectionForm: any = anesthesiaSetupValues[sectionKey]
+          const sectionKey = meta.string_id ?? ''
+          const sectionForm: AnesthesiaSetupSectionState = (anesthesiaSetupValues)[sectionKey] || {}
 
           if (!sectionForm?.checked) continue
 
@@ -1731,6 +1906,7 @@ export default function AddAnesthesiaRecord() {
 
           if (Array.isArray(meta.fields) && meta.fields.length > 0) {
             for (const f of meta.fields) {
+              if (meta.string_id == null) continue
               const uiKey = uiKeyForField(meta.string_id, f.field_key)
               const v = sectionForm[uiKey]
               const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
@@ -1759,7 +1935,7 @@ export default function AddAnesthesiaRecord() {
 
               setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
                 type: 'required',
-                message: 'Select at least one monitoring item or add an "Other" item'
+                message: t('hospital_module.select_monitoring_item')
               })
             }
           }
@@ -1770,7 +1946,9 @@ export default function AddAnesthesiaRecord() {
         if (hasAnySetupError) {
           Toaster({
             type: 'error',
-            message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
+            message: t('hospital_module.fill_required_fields', {
+              sections: invalidSections.join(', ')
+            })
           })
           scrollToSection('anesthesiaSetUp')
           setIsSubmitting(false)
@@ -1779,20 +1957,20 @@ export default function AddAnesthesiaRecord() {
         }
 
         // build anaesthesia_setup payload
-        const currentSetupValues: any = methods.getValues('anesthesiaSetup') || {}
+        const currentSetupValues: Record<string, AnesthesiaSetupSectionState> = methods.getValues('anesthesiaSetup') || {}
         anaesthesiaSetupPayload = []
 
         for (const meta of anesthesiaSetupList || []) {
-          const key = meta.string_id
-          const sectionForm: any = currentSetupValues[key] || {}
+          const key = meta.string_id ?? ''
+          const sectionForm: AnesthesiaSetupSectionState = currentSetupValues[key] || {}
 
           if (!sectionForm || sectionForm.checked !== true) continue
 
-          const fieldsArr = (meta.fields || []).map((f: any) => {
+          const fieldsArr = (meta.fields || []).map((f: AnesthesiaSetupFields) => {
             const fieldFromObject =
               (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
               null
-            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+            const uiKey = uiKeyForField(meta.string_id ?? '', f.field_key)
             const fieldFromFlat = sectionForm[uiKey] ?? null
 
             const field_value =
@@ -1813,15 +1991,15 @@ export default function AddAnesthesiaRecord() {
             }
           })
 
-          let monitoringObj: any = undefined
+          let monitoringObj: { selected: number[]; custom: string[] } | undefined = undefined
           if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
-            const monState: any = sectionForm.monitoring || {}
+            const monState: AnesthesiaMonitoringState = sectionForm.monitoring || {}
             const selected = monState.selected || []
             const custom = monState.otherItems || []
             monitoringObj = { selected, custom }
           }
 
-          const sectionObj: any = {
+          const sectionObj: Record<string, unknown> = {
             section_id: meta.section_id,
             string_id: meta.string_id,
             fields: fieldsArr
@@ -1834,27 +2012,27 @@ export default function AddAnesthesiaRecord() {
       }
 
       const formData = new FormData()
-      const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime
+      const anaesthesiaDateTime = data.basicDetails?.anaesthesia_datetime
       if (isEdit) {
-        formData.append('anaesthesia_id', anaesthesia_id)
+        formData.append('anaesthesia_id', anaesthesia_id as string)
       }
 
-      formData.append('hospital_case_id', id || '')
-      formData.append('medical_record_id', patientData?.medical_record_id || '')
-      formData.append('location', data.basicDetails.location)
+      formData.append('hospital_case_id', (id || '') as string)
+      formData.append('medical_record_id', (patientData?.medical_record_id || '') as string)
+      formData.append('location', data.basicDetails?.location ?? '')
       formData.append(
         'anaesthesia_datetime',
         anaesthesiaDateTime ? dayjs(anaesthesiaDateTime).format('YYYY-MM-DD HH:mm:ss') : ''
       )
-      formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
-      formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
+      formData.append('estimated_time_required', (data.basicDetails?.estimated_time_required ?? '') as string)
+      formData.append('estimated_time_unit', data.basicDetails?.estimated_time_unit ?? '')
       formData.append('veterinarian_id', JSON.stringify(veterinarianIds || []))
       formData.append('anesthetist_id', JSON.stringify(anesthetistIds || []))
-      formData.append('notes', data.basicDetails.notes)
+      formData.append('notes', data.basicDetails?.notes ?? '')
       formData.append('purpose', JSON.stringify(purposePayload))
 
       if (isEdit) {
-        if (hasPreAnesthesiaData(data.preAnesthesia)) {
+        if (hasPreAnesthesiaData(data.preAnesthesia ?? null)) {
           formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
         }
 
@@ -1880,7 +2058,7 @@ export default function AddAnesthesiaRecord() {
       }
 
 
-      const response: any = await addAnesthesia(formData)
+      const response = await addAnesthesia(formData)
 
       if (response?.status === true) {
         setIsApiSuccess(true)
@@ -1908,19 +2086,19 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  const onInvalid = (errors: any) => {
+  const onInvalid = (errors: FieldErrors<AnesthesiaFormPayload>) => {
     const firstPath = Object.keys(errors.basicDetails || {})[0]
 
     if (firstPath) {
       setExpanded('basicDetails')
       requestAnimationFrame(() => {
-        const el: any = document.querySelector(`[data-field="${firstPath}"]`)
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const el = document.querySelector(`[data-field="${firstPath}"]`)
+        ;(el as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       })
     }
   }
 
-  const hasNonEmpty = (v: any): any => {
+  const hasNonEmpty = (v: unknown): boolean => {
     if (v == null) return false
 
     if (typeof v === 'string') return v.trim() !== ''
@@ -1934,7 +2112,7 @@ export default function AddAnesthesiaRecord() {
     return !!v
   }
 
-  const hasPreAnesthesiaData = (pre: any) => {
+  const hasPreAnesthesiaData = (pre: PreAnesthesiaFormData | null) => {
     if (!pre) return false
 
     const fieldsToCheck = [
@@ -1966,7 +2144,7 @@ export default function AddAnesthesiaRecord() {
     return false
   }
 
-  const hasRecoveryAndReversalData = (recoveryForm: any, reversalPayload: any) => {
+  const hasRecoveryAndReversalData = (recoveryForm: RecoveryFormData | null, reversalPayload: ReversalPayloadItem[] | null) => {
     if (!recoveryForm && !reversalPayload?.length) return false
 
     const hasRecovery =
@@ -1985,21 +2163,21 @@ export default function AddAnesthesiaRecord() {
     return hasRecovery || hasReversal
   }
 
-  const hasMedicationsGasData = (medsPayload: any, gasPayload: any) => {
+  const hasMedicationsGasData = (medsPayload: MedicationFormData[] | null , gasPayload: GasFormData[] | null) => {
     return (
       (Array.isArray(medsPayload) && medsPayload.length > 0) || (Array.isArray(gasPayload) && gasPayload.length > 0)
     )
   }
-  const hasVitalBlocksData = (blocks: any) => Array.isArray(blocks) && blocks.length > 0
+  const hasVitalBlocksData = (blocks: unknown[] | null ) => Array.isArray(blocks) && blocks.length > 0
 
-  const hasAnesthesiaSetupData = (setupPayload: any) => Array.isArray(setupPayload) && setupPayload.length > 0
+  const hasAnesthesiaSetupData = (setupPayload: unknown[] | null) => Array.isArray(setupPayload) && setupPayload.length > 0
 
   const preAnesthesia = watch('preAnesthesia')
   const vitalMonitoring = watch('vitalMonitoring')
   const anesthesiaSetup = watch('anesthesiaSetup')
   const recoveryAndReversal = watch('recoveryAndReversal')
 
-  const sectionHasData = (sectionId: any) => {
+  const sectionHasData = (sectionId: Id) => {
     switch (sectionId) {
       case 'basicDetails': {
         const basic = methods.getValues('basicDetails') || {}
@@ -2020,9 +2198,9 @@ export default function AddAnesthesiaRecord() {
       }
 
       case 'anesthesiaSetUp': {
-        const setup: any = anesthesiaSetup || {}
+        const setup: Record<string, { checked?: boolean } | undefined> = anesthesiaSetup || {}
 
-        return Object.values(setup).some((sec: any) => sec && sec.checked)
+        return Object.values(setup).some((sec) => sec && sec.checked)
       }
 
       case 'preAnesthesia': {
@@ -2162,7 +2340,7 @@ export default function AddAnesthesiaRecord() {
 
             <Tabs
               value={expanded}
-              onChange={(e: any, val: any) => handleChange(val)}
+              onChange={(_e, val: string) => handleChange(val)}
               variant='scrollable'
               scrollButtons='auto'
               sx={{
@@ -2174,7 +2352,7 @@ export default function AddAnesthesiaRecord() {
                 }
               }}
             >
-              {getSections(t).map((sec: any) => {
+              {getSections(t).map((sec: SectionEntry) => {
                 const isDisabled =
                   (sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id) ||
                   (sec.id !== 'basicDetails' && !isBasicDetailsValid)
@@ -2214,7 +2392,7 @@ export default function AddAnesthesiaRecord() {
               }
             }}
           >
-            {getSections(t).map(({ id, label, component: SectionComponent }: any) => {
+            {getSections(t).map(({ id, label, component: SectionComponent }: SectionEntry) => {
               const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
               const hasData = !isDisabled && sectionHasData(id)
 
@@ -2223,7 +2401,7 @@ export default function AddAnesthesiaRecord() {
                   key={id}
                   expanded={expanded === id}
                   onChange={() => handleChange(id)}
-                  ref={(el: any) => (sectionRefs.current[id] = el)}
+                  ref={(el: HTMLElement | null) => { sectionRefs.current[id] = el }}
                   sx={{
                     mb: 2,
                     borderRadius: '8px',

@@ -3,10 +3,31 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, MenuItem, TextField, Typography, ToggleButton, ToggleButtonGroup, Radio } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 
 import VitalFormDialog from './VitalFormDialog'
+import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models'
+
+interface MeasurementFieldEntry {
+  value?: string | number | null
+  unit?: string | null
+}
+
+interface MeasurementInitialData {
+  selection?: string | number | null
+  value?: string | number | null
+  unit?: string
+  fieldsById?: Record<string, MeasurementFieldEntry>
+  [key: string]: unknown
+}
+
+interface MeasurementSubmissionData {
+  selection?: string | number
+  value?: string
+  unit?: string
+  [key: string]: unknown
+}
 import {
   measurementActionsSx,
   measurementCancelButtonSx,
@@ -24,10 +45,10 @@ import {
   createMeasurementFieldSx
 } from './sharedStyles'
 
-const prettifyOptionLabel = (opt: any) =>
+const prettifyOptionLabel = (opt: string | number) =>
   String(opt)
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, (ch: any) => ch.toUpperCase())
+    .replace(/\b\w/g, (ch: string) => ch.toUpperCase())
 
 const getToggleButtonStyles = (theme: any) => ({
   flex: 1,
@@ -55,7 +76,7 @@ const getToggleButtonStyles = (theme: any) => ({
   }
 })
 
-const getRadioStyles = (theme: any) => ({
+const getRadioStyles = (theme: Theme) => ({
   padding: 0,
   pointerEvents: 'none',
   '& .MuiSvgIcon-root': {
@@ -70,9 +91,9 @@ const getRadioStyles = (theme: any) => ({
 interface GenericMeasurementDialogProps {
   open: boolean
   onClose: () => void
-  onSubmit: (data: any) => void
-  sectionMeta?: any
-  initialData?: any
+  onSubmit: (data: MeasurementSubmissionData) => void
+  sectionMeta?: AnesthesiaSetup | null
+  initialData?: MeasurementInitialData | null
   timeLabel?: string
 }
 
@@ -85,9 +106,9 @@ export default function GenericMeasurementDialog({
   timeLabel = ''
 }: GenericMeasurementDialogProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
-  const fieldsMeta: any[] = sectionMeta?.fields || []
-  const firstField: any = fieldsMeta[0] ?? null
+  const theme: Theme = useTheme()
+  const fieldsMeta: AnesthesiaSetupFields[] = sectionMeta?.fields || []
+  const firstField: AnesthesiaSetupFields | null = fieldsMeta[0] ?? null
 
   const isSingleNumber = fieldsMeta.length === 1 && firstField?.input_type === 'number'
   const isSingleRadio =
@@ -95,37 +116,37 @@ export default function GenericMeasurementDialog({
 
   const unitsForSingle = firstField?.units && firstField.units.length ? firstField.units : ['']
   const allUnits = useMemo(() => {
-    const u = fieldsMeta.flatMap((f: any) => f.units || [])
+    const u = fieldsMeta.flatMap((f: AnesthesiaSetupFields) => f.units || [])
     return Array.from(new Set(u.length ? u : ['']))
   }, [fieldsMeta])
 
-  const [singleValue, setSingleValue] = useState<any>('')
-  const [singleUnit, setSingleUnit] = useState<any>(unitsForSingle[0] ?? '')
+  const [singleValue, setSingleValue] = useState<string | number>('')
+  const [singleUnit, setSingleUnit] = useState<string>(unitsForSingle[0] ?? '')
   const singleFirstRef = useRef<HTMLInputElement | null>(null)
 
   const [selection, setSelection] = useState<string>('')
-  const firstToggleRef = useRef<any>(null)
+  const firstToggleRef = useRef<HTMLButtonElement | null>(null)
 
   const buildInitialMulti = () => {
-    const obj: any = {}
-    fieldsMeta.forEach((f: any) => {
-      obj[f.field_key] = initialData?.[f.field_key] ?? ''
+    const obj: Record<string, string | number> = {}
+    fieldsMeta.forEach((f: AnesthesiaSetupFields) => {
+      obj[f.field_key] = (initialData?.[f.field_key] as string | number) ?? ''
     })
     return obj
   }
-  const [multiValues, setMultiValues] = useState<any>(buildInitialMulti)
-  const [multiUnit, setMultiUnit] = useState<any>(allUnits[0] ?? '')
+  const [multiValues, setMultiValues] = useState<Record<string, string | number>>(buildInitialMulti)
+  const [multiUnit, setMultiUnit] = useState<string>(allUnits[0] ?? '')
   const multiFirstRef = useRef<HTMLInputElement | null>(null)
 
-  const focusFirst = (ref: any) => setTimeout(() => ref?.current?.focus?.(), 0)
+  const focusFirst = (ref: React.RefObject<HTMLElement | null>) => setTimeout(() => ref?.current?.focus?.(), 0)
 
   useEffect(() => {
     if (open) {
       {
         console.log(initialData, 'initialData')
       }
-      setSingleValue(initialData?.value ?? initialData?.[firstField?.field_key] ?? '')
-      setSingleUnit(initialData?.unit ?? initialData?.[firstField?.field_key + '_unit'] ?? unitsForSingle[0] ?? '')
+      setSingleValue(initialData?.value ?? (initialData?.[firstField?.field_key ?? ''] as string | number | null | undefined) ?? '')
+      setSingleUnit(initialData?.unit ?? (initialData?.[(firstField?.field_key ?? '') + '_unit'] as string | undefined) ?? unitsForSingle[0] ?? '')
 
       setSelection(
         initialData?.selection != null
@@ -136,8 +157,8 @@ export default function GenericMeasurementDialog({
       )
 
       setMultiValues(
-        fieldsMeta.reduce((acc: any, f: any) => {
-          acc[f.field_key] = initialData?.[f.field_key] ?? ''
+        fieldsMeta.reduce((acc: Record<string, string | number>, f: AnesthesiaSetupFields) => {
+          acc[f.field_key] = (initialData?.[f.field_key] as string | number) ?? ''
           return acc
         }, {})
       )
@@ -164,7 +185,7 @@ export default function GenericMeasurementDialog({
   }
 
   const handleMultiSubmit = () => {
-    if (!Object.values(multiValues).some((v: any) => String(v).trim() !== '')) return
+    if (!Object.values(multiValues).some((v: string | number) => String(v).trim() !== '')) return
     onSubmit({ ...multiValues, unit: multiUnit })
   }
 
@@ -259,7 +280,7 @@ export default function GenericMeasurementDialog({
                   theme.palette.customColors?.neutralSecondary
                 )}
               >
-                {unitsForSingle.map((option: any) => (
+                {unitsForSingle.map((option: string) => (
                   <MenuItem key={String(option || '__none')} value={option || ''}>
                     {option || '—'}
                   </MenuItem>
@@ -314,13 +335,13 @@ export default function GenericMeasurementDialog({
             <ToggleButtonGroup
               value={selection}
               exclusive
-              onChange={(event: any, value: any) => {
+              onChange={(_event, value: string | null) => {
                 if (value == null) return
                 setSelection(String(value))
               }}
               sx={{ display: 'flex', gap: '12px' }}
             >
-              {options.map((opt: any, index: number) => {
+              {options.map((opt: string, index: number) => {
                 const value = String(opt)
                 const label = prettifyOptionLabel(opt)
                 return (
@@ -367,14 +388,14 @@ export default function GenericMeasurementDialog({
         }}
         sx={measurementFieldsContainerSx}
       >
-        {fieldsMeta.map((f: any, idx: number) => (
+        {fieldsMeta.map((f: AnesthesiaSetupFields, idx: number) => (
           <Box key={f.field_key} sx={{ mb: 1 }}>
             <Typography sx={measurementFieldLabelSx(theme)}>{f.field_label}</Typography>
             <TextField
               fullWidth
               placeholder={(t('hospital_module.enter_value') as string)}
               value={multiValues[f.field_key] ?? ''}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setMultiValues((prev: any) => ({ ...prev, [f.field_key]: event.target.value }))}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setMultiValues((prev: Record<string, string | number>) => ({ ...prev, [f.field_key]: event.target.value }))}
               type={f.input_type === 'number' ? 'number' : 'text'}
               inputProps={f.input_type === 'number' ? { min: 0, inputMode: 'decimal' } : {}}
               sx={createMeasurementFieldSx(
@@ -400,7 +421,7 @@ export default function GenericMeasurementDialog({
               theme.palette.customColors?.neutralSecondary
             )}
           >
-            {allUnits.map((option: any) => (
+            {allUnits.map((option: string) => (
               <MenuItem key={String(option || '__none')} value={option || ''}>
                 {option || '—'}
               </MenuItem>

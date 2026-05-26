@@ -360,8 +360,8 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
     selectionType === 'site_species'
       ? speciesData
       : speciesview === 'select'
-      ? speciesData.filter(species => tempSelectedSpecies.includes(species.species_id))
-      : speciesData.filter(species => species.mapped_to_diet)
+        ? speciesData.filter(species => tempSelectedSpecies.includes(species.species_id))
+        : speciesData.filter(species => species.mapped_to_diet)
 
   return (
     <Drawer
@@ -407,169 +407,384 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
       </Box>
       <Grid size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         {!selectionType ? null : (
-        <TabContext value={selectionType}>
-          {checkForSite !== 'site_species' && speciesview === 'details' ? (
-            <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
-              <Tab
-                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '33.33%' }}
-                value='species'
-                label={`SPECIES - ${selectionType === 'species' && !loading ? speciestotalcount || '' : '0'}`}
-              />
-              <Tab
-                style={{ borderRadius: 0, width: '33.33%' }}
-                value='animals'
-                label={`ANIMALS - ${selectionType === 'animals' && !loading ? speciestotalcount || '' : '0'}`}
-              />
-              <Tab
-                style={{ borderRadius: 0, width: '33.33%' }}
-                value='site_species'
-                label={`SITE SPECIES`}
+          <TabContext value={selectionType}>
+            {checkForSite !== 'site_species' && speciesview === 'details' ? (
+              <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
+                <Tab
+                  style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '33.33%' }}
+                  value='species'
+                  label={`SPECIES - ${selectionType === 'species' && !loading ? speciestotalcount || '' : '0'}`}
+                />
+                <Tab
+                  style={{ borderRadius: 0, width: '33.33%' }}
+                  value='animals'
+                  label={`ANIMALS - ${selectionType === 'animals' && !loading ? speciestotalcount || '' : '0'}`}
+                />
+                <Tab
+                  style={{ borderRadius: 0, width: '33.33%' }}
+                  value='site_species'
+                  label={`SITE SPECIES`}
                 //label={`SITE SPECIES - ${selectionType === 'site_species' && !loading ? speciestotalcount || '' : '0'}`}
-              />
-            </TabList>
-          ) : (
-            ''
-          )}
-          {speciesview === 'details' ? (
-            <Grid size={{ md: 8, sm: 8, xs: 8 }}>
-              <Box
-                sx={{
-                  bgcolor: 'background.default',
-                  p: '16px',
-                  borderRadius: '0px',
-                  width: '100%',
-                  overflowY: 'auto',
-                  '&::-webkit-scrollbar': {
-                    width: 0,
-                    height: 0
-                  },
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none'
-                }}
-              >
-                <>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '50px',
-                      mb: 0,
-                      backgroundColor: theme.palette.background.paper,
-                      ml: '10px',
-                      mr: '5px'
-                    }}
-                  >
-                    <Icon icon='mi:search' />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search'
-                      value={searchQuery}
-                      onChange={handleSearch}
-                      sx={{
-                        flex: 1,
-                        mx: 1,
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                    {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
-                  </Box>
-                </>
-              </Box>
-            </Grid>
-          ) : (
-            ''
-          )}
-          <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
-            <Box
-              sx={{
-                backgroundColor: theme.palette.background.default,
-                overflowY: 'auto',
-                height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
-                px: 4,
-                pb: 4
-              }}
-              onScroll={handleScroll}
-            >
-              {!loading && speciesData?.length === 0 ? (
+                />
+              </TabList>
+            ) : (
+              ''
+            )}
+            {speciesview === 'details' ? (
+              <Grid size={{ md: 8, sm: 8, xs: 8 }}>
                 <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '70%',
-                    textAlign: 'center'
+                    bgcolor: 'background.default',
+                    p: '16px',
+                    borderRadius: '0px',
+                    width: '100%',
+                    overflowY: 'auto',
+                    '&::-webkit-scrollbar': {
+                      width: 0,
+                      height: 0
+                    },
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none'
                   }}
                 >
-                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.secondary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      textAlign: 'center'
-                    }}
-                  >
-                    No Species assigned
-                  </Typography>
-                </Box>
-              ) : (
-                <>
-                  {speciesview === 'select' ? (
-                    <ListItem
+                  <>
+                    <Box
                       sx={{
-                        backgroundColor: theme.palette.background.paper,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 3,
-                        borderRadius: '8px'
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '4px',
+                        padding: '0 8px',
+                        height: '50px',
+                        mb: 0,
+                        backgroundColor: theme.palette.background.paper,
+                        ml: '10px',
+                        mr: '5px'
                       }}
                     >
-                      <ListItemAvatar>
-                        <Avatar
-                          src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
-                          alt={dietDetails.diet_name}
-                        />
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={dietDetails.diet_name}
-                        slotProps={{
-                          primary: {
-                            sx: {
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: '16px',
-                              fontWeight: 600
+                      <Icon icon='mi:search' />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search'
+                        value={searchQuery}
+                        onChange={handleSearch}
+                        sx={{
+                          flex: 1,
+                          mx: 1,
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
                             }
                           }
                         }}
-                        secondary={
+                      />
+                      {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
+                    </Box>
+                  </>
+                </Box>
+              </Grid>
+            ) : (
+              ''
+            )}
+            <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.background.default,
+                  overflowY: 'auto',
+                  height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
+                  px: 4,
+                  pb: 4
+                }}
+                onScroll={handleScroll}
+              >
+                {!loading && speciesData?.length === 0 ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '70%',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: theme.palette.secondary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        textAlign: 'center'
+                      }}
+                    >
+                      No Species assigned
+                    </Typography>
+                  </Box>
+                ) : (
+                  <>
+                    {speciesview === 'select' ? (
+                      <ListItem
+                        sx={{
+                          backgroundColor: theme.palette.background.paper,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 3,
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <ListItemAvatar>
+                          <Avatar
+                            src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
+                            alt={dietDetails.diet_name}
+                          />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={dietDetails.diet_name}
+                          slotProps={{
+                            primary: {
+                              sx: {
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                fontSize: '16px',
+                                fontWeight: 600
+                              }
+                            }
+                          }}
+                          secondary={
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                fontSize: '16px',
+                                fontWeight: 400
+                              }}
+                            >
+                              {dietDetails.diet_no}
+                            </Typography>
+                          }
+                        ></ListItemText>
+                      </ListItem>
+                    ) : (
+                      ''
+                    )}
+                    <>
+                      {!loading ? (
+                        speciesview === 'select' ? (
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              pb: 1
+                            }}
+                          >
+                            {tempSelectedSpecies?.length} Species Selected
+                          </Typography>
+                        ) : (
                           <Typography
                             variant='body2'
                             sx={{
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: '16px',
-                              fontWeight: 400
+                              color: theme.palette.secondary.dark,
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              pb: 1
                             }}
                           >
-                            {dietDetails.diet_no}
+                            {speciestotalcount || ''} Species
                           </Typography>
-                        }
-                      ></ListItemText>
-                    </ListItem>
-                  ) : (
-                    ''
-                  )}
+                        )
+                      ) : (
+                        <Typography>{''}</Typography>
+                      )}
+                    </>
+                    <List
+                      sx={{
+                        mb: speciesview === 'select' ? '12%' : '0%'
+                      }}
+                    >
+                      {loading && pageNo === 1 ? (
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                            <CircularProgress />
+                          </Box>
+                        </CardContent>
+                      ) : (
+                        <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
+                          {/* Header Row */}
+                          {loading && pageNo === 1 ? (
+                            <CardContent>
+                              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                                <CircularProgress />
+                              </Box>
+                            </CardContent>
+                          ) : (
+                            <>
+                              {/* Header */}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  p: 3,
+                                  borderRadius: '5px'
+                                }}
+                              >
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '60%',
+                                    pl: 3
+                                  }}
+                                >
+                                  Species
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '30%'
+                                  }}
+                                >
+                                  Mark as Primary
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '12%'
+                                  }}
+                                >
+                                  Remove
+                                </Typography>
+                              </Box>
+
+                              {/* Species List */}
+                              {mappedSpecies.map((species, index) => (
+                                <ListItem
+                                  key={species.assign_id}
+                                  sx={{
+                                    backgroundColor: theme.palette.background.paper,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    borderBottom:
+                                      index !== speciesData.length - 1
+                                        ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                        : 'none',
+                                    px: 3,
+                                    py: 3.5,
+
+                                    borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                                    borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                                    borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'flex-start',
+                                      gap: 2,
+                                      width: '60%',
+                                      minHeight: '100%'
+                                    }}
+                                  >
+                                    <SpeciesCard species={species} edit={true} />
+                                  </Box>
+
+                                  <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
+                                    <Switch
+                                      checked={
+                                        primaryStatus[
+                                        selectionType === 'species' ? species.species_id : species.animal_id
+                                        ] === '1'
+                                      }
+                                      onChange={() => handleTogglePrimary(species)}
+                                      color='primary'
+                                    />
+                                  </Box>
+
+                                  <Box sx={{ width: '12%', textAlign: 'right' }}>
+                                    <IconButton
+                                      edge='end'
+                                      onClick={() => handleRemovenew(species)}
+                                      sx={{
+                                        color: theme.palette.error.dark,
+                                        mr: 3
+                                      }}
+                                    >
+                                      <Icon icon='carbon:close-outline' fontSize={24} />
+                                    </IconButton>
+                                  </Box>
+                                </ListItem>
+                              ))}
+                            </>
+                          )}
+                        </Box>
+                      )}
+                      {!loading && isLoadingMore && (
+                        <Box
+                          sx={{
+                            position: 'fixed',
+                            bottom: '155px',
+                            transform: 'translateX(217px)',
+                            zIndex: 999,
+                            justifyContent: 'center',
+                            display: 'flex'
+                          }}
+                        >
+                          <CircularProgress />
+                        </Box>
+                      )}
+                    </List>
+                  </>
+                )}
+              </Box>
+            </TabPanel>
+
+            <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.background.default,
+                  overflowY: 'auto',
+                  height: 'calc(100vh - 23rem)',
+                  px: 4,
+                  pb: 4
+                }}
+                onScroll={handleScroll}
+              >
+                {!loading && speciesData?.length === 0 ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '70%',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: theme.palette.secondary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        textAlign: 'center'
+                      }}
+                    >
+                      {t('diet_module.no_animals_assigned')}
+                    </Typography>
+                  </Box>
+                ) : (
                   <>
                     {!loading ? (
                       speciesview === 'select' ? (
@@ -591,674 +806,458 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                             pb: 1
                           }}
                         >
-                          {speciestotalcount || ''} Species
+                          {speciestotalcount || ''} {t('navigation.animals')}
                         </Typography>
                       )
                     ) : (
                       <Typography>{''}</Typography>
                     )}
-                  </>
-                  <List
-                    sx={{
-                      mb: speciesview === 'select' ? '12%' : '0%'
-                    }}
-                  >
-                    {loading && pageNo === 1 ? (
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                          <CircularProgress />
-                        </Box>
-                      </CardContent>
-                    ) : (
-                      <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
-                        {/* Header Row */}
-                        {loading && pageNo === 1 ? (
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                              <CircularProgress />
-                            </Box>
-                          </CardContent>
-                        ) : (
-                          <>
-                            {/* Header */}
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 3,
-                                borderRadius: '5px'
-                              }}
-                            >
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '60%',
-                                  pl: 3
-                                }}
-                              >
-                                Species
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '30%'
-                                }}
-                              >
-                                Mark as Primary
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '12%'
-                                }}
-                              >
-                                Remove
-                              </Typography>
-                            </Box>
 
-                            {/* Species List */}
-                            {mappedSpecies.map((species, index) => (
-                              <ListItem
-                                key={species.assign_id}
-                                sx={{
-                                  backgroundColor: theme.palette.background.paper,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  borderBottom:
-                                    index !== speciesData.length - 1
-                                      ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                      : 'none',
-                                  px: 3,
-                                  py: 3.5,
-
-                                  borderRadius: mappedSpecies.length > 1 ? '' : '5px',
-                                  borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
-                                  borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    gap: 2,
-                                    width: '60%',
-                                    minHeight: '100%'
-                                  }}
-                                >
-                                  <SpeciesCard species={species} edit={true} />
-                                </Box>
-
-                                <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
-                                  <Switch
-                                    checked={
-                                      primaryStatus[
-                                        selectionType === 'species' ? species.species_id : species.animal_id
-                                      ] === '1'
-                                    }
-                                    onChange={() => handleTogglePrimary(species)}
-                                    color='primary'
-                                  />
-                                </Box>
-
-                                <Box sx={{ width: '12%', textAlign: 'right' }}>
-                                  <IconButton
-                                    edge='end'
-                                    onClick={() => handleRemovenew(species)}
-                                    sx={{
-                                      color: theme.palette.error.dark,
-                                      mr: 3
-                                    }}
-                                  >
-                                    <Icon icon='carbon:close-outline' fontSize={24} />
-                                  </IconButton>
-                                </Box>
-                              </ListItem>
-                            ))}
-                          </>
-                        )}
-                      </Box>
-                    )}
-                    {!loading && isLoadingMore && (
-                      <Box
-                        sx={{
-                          position: 'fixed',
-                          bottom: '155px',
-                          transform: 'translateX(217px)',
-                          zIndex: 999,
-                          justifyContent: 'center',
-                          display: 'flex'
-                        }}
-                      >
-                        <CircularProgress />
-                      </Box>
-                    )}
-                  </List>
-                </>
-              )}
-            </Box>
-          </TabPanel>
-
-          <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
-            <Box
-              sx={{
-                backgroundColor: theme.palette.background.default,
-                overflowY: 'auto',
-                height: 'calc(100vh - 23rem)',
-                px: 4,
-                pb: 4
-              }}
-              onScroll={handleScroll}
-            >
-              {!loading && speciesData?.length === 0 ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '70%',
-                    textAlign: 'center'
-                  }}
-                >
-                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.secondary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {t('diet_module.no_animals_assigned')}
-                  </Typography>
-                </Box>
-              ) : (
-                <>
-                  {!loading ? (
-                    speciesview === 'select' ? (
-                      <Typography
-                        sx={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          pb: 1
-                        }}
-                      >
-                        {tempSelectedSpecies?.length} Species Selected
-                      </Typography>
-                    ) : (
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme.palette.secondary.dark,
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          pb: 1
-                        }}
-                      >
-                        {speciestotalcount || ''} {t('navigation.animals')}
-                      </Typography>
-                    )
-                  ) : (
-                    <Typography>{''}</Typography>
-                  )}
-
-                  <List
-                    sx={{
-                      mb: speciesview === 'select' ? '12%' : '0%'
-                    }}
-                  >
-                    {loading && pageNo === 1 ? (
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                          <CircularProgress />
-                        </Box>
-                      </CardContent>
-                    ) : (
-                      <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
-                        {/* Header Row */}
-                        {loading && pageNo === 1 ? (
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                              <CircularProgress />
-                            </Box>
-                          </CardContent>
-                        ) : (
-                          <>
-                            {/* Header */}
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 2,
-                                mb: 2,
-                                borderRadius: '5px'
-                              }}
-                            >
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '60%',
-                                  pl: 3
-                                }}
-                              >
-                                {t('diet_module.animals')}
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '30%'
-                                }}
-                              >
-                                {t('diet_module.mark_as_primary')}
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '12%'
-                                }}
-                              >
-                                {t('remove')}
-                              </Typography>
-                            </Box>
-
-                            {/* Species List */}
-                            {mappedSpecies.map((species, index) => (
-                              <ListItem
-                                key={species.assign_id}
-                                sx={{
-                                  backgroundColor: theme.palette.background.paper,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  borderBottom:
-                                    index !== speciesData.length - 1
-                                      ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                      : 'none',
-                                  px: 3,
-                                  py: 3.5,
-                                  borderRadius: mappedSpecies.length > 1 ? '' : '5px',
-                                  borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
-                                  borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    gap: 2,
-                                    width: '60%',
-                                    minHeight: '100%'
-                                  }}
-                                >
-                                  <AnimalCard data={species} size='16px' edit={true} />
-                                </Box>
-
-                                <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
-                                  <Switch
-                                    checked={
-                                      primaryStatus[
-                                        selectionType === 'species' ? species.species_id : species.animal_id
-                                      ] === '1'
-                                    }
-                                    onChange={() => handleTogglePrimary(species)}
-                                    color='primary'
-                                  />
-                                </Box>
-
-                                <Box sx={{ width: '12%', textAlign: 'right' }}>
-                                  <IconButton
-                                    edge='end'
-                                    onClick={() => handleRemovenew(species)}
-                                    sx={{
-                                      color: theme.palette.error.dark,
-                                      mr: 3
-                                    }}
-                                  >
-                                    <Icon icon='carbon:close-outline' fontSize={24} />
-                                  </IconButton>
-                                </Box>
-                              </ListItem>
-                            ))}
-                          </>
-                        )}
-                      </Box>
-                    )}
-                    {!loading && isLoadingMore && (
-                      <Box
-                        sx={{
-                          position: 'fixed',
-                          bottom: '155px',
-                          transform: 'translateX(217px)',
-                          zIndex: 999,
-                          justifyContent: 'center',
-                          display: 'flex'
-                        }}
-                      >
-                        <CircularProgress />
-                      </Box>
-                    )}
-                  </List>
-                </>
-              )}
-            </Box>
-          </TabPanel>
-
-          <TabPanel value='site_species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
-            <Box
-              sx={{
-                backgroundColor: theme.palette.background.default,
-                overflowY: 'auto',
-                height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
-                px: 4,
-                pb: 4
-              }}
-              onScroll={handleScroll}
-            >
-              {!loading && speciesData?.length === 0 ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '70%',
-                    textAlign: 'center'
-                  }}
-                >
-                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.secondary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {t('diet_module.no_species_assigned')}
-                  </Typography>
-                </Box>
-              ) : (
-                <>
-                  {speciesview === 'select' ? (
-                    <ListItem
+                    <List
                       sx={{
-                        backgroundColor: theme.palette.background.paper,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 3,
-                        borderRadius: '8px'
+                        mb: speciesview === 'select' ? '12%' : '0%'
                       }}
                     >
-                      <ListItemAvatar>
-                        <Avatar
-                          src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
-                          alt={dietDetails.diet_name}
-                        />
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={dietDetails.diet_name}
-                        slotProps={{
-                          primary: {
-                            sx: {
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: '16px',
-                              fontWeight: 600
-                            }
-                          }
-                        }}
-                        secondary={
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: '16px',
-                              fontWeight: 400
-                            }}
-                          >
-                            {dietDetails.diet_no}
-                          </Typography>
-                        }
-                      ></ListItemText>
-                    </ListItem>
-                  ) : (
-                    ''
-                  )}
-                  <>
-                    {!loading ? (
-                      speciesview === 'select' ? (
-                        <Typography
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            pb: 1
-                          }}
-                        >
-                          {tempSelectedSpecies?.length} {t('diet_module.species_selected')}
-                        </Typography>
+                      {loading && pageNo === 1 ? (
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                            <CircularProgress />
+                          </Box>
+                        </CardContent>
                       ) : (
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme.palette.secondary.dark,
-                            fontSize: '14px',
-                            fontWeight: 600,
-                            pb: 1
-                          }}
-                        >
-                          {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
-                        </Typography>
-                      )
-                    ) : (
-                      <Typography>{''}</Typography>
-                    )}
-                  </>
-                  <List
-                    sx={{
-                      mb: speciesview === 'select' ? '12%' : '0%'
-                    }}
-                  >
-                    {loading && pageNo === 1 ? (
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                          <CircularProgress />
-                        </Box>
-                      </CardContent>
-                    ) : (
-                      <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
-                        {loading && pageNo === 1 ? (
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                              <CircularProgress />
-                            </Box>
-                          </CardContent>
-                        ) : (
-                          <>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                p: 3,
-                                borderRadius: '5px'
-                              }}
-                            >
-                              <Typography
-                                variant='body1'
+                        <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
+                          {/* Header Row */}
+                          {loading && pageNo === 1 ? (
+                            <CardContent>
+                              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                                <CircularProgress />
+                              </Box>
+                            </CardContent>
+                          ) : (
+                            <>
+                              {/* Header */}
+                              <Box
                                 sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '60%',
-                                  pl: 3
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  p: 2,
+                                  mb: 2,
+                                  borderRadius: '5px'
                                 }}
                               >
-                                {t('navigation.species')}
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '30%'
-                                }}
-                              >
-                                {t('diet_module.mark_as_primary')}
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontWeight: '600',
-                                  fontSize: '14px',
-                                  color: theme.palette.customColors.customTextColorGray2,
-                                  width: '12%'
-                                }}
-                              >
-                                {t('remove')}
-                              </Typography>
-                            </Box>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '60%',
+                                    pl: 3
+                                  }}
+                                >
+                                  {t('diet_module.animals')}
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '30%'
+                                  }}
+                                >
+                                  {t('diet_module.mark_as_primary')}
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '12%'
+                                  }}
+                                >
+                                  {t('remove')}
+                                </Typography>
+                              </Box>
 
-                            {mappedSpecies.map((site, siteIndex) => {
-                              if (!site.species || site.species.length === 0) return null
-
-                              return (
-                                <Box key={siteIndex}>
+                              {/* Species List */}
+                              {mappedSpecies.map((species, index) => (
+                                <ListItem
+                                  key={species.assign_id}
+                                  sx={{
+                                    backgroundColor: theme.palette.background.paper,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    borderBottom:
+                                      index !== speciesData.length - 1
+                                        ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                        : 'none',
+                                    px: 3,
+                                    py: 3.5,
+                                    borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                                    borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                                    borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
+                                  }}
+                                >
                                   <Box
                                     sx={{
                                       display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center',
-                                      px: 4,
-                                      py: 2,
-                                      background: theme.palette.customColors.Primary10
+                                      alignItems: 'flex-start',
+                                      gap: 2,
+                                      width: '60%',
+                                      minHeight: '100%'
                                     }}
                                   >
-                                    <Typography
-                                      sx={{
-                                        fontWeight: 700,
-                                        fontSize: '15px',
-                                        color: theme.palette.primary.dark
-                                      }}
-                                    >
-                                      Site Name : {site.site_name}
-                                    </Typography>
+                                    <AnimalCard data={species} size='16px' edit={true} />
+                                  </Box>
 
-                                    <Chip
-                                      label={`${
-                                        site.species?.length === 1
-                                          ? '1 Species'
-                                          : `${site.species?.length || 0} Species`
-                                      }`}
-                                      size='small'
-                                      sx={{
-                                        fontWeight: 700,
-                                        bgcolor: theme.palette.background.paper,
-                                        border: `1px solid ${theme.palette.primary.main}`
-                                      }}
+                                  <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
+                                    <Switch
+                                      checked={
+                                        primaryStatus[
+                                        selectionType === 'species' ? species.species_id : species.animal_id
+                                        ] === '1'
+                                      }
+                                      onChange={() => handleTogglePrimary(species)}
+                                      color='primary'
                                     />
                                   </Box>
 
-                                  {site.species?.map((species: any) => (
-                                    <ListItem
-                                      key={species.assign_id}
+                                  <Box sx={{ width: '12%', textAlign: 'right' }}>
+                                    <IconButton
+                                      edge='end'
+                                      onClick={() => handleRemovenew(species)}
                                       sx={{
-                                        backgroundColor: theme.palette.background.paper,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                        px: 3,
-                                        py: 3.5
+                                        color: theme.palette.error.dark,
+                                        mr: 3
                                       }}
                                     >
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'flex-start',
-                                          gap: 2,
-                                          width: '60%',
-                                          minHeight: '100%'
-                                        }}
-                                      >
-                                        <SpeciesCard species={species} edit={true} />
-                                      </Box>
+                                      <Icon icon='carbon:close-outline' fontSize={24} />
+                                    </IconButton>
+                                  </Box>
+                                </ListItem>
+                              ))}
+                            </>
+                          )}
+                        </Box>
+                      )}
+                      {!loading && isLoadingMore && (
+                        <Box
+                          sx={{
+                            position: 'fixed',
+                            bottom: '155px',
+                            transform: 'translateX(217px)',
+                            zIndex: 999,
+                            justifyContent: 'center',
+                            display: 'flex'
+                          }}
+                        >
+                          <CircularProgress />
+                        </Box>
+                      )}
+                    </List>
+                  </>
+                )}
+              </Box>
+            </TabPanel>
 
-                                      <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
-                                        <Switch
-                                          checked={
-                                            primaryStatus[
-                                              selectionType === 'site_species' ? species.assign_id : species.species_id
-                                            ] === '1'
-                                          }
-                                          onChange={() => handleTogglePrimary(species)}
-                                          color='primary'
-                                        />
-                                      </Box>
-
-                                      <Box sx={{ width: '12%', textAlign: 'right' }}>
-                                        <IconButton
-                                          edge='end'
-                                          onClick={() => handleRemoveSiteSpecies(species)}
-                                          sx={{
-                                            color: theme.palette.error.dark,
-                                            mr: 3
-                                          }}
-                                        >
-                                          <Icon icon='carbon:close-outline' fontSize={24} />
-                                        </IconButton>
-                                      </Box>
-                                    </ListItem>
-                                  ))}
-                                </Box>
-                              )
-                            })}
-                          </>
-                        )}
-                      </Box>
-                    )}
-
-                    {!loading && isLoadingMore && (
-                      <Box
+            <TabPanel value='site_species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.background.default,
+                  overflowY: 'auto',
+                  height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
+                  px: 4,
+                  pb: 4
+                }}
+                onScroll={handleScroll}
+              >
+                {!loading && speciesData?.length === 0 ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '70%',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: theme.palette.secondary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        textAlign: 'center'
+                      }}
+                    >
+                      {t('diet_module.no_species_assigned')}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <>
+                    {speciesview === 'select' ? (
+                      <ListItem
                         sx={{
-                          position: 'fixed',
-                          bottom: '155px',
-                          transform: 'translateX(217px)',
-                          zIndex: 999,
+                          backgroundColor: theme.palette.background.paper,
+                          display: 'flex',
+                          alignItems: 'center',
                           justifyContent: 'center',
-                          display: 'flex'
+                          mb: 3,
+                          borderRadius: '8px'
                         }}
                       >
-                        <CircularProgress />
-                      </Box>
+                        <ListItemAvatar>
+                          <Avatar
+                            src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
+                            alt={dietDetails.diet_name}
+                          />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={dietDetails.diet_name}
+                          slotProps={{
+                            primary: {
+                              sx: {
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                fontSize: '16px',
+                                fontWeight: 600
+                              }
+                            }
+                          }}
+                          secondary={
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                fontSize: '16px',
+                                fontWeight: 400
+                              }}
+                            >
+                              {dietDetails.diet_no}
+                            </Typography>
+                          }
+                        ></ListItemText>
+                      </ListItem>
+                    ) : (
+                      ''
                     )}
-                  </List>
-                </>
-              )}
-            </Box>
-          </TabPanel>
-        </TabContext>
+                    <>
+                      {!loading ? (
+                        speciesview === 'select' ? (
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              pb: 1
+                            }}
+                          >
+                            {tempSelectedSpecies?.length} {t('diet_module.species_selected')}
+                          </Typography>
+                        ) : (
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: theme.palette.secondary.dark,
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              pb: 1
+                            }}
+                          >
+                            {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
+                          </Typography>
+                        )
+                      ) : (
+                        <Typography>{''}</Typography>
+                      )}
+                    </>
+                    <List
+                      sx={{
+                        mb: speciesview === 'select' ? '12%' : '0%'
+                      }}
+                    >
+                      {loading && pageNo === 1 ? (
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                            <CircularProgress />
+                          </Box>
+                        </CardContent>
+                      ) : (
+                        <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
+                          {loading && pageNo === 1 ? (
+                            <CardContent>
+                              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                                <CircularProgress />
+                              </Box>
+                            </CardContent>
+                          ) : (
+                            <>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  p: 3,
+                                  borderRadius: '5px'
+                                }}
+                              >
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '60%',
+                                    pl: 3
+                                  }}
+                                >
+                                  {t('navigation.species')}
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '30%'
+                                  }}
+                                >
+                                  {t('diet_module.mark_as_primary')}
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    color: theme.palette.customColors.customTextColorGray2,
+                                    width: '12%'
+                                  }}
+                                >
+                                  {t('remove')}
+                                </Typography>
+                              </Box>
+
+                              {mappedSpecies.map((site, siteIndex) => {
+                                if (!site.species || site.species.length === 0) return null
+
+                                return (
+                                  <Box key={siteIndex}>
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        px: 4,
+                                        py: 2,
+                                        background: theme.palette.customColors.Primary10
+                                      }}
+                                    >
+                                      <Typography
+                                        sx={{
+                                          fontWeight: 700,
+                                          fontSize: '15px',
+                                          color: theme.palette.primary.dark
+                                        }}
+                                      >
+                                        Site Name : {site.site_name}
+                                      </Typography>
+
+                                      <Chip
+                                        label={`${site.species?.length === 1
+                                          ? '1 Species'
+                                          : `${site.species?.length || 0} Species`
+                                          }`}
+                                        size='small'
+                                        sx={{
+                                          fontWeight: 700,
+                                          bgcolor: theme.palette.background.paper,
+                                          border: `1px solid ${theme.palette.primary.main}`
+                                        }}
+                                      />
+                                    </Box>
+
+                                    {site.species?.map((species: any) => (
+                                      <ListItem
+                                        key={species.assign_id}
+                                        sx={{
+                                          backgroundColor: theme.palette.background.paper,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                          px: 3,
+                                          py: 3.5
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: 2,
+                                            width: '60%',
+                                            minHeight: '100%'
+                                          }}
+                                        >
+                                          <SpeciesCard species={species} edit={true} />
+                                        </Box>
+
+                                        <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
+                                          <Switch
+                                            checked={
+                                              primaryStatus[
+                                              selectionType === 'site_species' ? species.assign_id : species.species_id
+                                              ] === '1'
+                                            }
+                                            onChange={() => handleTogglePrimary(species)}
+                                            color='primary'
+                                          />
+                                        </Box>
+
+                                        <Box sx={{ width: '12%', textAlign: 'right' }}>
+                                          <IconButton
+                                            edge='end'
+                                            onClick={() => handleRemoveSiteSpecies(species)}
+                                            sx={{
+                                              color: theme.palette.error.dark,
+                                              mr: 3
+                                            }}
+                                          >
+                                            <Icon icon='carbon:close-outline' fontSize={24} />
+                                          </IconButton>
+                                        </Box>
+                                      </ListItem>
+                                    ))}
+                                  </Box>
+                                )
+                              })}
+                            </>
+                          )}
+                        </Box>
+                      )}
+
+                      {!loading && isLoadingMore && (
+                        <Box
+                          sx={{
+                            position: 'fixed',
+                            bottom: '155px',
+                            transform: 'translateX(217px)',
+                            zIndex: 999,
+                            justifyContent: 'center',
+                            display: 'flex'
+                          }}
+                        >
+                          <CircularProgress />
+                        </Box>
+                      )}
+                    </List>
+                  </>
+                )}
+              </Box>
+            </TabPanel>
+          </TabContext>
         )}
       </Grid>
       {/* bottom buttons */}

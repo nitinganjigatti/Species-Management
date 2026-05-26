@@ -79,8 +79,7 @@ const ManufacturerList = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 80,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -90,8 +89,8 @@ const ManufacturerList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 150,
+      flex: 1,
+      minWidth: 250,
       field: 'label',
       headerName: 'Manufacturer',
       renderCell: params => (
@@ -115,7 +114,7 @@ const ManufacturerList = () => {
 
     {
       flex: 0.2,
-      minWidth: 120,
+      minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -133,7 +132,7 @@ const ManufacturerList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 100,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (

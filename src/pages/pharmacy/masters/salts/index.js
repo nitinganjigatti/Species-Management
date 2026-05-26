@@ -4,7 +4,7 @@ import { getSalts, addSalt, updateSalt } from 'src/lib/api/pharmacy/salts'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import { Box, Typography, IconButton, Grid } from '@mui/material'
+import { Box, Typography, IconButton, Grid, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -77,9 +77,7 @@ const Salts = () => {
 
   const columns = [
     {
-      flex: 0.1,
-
-      minWidth: 80,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -89,28 +87,33 @@ const Salts = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 1,
 
-      minWidth: 100,
+      minWidth: 250,
       field: 'label',
       headerName: 'Salt',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          {params.row.label}
-        </Typography>
+        <Tooltip title={params.row.label}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.label}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
       flex: 0.2,
-      minWidth: 100,
+      minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -128,7 +131,7 @@ const Salts = () => {
     },
     {
       flex: 0.2,
-      minWidth: 100,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (

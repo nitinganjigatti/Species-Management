@@ -33,8 +33,18 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
   }
 }))
 
-const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRemoveImage = null }) => {
+const FileUploaderSingle = ({
+  files: availableFiles,
+  onImageUpload,
+  image,
+  onRemoveImage = null,
+  sizeValidation = false,
+  maxSizeInMB = 5
+}) => {
   const [files, setFiles] = useState([])
+  const [error, setError] = useState('')
+
+  const maxSize = maxSizeInMB * 1024 * 1024
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
@@ -42,18 +52,29 @@ const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRem
       'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
+      setError('')
+
+      // Size validation
+      if (sizeValidation && acceptedFiles[0]?.size > maxSize) {
+        setError(`File size exceeds ${maxSizeInMB} MB. Please upload a smaller file.`)
+        return
+      }
+
       onImageUpload(acceptedFiles.map(file => Object.assign(file)))
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
 
   useEffect(() => {
-    if (!availableFiles?.length)
+    if (!availableFiles?.length) {
       setFiles([])
+      setError('')
+    }
   }, [availableFiles])
 
   const handleRemoveImage = () => {
     setFiles([])
+    setError('')
     onImageUpload([])
     if (image && onRemoveImage) {
       onRemoveImage()
@@ -90,7 +111,11 @@ const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRem
             alt='Medicine Picture'
             className='single-file-image'
             src={files.length ? URL.createObjectURL(files[0]) : image}
-            style={{ maxHeight: '300px', maxWidth: '300px', objectFit: 'contain' }}
+            style={{
+              maxHeight: '300px',
+              maxWidth: '300px',
+              objectFit: 'contain'
+            }}
           />
         </Box>
       ) : (
@@ -121,6 +146,18 @@ const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRem
                 </Link>{' '}
                 through your machine
               </Typography>
+              {error && (
+                <Typography
+                  sx={{
+                    mt: 2,
+                    textAlign: 'center',
+                    fontSize: '16px',
+                    color: 'error.main'
+                  }}
+                >
+                  {error}
+                </Typography>
+              )}
             </div>
           </Box>
         </Box>

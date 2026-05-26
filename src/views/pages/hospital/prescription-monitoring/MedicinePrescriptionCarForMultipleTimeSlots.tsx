@@ -40,6 +40,34 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import RenderUtility from 'src/utility/render'
+import {
+  AdministerFormData,
+  BatchListState,
+  MedicineDetailState,
+  SelectedItem,
+  StopMedicineFormData
+} from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
+import { Id } from 'src/types/hospital'
+import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
+import { SelectOption } from 'src/types/necropsy'
+
+export interface MultipleTimeSlotsMedicineData extends MedicineDetailState {
+  defaultTab?: number | string
+  name?: string
+  scheduledTime?: string
+}
+export interface MultipleTimeSlotsDosageEntry extends MedicineDetailState {
+  scheduled_time?: string
+  scheduled_quantity?: string | number
+  scheduled_unit_name?: string
+  administritive_time?: string
+  quantity_administered?: string | number
+  wastage_quantity?: string | number
+  status?: string
+  user_full_name?: string
+  modified_at?: string | null
+  batch_details?: Array<{ batch_number?: string | number } & Record<string, unknown>>
+}   
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -90,38 +118,38 @@ const DosageHeader = styled(Box)<{ variant?: string }>(({ theme, variant }) => (
 interface MedicinePrescriptionCardForMultipleTimeSlotsProps {
   open: boolean
   onClose: () => void
-  medicineData?: any
-  dosageEntries?: any[]
-  dateOptions?: any[]
-  onStopMedicine?: (data: any) => void
+  medicineData?: MultipleTimeSlotsMedicineData
+  dosageEntries?: MultipleTimeSlotsDosageEntry[]   
+  dateOptions?: string[]
+  onStopMedicine?: (data: StopMedicineFormData) => void
   onAddNewDosage?: (medicine: any) => void
   onRefreshEntry?: (entryId: any, medicine: any) => void
   isDetailLoading?: boolean
-  selectedDate?: any
-  onAdministerSelected?: (items: any[], medicineData: any, formData: any) => void
-  onSkipSelected?: (items: any[], medicineData: any, formData: any) => void
+  selectedDate: string
+  onAdministerSelected?: (items: SelectedItem[], medicineData: MedicineDetailState, formData: AdministerFormData) => void
+  onSkipSelected?: (items: SelectedItem[], medicineData: MedicineDetailState, formData: AdministerFormData) => void
   isAdministerLoading?: boolean
   isSkipLoading?: boolean
-  selectedMedications: any[]
-  setSelectedMedications: React.Dispatch<React.SetStateAction<any[]>>
-  medicalMasterData?: any
+  selectedMedications: Id[]
+  setSelectedMedications: React.Dispatch<React.SetStateAction<Id[]>>
+  medicalMasterData?: MedicalMasterFormData
   mastersDataLoading?: boolean
-  batchList?: any[]
+  batchList?: BatchListState[]
   batchLoading?: boolean
-  handleBatchSearch?: (value: any) => void
+  handleBatchSearch?: (value: string) => void
   isControlledSubstance?: boolean
 }
 
 interface FormValues {
-  action: string
-  quantity: string
-  quantityUnit: string
-  wastageQuantity: string
-  wastageUnit: string
-  notes: string
-  batchNumber: any
-  attachment: any
-  skipReason: string
+  action?: string
+  quantity?: string
+  quantityUnit?: string
+  wastageQuantity?: string
+  wastageUnit?: string
+  notes?: string
+  batchNumber?: BatchListState | null
+  attachment?: File[] | null
+  skipReason?: string
 }
 
 // Main Component
@@ -303,17 +331,17 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     if (!open || isDetailLoading) return
 
     const pendingMedications = dosageEntries?.filter(
-      (item: any) => !item?.status || item?.status?.toLowerCase() === 'pending'
+      (item) => !item?.status || item?.status?.toLowerCase() === 'pending'
     )
 
     if (pendingMedications?.length === 1) {
       const singlePendingId = pendingMedications[0]?.administritive_id
-      if (!selectedMedications.includes(singlePendingId)) {
-        setSelectedMedications((prev: any[]) => {
+      if (!selectedMedications.includes(singlePendingId ?? '')) {
+        setSelectedMedications((prev: Id[]) => {
           if (isControlledSubstance) {
-            return [singlePendingId]
+            return [singlePendingId ?? '']
           } else {
-            return [...prev, singlePendingId]
+            return [...prev, singlePendingId ?? '']
           }
         })
       }
@@ -324,15 +352,15 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     autoSelectSinglePendingMedication()
   }, [autoSelectSinglePendingMedication])
 
-  const handleMedicationSelect = (medicationId: any, checked: boolean) => {
-    setSelectedMedications((prev: any[]) => {
+  const handleMedicationSelect = (medicationId: Id, checked: boolean) => {
+    setSelectedMedications((prev) => {
       if (isControlledSubstance) {
         return checked ? [medicationId] : []
       } else {
         if (checked) {
           return [...prev, medicationId]
         } else {
-          return prev.filter((id: any) => id !== medicationId)
+          return prev.filter((id: Id) => id !== medicationId)
         }
       }
     })
@@ -347,20 +375,20 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     }
   }
 
-  const handleAdministerSelected = (formData: any) => {
+  const handleAdministerSelected = (formData: FormValues) => {
     if (onAdministerSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter((item) =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onAdministerSelected(selectedItems, medicineData, formData)
       setIsSelectionMode(false)
     }
   }
 
-  const handleSkipSelected = (formData: any) => {
+  const handleSkipSelected = (formData: FormValues) => {
     if (onSkipSelected) {
-      const selectedItems = dosageEntries?.filter((item: any) =>
-        selectedMedications.includes(item?.administritive_id)
+      const selectedItems = dosageEntries?.filter((item) =>
+        selectedMedications.includes(item?.administritive_id ?? '')
       )
       onSkipSelected(selectedItems, medicineData, formData)
       setIsSelectionMode(false)
@@ -666,7 +694,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                    <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+                    <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Filter Icon' />
                     <Typography
                       sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
@@ -803,9 +831,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     pb: selectedMedications?.length == 1 ? 0 : 6
                   }}
                 >
-                  {dosageEntries?.map((item: any) => {
+                  {dosageEntries?.map((item) => {
                     const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
-                    const isSelected = selectedMedications.includes(item?.administritive_id)
+                    const isSelected = selectedMedications.includes(item?.administritive_id ?? '')
 
                     const isFutureTime = () => {
                       if (!selectedDate || !item?.scheduled_time) return false
@@ -835,11 +863,11 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     return isPending ? (
                       <MedicationTimeCard
                         key={item?.administritive_id}
-                        time={formatTime(item?.scheduled_time)}
+                        time={formatTime(item?.scheduled_time ?? '')}
                         dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                         amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                         checked={isSelected}
-                        onChange={(checked: boolean) => handleMedicationSelect(item?.administritive_id, checked)}
+                        onChange={(checked: boolean) => handleMedicationSelect(item?.administritive_id ?? '', checked)}
                         isControlledSubstance={isControlledSubstance}
                         disabled={!isAllowedDate()}
                       />
@@ -847,7 +875,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                       renderDosageEntry({
                         id: item?.administritive_id,
                         scheduledTime: item?.scheduled_time,
-                        time: formatTime(item?.administritive_time),
+                        time: formatTime(item?.administritive_time ?? ''),
                         status: item?.status || 'Pending',
                         dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                         amount:
@@ -953,8 +981,8 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           options={medicalMasterData?.prescriptionDosageMeasurementType}
-                                          getOptionLabel={(option: any) => option.label}
-                                          getOptionValue={(option: any) => option.value}
+                                          getOptionLabel={(option: SelectOption) => option.label}
+                                          getOptionValue={(option: SelectOption) => option.value}
                                           loading={mastersDataLoading}
                                         />
                                       </Grid>
@@ -985,20 +1013,21 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                               : 'Enter batch number if any (optional)'
                                           }
                                           options={batchList}
-                                          getOptionLabel={(option: any) => {
+                                          getOptionLabel={(option: unknown) => {
                                             if (typeof option === 'string') return option
+                                            const batch = option as BatchListState | undefined
 
-                                            return option?.label || option?.batch_no || ''
+                                            return String(batch?.batch_no || '')
                                           }}
-                                          getOptionValue={(option: any) => {
+                                          getOptionValue={(option: unknown) => {
                                             if (typeof option === 'string') return option
 
                                             return option
                                           }}
-                                          isOptionEqualToValue={(option: any, value: any) => {
+                                          isOptionEqualToValue={(option: unknown, value: unknown) => {
                                             if (!option || !value) return false
-                                            const optionId = option?.id
-                                            const valueId = value?.id
+                                            const optionId = (option as BatchListState)?.id
+                                            const valueId = (value as BatchListState)?.id
 
                                             return optionId === valueId
                                           }}
@@ -1006,7 +1035,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           onInputChange={handleBatchSearch}
                                           required={isControlledSubstance}
                                           autocompleteProps={{
-                                            filterOptions: (x: any) => x,
+                                            filterOptions: (x: unknown[]) => x,
                                             noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
                                           }}
                                         />

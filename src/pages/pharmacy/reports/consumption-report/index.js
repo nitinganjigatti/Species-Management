@@ -213,8 +213,7 @@ const ConsumptionReport = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -230,8 +229,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 340,
+      flex: 1,
+      minWidth: 340,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
@@ -248,8 +247,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 250,
       field: 'generic_name',
       sortable: true,
       headerName: 'GENERIC NAME',
@@ -267,8 +266,7 @@ const ConsumptionReport = () => {
                   fontWeight: 400,
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
+                  textOverflow: 'ellipsis'
                 }}
               >
                 {genericName}
@@ -294,8 +292,8 @@ const ConsumptionReport = () => {
       }
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'total_consumption_quantity',
       headerName: '',
       sortable: true,
@@ -329,8 +327,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'total_consumption_cost',
       headerName: '',
       sortable: true,
@@ -365,8 +363,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
+      flex: 0.2,
+      minWidth: 160,
       field: 'available_qty',
       headerName: '',
       sortable: true,
@@ -401,8 +399,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 250,
+      flex: 0.2,
+      minWidth: 160,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -416,8 +414,8 @@ const ConsumptionReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -426,8 +424,8 @@ const ConsumptionReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'package',
       headerName: 'PACKAGE',
       sortable: false,
@@ -444,8 +442,8 @@ const ConsumptionReport = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              textOverflow: 'ellipsis'
+              // maxWidth: 240
             }}
           >
             {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}

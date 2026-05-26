@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Box, Grid, styled, Tab, alpha, Typography } from '@mui/material'
+import { Box, Grid, styled, Tab, alpha, Typography, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -80,7 +80,7 @@ function InComingAndOutGoingShipments({ type }) {
 
   const shippedColumns = [
     {
-      minWidth: 120,
+      minWidth: 100,
       field: 'sl_no',
       headerName: 'Sl.No',
       align: 'left',
@@ -89,30 +89,36 @@ function InComingAndOutGoingShipments({ type }) {
       renderCell: (params, rowId) => <Typography sx={{ color: 'text.primary' }}>{params?.row?.sl_no}</Typography>
     },
     {
-      width: 130,
+      minWidth: 150,
+      flex: 0.2,
       field: 'shipment_id',
       headerName: 'Shipment Id',
       align: 'left',
       headerAlign: 'left',
       renderCell: (params, rowId) => (
         <div>
-          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '14px' }}>
-            {params?.row?.shipment_id}
-          </Typography>
+          <Tooltip title={params?.row?.shipment_id}>
+            <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '14px' }}>
+              {params?.row?.shipment_id}
+            </Typography>
+          </Tooltip>
         </div>
       )
     },
     {
-      width: 120,
+      minWidth: 120,
+      flex: 0.2,
       field: 'ro_no',
       headerName: type === 'outing' && selectedPharmacy.type === 'central' ? 'Type' : 'Belongs To',
       align: 'left',
       headerAlign: 'left',
 
       renderCell: params => (
-        <Typography sx={{ color: 'primary.OnSurface', fontWeight: 500, fontSize: '14px' }}>
-          {Number(params?.row?.request_count) > 1 ? '-' : params?.row?.ro_no}
-        </Typography>
+        <Tooltip title={params?.row?.ro_no}>
+          <Typography sx={{ color: 'primary.OnSurface', fontWeight: 500, fontSize: '14px' }}>
+            {Number(params?.row?.request_count) > 1 ? '-' : params?.row?.ro_no}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -124,51 +130,62 @@ function InComingAndOutGoingShipments({ type }) {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          {type === 'outing' ? params?.row?.to_store_name : params?.row?.from_store_name}
-        </Typography>
+        <Tooltip title={type === 'outing' ? params?.row?.to_store_name : params?.row?.from_store_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {type === 'outing' ? params?.row?.to_store_name : params?.row?.from_store_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
-      width: 120,
+      minWidth: 120,
+      flex: 0.2,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 500, fontSize: '14px' }}>
-          {params?.row?.vehicle_no ? params?.row?.vehicle_no : 'NA'}
-        </Typography>
+        <Tooltip title={params?.row?.vehicle_no ? params?.row?.vehicle_no : 'NA'}>
+          <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 500, fontSize: '14px' }}>
+            {params?.row?.vehicle_no ? params?.row?.vehicle_no : 'NA'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      width: 140,
+      minWidth: 140,
+      flex: 0.2,
       field: 'person_shipping',
       headerName: 'Driver Name',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
         <Box sx={{ py: 2 }}>
-          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 400, fontSize: '14px' }}>
-            {params?.row?.person_shipping ? params?.row?.person_shipping : params?.row?.receiver_name}
-          </Typography>
-          <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}>
-            {params?.row?.phone_number ? params?.row?.phone_number : 'NA'}
-          </Typography>
+          <Tooltip title={params?.row?.person_shipping ? params?.row?.person_shipping : params?.row?.receiver_name}>
+            <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 400, fontSize: '14px' }}>
+              {params?.row?.person_shipping ? params?.row?.person_shipping : params?.row?.receiver_name}
+            </Typography>
+          </Tooltip>
+          <Tooltip title={params?.row?.phone_number ? params?.row?.phone_number : 'NA'}>
+            <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}>
+              {params?.row?.phone_number ? params?.row?.phone_number : 'NA'}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
 
     {
-      width: 160,
+      minWidth: 160,
+      flex: 0.2,
       field: 'status',
       headerName: 'Status',
       align: 'left',
@@ -204,7 +221,8 @@ function InComingAndOutGoingShipments({ type }) {
       )
     },
     {
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
       align: 'left',

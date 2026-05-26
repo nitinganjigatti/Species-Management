@@ -7,15 +7,53 @@ import Utility from 'src/utility'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
 import { useSelector } from 'react-redux'
+import { GetAnimalJournalLogsParams, GetAnimalJournalLogsResponse } from 'src/types/housing/api/animal'
+import { AnimalJournalLog } from 'src/types/housing/models'
+import { FilterDate } from 'src/types/hospital/models'
+import { Id } from 'src/types/compliance'
 
 const STORAGE_KEY = 'medical_record_data'
+
+export interface MedicalSummaryFilters {
+  page: number
+  limit: number
+  q: string
+  module_filter: string
+  user_ids: string | number[]
+}
+
+export interface MedicalSummaryFilterDate {
+  startDate?: string
+  endDate?: string
+}
+
+export interface MedicalSummarySelectedOptions {
+  User: Id[]
+  'Medical Type'?: string[]
+}
+
+export interface JournalLogsPage {
+  data: AnimalJournalLog[]
+  result?: AnimalJournalLog[]
+  total_count?: number
+}
+
+export interface FetchJournalLogsArgs {
+  pageParam?: number
+}
+
+export interface AllMedicalEntries {
+  data?: AnimalJournalLog[];
+  result?: AnimalJournalLog[];
+  total_count?: number;
+}
 
 const InpatientMedicalSummary = () => {
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
   const animal_id = medicalRecordData?.animal_id
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<MedicalSummaryFilters>({
     page: 1,
     limit: 10,
     q: '',
@@ -25,13 +63,13 @@ const InpatientMedicalSummary = () => {
   const [searchValue, setSearchValue] = useState<string>('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
-  const [selectedOptions, setSelectedOptions] = useState<any>({ User: [] })
-  const [filterDate, setFilterDate] = useState<any>({})
+  const [selectedOptions, setSelectedOptions] = useState<MedicalSummarySelectedOptions>({ User: [] })
+  const [filterDate, setFilterDate] = useState<FilterDate>({})
 
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
-        setFilters((prev: any) => ({ ...prev, q: value }))
+        setFilters((prev: MedicalSummaryFilters) => ({ ...prev, q: value }))
       }, 500),
     []
   )
@@ -58,7 +96,7 @@ const InpatientMedicalSummary = () => {
   }
 
   // Drawer Apply Filters
-  const applyFilters = (selectedOptions: any) => {
+  const applyFilters = (selectedOptions: MedicalSummarySelectedOptions) => {
     const userIds = selectedOptions?.User || []
     const medicalType = selectedOptions?.['Medical Type']?.[0] || ''
 
@@ -73,7 +111,7 @@ const InpatientMedicalSummary = () => {
   }
 
   const fetchAnimalJournalLogs = async ({ pageParam = 1 }: any) => {
-    const params: any = {
+    const params: GetAnimalJournalLogsParams = {
       ...filters,
       page: pageParam,
       animal_id
@@ -87,14 +125,14 @@ const InpatientMedicalSummary = () => {
       params.end_date = (Utility as any).formatDate(filterDate?.endDate, 'YYYY-MM-DD')
     }
 
-    const res: any = await getAnimalJournalLogs(params)
+    const res = await getAnimalJournalLogs(params)
 
     return res?.data
   }
 
-  const getNextPageParam = (lastPage: any, pages: any[]) => {
+  const getNextPageParam = (lastPage: JournalLogsPage, pages: Array<JournalLogsPage>) => {
     const totalCount = Number(lastPage?.total_count) || 0
-    const fetchedCount = pages.reduce((sum: number, p: any) => sum + (p?.data?.length || 0), 0)
+    const fetchedCount = pages.reduce((sum: number, p: JournalLogsPage) => sum + (p?.data?.length || 0), 0)
 
     return fetchedCount < totalCount ? pages.length + 1 : undefined
   }
@@ -119,7 +157,7 @@ const InpatientMedicalSummary = () => {
     isFetchingNextPage,
     isLoading,
     isFetching
-  } = useInfiniteQuery<any>({
+  } = useInfiniteQuery<GetAnimalJournalLogsResponse>({
     queryKey,
     queryFn: fetchAnimalJournalLogs,
     getNextPageParam,
@@ -128,8 +166,8 @@ const InpatientMedicalSummary = () => {
   } as any)
 
   // Combine all pages of data
-  const allMedicalEntries = useMemo(() => {
-    return medicalSummaryData?.pages?.flatMap((page: any) => page?.data || []) || []
+  const allMedicalEntries: AllMedicalEntries[] = useMemo(() => {
+    return medicalSummaryData?.pages?.flatMap((page) => page?.data || []) || []
   }, [medicalSummaryData])
 
   const hasActiveFilters = useMemo(() => {
@@ -145,7 +183,7 @@ const InpatientMedicalSummary = () => {
   const observer = useRef<IntersectionObserver | undefined>(undefined)
 
   const lastTimelineRef = useCallback(
-    (node: HTMLElement | null) => {
+    (node: HTMLDivElement | null) => {
       if (isFetchingNextPage || !hasNextPage) return
       if (observer.current) observer.current.disconnect()
 

@@ -152,7 +152,7 @@ const ExpiredMedicine = () => {
     //   )
     // },
     {
-      flex: 1,
+      flex: 0.7,
       minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
@@ -164,6 +164,7 @@ const ExpiredMedicine = () => {
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={'auto'}
           />
         </Box>
       )
@@ -171,7 +172,8 @@ const ExpiredMedicine = () => {
     ...(storeId === 'all'
       ? [
           {
-            width: 200,
+            minWidth: 200,
+            flex: 0.2,
             field: 'store_name',
             headerName: 'Store Name',
             renderCell: params => (
@@ -192,7 +194,7 @@ const ExpiredMedicine = () => {
         ]
       : []),
     {
-      flex: 0.5,
+      flex: 0.2,
       minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch',
@@ -223,7 +225,7 @@ const ExpiredMedicine = () => {
     // },
 
     {
-      flex: 0.5,
+      flex: 0.2,
       minWidth: 150,
       field: 'expiry_date',
       headerName: 'Expiry Date',
@@ -242,7 +244,7 @@ const ExpiredMedicine = () => {
     },
 
     {
-      flex: 0.4,
+      flex: 0.2,
       minWidth: 120,
       sortable: false,
       field: 'stock_qty',

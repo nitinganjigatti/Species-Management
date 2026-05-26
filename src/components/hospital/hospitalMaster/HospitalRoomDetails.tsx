@@ -467,12 +467,12 @@ const HospitalRoomDetails = () => {
 
             Toaster({
               type: 'success',
-              message: response?.message || `Room ${editParams?.id ? 'updated' : 'added'} successfully`
+              message: response?.message || (editParams?.id ? t('hospital_module.room_updated_successfully') as string : t('hospital_module.room_added_successfully') as string)
             })
           } else {
             Toaster({
               type: 'success',
-              message: response?.message || `Room ${editParams?.id ? 'updated' : 'added'} successfully`
+              message: response?.message || (editParams?.id ? t('hospital_module.room_updated_successfully') as string : t('hospital_module.room_added_successfully') as string)
             })
           }
           if (id && selectedHospital?.id === id) {
@@ -666,10 +666,10 @@ const HospitalRoomDetails = () => {
     <>
       <DynamicBreadcrumbs
         pageItems={[
-          { title: 'Hospital' },
-          { title: 'Masters' },
-          { title: 'Hospital List', onClick: () => router.push('/hospital/masters/hospital') },
-          { title: 'Hospital Detail' }
+          { title: t('navigation.hospital') },
+          { title: t('navigation.masters') },
+          { title: t('hospital_module.hospital_list'), onClick: () => router.push('/hospital/masters/hospital') },
+          { title: t('hospital_module.hospital_detail') }
         ]}
         sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
       />

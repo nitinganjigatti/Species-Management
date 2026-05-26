@@ -9,6 +9,7 @@ import {
   Drawer,
   IconButton,
   Skeleton,
+  Theme,
   Typography,
   useTheme
 } from '@mui/material'
@@ -20,46 +21,68 @@ import Icon from 'src/@core/components/icon'
 import { getHospitalParamsFilterOptions, getParametersBasedOnFilters } from 'src/lib/api/hospital/treatmentMonitoring'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
+import {
+  GetHospitalParamsFilterOptionsResponse,
+  GetParametersBasedOnFiltersParams
+} from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
+import { HospitalParamsFilterOption, ParametersBasedOnFilters } from 'src/types/hospital/models'
+import { AssessmentFormItem } from './AddParameterDrawer'
 
 const PAGE_SIZE = 10
 
+interface FilterTab {
+  label: string
+  value: string
+  count: string | number
+}
+
+interface ParametersPage {
+  parameters: ParametersBasedOnFilters[]
+  nextPage: number | undefined
+  total_count: string | number
+}
+
+interface ParametersPageQueryArgs {
+  pageParam?: number
+}
+
 interface SelectParameterDrawerProps {
   open?: boolean
-  setOpen?: any
-  selectedAssessments?: any[]
-  setSelectedAssessments?: any
-  onAddSelected?: (selected: any[]) => void
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  selectedAssessments?: AssessmentFormItem[]
+  setSelectedAssessments?: React.Dispatch<React.SetStateAction<AssessmentFormItem[]>>
+  onAddSelected?: (selected: AssessmentFormItem[]) => void
 }
 
 const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSelectedAssessments, onAddSelected }: SelectParameterDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
   const queryClient = useQueryClient()
   const cooldownRef = useRef<boolean>(false)
 
   const [search, setSearch] = useState<string>('')
   const [localSearch, setLocalSearch] = useState<string>('')
-  const [paramsFilters, setParamsFilters] = useState<any[]>([])
+  const [paramsFilters, setParamsFilters] = useState<FilterTab[]>([])
   const [activeTab, setActiveTab] = useState<string>('')
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
-  const { data: filterData, isLoading: filterLoading } = useQuery<any>({
+  const { data: filterData, isLoading: filterLoading } = useQuery<GetHospitalParamsFilterOptionsResponse>({
     queryKey: ['hospital-parameters-filter'],
     queryFn: () => getHospitalParamsFilterOptions({ ref_type: 'animal' })
   })
 
   useEffect(() => {
     if (filterData?.success === true) {
-      const backendFilters = filterData?.data?.map((item: any) => ({
+      const backendFilters: FilterTab[] = filterData?.data?.map((item: HospitalParamsFilterOption) => ({
         label: item?.label,
         value: item?.assessment_category_id,
         count: item?.assessment_type_count
       }))
 
-      const filters = [
-        { label: 'All', value: '', count: backendFilters.reduce((acc: number, f: any) => acc + f.count, 0) },
+      const filters: FilterTab[] = [
+        { label: 'All', value: '', count: backendFilters.reduce((acc: number, f: FilterTab) => acc + Number(f.count), 0) },
         ...backendFilters
       ]
       setParamsFilters(filters)
@@ -75,15 +98,15 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove }: any = useInfiniteQuery({
     queryKey: ['get-parameters-based-on-filters', search, activeTab],
-    queryFn: async ({ pageParam = 1 }: any) => {
-      const params: any = {
+    queryFn: async ({ pageParam = 1 }: ParametersPageQueryArgs): Promise<ParametersPage> => {
+      const params: GetParametersBasedOnFiltersParams = {
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search,
         ref_type: 'animal',
         cat_id: activeTab
       }
-      const res: any = await getParametersBasedOnFilters(params)
+      const res = await getParametersBasedOnFilters(params)
 
       return {
         parameters: res?.data?.result || [],
@@ -91,7 +114,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
         total_count: res?.data?.total_count || 0
       }
     },
-    getNextPageParam: (lastPage: any) => lastPage.nextPage
+    getNextPageParam: (lastPage: ParametersPage) => lastPage.nextPage
   } as any)
 
   useEffect(() => {
@@ -109,8 +132,11 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
     }
   }, [open, search, queryClient, remove])
 
-  const list: any[] = useMemo(() => data?.pages?.flatMap((page: any) => page.parameters) || [], [data])
-  const total: number = useMemo(() => data?.pages?.[0]?.total_count || 0, [data])
+  const list: ParametersBasedOnFilters[] = useMemo(
+    () => data?.pages?.flatMap((page: ParametersPage) => page.parameters) || [],
+    [data]
+  )
+  const total: number = useMemo(() => Number(data?.pages?.[0]?.total_count) || 0, [data])
 
   console.log(total)
 
@@ -148,8 +174,8 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
   }
 
   const handleDrawerClose = () => {
-    setOpen(false)
-    setSelectedAssessments([])
+    setOpen?.(false)
+    setSelectedAssessments?.([])
   }
 
   const handleAdd = () => {
@@ -198,7 +224,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Select Parameters
+                {t('hospital_module.select_parameters')}
               </Typography>
             </Box>
 
@@ -250,7 +276,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                     pb: 1
                   }}
                 >
-                  {paramsFilters.map((item: any, index: number) => {
+                  {paramsFilters.map((item: FilterTab, index: number) => {
                     const isActive = activeTab === item.value
                     const showCount = item.value === '' ? total : item.count
 
@@ -296,8 +322,10 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                 </Box>
               ) : (
                 <>
-                  {list.map((assessment: any) => {
-                    const isSelected = selectedAssessments.some((item: any) => item.id === String(assessment.assessment_type_id))
+                  {list.map((assessment: ParametersBasedOnFilters) => {
+                    const isSelected = selectedAssessments.some(
+                      (item: AssessmentFormItem) => item.id === String(assessment.assessment_type_id)
+                    )
 
                     return (
                       <Box
@@ -318,11 +346,15 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                           transition: 'background 0.2s, border-color 0.2s'
                         }}
                         onClick={() => {
-                          setSelectedAssessments((prev: any[]) => {
-                            const isSelected = prev.some((item: any) => item.id === String(assessment.assessment_type_id))
+                          setSelectedAssessments?.((prev: AssessmentFormItem[]) => {
+                            const isSelected = prev.some(
+                              (item: AssessmentFormItem) => item.id === String(assessment.assessment_type_id)
+                            )
 
                             if (isSelected) {
-                              return prev.filter((item: any) => item.id !== String(assessment.assessment_type_id))
+                              return prev.filter(
+                                (item: AssessmentFormItem) => item.id !== String(assessment.assessment_type_id)
+                              )
                             } else {
                               return [
                                 ...prev,
@@ -366,7 +398,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                   )}
                   {!hasNextPage && list.length > 0 && (
                     <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                      No more species to load
+                      {t('housing_module.no_more_species')}
                     </Typography>
                   )}
                 </>
@@ -385,7 +417,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
             }}
           >
             <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurface }}>
-              Selected - {selectedAssessments.length}
+              {t('selected')} - {selectedAssessments.length}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
               <Button
@@ -398,10 +430,10 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                   height: '56px'
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button variant='contained' fullWidth onClick={handleAdd} sx={{ height: '56px' }}>
-                Add
+                {t('add')}
               </Button>
             </Box>
           </Box>

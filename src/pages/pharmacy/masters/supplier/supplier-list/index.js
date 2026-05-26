@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, debounce } from '@mui/material'
+import { Box, debounce, Tooltip } from '@mui/material'
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
 
@@ -31,7 +31,7 @@ const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
   const [loader, setLoader] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('id')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
@@ -126,6 +126,7 @@ const Supplier = () => {
       alignItems: 'right',
       field: 'uid',
       headerName: 'SL.NO ',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid + '.'}
@@ -134,24 +135,29 @@ const Supplier = () => {
     },
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       field: 'company_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          {params.row.company_name}
-        </Typography>
+        <Tooltip title={params.row.company_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.company_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'mobile',
       headerName: 'MOBILE NUMBER',
@@ -169,6 +175,7 @@ const Supplier = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'name',
       headerName: 'CONTACT PERSON',
@@ -186,6 +193,7 @@ const Supplier = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'state_name',
       headerName: 'STATE',
@@ -214,10 +222,31 @@ const Supplier = () => {
     //     </Typography>
     //   )
     // },
+
     {
-      minWidth: 100,
+      flex: 0.2,
+      minWidth: 120,
+      field: 'status',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params.row.status === 'active' ? 'Active' : 'Inactive'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
       renderCell: params => (
         <>
           {pharmacyRole && (
