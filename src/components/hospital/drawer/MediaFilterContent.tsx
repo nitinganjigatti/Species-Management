@@ -4,13 +4,13 @@ import React from 'react'
 import { Box, Checkbox, Typography, Divider, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-
+import { MediaFilterMenuData, MediaFilterOption } from './PatientMediaFilterDrawer'
 interface MediaFilterContentProps {
   menuName: string
-  selectedOptions?: any[]
-  onOptionChange: (value: any, menuName: string) => void
+  selectedOptions?: string[]
+  onOptionChange: (value: string, menuName: string) => void
   selectAllHandler: () => void
-  items?: any[]
+  items?: MediaFilterOption[]
   isAllSelected?: boolean
   hideSelectAll?: boolean
 }
@@ -70,7 +70,7 @@ const MediaFilterContent = ({
         )}
 
         <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-          {items?.map((item: any) => (
+          {items?.map((item) => (
             <Box
               key={item.value}
               sx={{

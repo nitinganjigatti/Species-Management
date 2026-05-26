@@ -1240,6 +1240,7 @@
     "quantity_cannot_exceed_100": "Quantity cannot exceed 100",
     "update_medicine": "Update Medicine",
     "administer_title": "Administer",
+    "schedule_title": "Schedule",
     "no_symptoms": "No Symptoms",
     "all_symptoms_loaded": "All symptoms loaded ({{loaded}} of {{total}})",
     "all_assessments_loaded": "All assessments loaded ({{loaded}} of {{total}})",
