@@ -156,7 +156,7 @@ const AddParameterDataEntry = ({
         hospital_case_id: String(hospitalCaseId ?? ''),
         assessment_type_id: data?.parameter?.assessment_type_id ?? ''
       }),
-    enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id,
+    enabled: open && !!data?.parameter?.assessment_type_id,
     keepPreviousData: true,
     staleTime: 0,
     refetchOnWindowFocus: false

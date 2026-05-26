@@ -1798,6 +1798,7 @@ const AddSurgeryRecord = () => {
                       loading={staffLoading}
                       clearOnBlur
                       filterSelectedOptions
+                      disableCloseOnSelect
                       getOptionLabel={option => option?.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       noOptionsText={t('hospital_module.no_available_attending_vets')}
@@ -2222,7 +2223,7 @@ const AddSurgeryRecord = () => {
           loading: isSubmitting,
           disabled: isSubmitting,
           submitLabel: isSubmitting ? (isEditMode ? t('hospital_module.updating') : t('submitting')) : isEditMode ? t('update_upper') : t('save_upper'),
-          cancelLabel: t('reset_upper'),
+          cancelLabel: t('reset'),
           cancelBtnStyle: {
             height: '56px',
             minWidth: { xs: '100%', sm: '160px' },
