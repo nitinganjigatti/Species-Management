@@ -67,9 +67,17 @@ import {
   reconnectSocket as sdkReconnectSocket,
   refreshSocketAuth as sdkRefreshSocketAuth,
   appConfigApi as sdkAppConfigApi,
+  uploadBatch as sdkUploadBatch,
   type AppConfig,
   type SocketStatus
 } from '@antzsoft/chat-core'
+
+// Platform upload fns live in client.ts (passed to AntzChatConfig). We
+// import them here because `client.uploadFiles` in chat-core 1.2.4 does
+// NOT forward `platformUploadPartFn` to its internal uploadBatch — so we
+// bypass it and call `uploadBatch` directly with BOTH fns to get chunked
+// multipart uploads for large files (≥ 10 MB).
+import { platformUploadFn, platformUploadPartFn } from './client'
 
 import { getChatClientOrNull } from './client'
 
@@ -600,8 +608,22 @@ export type UploadChatFilesResult = {
 // each successful FileResponse into a SendMessageAttachment ready to pass to
 // `sendMessageOverSocket({ attachments })`.
 export async function uploadChatFiles(files: UploadableFile[], conversationId: string): Promise<UploadChatFilesResult> {
-  const client = requireClient('uploadChatFiles')
-  const result = await client.uploadFiles(files, conversationId)
+  // Ensure the SDK is initialized (uploadBatch uses the API-client + socket
+  // singletons under the hood). We deliberately do NOT use
+  // `client.uploadFiles` — in chat-core 1.2.4 it omits `platformUploadPartFn`
+  // when calling uploadBatch, so files ≥ 10 MB skip the multipart path and
+  // 400 on the single-shot fallback. Calling uploadBatch directly with both
+  // platform fns fixes large-file uploads.
+  requireClient('uploadChatFiles')
+  const result = await sdkUploadBatch(
+    files,
+    platformUploadFn,
+    conversationId,
+    undefined, // onProgress — not surfaced here
+    undefined, // platformCompressFn — compression not configured
+    undefined, // compressionConfig
+    platformUploadPartFn // ← the arg client.uploadFiles drops; enables chunked multipart
+  )
 
   const attachments: SendMessageAttachment[] = result.successful.map(f => ({
     fileId: f.id,
