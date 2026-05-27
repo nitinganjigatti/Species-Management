@@ -296,14 +296,21 @@ const MessageInfoDialog = () => {
           <IconButton size='small' onClick={onClose} sx={{ mr: 1.5 }} aria-label='Close message info'>
             <Icon icon='mdi:close' fontSize='1.25rem' />
           </IconButton>
-          <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Message info</Typography>
+          {/* Title color matches the chat header name so the panel reads
+              as part of the same chat surface. */}
+          <Typography variant='subtitle1' sx={{ flex: 1, fontWeight: 600, color: 'customColors.chatBubbleSent' }}>
+            Message info
+          </Typography>
         </Box>
 
         {/* Body — scrollable; bubble preview lives here so long messages don't
             clip or bleed outside — the whole panel scrolls as one unit. */}
         <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
 
-          {/* Message bubble replica */}
+          {/* Message bubble replica — mirrors the real sent bubble in
+              MessageBubble.tsx (dark teal + white text + zeroed top-right
+              corner) on the chat's light-green Surface, so the preview
+              reads identically to the actual chat. */}
           {messageText ? (
             <Box
               sx={{
@@ -323,7 +330,7 @@ const MessageInfoDialog = () => {
                   py: 1.25,
                   borderRadius: 1.5,
                   borderTopRightRadius: 0,
-                  bgcolor: 'primary.main',
+                  bgcolor: 'customColors.chatBubbleSent',
                   color: 'common.white',
                   boxShadow: 1
                 }}
