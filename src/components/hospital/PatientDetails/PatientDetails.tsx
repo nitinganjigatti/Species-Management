@@ -720,7 +720,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
           description={
             <Box>
               <Typography variant='body1' sx={{ mb: 1 }}>
-                {t('hospital_module.no_permission_view_patient')}
+                {t('hospital_module.no_permission_view_patients')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
                 {t('hospital_module.select_correct_hospital_or_contact_admin')}

@@ -193,7 +193,7 @@ interface SurgeryRecordFormValues {
 
 export interface SecondarySurgeonOption {
   user_full_name: string
-  user_id: Id
+  user_id: string
 }
 const FORM_ID = 'add-surgery-record-form'
 
@@ -883,12 +883,12 @@ const AddSurgeryRecord = () => {
 
   const getStaffList = async (searchTerm: string = '') => {
     try {
-      if (!selectedHospital?.id) return
+      if (!patientData?.hospital_id) return
 
       const params: HospitalStaffListParams = {
         page_no: 1,
         limit: 10,
-        hospital_id: selectedHospital.id
+        hospital_id: patientData.hospital_id
       }
 
       if (searchTerm.trim()) {
@@ -914,10 +914,10 @@ const AddSurgeryRecord = () => {
   }
 
   useEffect(() => {
-    if (!selectedHospital?.id) return
+    if (!patientData?.hospital_id) return
 
     getStaffList(debouncedAttendingDoctorSearch)
-  }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
+  }, [debouncedAttendingDoctorSearch, patientData?.hospital_id])
 
   //   useEffect(() => {
   //   const hospitalId = patientData?.hospital_id
@@ -1800,7 +1800,7 @@ const AddSurgeryRecord = () => {
                       filterSelectedOptions
                       disableCloseOnSelect
                       getOptionLabel={option => option?.label || ''}
-                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      isOptionEqualToValue={(option, value) => String(option.value) === String(value?.value)}
                       noOptionsText={t('hospital_module.no_available_attending_vets')}
                       onChange={(event, newValue) => {
                         setSelectedAttendingDoctors(newValue)
