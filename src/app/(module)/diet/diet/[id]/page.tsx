@@ -1677,6 +1677,9 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             <TableCell
+                                                              colSpan={
+                                                                dietDetails.diet_type_name === 'By Weight' ? 12 : undefined
+                                                              }
                                                               style={{
                                                                 paddingLeft: '8px',
                                                                 paddingRight: '8px',
@@ -2369,6 +2372,10 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             <TableCell
+                                                              colSpan={
+                                                                dietDetails.diet_type_name === 'By Weight' ? 12 : undefined
+                                                              }
+
                                                               style={{
                                                                 paddingLeft: '8px',
                                                                 paddingRight: '8px',
@@ -2982,6 +2989,10 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             <TableCell
+                                                              colSpan={
+                                                                dietDetails.diet_type_name === 'By Weight' ? 12 : undefined
+                                                              }
+
                                                               style={{
                                                                 paddingLeft: '8px',
                                                                 paddingRight: '8px',
@@ -3551,6 +3562,10 @@ const DietDetail = () => {
                                                             </Box>
                                                           </TableCell>
                                                           <TableCell
+                                                            colSpan={
+                                                              dietDetails.diet_type_name === 'By Weight' ? 12 : undefined
+                                                            }
+
                                                             style={{
                                                               paddingLeft: '8px',
                                                               paddingRight: '8px',
