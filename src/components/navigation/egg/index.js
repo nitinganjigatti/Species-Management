@@ -5,7 +5,8 @@ const composeEggNavigation = ({ egg_nursery, egg_collection, egg_view_insights }
 
   const dashboard = {
     title: 'Dashboard',
-    path: '/egg/dashboard',
+    path: '/egg',
+    activeWhen: ['/egg'],
     icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
     activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />
   }

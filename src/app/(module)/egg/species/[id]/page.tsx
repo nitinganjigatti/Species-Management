@@ -578,7 +578,7 @@ const SpeciesDetail: FC = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography color='inherit'>Egg Module</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.push('/egg/dashboard')}>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.push('/egg')}>
                 Dashboard
               </Typography>
               <Typography
