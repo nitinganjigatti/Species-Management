@@ -91,6 +91,7 @@ export type ForwardingMessageRef = {
   attachments?: ChatAttachmentType[]
   senderName?: string
   senderId?: ChatEntityId
+  isOwnMessage?: boolean
 }
 
 export type MessageType = {

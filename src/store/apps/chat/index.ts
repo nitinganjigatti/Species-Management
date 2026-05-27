@@ -57,7 +57,7 @@ import {
 
 import { useChatStore } from '@antzsoft/chat-core'
 
-import { composeForwardedText } from 'src/lib/chat/forwardMarker'
+import { composeForwardedText, stripForwardMarker, isForwarded } from 'src/lib/chat/forwardMarker'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -1147,9 +1147,10 @@ export const forwardMessage = createAsyncThunk<
     sourceAttachments?: ChatAttachmentType[]
     targetChatId: ChatEntityId
     openTargetAfter?: boolean
+    isOwnMessage?: boolean
   }
 >('appChat/forwardMessage', async (params, { dispatch }) => {
-  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true } = params
+  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true, isOwnMessage } = params
   const client = getChatClientOrNull()
   if (!client || typeof targetChatId !== 'string') {
     throw new Error('[chat] forwardMessage requires an initialized SDK and a real target chat id')
@@ -1170,9 +1171,13 @@ export const forwardMessage = createAsyncThunk<
     }))
     : undefined
 
-  // composeForwardedText strips any existing marker on the source first,
-  // so re-forwarding an already-forwarded message never stacks markers.
-  const text = composeForwardedText(sourceText)
+  // Add the [fwd] marker unless this is the user's own original message.
+  // Exception: if the source already carries a forward marker (i.e. it was
+  // itself a forwarded message), always preserve the marker — the content
+  // originated from a third party regardless of who relayed it last.
+  const text = (isOwnMessage && !isForwarded(sourceText))
+    ? stripForwardMarker(sourceText)
+    : composeForwardedText(sourceText)
 
   try {
     await sendMessageOverSocket({

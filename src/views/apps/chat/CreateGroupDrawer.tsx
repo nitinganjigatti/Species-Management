@@ -29,11 +29,14 @@ import type { ContactType, ChatEntityId, CreateGroupPayload } from 'src/types/ap
 
 interface CreateGroupDrawerProps {
   contacts: ContactType[] | null
+  currentUserId?: string | number
+  currentUserName?: string
+  currentUserAvatar?: string
   onCancel: () => void
   onCreate: (payload: CreateGroupPayload) => void
 }
 
-const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerProps) => {
+const CreateGroupDrawer = ({ contacts, currentUserId, currentUserName, currentUserAvatar, onCancel, onCreate }: CreateGroupDrawerProps) => {
   const [name, setName] = useState<string>('')
   const [description, setDescription] = useState<string>('')
   const [iconUrl, setIconUrl] = useState<string | null>(null)
@@ -49,12 +52,18 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
   const [searching, setSearching] = useState<boolean>(false)
   const chipsRef = useRef<HTMLDivElement>(null)
 
+  const meId = currentUserId !== undefined ? String(currentUserId) : null
+
   useEffect(() => {
     const client = getChatClientOrNull()
     const q = memberQuery.trim()
 
     if (!client) {
-      const list = (contacts ?? []).filter(c => (q.length ? c.fullName.toLowerCase().includes(q.toLowerCase()) : true))
+      const list = (contacts ?? []).filter(c => {
+        if (meId && String(c.id) === meId) return false
+
+        return q.length ? c.fullName.toLowerCase().includes(q.toLowerCase()) : true
+      })
       setFilteredContacts(list)
 
       return
@@ -65,7 +74,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
       async () => {
         try {
           const users = await searchUsers(q)
-          setFilteredContacts(users.map(sdkUserToContact))
+          setFilteredContacts(users.map(sdkUserToContact).filter(c => !meId || String(c.id) !== meId))
         } catch (err) {
           console.error('[chat] searchUsers (create group) failed:', err)
           setFilteredContacts([])
@@ -77,7 +86,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
     )
 
     return () => clearTimeout(t)
-  }, [memberQuery, contacts])
+  }, [memberQuery, contacts, meId])
 
   const toggleMember = (contact: ContactType) => {
     const id = contact.id
@@ -119,12 +128,16 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
           size: iconFile.size
         }
       : undefined
+    const participantIds = Array.from(selectedIds)
+    if (meId && !participantIds.map(String).includes(meId)) {
+      participantIds.push(currentUserId!)
+    }
     onCreate({
       name: name.trim(),
       description: description.trim() || undefined,
       icon: iconUrl ?? undefined,
       iconFile: iconUploadable,
-      participantIds: Array.from(selectedIds)
+      participantIds
     })
   }
 
@@ -250,7 +263,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
         </Box>
 
         {/* Selected members chips */}
-        {selectedList.length > 0 && (
+        {(selectedList.length > 0 || currentUserId) && (
           <>
             <Box
               ref={chipsRef}
@@ -265,6 +278,39 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
                 borderBottom: theme => `1px solid ${theme.palette.divider}`
               }}
             >
+              {/* Current user — always shown, non-removable */}
+              {currentUserId && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    flexShrink: 0
+                  }}
+                >
+                  {currentUserAvatar ? (
+                    <MuiAvatar src={currentUserAvatar} alt='You' sx={{ width: 40, height: 40 }} />
+                  ) : (
+                    <CustomAvatar skin='light' sx={{ width: 40, height: 40, fontSize: '0.8rem' }}>
+                      {getInitials(currentUserName ?? 'You').slice(0, 2)}
+                    </CustomAvatar>
+                  )}
+                  <Typography
+                    sx={{
+                      fontSize: '0.7rem',
+                      color: 'customColors.OnSurfaceVariant',
+                      maxWidth: 52,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'center'
+                    }}
+                  >
+                    You
+                  </Typography>
+                </Box>
+              )}
               {selectedList.map(contact => (
                 <Box
                   key={contact.id}

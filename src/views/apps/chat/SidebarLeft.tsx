@@ -831,6 +831,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         {view === 'create-group' ? (
           <CreateGroupDrawer
             contacts={store?.contacts ?? null}
+            currentUserId={currentUserIdForPresence}
+            currentUserName={store?.userProfile?.fullName}
+            currentUserAvatar={store?.userProfile?.avatar}
             onCancel={handleCancelCreateGroup}
             onCreate={handleCreateGroup}
           />

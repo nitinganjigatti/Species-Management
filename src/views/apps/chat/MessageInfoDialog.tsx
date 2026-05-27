@@ -4,6 +4,12 @@
 //
 // DM chat  → single-row "Read" + "Delivered" with timestamps
 // Group chat → per-user "Read by" list + "Delivered to" list with names + times
+//
+// Data flow (SDK 1.2.3+):
+//   1. On open: call getReceipts(messageId) — returns readBy[] + deliveredTo[]
+//      with displayName + avatarUrl pre-resolved. No secondary user lookup needed.
+//   2. Live: listen to read_receipt and message_delivered socket events and
+//      move users between the three buckets in real time.
 
 import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
@@ -25,7 +31,12 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 import Sidebar from 'src/@core/components/sidebar'
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── types ───────────────────────────────────────────────────────────────────
+
+type ReadEntry      = { userId: string; displayName?: string; avatarUrl?: string; readAt: string }
+type DeliveredEntry = { userId: string; displayName?: string; avatarUrl?: string; deliveredAt: string }
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
 
 const formatBubbleTime = (iso: string | undefined): string => {
   if (!iso) return ''
@@ -49,12 +60,11 @@ const formatRowTime = (iso: string | undefined): string => {
   return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${time}`
 }
 
-// ─── sub-components ─────────────────────────────────────────────────────────
+// ─── sub-components ──────────────────────────────────────────────────────────
 
 interface UserRowProps {
   name: string
   avatar?: string
-  avatarColor?: string
   timeLabel: string
 }
 
@@ -95,7 +105,7 @@ const SectionHeader = ({ icon, iconColor, label }: SectionHeaderProps) => (
   </Box>
 )
 
-// ─── main component ──────────────────────────────────────────────────────────
+// ─── main component ───────────────────────────────────────────────────────────
 
 const MessageInfoDialog = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -110,29 +120,21 @@ const MessageInfoDialog = () => {
   const open    = infoMessage !== null
   const onClose = () => dispatch(setInfoMessage(null))
 
-  const messageId        = infoMessage?.messageId
-  const messageText      = infoMessage?.messageText
-  const cachedReadBy     = infoMessage?.readBy
-  const cachedDeliveredTo = infoMessage?.deliveredTo
+  const messageId   = infoMessage?.messageId
+  const messageText = infoMessage?.messageText
 
-  // Entries now carry the sender's display name + avatar inline — the
-  // new `getReceipts` API (chat-core 1.2.3) resolves them server-side, so
-  // we no longer need a secondary `resolveUser` lookup for the read /
-  // delivered buckets. Profile fields are optional so cached entries
-  // (from `infoMessage`, which only has userId + timestamp) still type-check.
-  type ReadEntry = { userId: string; readAt: string; displayName?: string; avatarUrl?: string }
-  type DeliveredEntry = { userId: string; deliveredAt: string; displayName?: string; avatarUrl?: string }
   const [loading, setLoading]               = useState(false)
   const [fetchedReadBy, setFetchedReadBy]   = useState<ReadEntry[]>([])
   const [fetchedDelivered, setFetchedDelivered] = useState<DeliveredEntry[]>([])
   const [bubbleSentAt, setBubbleSentAt]     = useState<string | undefined>(undefined)
 
+  // ── initial load via getReceipts ──────────────────────────────────────────
   useEffect(() => {
     if (!open || !messageId) return
     let cancelled = false
     setLoading(true)
-    setFetchedReadBy(cachedReadBy ?? [])
-    setFetchedDelivered(cachedDeliveredTo ?? [])
+    setFetchedReadBy([])
+    setFetchedDelivered([])
     // `getReceipts` doesn't return the message body / sentAt — derive the
     // bubble's sent time from the message already in Redux (no extra call).
     const sentFromStore = selectedChat?.chat?.messages?.find(m => String(m.id) === String(messageId))?.time
@@ -144,7 +146,7 @@ const MessageInfoDialog = () => {
         setFetchedReadBy(res.readBy ?? [])
         setFetchedDelivered(res.deliveredTo ?? [])
       })
-      .catch(() => { /* keep cached values */ })
+      .catch(() => { /* keep empty — panel still renders with "—" */ })
       .finally(() => { if (!cancelled) setLoading(false) })
 
     return () => { cancelled = true }
@@ -207,14 +209,14 @@ const MessageInfoDialog = () => {
   const resolveUser = (userId: string): { name: string; avatar?: string } => {
     const contact = contacts.find(c => String(c.id) === String(userId))
     if (contact) return { name: contact.fullName, avatar: contact.avatar }
-    const participant = selectedChat?.contact?.participants?.find(p => String(p.userId) === String(userId))
+    const participant = selectedChat?.contact?.participants?.find(p => String(p.userId) === userId)
     if (participant) return { name: participant.displayName ?? participant.username ?? userId }
-
     return { name: userId }
   }
 
-  // Exclude the current user (sender) and deduplicate by userId — the server
-  // can include the same recipient multiple times in readBy[] / deliveredTo[].
+  // ── bucket derivation ─────────────────────────────────────────────────────
+
+  // Exclude the current user (sender) and deduplicate.
   const seenReadIds = new Set<string>()
   const displayedRead = fetchedReadBy.filter(r => {
     const id = String(r.userId)
@@ -223,7 +225,6 @@ const MessageInfoDialog = () => {
     return true
   })
 
-  // "Delivered to" = delivered but NOT yet read. Also deduplicate.
   const readUserIds = new Set(displayedRead.map(r => String(r.userId)))
   const seenDeliveredIds = new Set<string>()
   const displayedDelivered = fetchedDelivered.filter(d => {
@@ -233,9 +234,7 @@ const MessageInfoDialog = () => {
     return true
   })
 
-  // "Not received" = active group participants who are neither in readBy nor
-  // deliveredTo. These members haven't received the message yet (offline /
-  // push-only / etc.).
+  // "Not received" = active participants not in readBy or deliveredTo.
   const deliveredUserIds = new Set(fetchedDelivered.map(d => String(d.userId)))
   const notReceivedUsers: Array<{ userId: string; name: string; avatar?: string }> = (() => {
     if (!isGroup) return []
@@ -249,14 +248,11 @@ const MessageInfoDialog = () => {
       )
       .map(p => {
         const resolved = resolveUser(p.userId)
-
         return { userId: p.userId, ...resolved }
       })
   })()
 
   // DM helpers — latest timestamp from the single recipient.
-  // For "Delivered" in DM we use the raw fetchedDelivered list (minus self) so
-  // a recipient who has already read the message still shows a delivery time.
   const latestReadAt = displayedRead.length
     ? displayedRead.reduce((a, b) => new Date(a.readAt) > new Date(b.readAt) ? a : b).readAt
     : undefined
@@ -272,7 +268,7 @@ const MessageInfoDialog = () => {
       show={open}
       backDropClick={onClose}
       sx={{
-        zIndex: 11,           // above ChatLog FAB (zIndex 10) and UserProfileRight (9)
+        zIndex: 11,
         height: '100%',
         width: { xs: '100%', sm: 380 },
         borderTopRightRadius: (theme: Theme) => theme.shape.borderRadius,
@@ -303,8 +299,6 @@ const MessageInfoDialog = () => {
           </Typography>
         </Box>
 
-        {/* Body — scrollable; bubble preview lives here so long messages don't
-            clip or bleed outside — the whole panel scrolls as one unit. */}
         <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
 
           {/* Message bubble replica — mirrors the real sent bubble in
@@ -312,15 +306,7 @@ const MessageInfoDialog = () => {
               corner) on the chat's light-green Surface, so the preview
               reads identically to the actual chat. */}
           {messageText ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                px: 3,
-                py: 3,
-                bgcolor: 'customColors.Surface'
-              }}
-            >
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 3, py: 3, bgcolor: 'customColors.Surface' }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -356,7 +342,6 @@ const MessageInfoDialog = () => {
               <CircularProgress size={28} />
             </Box>
           ) : isGroup ? (
-            /* ── GROUP: per-user lists ── */
             <>
               {/* Read by */}
               <SectionHeader icon='mdi:check-all' iconColor='success.main' label={`Read by (${displayedRead.length})`} />
@@ -380,12 +365,10 @@ const MessageInfoDialog = () => {
 
               <Divider sx={{ mb: 3 }} />
 
-              {/* Delivered to — received but not yet read */}
+              {/* Delivered to */}
               <SectionHeader icon='mdi:check-all' iconColor='customColors.Outline' label={`Delivered to (${displayedDelivered.length})`} />
               {displayedDelivered.length === 0 ? (
-                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', pl: 5, mb: 3 }}>
-                  —
-                </Typography>
+                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', pl: 5, mb: 3 }}>—</Typography>
               ) : (
                 <Box sx={{ mb: 3 }}>
                   {displayedDelivered.map(d => {
@@ -400,12 +383,10 @@ const MessageInfoDialog = () => {
 
               <Divider sx={{ mb: 3 }} />
 
-              {/* Not received — members the message hasn't reached yet */}
+              {/* Not received */}
               <SectionHeader icon='mdi:check' iconColor='customColors.neutralSecondary' label={`Not received (${notReceivedUsers.length})`} />
               {notReceivedUsers.length === 0 ? (
-                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', pl: 5 }}>
-                  —
-                </Typography>
+                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', pl: 5 }}>—</Typography>
               ) : (
                 <Box>
                   {notReceivedUsers.map(u => (
@@ -415,7 +396,7 @@ const MessageInfoDialog = () => {
               )}
             </>
           ) : (
-            /* ── DM: single-timestamp rows ── */
+            /* DM: single-timestamp rows */
             <>
               <SectionHeader icon='mdi:check-all' iconColor='success.main' label='Read' />
               <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', mb: 3, pl: 5 }}>

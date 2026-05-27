@@ -90,7 +90,8 @@ const ForwardMessageDialog = () => {
           sourceMessageId: forwarding.messageId,
           sourceText: forwarding.messageText,
           sourceAttachments: forwarding.attachments,
-          targetChatId: targetId
+          targetChatId: targetId,
+          isOwnMessage: forwarding.isOwnMessage
         })
       ).unwrap()
       toast.success('Message forwarded')
