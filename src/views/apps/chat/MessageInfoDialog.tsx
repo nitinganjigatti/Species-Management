@@ -18,7 +18,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import type { RootState, AppDispatch } from 'src/store'
 
 import Icon from 'src/@core/components/icon'
-import { getMessage } from 'src/lib/chat/api'
+import { getMessageReceipts, getChatSocket } from 'src/lib/chat/api'
+import type { ReadReceiptEvent, MessageDeliveredEvent } from '@antzsoft/chat-core'
 import { setInfoMessage } from 'src/store/apps/chat'
 import { getInitials } from 'src/@core/utils/get-initials'
 
@@ -114,9 +115,16 @@ const MessageInfoDialog = () => {
   const cachedReadBy     = infoMessage?.readBy
   const cachedDeliveredTo = infoMessage?.deliveredTo
 
+  // Entries now carry the sender's display name + avatar inline — the
+  // new `getReceipts` API (chat-core 1.2.3) resolves them server-side, so
+  // we no longer need a secondary `resolveUser` lookup for the read /
+  // delivered buckets. Profile fields are optional so cached entries
+  // (from `infoMessage`, which only has userId + timestamp) still type-check.
+  type ReadEntry = { userId: string; readAt: string; displayName?: string; avatarUrl?: string }
+  type DeliveredEntry = { userId: string; deliveredAt: string; displayName?: string; avatarUrl?: string }
   const [loading, setLoading]               = useState(false)
-  const [fetchedReadBy, setFetchedReadBy]   = useState<Array<{ userId: string; readAt: string }>>([])
-  const [fetchedDelivered, setFetchedDelivered] = useState<Array<{ userId: string; deliveredAt: string }>>([])
+  const [fetchedReadBy, setFetchedReadBy]   = useState<ReadEntry[]>([])
+  const [fetchedDelivered, setFetchedDelivered] = useState<DeliveredEntry[]>([])
   const [bubbleSentAt, setBubbleSentAt]     = useState<string | undefined>(undefined)
 
   useEffect(() => {
@@ -125,17 +133,16 @@ const MessageInfoDialog = () => {
     setLoading(true)
     setFetchedReadBy(cachedReadBy ?? [])
     setFetchedDelivered(cachedDeliveredTo ?? [])
-    setBubbleSentAt(undefined)
+    // `getReceipts` doesn't return the message body / sentAt — derive the
+    // bubble's sent time from the message already in Redux (no extra call).
+    const sentFromStore = selectedChat?.chat?.messages?.find(m => String(m.id) === String(messageId))?.time
+    setBubbleSentAt(sentFromStore ? String(sentFromStore) : undefined)
 
-    getMessage(messageId)
-      .then(m => {
+    getMessageReceipts(messageId)
+      .then(res => {
         if (cancelled) return
-        const r = (m as any).readBy ?? []
-        const d = (m as any).deliveredTo ?? []
-        const sentAt = (m as any).sentAt ?? (m as any).createdAt
-        setFetchedReadBy(r)
-        setFetchedDelivered(d)
-        if (sentAt) setBubbleSentAt(sentAt)
+        setFetchedReadBy(res.readBy ?? [])
+        setFetchedDelivered(res.deliveredTo ?? [])
       })
       .catch(() => { /* keep cached values */ })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -144,8 +151,59 @@ const MessageInfoDialog = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, messageId])
 
-  // Resolve userId → display name + avatar from contacts list,
-  // falling back to the group's participants array.
+  // Live updates — while the info screen is open, keep the read / delivered
+  // buckets in sync with incoming socket events (per chat-core 1.2.3 docs).
+  // Without this the screen only reflects the snapshot from when it opened —
+  // a recipient reading or receiving the message while the panel is open
+  // wouldn't appear until the user closed and reopened it.
+  //   • read_receipt    → add the user to readBy (the derived buckets
+  //                        below automatically move them out of "delivered"
+  //                        since displayedDelivered excludes read user ids)
+  //   • message_delivered → add the user to deliveredTo
+  // Both update-or-replace by userId so repeated events don't duplicate rows.
+  useEffect(() => {
+    if (!open || !messageId) return
+    const socket = getChatSocket()
+    if (!socket) return
+
+    const onRead = (evt: ReadReceiptEvent) => {
+      if (!evt) return
+      const matches = evt.messageId === messageId || Boolean(evt.updatedMessageIds?.includes(messageId))
+      if (!matches || !evt.userId) return
+      setFetchedReadBy(prev => {
+        const others = prev.filter(r => String(r.userId) !== String(evt.userId))
+
+        return [...others, { userId: String(evt.userId), readAt: evt.readAt }]
+      })
+    }
+
+    const onDelivered = (evt: MessageDeliveredEvent) => {
+      if (!evt || evt.messageId !== messageId) return
+      const userId = evt.deliveredTo?.userId
+      const deliveredAtRaw = evt.deliveredTo?.deliveredAt
+      if (!userId) return
+      const deliveredAt =
+        typeof deliveredAtRaw === 'string' ? deliveredAtRaw : new Date(deliveredAtRaw).toISOString()
+      setFetchedDelivered(prev => {
+        const others = prev.filter(d => String(d.userId) !== String(userId))
+
+        return [...others, { userId: String(userId), deliveredAt }]
+      })
+    }
+
+    socket.on('read_receipt', onRead)
+    socket.on('message_delivered', onDelivered)
+
+    return () => {
+      socket.off('read_receipt', onRead)
+      socket.off('message_delivered', onDelivered)
+    }
+  }, [open, messageId])
+
+  // Resolve userId → display name + avatar. Receipt entries from
+  // `getReceipts` already carry `displayName` / `avatarUrl`; this fallback
+  // covers (a) cached entries that only have userId, and (b) the
+  // "Not received" bucket derived from the participants array.
   const resolveUser = (userId: string): { name: string; avatar?: string } => {
     const contact = contacts.find(c => String(c.id) === String(userId))
     if (contact) return { name: contact.fullName, avatar: contact.avatar }
@@ -302,7 +360,11 @@ const MessageInfoDialog = () => {
               ) : (
                 <Box sx={{ mb: 3 }}>
                   {displayedRead.map(r => {
-                    const { name, avatar } = resolveUser(r.userId)
+                    // Prefer the profile resolved by getReceipts; fall back
+                    // to the contacts/participants lookup for cached entries.
+                    const fallback = resolveUser(r.userId)
+                    const name = r.displayName || fallback.name
+                    const avatar = r.avatarUrl || fallback.avatar
 
                     return <UserRow key={r.userId} name={name} avatar={avatar} timeLabel={formatRowTime(r.readAt)} />
                   })}
@@ -320,7 +382,9 @@ const MessageInfoDialog = () => {
               ) : (
                 <Box sx={{ mb: 3 }}>
                   {displayedDelivered.map(d => {
-                    const { name, avatar } = resolveUser(d.userId)
+                    const fallback = resolveUser(d.userId)
+                    const name = d.displayName || fallback.name
+                    const avatar = d.avatarUrl || fallback.avatar
 
                     return <UserRow key={d.userId} name={name} avatar={avatar} timeLabel={formatRowTime(d.deliveredAt)} />
                   })}

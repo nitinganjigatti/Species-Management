@@ -23,6 +23,7 @@ import type {
   MessageDeletedEvent,
   MessageDeletedForMeEvent,
   MessageDeliveredEvent,
+  MessageReceiptsResponse,
   MessagesDeliveredEvent,
   MessageUpdatedEvent,
   MobileDeviceToken,
@@ -90,6 +91,7 @@ export type {
   MessageDeletedEvent,
   MessageDeletedForMeEvent,
   MessageDeliveredEvent,
+  MessageReceiptsResponse,
   MessagesDeliveredEvent,
   MessageUpdatedEvent,
   MobileDeviceToken,
@@ -442,6 +444,16 @@ export function listMessages(
 
 export function getMessage(messageId: string): Promise<Message> {
   return requireClient('getMessage').messages.get(messageId)
+}
+
+/**
+ * Fetch read/delivered receipts for a message with sender profiles
+ * (displayName + avatarUrl) already resolved server-side. Use for the
+ * Message Info screen — no secondary user lookup needed. Added in
+ * chat-core 1.2.3.
+ */
+export function getMessageReceipts(messageId: string): Promise<MessageReceiptsResponse> {
+  return requireClient('getMessageReceipts').messages.getReceipts(messageId)
 }
 
 export function updateMessage(messageId: string, text: string): Promise<Message> {
