@@ -120,7 +120,6 @@ const showNotificationToast = (title: string, body: string, data: any) => {
 
     case 'dm_reaction':
     case 'group_reaction':
-      toast.success(body, { icon: data?.emoji || '👍' })
       break
 
     case 'group_invite':
@@ -137,7 +136,6 @@ const showNotificationToast = (title: string, body: string, data: any) => {
       break
 
     case 'group_role_changed':
-      toast.success('Your role has been updated', { icon: '⬆️' })
       break
 
     case 'message_edited':

@@ -94,7 +94,6 @@ const ForwardMessageDialog = () => {
           isOwnMessage: forwarding.isOwnMessage
         })
       ).unwrap()
-      toast.success('Message forwarded')
       setQuery('')
       setTargetId(null)
     } catch (err) {
@@ -106,13 +105,7 @@ const ForwardMessageDialog = () => {
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth='xs'
-      slotProps={{ paper: { sx: { borderRadius: 2 } } }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth='xs' slotProps={{ paper: { sx: { borderRadius: 2 } } }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', px: 3, py: 2 }}>
         <Typography variant='h6' sx={{ flexGrow: 1 }}>

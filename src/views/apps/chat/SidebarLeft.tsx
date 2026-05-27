@@ -454,17 +454,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           currentUserIdForPresence &&
           String(lastMessage.senderId) === currentUserIdForPresence
       )
-      const lastMsgTick = isOwnLastMessage && lastMessage?.feedback ? (() => {
-        const { isSent, isDelivered, isSeen } = lastMessage.feedback
-        if (!isSent && !isDelivered && !isSeen) return null
-        const icon = (isSeen || isDelivered) ? 'mdi:check-all' : 'mdi:check'
-        const color = isSeen ? '#53BDEB' : activeCondition ? 'rgba(255,255,255,0.75)' : '#7A8A8E'
-        return (
-          <Box component='span' sx={{ display: 'inline-flex', flexShrink: 0, color, mr: 0.5 }}>
-            <Icon icon={icon} fontSize='0.875rem' />
-          </Box>
-        )
-      })() : null
+      const lastMsgTick =
+        isOwnLastMessage && lastMessage?.feedback
+          ? (() => {
+              const { isSent, isDelivered, isSeen } = lastMessage.feedback
+              if (!isSent && !isDelivered && !isSeen) return null
+              const icon = isSeen || isDelivered ? 'mdi:check-all' : 'mdi:check'
+              const color = isSeen ? '#53BDEB' : activeCondition ? 'rgba(255,255,255,0.75)' : '#7A8A8E'
+              return (
+                <Box component='span' sx={{ display: 'inline-flex', flexShrink: 0, color, mr: 0.5 }}>
+                  <Icon icon={icon} fontSize='0.875rem' />
+                </Box>
+              )
+            })()
+          : null
 
       return (
         <ListItem
@@ -656,7 +659,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         component='span'
                         noWrap
                         variant='body2'
-                        sx={{ display: 'block', flex: 1, minWidth: 0, ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
+                        sx={{
+                          display: 'block',
+                          flex: 1,
+                          minWidth: 0,
+                          ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
+                        }}
                       >
                         {senderPrefix ? (
                           <Box component='span' sx={{ fontWeight: 600 }}>
@@ -817,9 +825,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
             boxShadow: 'none',
             overflow: 'hidden',
             width: sidebarWidth,
-            position: mdAbove ? 'static' : 'absolute',
-            borderTopLeftRadius: theme => theme.shape.borderRadius,
-            borderBottomLeftRadius: theme => theme.shape.borderRadius
+            position: mdAbove ? 'static' : 'absolute'
+            // borderTopLeftRadius: theme => theme.shape.borderRadius,
+            // borderBottomLeftRadius: theme => theme.shape.borderRadius
           },
           '& > .MuiBackdrop-root': {
             borderRadius: 1,

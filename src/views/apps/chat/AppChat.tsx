@@ -891,7 +891,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         width: '100%',
         height: '100%',
         display: 'flex',
-        borderRadius: 1,
+        // borderRadius: 0,
         overflow: 'hidden',
         position: 'relative',
         backgroundColor: 'background.paper',
