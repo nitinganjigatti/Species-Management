@@ -9,6 +9,7 @@ import { getChatClient, disposeChatClient } from 'src/lib/chat/client'
 import authConfig from 'src/configs/auth'
 import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
 import type { AntzChatClient, ChatSocket } from 'src/lib/chat/api'
+import { updateChatProfile, syncAvatar } from 'src/lib/chat/api'
 import { attachSocketLifecycleLogs } from 'src/lib/chat/socketLogger'
 
 /**
@@ -134,6 +135,47 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       return
     }
     setClient(c)
+
+    // Push the logged-in user's name to the chat server once per session.
+    // The name isn't editable inside this app — it arrives in the login
+    // auth response (`user_first_name` / `user_last_name`) and can change
+    // externally. Without this, the chat server only refreshes the name via
+    // its ~2-hour background sync, so other participants would see a stale
+    // name. REST-only (the SDK has no socket path for profile updates).
+    //
+    // Fully isolated from the socket connect below: wrapped in try/catch
+    // (guards against a synchronous throw from `requireClient`, which the
+    // promise `.catch` alone wouldn't trap) AND the promise has its own
+    // `.catch`. Either way a profile-push failure can NEVER prevent the
+    // socket from connecting. Guarded on a real name so we don't overwrite
+    // the server's copy with empty strings.
+    try {
+      const profileFirstName = sourceUser.user_first_name ?? sourceUser.fullName
+      const profileLastName = sourceUser.user_last_name ?? sourceUser.lastName
+      const profileDisplayName = [profileFirstName, profileLastName].filter(Boolean).join(' ').trim()
+      if (profileDisplayName) {
+        updateChatProfile({
+          ...(profileFirstName ? { firstName: String(profileFirstName) } : {}),
+          ...(profileLastName ? { lastName: String(profileLastName) } : {}),
+          displayName: profileDisplayName
+        }).catch(err => {
+          console.warn('[chat] updateChatProfile failed — name will sync on the server cycle:', err)
+        })
+      }
+
+      // Push the avatar too. The client init + socket handshake already
+      // carry `avatar.url` (server dedups by hash), but this explicit REST
+      // sync is the deterministic path that guarantees a CHANGED avatar
+      // propagates this session instead of waiting for the server cycle.
+      // Same isolation as the name push — fire-and-forget, never blocks.
+      if (avatarUrl) {
+        syncAvatar({ url: avatarUrl }).catch(err => {
+          console.warn('[chat] syncAvatar failed — avatar will sync on the server cycle:', err)
+        })
+      }
+    } catch (profileErr) {
+      console.warn('[chat] profile/avatar push threw synchronously — skipped:', profileErr)
+    }
 
     const apiUrl = process.env.NEXT_PUBLIC_CHAT_API_URL ?? ''
     const socketBase = apiUrl.replace(/\/api\/v\d+\/?$/, '').replace(/\/$/, '')

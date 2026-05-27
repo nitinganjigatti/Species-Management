@@ -41,6 +41,7 @@ import type {
   TypingIndicatorEvent,
   UnreadSummary,
   UpdateConversationData,
+  UpdateProfilePayload,
   UploadableFile,
   User,
   UserPreferences,
@@ -108,6 +109,7 @@ export type {
   TypingIndicatorEvent,
   UnreadSummary,
   UpdateConversationData,
+  UpdateProfilePayload,
   UploadableFile,
   User,
   UserPreferences,
@@ -290,6 +292,18 @@ export function getMe(): Promise<User> {
 // way to confirm the backend has it.
 export function syncAvatar(source: { url?: string; base64?: string }): Promise<{ avatarUrl: string }> {
   return requireClient('syncAvatar').auth.syncAvatar(source)
+}
+
+/**
+ * Push the current user's basic profile fields (name) to the chat server.
+ * Works in builtin AND non-builtin auth modes — lets the host app reflect
+ * a profile change immediately instead of waiting for the server's
+ * background sync from the external auth system. The new `displayName`
+ * is what other participants see (drives `sdkUserToProfile.fullName`).
+ * REST-only — the SDK has no socket path for profile updates.
+ */
+export function updateChatProfile(payload: UpdateProfilePayload): Promise<User> {
+  return requireClient('updateChatProfile').users.updateProfile(payload)
 }
 
 // App-wide tenant config — exposes server-enforced limits like
