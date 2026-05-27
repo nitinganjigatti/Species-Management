@@ -241,6 +241,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
   const handleTabChange = (newValue: StatusKey) => {
+    if (newValue === currentTab) return
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])

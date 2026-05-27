@@ -121,6 +121,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
   )
 
   const handleTabChange = (newValue: StatusKey) => {
+    if (newValue === currentTab) return
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])
