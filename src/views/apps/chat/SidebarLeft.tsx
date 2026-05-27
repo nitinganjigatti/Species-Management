@@ -864,35 +864,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  {store?.userProfile ? (
-                    <Badge
-                      overlap='circular'
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      // Profile drawer is hidden for now — see <UserProfileLeft />
-                      // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
-                      // when the drawer comes back.
-                      badgeContent={
-                        <Box
-                          component='span'
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            color: `${statusObj[userStatus]}.main`,
-                            backgroundColor: `${statusObj[userStatus]}.main`,
-                            boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
-                          }}
-                        />
-                      }
-                    >
-                      <MuiAvatar
-                        src={store.userProfile.avatar}
-                        alt={store.userProfile.fullName}
-                        sx={{ width: 36, height: 36, cursor: 'pointer' }}
-                      />
-                    </Badge>
-                  ) : null}
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h6' sx={{ fontWeight: 600 }}>
                     Chats
                   </Typography>
