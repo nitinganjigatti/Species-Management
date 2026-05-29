@@ -8,6 +8,7 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import InputBase from '@mui/material/InputBase'
 import CircularProgress from '@mui/material/CircularProgress'
+import type { Theme } from '@mui/material/styles'
 
 // ** Icon
 import Icon from 'src/@core/components/icon'
@@ -104,8 +105,8 @@ const SearchMessagesDrawer = ({
         zIndex: 9,
         height: '100%',
         width,
-        borderTopRightRadius: theme => theme.shape.borderRadius,
-        borderBottomRightRadius: theme => theme.shape.borderRadius,
+        borderTopRightRadius: (theme: Theme) => theme.shape.borderRadius,
+        borderBottomRightRadius: (theme: Theme) => theme.shape.borderRadius,
         '& + .MuiBackdrop-root': {
           zIndex: 8,
           borderRadius: 1

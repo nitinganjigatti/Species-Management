@@ -9,24 +9,43 @@
 // The sentinel is zero-width-bracketed so any client that fails to strip
 // it (e.g. an older build) renders an invisible glyph rather than a
 // jarring "[fwd]" label.
+//
+// Mobile uses [ANTZ_FWD] (no zero-width padding). We recognise and strip
+// all known variants so cross-platform forwards render correctly.
 
 export const FORWARD_MARKER = '​[fwd]​'
 
-// True when the given message text starts with the forward marker.
+// Regex matching any known forward marker at the start of a message,
+// tolerating zero-width wrapper characters the server emits around [fwd].
+// Recognised patterns (case-insensitive):
+//   ​[fwd]​ — web sentinel (ZW-wrapped)
+//   [ANTZ_FWD]        — mobile sentinel
+//   [fwd]             — server bare form
+//   [forwarded]       — server alternate
+//   [forward]         — server alternate
+// Zero-width chars: ZWSP U+200B, ZWNJ U+200C, ZWJ U+200D, WJ U+2060, BOM U+FEFF, SHY U+00AD
+const ZW_CHARS = '​‌‍⁠﻿­'
+const FORWARD_PREFIX_RE = new RegExp(
+  `^[${ZW_CHARS}]*\\[(fwd|forwarded|forward|antz_fwd)\\][${ZW_CHARS}]*`,
+  'i'
+)
+
+// True when the given message text starts with any known forward marker.
 // Safe on undefined / null / empty inputs.
 export const isForwarded = (text?: string | null): boolean => {
   if (!text) return false
 
-  return text.startsWith(FORWARD_MARKER)
+  return FORWARD_PREFIX_RE.test(text)
 }
 
 // Returns the displayable body for a forwarded message. Strips the marker
-// and a single leading newline (the separator we insert at send time).
-// If the input doesn't carry the marker, returns it unchanged.
+// (and any zero-width wrappers + one optional leading newline) from the start.
+// If the input carries no recognised marker, returns it unchanged.
 export const stripForwardMarker = (text?: string | null): string => {
   if (!text) return ''
-  if (!text.startsWith(FORWARD_MARKER)) return text
-  const rest = text.slice(FORWARD_MARKER.length)
+  const match = text.match(FORWARD_PREFIX_RE)
+  if (!match) return text
+  const rest = text.slice(match[0].length)
 
   return rest.startsWith('\n') ? rest.slice(1) : rest
 }

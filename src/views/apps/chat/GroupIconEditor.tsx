@@ -34,11 +34,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
 
 // ** Chat API
-import {
-  removeConversationIcon,
-  getConversation,
-  sdkConversationToChat
-} from 'src/lib/chat/api'
+import { removeConversationIcon, getConversation, sdkConversationToChat } from 'src/lib/chat/api'
 
 // ** Image compression
 import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
@@ -106,7 +102,7 @@ const GroupIconEditor = ({
         size: compressed.size
       }
       await dispatch(uploadGroupIcon({ chatId, file: uploadable })).unwrap()
-      toast.success('Group icon updated')
+      // toast.success('Group icon updated')
     } catch (err) {
       console.error('[GroupIconEditor] upload failed:', err)
       toast.error('Failed to update group icon')

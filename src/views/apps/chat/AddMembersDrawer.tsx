@@ -21,6 +21,7 @@ import Typography from '@mui/material/Typography'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemButton from '@mui/material/ListItemButton'
 import InputAdornment from '@mui/material/InputAdornment'
+import type { Theme } from '@mui/material/styles'
 
 // ** Icon
 import Icon from 'src/@core/components/icon'
@@ -160,8 +161,8 @@ const AddMembersDrawer = ({
         zIndex: 9,
         height: '100%',
         width,
-        borderTopRightRadius: theme => theme.shape.borderRadius,
-        borderBottomRightRadius: theme => theme.shape.borderRadius,
+        borderTopRightRadius: (theme: Theme) => theme.shape.borderRadius,
+        borderBottomRightRadius: (theme: Theme) => theme.shape.borderRadius,
         '& + .MuiBackdrop-root': {
           zIndex: 8,
           borderRadius: 1

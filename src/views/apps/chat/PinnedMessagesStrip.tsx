@@ -19,11 +19,10 @@ import Icon from 'src/@core/components/icon'
 import { unpinMessageOverSocket } from 'src/lib/chat/api'
 
 // ** Types
-import type { SelectedChatType, ProfileUserType } from 'src/types/apps/chatTypes'
+import type { SelectedChatType } from 'src/types/apps/chatTypes'
 
 interface PinnedMessagesStripProps {
   selectedChat: NonNullable<SelectedChatType>
-  userProfile: ProfileUserType | null
   onScrollToMessage: (messageId: string) => void
 }
 
@@ -38,9 +37,9 @@ interface PinnedMessagesStripProps {
  *    the CURRENTLY displayed pinned message: Unpin + Go to message.
  *
  * Unpin permission mirrors the per-bubble menu — DMs always allow either
- * side; groups restrict to admins.
+ * side; groups allow any active member (matches WhatsApp behavior).
  */
-const PinnedMessagesStrip = ({ selectedChat, userProfile, onScrollToMessage }: PinnedMessagesStripProps) => {
+const PinnedMessagesStrip = ({ selectedChat, onScrollToMessage }: PinnedMessagesStripProps) => {
   const [pinnedIndex, setPinnedIndex] = useState<number>(0)
   const [pinnedListAnchor, setPinnedListAnchor] = useState<HTMLElement | null>(null)
 
@@ -73,9 +72,10 @@ const PinnedMessagesStrip = ({ selectedChat, userProfile, onScrollToMessage }: P
   const hasMultiple = pinnedCount > 1
 
   const isGroupChat = selectedChat.contact.isGroup === true
-  const me = String(userProfile?.id ?? '')
-  const admins = selectedChat.contact.adminIds?.map(String) ?? []
-  const canPin = isGroupChat ? !!me && admins.includes(me) : true
+  // Any active group member can pin/unpin. DMs always allow it. Kicked
+  // members (isCurrentUserActive === false) cannot — the composer + other
+  // interaction gates already block them, this keeps pin parity.
+  const canPin = isGroupChat ? selectedChat.contact.isCurrentUserActive !== false : true
 
   const scrollToCurrent = () => {
     if (current.id) onScrollToMessage(current.id)

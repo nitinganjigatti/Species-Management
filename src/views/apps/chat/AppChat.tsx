@@ -28,7 +28,8 @@ import {
   applyParticipantJoined,
   updateMessagesFeedback,
   addOrReplaceChat,
-  patchConversationFromEvent
+  patchConversationFromEvent,
+  updateChatFlags
 } from 'src/store/apps/chat'
 
 // ** Adapters
@@ -237,12 +238,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     roomIds.forEach(id => joinChatRoom(id as string))
   }, [chatSocket, chatConnected, store?.chats])
 
-  // Refresh the conversation list whenever the socket transitions to
-  // connected — picks up conversations created while we were offline.
-  useEffect(() => {
-    if (!chatClient || !chatConnected) return
-    dispatch(fetchChatsContacts())
-  }, [chatClient, chatConnected, dispatch])
+  // Connect-time refetch lives in ChatLauncher (mounted persistently in
+  // the app shell). AppChat no longer refetches on mount — it would
+  // re-fire on every FAB open (since `{open && <Box>}` unmounts/remounts
+  // AppChat) and that fetch is redundant: Redux already holds the list
+  // and is kept fresh by `new_message` + `conversation_updated` socket
+  // events. Cold start and socket-reconnect refetches are both owned by
+  // ChatLauncher's persistent effects.
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
   // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory
@@ -435,12 +437,27 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     userProfileIdRef.current = store?.userProfile?.id ?? null
   }, [store?.userProfile?.id])
 
+  // Stable ref for the current user's display name — needed by the
+  // synthesized kick system message (targetUserName) on the kicked socket.
+  const userProfileNameRef = useRef<string>('')
+  useEffect(() => {
+    userProfileNameRef.current = store?.userProfile?.fullName ?? ''
+  }, [store?.userProfile?.fullName])
+
+  // Synthesis guard — set of conversationIds for which we've already
+  // synthesized a "kicked-me" pill this session. Prevents duplicate pills
+  // when `participant_left` double-fires (observed in StrictMode dev runs
+  // and possible on socket reconnects).
+  const syntheticKickFiredRef = useRef<Set<string>>(new Set())
+
   // Stable ref of the chat id set. Used inside the new_message handler so we
   // can detect events for conversations we don't yet have (e.g. someone just
   // created a DM with us) and pull a fresh list via `fetchChatsContacts`.
   const knownChatIdsRef = useRef<Set<string | number>>(new Set())
+  const chatsRef = useRef(store?.chats ?? null)
   useEffect(() => {
     knownChatIdsRef.current = new Set(store?.chats?.map(c => c.id) ?? [])
+    chatsRef.current = store?.chats ?? null
   }, [store?.chats])
 
   useEffect(() => {
@@ -700,6 +717,14 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
           ...(role ? { role } : {})
         })
       )
+
+      // Re-add clears the synthesis dedupe for this conversation so a
+      // future re-kick can synthesize a fresh pill (otherwise the ref
+      // would block synthesis on the second kick).
+      const meId = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
+      if (meId && String(userId) === meId) {
+        syntheticKickFiredRef.current.delete(String(conversationId))
+      }
     }
 
     const onParticipantLeft = (evt: any) => {
@@ -707,8 +732,20 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const userId = evt?.userId
       if (!conversationId || !userId) return
       const removedBy = evt?.removedBy
-      const removedByName: string | undefined =
+      let removedByName: string | undefined =
         evt?.removedByName ?? evt?.removedByDisplayName ?? evt?.removedBy?.displayName
+
+      // Backend (v1.2.1) emits `participant_left` with `removedBy` (id) but
+      // omits `removedByName`. The actor is still a group member (they're
+      // the one who issued the kick), so their display name lives in our
+      // cached `participants` array — same source SidebarLeft / ChatLog
+      // read from for member names.
+      if (!removedByName && removedBy) {
+        const chat = chatsRef.current?.find(c => String(c.id) === String(conversationId))
+        const actor = chat?.participants?.find(p => String(p.userId) === String(removedBy))
+        removedByName = actor?.displayName ?? actor?.username
+      }
+
       dispatch(
         applyParticipantLeft({
           chatId: conversationId,
@@ -718,16 +755,92 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         })
       )
 
-      // Toast only when WE are the one being removed BY an admin. We
-      // read the current-user id from the same ref used by the rest of
-      // the file (kept in sync via the userProfile effect above) so the
-      // closure sees the latest value across re-renders.
+      // Removal toast intentionally suppressed — the inline composer
+      // placeholder ("<Actor> removed you") already conveys the state
+      // via the reducer snapshot of `removedBy`. The reducer below still
+      // flips `isCurrentUserActive=false` and clears the pin so all
+      // active UI signals reflect the removal without a toast.
       const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
       const leaverIsMe = me !== '' && String(userId) === me
-      if (leaverIsMe && removedBy !== undefined && removedBy !== null) {
-        toast.error(
-          removedByName ? `You were removed from this group by ${removedByName}` : 'You were removed from this group'
-        )
+
+      // Backend (v1.2.1) does NOT deliver the `user_removed` system
+      // `new_message` event to the kicked socket — only `participant_left`
+      // reaches us. So the in-chat removal pill never appears unless we
+      // synthesize it client-side. Build a system message that mirrors the
+      // shape the sender's UI receives (senderId/senderName = actor,
+      // targetUserId/targetUserName = me) and route it through
+      // `receiveMessage` so:
+      //   1. The pill appears at the bottom of ChatLog ("<Actor> removed you")
+      //   2. The kick-derivation logic in `receiveMessage` writes
+      //      sidebar.lastMessage + removedBy/removedByName in one pass.
+      // Deterministic id (`synthetic-kick-<conversationId>`) makes
+      // re-dispatch idempotent — second call is dropped by the id-dedupe
+      // branch in `receiveMessage`. Also harmless on later refresh: the
+      // real server message replaces it via `setChatMessages`.
+      if (leaverIsMe) {
+        const convKey = String(conversationId)
+        if (!syntheticKickFiredRef.current.has(convKey)) {
+          syntheticKickFiredRef.current.add(convKey)
+          const myName = userProfileNameRef.current
+          const myId = userProfileIdRef.current
+          const now = new Date()
+          const isAdminKick = removedBy !== undefined && removedBy !== null
+          // Use ISO timestamp — ChatLog's `toDateKey` / `formatDateLabel`
+          // do `new Date(msg.time)` and expect a parseable value, NOT a
+          // short HH:MM display string. Real messages from the adapter
+          // use `msg.sentAt ?? msg.createdAt ?? new Date().toISOString()`,
+          // so we match that exactly to keep the date-divider logic happy.
+          //
+          // Two synthesis shapes, picked by the kick-vs-leave discriminator:
+          //   • Admin kick   → sender = actor, target = me, op = user_removed
+          //   • Self-exit    → sender = me,    target = me, op = user_left
+          // ChatLog + SidebarLeft rewrite each into the correct
+          // perspective-specific copy ("Anil Rathod removed you" vs
+          // "You left the group").
+          const syntheticMessage = isAdminKick
+            ? {
+                id: `synthetic-kick-${convKey}-${now.getTime()}`,
+                message: removedByName ? `${removedByName} removed you` : 'You were removed',
+                time: now.toISOString(),
+                senderId: String(removedBy),
+                ...(removedByName ? { senderName: removedByName } : {}),
+                feedback: { isSent: true, isDelivered: true, isSeen: true },
+                contentType: 'system' as const,
+                systemOperationType: 'user_removed',
+                targetUserId: String(userId),
+                ...(myName ? { targetUserName: myName } : {})
+              }
+            : {
+                id: `synthetic-leave-${convKey}-${now.getTime()}`,
+                message: 'You left the group',
+                time: now.toISOString(),
+                senderId: myId != null ? String(myId) : String(userId),
+                ...(myName ? { senderName: myName } : {}),
+                feedback: { isSent: true, isDelivered: true, isSeen: true },
+                contentType: 'system' as const,
+                systemOperationType: 'user_left',
+                targetUserId: String(userId),
+                ...(myName ? { targetUserName: myName } : {})
+              }
+          dispatch(
+            receiveMessage({
+              conversationId,
+              message: syntheticMessage as any,
+              isOwn: false
+            })
+          )
+        }
+      }
+
+      // If the current user was removed from a pinned group, clear the pin
+      // locally. The API call would be rejected since the user is no longer
+      // a member, so we update Redux state directly — the server's own
+      // membership removal already handles the server-side pin state.
+      if (leaverIsMe) {
+        const chat = chatsRef.current?.find(c => String(c.id) === String(conversationId))
+        if (chat?.isPinned) {
+          dispatch(updateChatFlags({ chatId: conversationId, isPinned: false }))
+        }
       }
     }
 
@@ -778,7 +891,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         width: '100%',
         height: '100%',
         display: 'flex',
-        borderRadius: 1,
+        // borderRadius: 0,
         overflow: 'hidden',
         position: 'relative',
         backgroundColor: 'background.paper',

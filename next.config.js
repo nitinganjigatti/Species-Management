@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const path = require('path')
+const pkg = require('./package.json')
 
 /** @type {import('next').NextConfig} */
 
@@ -8,6 +9,13 @@ const path = require('path')
 
 module.exports = {
   transpilePackages: ['@antzsoft/wso2-auth-web'],
+  // Single source of truth for the app version: package.json. The sidebar
+  // and the X-Client-Version request header read process.env.NEXT_PUBLIC_APP_VERSION;
+  // injecting it here means a `npm version` bump (or a manual edit of
+  // package.json) is all that's needed — no more drift between env.* files.
+  env: {
+    NEXT_PUBLIC_APP_VERSION: `v${pkg.version}`
+  },
   trailingSlash: true,
   reactStrictMode: false,
   // Suppress Emotion SSR warnings for :first-child pseudo-class

@@ -48,12 +48,16 @@ import {
   sdkUserToProfile,
   sdkConversationToChat,
   sdkMessageToMessage,
-  extractContactsFromConversations
+  extractContactsFromConversations,
+  writeKickActor,
+  clearKickActor,
+  markSelfLeft,
+  clearSelfLeft
 } from 'src/lib/chat/api'
 
 import { useChatStore } from '@antzsoft/chat-core'
 
-import { composeForwardedText } from 'src/lib/chat/forwardMarker'
+import { composeForwardedText, stripForwardMarker, isForwarded } from 'src/lib/chat/forwardMarker'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -166,14 +170,49 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
       .map(c => ({
         chatId: c.id,
         messageId: c.chat.lastMessage?.id,
-        hasSender: Boolean(c.chat.lastMessage?.senderName)
+        senderId: c.chat.lastMessage?.senderId,
+        hasSender: Boolean(c.chat.lastMessage?.senderName),
+        participants: c.participants ?? []
       }))
       .filter(t => t.messageId && !t.hasSender && !enrichedLastMessageIds.has(t.messageId))
 
     if (targets.length === 0) return
 
+    // Fast path — for each target, try to resolve the sender's display
+    // name from the chat's already-loaded `participants` array (matched
+    // by `senderId`). Zero network calls. Solves the visible
+    // "sidebar hydrates row-by-row" delay an admin sees on cold load
+    // when they're in many groups — without this, every group would
+    // fire its own `getMessage(id)` REST round-trip.
+    const networkFallbackTargets: typeof targets = []
+    for (const t of targets) {
+      if (!t.messageId) continue
+      if (t.senderId !== undefined && t.senderId !== '') {
+        const senderIdStr = String(t.senderId)
+        const found = t.participants.find(p => String(p.userId) === senderIdStr)
+        const resolvedName = found?.displayName || found?.username
+        if (resolvedName) {
+          enrichedLastMessageIds.add(t.messageId)
+          dispatch(
+            patchLastMessageSender({
+              chatId: t.chatId,
+              senderId: t.senderId,
+              senderName: resolvedName
+            })
+          )
+          continue
+        }
+      }
+      networkFallbackTargets.push(t)
+    }
+
+    if (networkFallbackTargets.length === 0) return
+
+    // Slow path — only chats whose sender isn't in `participants`
+    // (shouldn't be common — happens if the sender has been removed
+    // and we haven't cached their profile). One REST call per target.
     await Promise.all(
-      targets.map(async t => {
+      networkFallbackTargets.map(async t => {
         if (!t.messageId) return
         enrichedLastMessageIds.add(t.messageId)
         try {
@@ -226,11 +265,18 @@ export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = String(state.chat?.userProfile?.id ?? '')
     const peerIdStr = String(userId)
+    const isSelfChat = peerIdStr === currentUserId && currentUserId !== ''
 
-    // (1) Existing DM lookup — short-circuit to the existing path.
+    // (1) Existing DM lookup — short-circuit to the existing path. Self-chats
+    // need a distinct predicate: their participants are entirely the current
+    // user, so the generic `includes(peer) && includes(me)` check would
+    // otherwise match any DM the current user is in.
     const existing = (state.chat?.chats ?? []).find(c => {
       if (c.isGroup === true) return false
       const ids = c.participantIds?.map(String) ?? []
+      if (isSelfChat) {
+        return ids.length > 0 && ids.every(id => id === currentUserId)
+      }
 
       return ids.includes(peerIdStr) && ids.includes(currentUserId)
     })
@@ -355,6 +401,36 @@ export const addParticipantsToGroup = createAsyncThunk<
     console.warn('[chat] addParticipantsToGroup: groupId must be a real conversation id')
 
     return
+  }
+
+  // Optimistic preview — sidebar updates to "You added X" instantly.
+  // Touches only chat.lastMessage; the real server new_message will
+  // overwrite when it lands. For multi-add we preview just the first
+  // user (matches WhatsApp's "You added X" + "X and N others added"
+  // sidebar collapse).
+  const preState = getState() as { chat?: ChatStoreType }
+  const me = preState.chat?.userProfile
+  const firstUserId = userIds[0]
+  const firstContact = preState.chat?.contacts?.find(c => String(c.id) === String(firstUserId))
+  const firstName = firstContact?.fullName ?? ''
+  if (me?.id !== undefined && me.fullName && firstName) {
+    dispatch(
+      patchOptimisticLastMessage({
+        chatId: groupId,
+        message: {
+          id: `optimistic-add-${String(groupId)}-${Date.now()}`,
+          message: `${me.fullName} added ${firstName}`,
+          time: new Date().toISOString(),
+          senderId: me.id,
+          senderName: me.fullName,
+          feedback: { isSent: true, isDelivered: false, isSeen: false },
+          contentType: 'system',
+          systemOperationType: 'user_added',
+          targetUserId: firstUserId,
+          targetUserName: firstName
+        }
+      })
+    )
   }
 
   try {
@@ -548,6 +624,13 @@ export const uploadGroupIcon = createAsyncThunk<
 
 /**
  * Remove a participant from a group (admin-only on the backend).
+ *
+ * Optimistic update — sidebar + banner reflect the removal instantly,
+ * BEFORE the REST round-trip + socket broadcast complete. Without this
+ * the admin sees several hundred ms of "nothing happened" between click
+ * and server echo. The optimistic write touches only `chat.lastMessage`
+ * (not `chat.messages`) so the eventual server `new_message` doesn't
+ * collide / duplicate the in-chat pill.
  */
 export const removeParticipantFromGroup = createAsyncThunk<
   void,
@@ -555,6 +638,33 @@ export const removeParticipantFromGroup = createAsyncThunk<
 >('appChat/removeParticipantFromGroup', async ({ groupId, userId }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client || typeof groupId !== 'string') return
+
+  // Optimistic preview — derive target's display name from participants
+  // (always present at this point since the admin just selected them).
+  const preState = getState() as { chat?: ChatStoreType }
+  const me = preState.chat?.userProfile
+  const chat = preState.chat?.chats?.find(c => c.id === groupId)
+  const target = chat?.participants?.find(p => String(p.userId) === String(userId))
+  const targetName = target?.displayName ?? target?.username ?? ''
+  if (me?.id !== undefined && me.fullName && targetName) {
+    dispatch(
+      patchOptimisticLastMessage({
+        chatId: groupId,
+        message: {
+          id: `optimistic-remove-${String(groupId)}-${Date.now()}`,
+          message: `${me.fullName} removed ${targetName}`,
+          time: new Date().toISOString(),
+          senderId: me.id,
+          senderName: me.fullName,
+          feedback: { isSent: true, isDelivered: false, isSeen: false },
+          contentType: 'system',
+          systemOperationType: 'user_removed',
+          targetUserId: userId,
+          targetUserName: targetName
+        }
+      })
+    )
+  }
 
   try {
     const conv = await apiRemoveParticipant(groupId, String(userId))
@@ -575,6 +685,38 @@ export const updateParticipantRoleInGroup = createAsyncThunk<
 >('appChat/updateParticipantRoleInGroup', async ({ groupId, userId, role }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client || typeof groupId !== 'string') return
+
+  // Optimistic preview — "You made X an admin" / "You dismissed X as admin"
+  // shows in the sidebar instantly, before the REST round-trip + socket
+  // broadcast return. Real server message reconciles via receiveMessage
+  // shortly after.
+  const preState = getState() as { chat?: ChatStoreType }
+  const me = preState.chat?.userProfile
+  const chat = preState.chat?.chats?.find(c => c.id === groupId)
+  const target = chat?.participants?.find(p => String(p.userId) === String(userId))
+  const targetName = target?.displayName ?? target?.username ?? ''
+  if (me?.id !== undefined && me.fullName && targetName) {
+    const op = role === 'admin' ? 'admin_promoted' : 'admin_demoted'
+    const previewText =
+      role === 'admin' ? `${me.fullName} made ${targetName} an admin` : `${me.fullName} dismissed ${targetName} as admin`
+    dispatch(
+      patchOptimisticLastMessage({
+        chatId: groupId,
+        message: {
+          id: `optimistic-${op}-${String(groupId)}-${Date.now()}`,
+          message: previewText,
+          time: new Date().toISOString(),
+          senderId: me.id,
+          senderName: me.fullName,
+          feedback: { isSent: true, isDelivered: false, isSeen: false },
+          contentType: 'system',
+          systemOperationType: op,
+          targetUserId: userId,
+          targetUserName: targetName
+        }
+      })
+    )
+  }
 
   try {
     const conv = await apiUpdateParticipantRole(groupId, String(userId), role)
@@ -874,7 +1016,9 @@ export const materializeDraftIfNeeded = createAsyncThunk<string, ChatsArrType>(
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = String(state.chat?.userProfile?.id ?? '')
-    const peerUserId = contact.participantIds?.map(String).find(id => id !== currentUserId)
+    const ids = contact.participantIds?.map(String) ?? []
+    const isSelfChat = ids.length > 0 && ids.every(id => id === currentUserId)
+    const peerUserId = isSelfChat ? currentUserId : ids.find(id => id !== currentUserId)
     if (!peerUserId) throw new Error('[chat] draft chat is missing a peer userId')
 
     const conv = await createDirectConversation({ userId: peerUserId })
@@ -1003,9 +1147,10 @@ export const forwardMessage = createAsyncThunk<
     sourceAttachments?: ChatAttachmentType[]
     targetChatId: ChatEntityId
     openTargetAfter?: boolean
+    isOwnMessage?: boolean
   }
 >('appChat/forwardMessage', async (params, { dispatch }) => {
-  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true } = params
+  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true, isOwnMessage } = params
   const client = getChatClientOrNull()
   if (!client || typeof targetChatId !== 'string') {
     throw new Error('[chat] forwardMessage requires an initialized SDK and a real target chat id')
@@ -1026,9 +1171,13 @@ export const forwardMessage = createAsyncThunk<
     }))
     : undefined
 
-  // composeForwardedText strips any existing marker on the source first,
-  // so re-forwarding an already-forwarded message never stacks markers.
-  const text = composeForwardedText(sourceText)
+  // Add the [fwd] marker unless this is the user's own original message.
+  // Exception: if the source already carries a forward marker (i.e. it was
+  // itself a forwarded message), always preserve the marker — the content
+  // originated from a third party regardless of who relayed it last.
+  const text = (isOwnMessage && !isForwarded(sourceText))
+    ? stripForwardMarker(sourceText)
+    : composeForwardedText(sourceText)
 
   try {
     await sendMessageOverSocket({
@@ -1175,6 +1324,14 @@ export const appChatSlice = createSlice({
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
+      // Guard: don't let socket updates leak post-kick messages into the
+      // sidebar for groups we've been removed from. The cold-load adapter
+      // (`sdkConversationToChat`) sets a "You were removed…" placeholder;
+      // this guard keeps it pinned even when the server (incorrectly)
+      // continues broadcasts `conversation_updated` events to kicked
+      // sockets (backend quirk #11). Active members are unaffected.
+      if (chatEntry.isGroup && chatEntry.isCurrentUserActive === false) return
+
       if (lastMessage) {
         const existing = chatEntry.chat.lastMessage
         // Preserve the existing attachments array if the patch is about the
@@ -1185,27 +1342,97 @@ export const appChatSlice = createSlice({
         // correct. For a different message id we drop the previous
         // attachments — re-arrives via `new_message` if needed.
         const sameMessage = existing?.id && existing.id === lastMessage.messageId
+        // CRITICAL: also preserve system-message metadata
+        // (`contentType`, `systemOperationType`, `targetUserId`,
+        // `targetUserName`) when the patch is about the same message
+        // we already have. The slim `conversation_updated` payload
+        // does NOT carry these fields, so a naive overwrite strips
+        // them — which then breaks the perspective rewrite (sidebar
+        // would show raw "Anil removed Ajay" instead of "You removed
+        // Ajay" or "Anil removed you", depending on viewer). When the
+        // patch refers to a different message we let them default to
+        // undefined — the next `new_message` (or messages.list refresh)
+        // will repopulate them.
+        // senderId resolution — the slim payload doesn't carry it.
+        // Cases (in priority order):
+        //   1. sameMessage: keep existing.senderId (correct — same msg).
+        //   2. senderName matches userProfile.fullName: it's us → use
+        //      our own profile id. Lets the sidebar resolver detect
+        //      the 'actor' perspective immediately, so we don't flash
+        //      raw "Anil Rathod removed Ajay Antony" before `new_message`
+        //      arrives with the full metadata.
+        //   3. Look up senderName in the chat's `participants` array —
+        //      the message came from a current/past member, so their
+        //      display name is recorded there. This restores the
+        //      "Anil: hello" sidebar prefix for incoming group messages
+        //      (and the in-bubble sender label, which also reads
+        //      lastMessage.senderId). Falls back to `state.contacts`
+        //      when participants is empty (cold DM cases).
+        //   4. Otherwise: empty string. We deliberately do NOT carry
+        //      the previous `existing.senderId` (which may belong to a
+        //      completely different sender).
+        const myFullName = state.userProfile?.fullName
+        const myId = state.userProfile?.id
+        const incomingSenderName = lastMessage.senderName
+        let resolvedSenderId: ChatEntityId | '' = ''
+        if (sameMessage) {
+          resolvedSenderId = existing!.senderId ?? ''
+        } else if (
+          myFullName &&
+          incomingSenderName &&
+          incomingSenderName === myFullName &&
+          myId !== undefined
+        ) {
+          resolvedSenderId = myId
+        } else if (incomingSenderName) {
+          const fromParticipants = (chatEntry.participants ?? []).find(
+            p => p.displayName === incomingSenderName || p.username === incomingSenderName
+          )
+          if (fromParticipants?.userId !== undefined) {
+            resolvedSenderId = fromParticipants.userId
+          } else {
+            const fromContacts = state.contacts?.find(c => c.fullName === incomingSenderName)
+            if (fromContacts?.id !== undefined) {
+              resolvedSenderId = fromContacts.id
+            }
+          }
+        }
+
         chatEntry.chat.lastMessage = {
           id: lastMessage.messageId,
           time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
           message: lastMessage.contentPreview ?? '',
-          // senderId isn't part of the slim payload. Keep the previous one
-          // when we're talking about the same message; otherwise we can't
-          // determine it — sidebar's "You: …" prefix may be missing until
-          // a future `new_message` fills it in. Acceptable tradeoff.
-          senderId: sameMessage ? existing!.senderId : (existing?.senderId ?? ''),
+          senderId: resolvedSenderId,
           senderName: lastMessage.senderName ?? existing?.senderName,
           feedback: existing?.feedback ?? { isSent: true, isDelivered: false, isSeen: false },
           attachments: sameMessage
             ? existing?.attachments
             : lastMessage.hasAttachments
               ? existing?.attachments
-              : undefined
+              : undefined,
+          // System metadata — preserved when same message id. For
+          // different message ids these stay undefined; the next
+          // `new_message` (which arrives shortly after) refills them.
+          ...(sameMessage && existing?.contentType ? { contentType: existing.contentType } : {}),
+          ...(sameMessage && existing?.systemOperationType
+            ? { systemOperationType: existing.systemOperationType }
+            : {}),
+          ...(sameMessage && existing?.targetUserId !== undefined
+            ? { targetUserId: existing.targetUserId }
+            : {}),
+          ...(sameMessage && existing?.targetUserName
+            ? { targetUserName: existing.targetUserName }
+            : {})
         }
       }
 
       if (typeof unreadCount === 'number') {
-        chatEntry.chat.unseenMsgs = unreadCount
+        // If this conversation is currently open the user is actively reading it —
+        // keep unseenMsgs at 0. The server's value is stale (it incremented before
+        // our markRead socket call was processed). Mirrors mobile's behaviour where
+        // the screen being focused means messages are immediately consumed.
+        const isCurrentlyOpen = state.selectedChat?.contact.id === chatId
+        chatEntry.chat.unseenMsgs = isCurrentlyOpen ? 0 : unreadCount
       }
 
       // New activity → bubble to the top of the list, matching how
@@ -1610,12 +1837,35 @@ export const appChatSlice = createSlice({
       if (meIsJoiner) {
         delete nextChat.removedBy
         delete nextChat.removedByName
+        // Drop both localStorage flags for this chat — actor cache AND
+        // self-left marker — so a future cold refresh treats the chat
+        // as a normal active membership.
+        clearKickActor(chatId)
+        clearSelfLeft(chatId)
+        // Clear the stale "You were removed…" / "<Actor> removed you"
+        // sidebar preview that was written by applyParticipantLeft +
+        // receiveMessage derivation during the prior kick. Without this
+        // the sidebar keeps showing kick text after re-add until the
+        // next `conversation_updated` lands — and that event can be
+        // dropped by `patchConversationFromEvent`'s isCurrentUserActive
+        // guard if it arrives before this reducer flips the flag.
+        // Wiping lastMessage here is safe: subsequent activity (new
+        // messages, system events like user_added / admin_promoted)
+        // will repopulate it via the normal receive paths.
+        const currentMsg = nextChat.chat.lastMessage?.message
+        const isKickPreview =
+          nextChat.chat.lastMessage?.contentType === 'system' &&
+          (currentMsg === 'You were removed from this group' ||
+            (typeof currentMsg === 'string' && currentMsg.endsWith(' removed you')))
+        if (isKickPreview) {
+          nextChat.chat = { ...nextChat.chat, lastMessage: undefined }
+        }
       }
       state.chats[idx] = nextChat
 
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
-          chat: state.selectedChat.chat,
+          chat: state.chats[idx].chat,
           contact: state.chats[idx]
         }
       }
@@ -1658,20 +1908,65 @@ export const appChatSlice = createSlice({
           ? { removedBy, removedByName }
           : {}
 
+      // When self is the leaver, overwrite chat.lastMessage so the
+      // sidebar preview updates immediately. Use the most specific copy
+      // available based on what the event payload carried:
+      //   • self-exit (no removedBy)              → "You left the group"
+      //   • admin-kick + removedByName resolved   → "<Actor> removed you"
+      //     (matches what receiveMessage synthesis writes, so a duplicate
+      //      `participant_left` fire — StrictMode dev double-run or
+      //      socket re-delivery — doesn't reset the text just because
+      //      the synthesis dedupe ref blocks a second synthesis.)
+      //   • admin-kick + no removedByName         → "You were removed from this group"
+      //     (degraded fallback; later receiveMessage derivation or
+      //      kick-actor cache hydrate fills in the actor name.)
+      const isSelfExit = meIsLeaver && (removedBy === undefined || removedBy === null)
+      const meIsLeaverPreview = isSelfExit
+        ? 'You left the group'
+        : removedByName
+          ? `${removedByName} removed you`
+          : 'You were removed from this group'
+      const updatedChatBlock = meIsLeaver
+        ? {
+            ...chat.chat,
+            lastMessage: chat.chat.lastMessage
+              ? {
+                  ...chat.chat.lastMessage,
+                  message: meIsLeaverPreview,
+                  contentType: 'system' as const
+                }
+              : chat.chat.lastMessage
+          }
+        : chat.chat
+
       state.chats[idx] = {
         ...chat,
         participants: updatedParticipants,
         participantIds: updatedParticipantIds,
         adminIds: updatedAdminIds,
         ...(meIsLeaver ? { isCurrentUserActive: false } : {}),
-        ...removalFields
+        ...removalFields,
+        chat: updatedChatBlock
+      }
+
+      // Persist actor info to localStorage so the next cold refresh
+      // hydrates sidebar + banner with "<Actor> removed you" instantly.
+      // Only fires for admin-kick (removedBy present) — self-exits use
+      // the parallel selfLeft flag below instead.
+      if (meIsLeaver && removedBy !== undefined && removedBy !== null && removedByName) {
+        writeKickActor(chatId, { id: String(removedBy), name: removedByName })
+      }
+      // Persist self-exit flag so the next cold refresh shows "You left
+      // the group" without needing REST to preserve system metadata.
+      if (meIsLeaver && (removedBy === undefined || removedBy === null)) {
+        markSelfLeft(chatId)
       }
 
       // Mirror into selectedChat so the open chat's composer + Group info
       // drawer re-render immediately.
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
-          chat: state.selectedChat.chat,
+          chat: updatedChatBlock,
           contact: state.chats[idx]
         }
       }
@@ -1698,6 +1993,31 @@ export const appChatSlice = createSlice({
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
           chat: { ...state.selectedChat.chat, lastMessage: chat.chat.lastMessage },
+          contact: chat
+        }
+      }
+    },
+    // Optimistic lastMessage write — used by action thunks (remove /
+    // promote / demote / add member) to update the sidebar preview
+    // BEFORE the REST round-trip + socket broadcast complete. Touches
+    // only `chat.lastMessage` (not `chat.messages`) so the eventual
+    // real `new_message` broadcast doesn't duplicate the in-chat pill.
+    // The real broadcast will overwrite `chat.lastMessage` via
+    // `receiveMessage` + `patchConversationFromEvent` shortly after,
+    // reconciling any field differences.
+    patchOptimisticLastMessage: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; message: MessageType }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, message } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const chat = state.chats[idx]
+      chat.chat.lastMessage = message
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...state.selectedChat.chat, lastMessage: message },
           contact: chat
         }
       }
@@ -1751,13 +2071,34 @@ export const appChatSlice = createSlice({
         // Preserve any messages already cached locally; the incoming row has empty messages.
         const existing = state.chats[idx]
 
-        // Same merge logic as fetchChatsContacts.fulfilled — if the
-        // incoming lastMessage refers to the SAME message but is missing
-        // `senderId` / `senderName` (server's participant-mutation
-        // responses sometimes drop those), keep the previous values so
-        // the sidebar's "You: …" / "Saket: …" prefix doesn't vanish.
+        // Three-way merge for lastMessage:
+        //   1. If existing.lastMessage is NEWER than incoming.lastMessage,
+        //      keep existing. This protects optimistic previews (e.g.
+        //      "You removed Ajay" set by patchOptimisticLastMessage just
+        //      before this REST round-trip) from being reverted by the
+        //      response (which carries the PRE-action lastMessage).
+        //      Same-time → fall through to merge.
+        //   2. Same message id → merge: carry over fields the participant-
+        //      mutation responses tend to drop (senderId, senderName,
+        //      contentType, system metadata).
+        //   3. Different id, incoming newer → use incoming.
+        const existingTimeMs = existing.chat.lastMessage?.time
+          ? new Date(existing.chat.lastMessage.time).getTime()
+          : 0
+        const incomingTimeMs = incoming.chat.lastMessage?.time
+          ? new Date(incoming.chat.lastMessage.time).getTime()
+          : 0
         let mergedLastMessage = incoming.chat.lastMessage ?? existing.chat.lastMessage
         if (
+          existing.chat.lastMessage &&
+          (!incoming.chat.lastMessage ||
+            (existingTimeMs > 0 && incomingTimeMs > 0 && existingTimeMs > incomingTimeMs))
+        ) {
+          // Existing is newer (optimistic preview, live socket update,
+          // etc.) — keep it. The follow-on socket broadcasts will land
+          // shortly and overwrite via receiveMessage if needed.
+          mergedLastMessage = existing.chat.lastMessage
+        } else if (
           incoming.chat.lastMessage &&
           existing.chat.lastMessage &&
           incoming.chat.lastMessage.id &&
@@ -1766,7 +2107,13 @@ export const appChatSlice = createSlice({
           mergedLastMessage = {
             ...incoming.chat.lastMessage,
             senderId: incoming.chat.lastMessage.senderId || existing.chat.lastMessage.senderId,
-            senderName: incoming.chat.lastMessage.senderName ?? existing.chat.lastMessage.senderName
+            senderName: incoming.chat.lastMessage.senderName ?? existing.chat.lastMessage.senderName,
+            contentType: incoming.chat.lastMessage.contentType ?? existing.chat.lastMessage.contentType,
+            systemOperationType:
+              incoming.chat.lastMessage.systemOperationType ?? existing.chat.lastMessage.systemOperationType,
+            targetUserId: incoming.chat.lastMessage.targetUserId ?? existing.chat.lastMessage.targetUserId,
+            targetUserName:
+              incoming.chat.lastMessage.targetUserName ?? existing.chat.lastMessage.targetUserName
           }
         }
 
@@ -1840,6 +2187,14 @@ export const appChatSlice = createSlice({
           if (isSeen === true) {
             m.feedback.isSeen = true
             m.feedback.isDelivered = true // read implies delivered
+          }
+          // Keep lastMessage.feedback in sync so the sidebar tick is accurate.
+          if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+            if (isDelivered === true) chat.chat.lastMessage.feedback.isDelivered = true
+            if (isSeen === true) {
+              chat.chat.lastMessage.feedback.isSeen = true
+              chat.chat.lastMessage.feedback.isDelivered = true
+            }
           }
           matchedIds.push(m.id)
           touchedChatIds.add(chat.id)
@@ -1917,6 +2272,22 @@ export const appChatSlice = createSlice({
         return
       }
 
+      // Don't append regular messages to groups we've been removed from.
+      // The server still broadcasts new_message to kicked sockets (backend
+      // quirk #11); this guard drops them so ChatLog stays frozen at
+      // pre-kick state. Active members + DMs take the normal path.
+      // EXCEPTION: system messages (contentType === 'system') ARE allowed
+      // through — so when the server eventually broadcasts pills like
+      // "X removed you from the group", the kicked user sees them.
+      const incomingContentType = (message as { contentType?: string }).contentType
+      if (
+        chatEntry.isGroup &&
+        chatEntry.isCurrentUserActive === false &&
+        incomingContentType !== 'system'
+      ) {
+        return
+      }
+
       if (message.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
         if (existingIdx >= 0) {
@@ -1982,6 +2353,59 @@ export const appChatSlice = createSlice({
       const newMessages = [...chatEntry.chat.messages, stored]
       chatEntry.chat.messages = newMessages
 
+      // System message handling — two jobs:
+      //   1) Mirror the FULL system message (with metadata) into
+      //      `chat.lastMessage` so the sidebar's three-perspective
+      //      rewrite (SidebarLeft `sidebarStructuredRewrite`) has the
+      //      `systemOperationType` / `senderId` / `targetUserId` fields
+      //      it needs to render "You added X" / "X added you" /
+      //      "X added Y" correctly. patchConversationFromEvent's slim
+      //      payload doesn't carry these — without this write the
+      //      sidebar would always show the raw bystander text for live
+      //      system events.
+      //   2) Live kick-of-me derivation. When the incoming system
+      //      message is a user_removed/participant_removed event whose
+      //      target IS the current user, mirror the actor info onto
+      //      the chat entry so the banner and sidebar update immediately.
+      if (stored.contentType === 'system') {
+        const op = stored.systemOperationType
+        const isRemoval = op === 'user_removed' || op === 'participant_removed'
+        const myId = String(state.userProfile?.id ?? '')
+        const targetIsMe =
+          isRemoval && stored.targetUserId !== undefined && myId !== '' && String(stored.targetUserId) === myId
+        if (targetIsMe) {
+          if (stored.senderId) chatEntry.removedBy = stored.senderId
+          if (stored.senderName) chatEntry.removedByName = stored.senderName
+          // Kick-of-me path: rewrite the visible text to active voice
+          // (sidebar shows "<Actor> removed you" instead of the raw
+          // server text). Metadata still preserved via spread.
+          chatEntry.chat.lastMessage = stored.senderName
+            ? { ...stored, message: `${stored.senderName} removed you` }
+            : stored
+          // Mirror actor fields onto the open chat so the banner picks them
+          // up without waiting for a re-select.
+          if (state.selectedChat && state.selectedChat.contact.id === conversationId) {
+            state.selectedChat.contact.removedBy = chatEntry.removedBy
+            state.selectedChat.contact.removedByName = chatEntry.removedByName
+          }
+          // Persist to localStorage so the NEXT cold refresh hydrates
+          // sidebar + banner with "<Actor> removed you" instantly — no
+          // intermediate "You were removed from this group" flash.
+          if (stored.senderName) {
+            writeKickActor(conversationId, {
+              name: stored.senderName,
+              ...(stored.senderId ? { id: String(stored.senderId) } : {})
+            })
+          }
+        } else {
+          // All other system events (admin_promoted, admin_demoted,
+          // user_added, user_removed for someone else, etc.) — write
+          // the full message with metadata so the sidebar's structured
+          // rewrite can fire. The raw text is preserved for bystanders.
+          chatEntry.chat.lastMessage = stored
+        }
+      }
+
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
         // Explicitly create a new selectedChat object so React detects the
@@ -2016,14 +2440,111 @@ export const appChatSlice = createSlice({
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
-      chatEntry.chat.messages = messages
-      chatEntry.chat.lastMessage = messages[messages.length - 1]
+      // Kicked groups need special handling. The REST messages.list()
+      // response still includes post-kick messages (server doesn't filter
+      // by membership). Rules:
+      //   • First open (messages cache empty) → write everything so the
+      //     user sees their pre-kick history. The few latest entries may
+      //     include post-kick text but that's an acceptable one-time
+      //     limitation without server-side filtering.
+      //   • Subsequent calls (cache already populated) → skip the write
+      //     so a re-fetch triggered by live socket events doesn't surface
+      //     post-kick messages that arrived after the first open.
+      //   • Always skip the `lastMessage` write — adapter's placeholder
+      //     ("You were removed from this group") must stay in the
+      //     sidebar regardless.
+      const isKickedGroup = chatEntry.isGroup && chatEntry.isCurrentUserActive === false
+      const skipMessagesWrite = isKickedGroup && chatEntry.chat.messages.length > 0
+
+      if (!skipMessagesWrite) {
+        chatEntry.chat.messages = messages
+      }
+
+      // Kicked-group derivation pass — runs whether we wrote the messages
+      // array fresh or kept the cached one. Two jobs:
+      //   1) Make sure the kick system message about us is in the array
+      //      (server may have stripped it from the REST conversation list
+      //      entry, but messages.list returns the full version).
+      //   2) Pull actor info (senderId + senderName) off the kick message
+      //      and use it to set `chat.removedBy` / `chat.removedByName`
+      //      (drives the banner) AND rewrite `chat.lastMessage` to the
+      //      WhatsApp-style "<Actor> removed you" preview (drives the
+      //      sidebar). Necessary because the REST conversation list
+      //      endpoint returns `lastMessage` without metadata
+      //      (contentType: 'text', no systemOperationType, no targetUserId),
+      //      so the adapter can't classify it as a kick on cold-load.
+      if (isKickedGroup) {
+        const myId = String(state.userProfile?.id ?? '')
+        const myName = state.userProfile?.fullName ?? ''
+        // Walk backwards — we want the MOST RECENT kick about us.
+        let kickMsg: MessageType | undefined
+        for (let i = messages.length - 1; i >= 0; i--) {
+          const m = messages[i] as MessageType
+          if (m.contentType !== 'system') continue
+          const op = m.systemOperationType
+          if (op !== 'user_removed' && op !== 'participant_removed') continue
+          const targetMatch =
+            m.targetUserId !== undefined && myId !== '' && String(m.targetUserId) === myId
+          const nameMatch = !targetMatch && myName !== '' && Boolean(m.message && m.message.includes(myName))
+          if (targetMatch || nameMatch) {
+            kickMsg = m
+            break
+          }
+        }
+        if (kickMsg) {
+          // Append to messages if missing (only relevant when skipMessagesWrite)
+          if (
+            kickMsg.id &&
+            !chatEntry.chat.messages.some(m => m.id === kickMsg!.id)
+          ) {
+            chatEntry.chat.messages = [...chatEntry.chat.messages, kickMsg]
+          }
+          // Sidebar preview — WhatsApp-style.
+          if (kickMsg.senderName) {
+            chatEntry.chat.lastMessage = {
+              ...(chatEntry.chat.lastMessage ?? ({} as MessageType)),
+              message: `${kickMsg.senderName} removed you`,
+              contentType: 'system' as const
+            }
+          }
+          // Banner snapshot — always refresh from the latest kick
+          // message's senderId/senderName so the banner stays in sync
+          // with the response (e.g., actor renamed since first kick).
+          // Why: kickMsg is selected by walking back from the newest
+          // message, so its senderId/senderName ARE the authoritative
+          // actor identifiers for "who removed me", and we want the
+          // banner to mirror them exactly — not a cached snapshot.
+          if (kickMsg.senderId) {
+            chatEntry.removedBy = kickMsg.senderId
+          }
+          if (kickMsg.senderName) {
+            chatEntry.removedByName = kickMsg.senderName
+          }
+          // Persist to localStorage so subsequent cold refreshes hydrate
+          // the sidebar + banner with "<Actor> removed you" instantly.
+          if (kickMsg.senderName) {
+            writeKickActor(chatId, {
+              name: kickMsg.senderName,
+              ...(kickMsg.senderId ? { id: String(kickMsg.senderId) } : {})
+            })
+          }
+        }
+      } else {
+        chatEntry.chat.lastMessage = messages[messages.length - 1]
+      }
       if (oldestCursor !== undefined) chatEntry.chat.oldestCursor = oldestCursor
       if (hasMoreOlder !== undefined) chatEntry.chat.hasMoreOlder = hasMoreOlder
       chatEntry.chat.loadingOlder = false
 
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat.chat = chatEntry.chat
+        // Mirror the freshly-derived actor fields onto the open
+        // chat's contact so the banner ("<Actor> removed you")
+        // re-renders without waiting for the next selectChat.
+        if (isKickedGroup) {
+          state.selectedChat.contact.removedBy = chatEntry.removedBy
+          state.selectedChat.contact.removedByName = chatEntry.removedByName
+        }
       }
     },
     // Prepend an older page of messages to the chat. Updates the cursor /
@@ -2127,10 +2648,28 @@ export const appChatSlice = createSlice({
             inc.chat.lastMessage.id &&
             inc.chat.lastMessage.id === prev.chat.lastMessage.id
           ) {
+            // Same message id — preserve every field the REST response
+            // tends to drop:
+            //   • senderId / senderName        (drives "You: …" prefix)
+            //   • contentType                  (system-pill rendering)
+            //   • systemOperationType          (perspective rewrite key)
+            //   • targetUserId / targetUserName (perspective resolution)
+            // Without this, a `fetchChatsContacts` triggered by a
+            // system event (onNewMessage refetch for adminIds /
+            // participants) would silently wipe the metadata that
+            // SidebarLeft's perspective resolver depends on, causing
+            // the sidebar to flash from "You removed Ajay" → raw
+            // "Anil Rathod removed Ajay Antony" → back, depending on
+            // when the next event lands.
             mergedLastMessage = {
               ...inc.chat.lastMessage,
               senderId: inc.chat.lastMessage.senderId || prev.chat.lastMessage.senderId,
-              senderName: inc.chat.lastMessage.senderName ?? prev.chat.lastMessage.senderName
+              senderName: inc.chat.lastMessage.senderName ?? prev.chat.lastMessage.senderName,
+              contentType: inc.chat.lastMessage.contentType ?? prev.chat.lastMessage.contentType,
+              systemOperationType:
+                inc.chat.lastMessage.systemOperationType ?? prev.chat.lastMessage.systemOperationType,
+              targetUserId: inc.chat.lastMessage.targetUserId ?? prev.chat.lastMessage.targetUserId,
+              targetUserName: inc.chat.lastMessage.targetUserName ?? prev.chat.lastMessage.targetUserName
             }
           }
 
@@ -2285,6 +2824,7 @@ export const {
   setChatAvatarOptimistic,
   clearChatAvatar,
   patchLastMessageSender,
+  patchOptimisticLastMessage,
   applyParticipantLeft,
   applyParticipantJoined,
   setInfoMessage,

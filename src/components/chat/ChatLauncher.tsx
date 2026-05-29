@@ -13,7 +13,6 @@ import { useAuth } from 'src/hooks/useAuth'
 import Badge from '@mui/material/Badge'
 import Box from '@mui/material/Box'
 import Fab from '@mui/material/Fab'
-import Zoom from '@mui/material/Zoom'
 
 // ** Icon
 import Icon from 'src/@core/components/icon'
@@ -34,6 +33,7 @@ import {
 
 // ** Chat API
 import { getChatSocket, sdkConversationToChat, sdkMessageToMessage } from 'src/lib/chat/api'
+import { onSocketStatus, getSocketStatus, type SocketStatus } from '@antzsoft/chat-core'
 
 // Floating chat launcher: a FAB anchored at the bottom-right of every
 // authenticated page. Clicking it pops a compact panel that hosts the full
@@ -121,6 +121,27 @@ const ChatLauncher = () => {
     dispatch(fetchUserProfile())
     if (!chatsLoaded) dispatch(fetchChatsContacts())
   }, [dispatch, enableChatModule, chatsLoaded])
+
+  // Mirror AppChat's connect-time refetch — the first `fetchChatsContacts`
+  // above can race the chat client init in ChatClientContext and resolve
+  // with an empty list (getChatClientOrNull() returns null before the
+  // client is created). Once the socket actually connects we know the
+  // client exists, so refetch to pick up the real conversations + unread
+  // counts. Without this the FAB badge stays at 0 on cold start until the
+  // user opens AppChat (which has the same effect at AppChat.tsx:243).
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>(() => {
+    try {
+      return getSocketStatus()
+    } catch {
+      return 'disconnected'
+    }
+  })
+  useEffect(() => onSocketStatus(setSocketStatus), [])
+  useEffect(() => {
+    if (!enableChatModule) return
+    if (socketStatus !== 'connected') return
+    dispatch(fetchChatsContacts())
+  }, [enableChatModule, socketStatus, dispatch])
 
   // Subscribe to the two socket events that affect unread counts. AppChat
   // owns the full event surface on /chat — we hide there to avoid overlap,
@@ -240,7 +261,7 @@ const ChatLauncher = () => {
 
   return (
     <>
-      <Zoom in={open} unmountOnExit>
+      {open && (
         <Box
           sx={{
             position: 'fixed',
@@ -267,7 +288,13 @@ const ChatLauncher = () => {
             backgroundColor: 'background.paper',
             display: 'flex',
             flexDirection: 'column',
-            userSelect: isResizing ? 'none' : 'auto'
+            userSelect: isResizing ? 'none' : 'auto',
+            // Create a containing block so descendant `position: fixed`
+            // (the SidebarLeft Drawer's Modal) anchors to this panel
+            // instead of the viewport. Previously the <Zoom> wrapper
+            // provided this via its transform; with Zoom removed we keep
+            // the containing block explicitly.
+            transform: 'translateZ(0)'
           }}
         >
           <AppChat
@@ -319,7 +346,7 @@ const ChatLauncher = () => {
             </>
           )}
         </Box>
-      </Zoom>
+      )}
 
       {!isFullscreen && (
         <Fab

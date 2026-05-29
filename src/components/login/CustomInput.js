@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { Box, TextField, InputAdornment, IconButton, Typography, Divider, alpha } from '@mui/material'
+import { Box, TextField, InputAdornment, IconButton, Typography, Divider, alpha, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
 
 const CustomInput = ({
   type = 'text',

@@ -184,7 +184,11 @@ export class NotificationService {
         try {
           await devicesApi.remove(deviceId)
         } catch (apiError: any) {
-          if (!apiError?.message?.includes('not initialized')) {
+          // Ignore 403 (Forbidden) — user may have logged out already
+          // Ignore "not initialized" errors
+          const status = apiError?.response?.status
+          const message = apiError?.message
+          if (status !== 403 && !message?.includes('not initialized')) {
             console.error('[Notifications] Failed to remove device:', apiError)
           }
         }
