@@ -372,6 +372,7 @@ export type ChatSidebarLeftType = {
   compact?: boolean
   isFullscreen?: boolean
   onToggleFullscreen?: () => void
+  onCreatingGroupChange?: (isCreating: boolean) => void
 }
 
 export type UserProfileLeftType = {

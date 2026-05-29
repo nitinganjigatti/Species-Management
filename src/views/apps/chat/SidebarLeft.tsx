@@ -142,12 +142,17 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     handleUserProfileLeftSidebarToggle,
     compact,
     isFullscreen = false,
-    onToggleFullscreen
+    onToggleFullscreen,
+    onCreatingGroupChange
   } = props
 
   // ** Local UI state
   const [query, setQuery] = useState<string>('')
   const [view, setView] = useState<'chats' | 'create-group' | 'compose'>('chats')
+
+  useEffect(() => {
+    onCreatingGroupChange?.(view === 'create-group')
+  }, [view, onCreatingGroupChange])
 
   const pathname = usePathname()
   const activeFilter: ChatFilterType = store?.activeFilter ?? 'all'
@@ -953,7 +958,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       <InputAdornment position='start'>
                         <Icon icon='mdi:magnify' fontSize='1.125rem' color='customColors.OnSurfaceVariant' />
                       </InputAdornment>
-                    )
+                    ),
+                    endAdornment: query ? (
+                      <InputAdornment position='end'>
+                        <IconButton size='small' onClick={() => setQuery('')} edge='end' aria-label='Clear search'>
+                          <Icon icon='mdi:close' fontSize='1rem' />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null
                   }}
                 />
               </Box>

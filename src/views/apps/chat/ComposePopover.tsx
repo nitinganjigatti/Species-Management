@@ -148,7 +148,7 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
           autoFocus
           value={query}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-          placeholder='Search name or staff ID'
+          placeholder='Search'
           sx={{
             '& .MuiInputBase-root': { borderRadius: 5 },
             '& .MuiOutlinedInput-root': {
@@ -172,7 +172,14 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
               <InputAdornment position='start'>
                 <Icon icon='mdi:magnify' fontSize='1.125rem' />
               </InputAdornment>
-            )
+            ),
+            endAdornment: query ? (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={() => setQuery('')} edge='end' aria-label='Clear search'>
+                  <Icon icon='mdi:close' fontSize='1rem' />
+                </IconButton>
+              </InputAdornment>
+            ) : null
           }}
         />
       </Box>

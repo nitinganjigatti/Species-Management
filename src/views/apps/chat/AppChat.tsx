@@ -84,6 +84,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(Boolean(compact))
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
+  const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false)
 
   // ** Router
   const router = useSafeRouter()
@@ -924,6 +925,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         compact={compact}
         isFullscreen={isFullscreen}
         onToggleFullscreen={onToggleFullscreen}
+        onCreatingGroupChange={setIsCreatingGroup}
       />
       <ChatContent
         store={store}
@@ -941,6 +943,21 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         onToggleFullscreen={onToggleFullscreen}
         typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
       />
+      {isCreatingGroup && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: hidden ? 0 : sidebarWidth,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(3px)',
+            zIndex: theme => theme.zIndex.drawer - 1,
+            pointerEvents: 'all'
+          }}
+        />
+      )}
     </Box>
   )
 }
