@@ -631,6 +631,30 @@ const ChatLog = (props: ChatLogType) => {
 
   // ** Tracks whether the user is scrolled far enough from the bottom to show the FAB
   const [showScrollFab, setShowScrollFab] = useState(false)
+  const [stickyDate, setStickyDate] = useState<string | null>(null)
+  const [stickyDateVisible, setStickyDateVisible] = useState(false)
+  const stickyHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const updateStickyDate = useCallback(() => {
+    const c = getScrollContainer()
+    if (!c) return
+    const cTop = c.getBoundingClientRect().top
+    const dividers = c.querySelectorAll<HTMLElement>('[data-date-label]')
+    let active: string | null = null
+    dividers.forEach(el => {
+      if (el.getBoundingClientRect().bottom < cTop + 4) {
+        active = el.dataset.dateLabel ?? null
+      }
+    })
+    setStickyDate(active)
+  }, [getScrollContainer])
+
+  const onScrollStickyDate = useCallback(() => {
+    updateStickyDate()
+    setStickyDateVisible(true)
+    if (stickyHideTimerRef.current) clearTimeout(stickyHideTimerRef.current)
+    stickyHideTimerRef.current = setTimeout(() => setStickyDateVisible(false), 1500)
+  }, [updateStickyDate])
 
   const checkScrollFab = useCallback(() => {
     const c = getScrollContainer()
@@ -641,7 +665,8 @@ const ChatLog = (props: ChatLogType) => {
     }
     const distFromBottom = c.scrollHeight - c.scrollTop - c.clientHeight
     setShowScrollFab(distFromBottom > 300)
-  }, [getScrollContainer])
+    onScrollStickyDate()
+  }, [getScrollContainer, onScrollStickyDate])
 
   // ** Scroll to chat bottom — runs multiple passes so late-loading content
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
@@ -1007,6 +1032,7 @@ const ChatLog = (props: ChatLogType) => {
         return item.messages.map((chat, msgIdx) => (
           <Box
             key={`date-${index}-${msgIdx}`}
+            data-date-label={chat.msg}
             sx={{
               display: 'flex',
               justifyContent: 'center',
@@ -1552,13 +1578,14 @@ const ChatLog = (props: ChatLogType) => {
 
       const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
       setShowScrollFab(distFromBottom > 300)
+      onScrollStickyDate()
 
       // Only act on UPWARD motion (current < previous) AND when near the top.
       if (el.scrollTop >= prevTop) return
       if (el.scrollTop > 80) return
       triggerLoadOlder()
     },
-    [triggerLoadOlder]
+    [triggerLoadOlder, onScrollStickyDate]
   )
 
   // Top-of-list status row — spinner while loading, or "start of conversation"
@@ -1705,6 +1732,38 @@ const ChatLog = (props: ChatLogType) => {
         open={previewState !== null}
         onClose={closePreview}
       />
+
+      {/* Sticky date header — floats at top while scrolling, fades after idle */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 12,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 4,
+          opacity: stickyDate && stickyDateVisible ? 1 : 0,
+          transition: 'opacity 300ms ease',
+          pointerEvents: 'none'
+        }}
+      >
+        <Typography
+          variant='caption'
+          sx={{
+            display: 'block',
+            px: 2.5,
+            py: 0.75,
+            borderRadius: 5,
+            backgroundColor: theme => theme.palette.action.hover,
+            backdropFilter: 'blur(6px)',
+            color: 'text.secondary',
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.12)'
+          }}
+        >
+          {stickyDate}
+        </Typography>
+      </Box>
 
       {/* Scroll-to-bottom FAB */}
       {showScrollFab && (
