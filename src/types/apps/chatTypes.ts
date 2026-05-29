@@ -370,6 +370,8 @@ export type ChatSidebarLeftType = {
   handleLeftSidebarToggle: () => void
   handleUserProfileLeftSidebarToggle: () => void
   compact?: boolean
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
 }
 
 export type UserProfileLeftType = {

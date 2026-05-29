@@ -102,7 +102,6 @@ const GroupIconEditor = ({
         size: compressed.size
       }
       await dispatch(uploadGroupIcon({ chatId, file: uploadable })).unwrap()
-      // toast.success('Group icon updated')
     } catch (err) {
       console.error('[GroupIconEditor] upload failed:', err)
       toast.error('Failed to update group icon')

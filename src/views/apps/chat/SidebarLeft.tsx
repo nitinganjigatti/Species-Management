@@ -140,7 +140,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     formatDateToMonthShort,
     handleLeftSidebarToggle,
     handleUserProfileLeftSidebarToggle,
-    compact
+    compact,
+    isFullscreen = false,
+    onToggleFullscreen
   } = props
 
   // ** Local UI state
@@ -892,9 +894,22 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   >
                     <Icon icon='mdi:square-edit-outline' fontSize='1.25rem' />
                   </IconButton>
+
                   {!mdAbove ? (
                     <IconButton onClick={handleLeftSidebarToggle}>
                       <Icon icon='mdi:close' fontSize='1.375rem' />
+                    </IconButton>
+                  ) : null}
+                  {onToggleFullscreen ? (
+                    <IconButton
+                      onClick={onToggleFullscreen}
+                      sx={{
+                        color: 'customColors.OnSurfaceVariant',
+                        '&:hover': { backgroundColor: '#1F515B', color: 'common.white' }
+                      }}
+                      title={isFullscreen ? 'Minimize' : 'Maximize'}
+                    >
+                      <Icon icon={isFullscreen ? 'teenyicons:minimise-alt-solid' : 'akar-icons:enlarge'} fontSize='1.25rem' />
                     </IconButton>
                   ) : null}
                 </Box>

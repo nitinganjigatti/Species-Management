@@ -922,6 +922,8 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
         compact={compact}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={onToggleFullscreen}
       />
       <ChatContent
         store={store}

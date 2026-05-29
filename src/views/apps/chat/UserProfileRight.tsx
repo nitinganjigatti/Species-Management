@@ -422,7 +422,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
       // local-only hide doesn't feel silent. Reappear-on-new-message is
       // handled by the existing `conversation_created` listener.
       dispatch(deleteConversation(chatId))
-      toast.success('Chat deleted')
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
       if (currentGroupId === null) return
