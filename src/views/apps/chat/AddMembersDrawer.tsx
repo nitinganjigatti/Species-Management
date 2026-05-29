@@ -15,6 +15,7 @@ import Switch from '@mui/material/Switch'
 import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import MuiAvatar from '@mui/material/Avatar'
+import Checkbox from '@mui/material/Checkbox'
 import ListItem from '@mui/material/ListItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
@@ -219,7 +220,14 @@ const AddMembersDrawer = ({
                     <InputAdornment position='start'>
                       <Icon icon='mdi:magnify' fontSize='1.125rem' />
                     </InputAdornment>
-                  )
+                  ),
+                  endAdornment: query ? (
+                    <InputAdornment position='end'>
+                      <IconButton size='small' onClick={() => setQuery('')} edge='end' aria-label='Clear search'>
+                        <Icon icon='mdi:close' fontSize='1rem' />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null
                 }
               }}
               sx={{
@@ -267,7 +275,7 @@ const AddMembersDrawer = ({
                             '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
                           }}
                         >
-                          <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                          <Box sx={{ flexShrink: 0 }}>
                             {c.avatar ? (
                               <MuiAvatar src={c.avatar} alt={c.fullName} sx={{ width: 42, height: 42 }} />
                             ) : (
@@ -278,21 +286,6 @@ const AddMembersDrawer = ({
                               >
                                 {getInitials(c.fullName)}
                               </CustomAvatar>
-                            )}
-                            {isSelected && (
-                              <Box
-                                sx={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  borderRadius: '50%',
-                                  backgroundColor: 'secondary.main',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                              >
-                                <Icon icon='mdi:check' fontSize='1.125rem' color='white' />
-                              </Box>
                             )}
                           </Box>
                           <ListItemText
@@ -305,7 +298,18 @@ const AddMembersDrawer = ({
                               </Typography>
                             }
                           />
-                          {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
+                          <Checkbox
+                            checked={isSelected}
+                            disableRipple
+                            size='small'
+                            sx={{
+                              flexShrink: 0,
+                              p: 0,
+                              color: 'customColors.SurfaceVariant',
+                              '&.Mui-checked': { color: 'primary.main' },
+                              '& .MuiSvgIcon-root': { fontSize: '1.375rem' }
+                            }}
+                          />
                         </ListItemButton>
                       </ListItem>
                       {index < contacts.length - 1 && (

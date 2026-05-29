@@ -388,7 +388,14 @@ const CreateGroupDrawer = ({ contacts, currentUserId, currentUserName, currentUs
                   <InputAdornment position='start'>
                     <Icon icon='mdi:magnify' fontSize='1.125rem' />
                   </InputAdornment>
-                )
+                ),
+                endAdornment: memberQuery ? (
+                  <InputAdornment position='end'>
+                    <IconButton size='small' onClick={() => setMemberQuery('')} edge='end' aria-label='Clear search'>
+                      <Icon icon='mdi:close' fontSize='1rem' />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null
               }
             }}
             sx={{
