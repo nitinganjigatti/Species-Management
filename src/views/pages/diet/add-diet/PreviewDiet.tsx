@@ -1426,10 +1426,10 @@ const StepPreviewDiet = ({
                             </TableRow>
 
                             <React.Fragment key={`recipes-${index}`}>
-                              {itemd?.recipe?.map((item: any, rIndex: any) => {
+                              {itemd?.recipe?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`recipe-${index}-${rIndex}`}
+                                    key={`recipe-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -1449,7 +1449,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={rIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -2042,10 +2042,10 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`combos-${index}`}>
-                              {itemd?.combo?.map((item: any, cIndex: any) => {
+                              {itemd?.combo?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`combo-${index}-${cIndex}`}
+                                    key={`combo-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -2065,7 +2065,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={cIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -2650,10 +2650,10 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`ingredients-${index}`}>
-                              {itemd?.ingredient?.map((item: any, iIndex: any) => {
+                              {itemd?.ingredient?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`ingredient-${index}-${iIndex}`}
+                                    key={`ingredient-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -2673,7 +2673,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={iIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
