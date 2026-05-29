@@ -14,6 +14,7 @@ The Chat module is the standard Materio chat template ported into the Antz Web D
 - [system-message-perspective.md](./system-message-perspective.md) — Three-perspective (sender / receiver / bystander) rendering across sidebar / in-chat pill / banner. Documents the shared resolver module + declarative template table + cold-load localStorage caches + optimistic admin actions.
 - [kicked-user-fix.md](./kicked-user-fix.md) — Kicked-user UX path: synthesis for the kicked socket (server doesn't deliver `user_removed` `new_message` to it), idempotent `applyParticipantLeft`, and the four-guard defense that keeps post-kick activity out of the kicked user's UI.
 - [delete-for-me-undo.md](./delete-for-me-undo.md) — WhatsApp-style 5-second Undo window for "Delete for me": deferred-commit pattern (`setTimeout` + `cancelled` flag), `restoreDeletedMessage` reducer, time-sorted re-insert, plus the related backend-filter caveat.
+- [composer-attachment-input.md](./composer-attachment-input.md) — Three converging input paths for attachments (file picker, clipboard paste, drag-and-drop) sharing one `enqueueFiles` pipeline, click-to-preview reusing `AttachmentPreviewDialog`, drop → focus-input → Enter-sends fix, voice-record button styled like Send.
 - [api-integration-status.md](./api-integration-status.md) — Backend quirks list (v1.2.1 gaps the client compensates for)
 
 ## Module Location

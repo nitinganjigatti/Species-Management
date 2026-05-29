@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent } from 'react'
+import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent, ClipboardEvent } from 'react'
 import dynamic from 'next/dynamic'
 
 import { styled } from '@mui/material/styles'
@@ -27,6 +27,7 @@ import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
+import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
 import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded } from 'src/store/apps/chat'
 import type { AppDispatch } from 'src/store'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
@@ -53,7 +54,8 @@ const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const Form = styled('form')(({ theme }) => ({
-  padding: theme.spacing(2, 5, 6)
+  padding: theme.spacing(2, 5, 6),
+  position: 'relative' // anchor for the drag-and-drop overlay
 }))
 
 const PreviewStrip = styled(Box)(({ theme }) => ({
@@ -143,6 +145,18 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [uploading, setUploading] = useState(false)
   const [processingFiles, setProcessingFiles] = useState(false)
   const [focused, setFocused] = useState(false)
+  // Click-to-preview state for pending attachments. We reuse the same
+  // `AttachmentPreviewDialog` used for received messages — fed a
+  // ChatAttachmentType synthesized from the pending file's blob URL.
+  // Null when no preview is open.
+  const [previewingPending, setPreviewingPending] = useState<PendingFile | null>(null)
+  // Drag-and-drop state. `isDragging` toggles the visual overlay; the
+  // ref counter handles the dragenter/dragleave flicker that happens
+  // when the cursor moves over child elements (every child boundary
+  // fires its own enter/leave). We only flip the overlay when the
+  // counter transitions through 0 → 1 (enter) or N → 0 (leave).
+  const [isDragging, setIsDragging] = useState(false)
+  const dragCounter = useRef(0)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const textInputRef = useRef<HTMLInputElement | null>(null)
   const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -419,9 +433,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     }
   }
 
-  const handleFiles = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? [])
-    if (fileInputRef.current) fileInputRef.current.value = ''
+  // Shared pipeline used by BOTH the file-picker input (`handleFiles`) and
+  // the clipboard paste handler (`handlePaste`). Takes a plain File[] with
+  // no DOM event coupling: runs count validation + image compression +
+  // audio/video duration probe, then appends to `pending`. Keeping a
+  // single entry point ensures paste and pick behave identically
+  // downstream (same upload + send flow + size validation + send-button
+  // gating).
+  const enqueueFiles = async (files: File[]) => {
     if (!files.length) return
 
     // Count-based UX: KEEP all files in the pending strip (better than
@@ -459,6 +478,98 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     } finally {
       setProcessingFiles(false)
     }
+  }
+
+  const handleFiles = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    await enqueueFiles(files)
+  }
+
+  // Drag-and-drop helpers. We only react when the drag carries actual
+  // FILES — `dataTransfer.types` contains 'Files' for OS-level file
+  // drags (from Finder / Explorer / Photos). Plain text drags (URLs,
+  // text from another tab) are ignored so the overlay doesn't flash.
+  const dragHasFiles = (e: { dataTransfer: DataTransfer }): boolean => {
+    if (!e.dataTransfer) return false
+    const types = e.dataTransfer.types
+    if (!types) return false
+    // Cross-browser: Chrome/Safari use 'Files', Firefox sometimes
+    // exposes 'application/x-moz-file' instead.
+    for (let i = 0; i < types.length; i++) {
+      const t = types[i]
+      if (t === 'Files' || t === 'application/x-moz-file') return true
+    }
+
+    return false
+  }
+
+  const handleDragEnter = (e: React.DragEvent<HTMLFormElement>) => {
+    if (!dragHasFiles(e)) return
+    e.preventDefault()
+    dragCounter.current += 1
+    if (dragCounter.current === 1) setIsDragging(true)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLFormElement>) => {
+    if (!dragHasFiles(e)) return
+    // preventDefault is REQUIRED on dragover to mark the element as a
+    // valid drop target — without it `drop` never fires.
+    e.preventDefault()
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLFormElement>) => {
+    if (!dragHasFiles(e)) return
+    e.preventDefault()
+    dragCounter.current = Math.max(0, dragCounter.current - 1)
+    if (dragCounter.current === 0) setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLFormElement>) => {
+    if (!dragHasFiles(e)) return
+    e.preventDefault()
+    dragCounter.current = 0
+    setIsDragging(false)
+    const files = Array.from(e.dataTransfer.files ?? [])
+    if (files.length) {
+      void enqueueFiles(files)
+      // Focus the TextField after drop so the next keystroke — including
+      // Enter to send — reaches it. Without this, focus stays on whatever
+      // received the drop (the <Form> element) and the keyboard handler
+      // never fires, even though the attachment is queued and ready.
+      textInputRef.current?.focus()
+    }
+  }
+
+  // Clipboard paste — WhatsApp-Web-style. When the user pastes anything
+  // that includes files (screenshot, image copied from a webpage, audio /
+  // video / document copied from the OS file explorer), we hijack the
+  // paste and route it through the same `enqueueFiles` pipeline so the
+  // user can immediately preview + Send. Text-only pastes fall through
+  // to the default browser behavior — Ctrl/Cmd+V of plain text still
+  // types into the input as usual.
+  //
+  // `e.clipboardData.files` covers the common cases (screenshot copy,
+  // image copy from a browser, file-explorer copy). For older browser
+  // paths that only populate `.items`, we fall back to extracting File
+  // objects from items where `kind === 'file'`.
+  const handlePaste = (e: ClipboardEvent<HTMLElement>) => {
+    const dt = e.clipboardData
+    if (!dt) return
+
+    let files = Array.from(dt.files ?? [])
+    if (files.length === 0 && dt.items) {
+      files = Array.from(dt.items)
+        .filter(it => it.kind === 'file')
+        .map(it => it.getAsFile())
+        .filter((f): f is File => f !== null)
+    }
+    if (files.length === 0) return // text-only paste — let default happen
+
+    // Files present — stop the text fallback (filename placeholders, etc.)
+    // and route to the same pipeline the file picker uses.
+    e.preventDefault()
+    void enqueueFiles(files)
   }
 
   const removePending = (key: string) => {
@@ -518,9 +629,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     let conversationId: string | number | undefined = store.selectedChat.contact.id
     if (pending.length && store.selectedChat.contact.isDraft) {
       try {
-        conversationId = await (dispatch as AppDispatch)(
-          materializeDraftIfNeeded(store.selectedChat.contact)
-        ).unwrap()
+        conversationId = await (dispatch as AppDispatch)(materializeDraftIfNeeded(store.selectedChat.contact)).unwrap()
       } catch (err) {
         console.error('[chat] materializeDraftIfNeeded failed:', err)
         toast.error('Couldn’t start the conversation. Try again.')
@@ -604,7 +713,41 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const replyingTo = store?.replyingTo ?? null
 
   return (
-    <Form onSubmit={handleSendMsg}>
+    <Form
+      onSubmit={handleSendMsg}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag-and-drop overlay — WhatsApp-Web-style "Drop to attach"
+          target with dashed border + icon, anchored to the composer area.
+          `pointerEvents: 'none'` lets drag/drop events still bubble up
+          to the <Form> handlers (the overlay is purely visual). Only
+          mounted while a file drag is in progress, so it doesn't
+          interfere with anything in the idle state. */}
+      {isDragging && (
+        <Box
+          aria-hidden
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 5,
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 2,
+            border: theme => `2px dashed ${theme.palette.secondary.main}`,
+            backgroundColor: 'customColors.Surface',
+            color: 'customColors.OnSurfaceVariant'
+          }}
+        >
+          <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
+            Drag files here
+          </Typography>
+        </Box>
+      )}
       {editing ? (
         <Box
           sx={{
@@ -692,9 +835,22 @@ const SendMsgForm = (props: SendMsgComponentType) => {
           ) : null}
           {pending.map(p => {
             const docVisual = p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
+            // Audio already has a fully functional inline player in the
+            // chip (play / scrub / volume) so opening a full-screen
+            // modal adds nothing for it — only image / video / document
+            // chips get the click-to-preview affordance.
+            const canPreview = p.kind !== 'audio'
+            const handleChipClick = () => {
+              if (!canPreview) return
+              setPreviewingPending(p)
+            }
 
             return (
-              <PreviewChip key={p.key}>
+              <PreviewChip
+                key={p.key}
+                onClick={handleChipClick}
+                sx={canPreview ? { cursor: 'pointer', '&:hover': { boxShadow: 1 } } : undefined}
+              >
                 {p.kind === 'image' ? (
                   <Box
                     component='img'
@@ -706,11 +862,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   // Inline audio preview — user can listen before sending.
                   // `controlsList="nodownload"` hides the download button in
                   // Chrome's overflow menu; Firefox honours it too.
+                  // Stop click bubbling so player interactions don't open
+                  // the (skipped-for-audio) preview modal.
                   <Box
                     component='audio'
                     src={p.previewUrl}
                     controls
                     controlsList='nodownload noplaybackrate'
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                     onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
                     sx={{ height: 32, width: 200 }}
                   />
@@ -727,7 +886,15 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                     {(p.file.size / 1024).toFixed(0)} KB
                   </Typography>
                 </Box>
-                <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
+                <IconButton
+                  size='small'
+                  onClick={e => {
+                    // Stop the chip click — otherwise removing also opens the modal.
+                    e.stopPropagation()
+                    removePending(p.key)
+                  }}
+                  disabled={uploading}
+                >
                   <Icon icon='mdi:close' fontSize='1rem' />
                 </IconButton>
               </PreviewChip>
@@ -813,14 +980,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                   // has no Shift, so Shift+Enter for newline is impossible. Let
                   // Enter insert a newline and require tapping the send button.
                   const isTouchOnly =
-                    typeof window !== 'undefined' &&
-                    window.matchMedia?.('(hover: none) and (pointer: coarse)').matches
+                    typeof window !== 'undefined' && window.matchMedia?.('(hover: none) and (pointer: coarse)').matches
 
                   if (e.key === 'Enter' && !e.shiftKey && !isTouchOnly) {
                     e.preventDefault()
                     handleSendMsg(e as any)
                   }
                 }}
+                onPaste={handlePaste}
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
                 disabled={uploading}
@@ -907,7 +1074,6 @@ const SendMsgForm = (props: SendMsgComponentType) => {
             </IconButton>
           ) : (
             <IconButton
-              size='small'
               aria-label='Record voice message'
               onClick={startRecording}
               disabled={uploading}
@@ -915,9 +1081,13 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 flexShrink: 0,
                 width: 42,
                 height: 42,
-                color: 'text.secondary',
-                transition: 'color 0.15s',
-                '&:hover': { color: 'secondary.main' }
+                borderRadius: '50%',
+                backgroundColor: 'secondary.main',
+                color: 'common.white',
+                transition: 'background-color 0.15s, transform 0.15s',
+                '&:hover': { backgroundColor: 'secondary.dark', transform: 'scale(1.06)' },
+                '&:active': { transform: 'scale(0.94)' },
+                '&.Mui-disabled': { backgroundColor: 'action.disabledBackground', color: 'action.disabled' }
               }}
             >
               <Icon icon='mdi:microphone' fontSize='1.375rem' />
@@ -957,6 +1127,28 @@ const SendMsgForm = (props: SendMsgComponentType) => {
           </Fade>
         )}
       </Popper>
+
+      {/* Pre-send preview for pending attachments. Reuses the same
+          AttachmentPreviewDialog the chat uses for received messages —
+          we synthesize a ChatAttachmentType from the pending file's
+          blob URL so image / video / PDF / document all get the proper
+          full-size viewer + controls before the user hits Send. Audio
+          chips don't open this (their inline player is enough). */}
+      {previewingPending && (
+        <AttachmentPreviewDialog
+          open
+          onClose={() => setPreviewingPending(null)}
+          attachment={{
+            id: previewingPending.key,
+            type: previewingPending.kind,
+            url: previewingPending.previewUrl,
+            filename: previewingPending.file.name,
+            mimeType: previewingPending.file.type,
+            size: previewingPending.file.size,
+            ...(previewingPending.durationSec ? { duration: previewingPending.durationSec } : {})
+          }}
+        />
+      )}
     </Form>
   )
 }
