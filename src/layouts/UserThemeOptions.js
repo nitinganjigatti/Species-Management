@@ -70,6 +70,11 @@ const UserThemeOptions = () => {
         Secondary: '#00D6C9',
         Surface: '#F2FFF8',
         Outline: '#839D8D',
+        // Dark teal used across the chat module — sent-message bubble
+        // background AND the chat header / Message-info title text.
+        // Single token so all chat surfaces stay in lockstep (replaces
+        // the scattered hardcoded '#1F515B').
+        chatBubbleSent: '#1F515B',
 
         // *** name required
 

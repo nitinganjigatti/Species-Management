@@ -22,6 +22,7 @@ import {
   fetchChatsContacts
 } from 'src/store/apps/chat'
 import toast from 'react-hot-toast'
+import type { Theme } from '@mui/material/styles'
 
 // ** Chat SDK
 import { getChatClientOrNull } from 'src/lib/chat/client'
@@ -600,8 +601,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
         zIndex: 9,
         height: '100%',
         width: sidebarWidth,
-        borderTopRightRadius: theme => theme.shape.borderRadius,
-        borderBottomRightRadius: theme => theme.shape.borderRadius,
+        borderTopRightRadius: (theme: Theme) => theme.shape.borderRadius,
+        borderBottomRightRadius: (theme: Theme) => theme.shape.borderRadius,
         '& + .MuiBackdrop-root': {
           zIndex: 8,
           borderRadius: 1

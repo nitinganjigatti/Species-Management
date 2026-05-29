@@ -45,6 +45,11 @@ import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
 // the <ForwardedTag /> next to the attachment column.
 import { isForwarded, hasDisplayableText, stripForwardMarker } from 'src/lib/chat/forwardMarker'
 
+// ** Single source of truth for system-message perspective rewriting.
+// See src/lib/chat/systemMessagePerspective.ts for the full template
+// table + resolution chain.
+import { resolveSystemMessageText } from 'src/lib/chat/systemMessagePerspective'
+
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
 
@@ -143,6 +148,9 @@ const ChatLog = (props: ChatLogType) => {
   const unreadAnchorRef = useRef<string | null>(null)
   const lastSnapshottedChatIdRef = useRef<string | null>(null)
   const [unreadAnchor, setUnreadAnchor] = useState<string | null>(null)
+  // Frozen count — set once when the divider first appears, never updated by
+  // new incoming messages. Mirrors mobile's static `unreadCount` nav prop.
+  const frozenUnreadCountRef = useRef<number>(0)
 
   // Marks the current chat id as awaiting its initial render — consumed by
   // the data effect below to differentiate "first sight of this chat" from
@@ -167,31 +175,61 @@ const ChatLog = (props: ChatLogType) => {
   useEffect(() => {
     if (lastSnapshottedChatIdRef.current !== selectedChatId) {
       unreadAnchorRef.current = null
+      frozenUnreadCountRef.current = 0
       lastSnapshottedChatIdRef.current = selectedChatId
       firstRenderForChatRef.current = selectedChatId
       setUnreadAnchor(null)
     }
   }, [selectedChatId])
 
-  // Snapshot the lastRead pointer the FIRST time it appears for this chat.
+  // Snapshot the lastRead pointer the FIRST time unread messages are present.
   // After that, ignore further changes — the server flipping it to "latest"
   // mid-session must NOT erase our divider position.
+  //
+  // KEY RULE (mirrors mobile): only arm the divider when there are genuinely
+  // unread messages from others already present in the loaded window at the
+  // moment lastRead changes. We do NOT include data.chat.messages in deps —
+  // doing so caused a false-positive: when a new live message is appended,
+  // the effect would re-run with the PREVIOUS lastRead (not yet advanced by
+  // the server's markRead response), find the new message sitting after the
+  // anchor, and arm the divider. By reacting only to lastRead changes, the
+  // anchor check runs only when the server has already processed markRead
+  // and advanced lastRead to the latest message — at which point there are
+  // no messages after the anchor, so we don't arm.
   useEffect(() => {
     if (!selectedChatId) return
     if (unreadAnchorRef.current) return
     const entry = lastReadFromSdk[selectedChatId]
     const id = entry?.messageId
-    if (id) {
-      unreadAnchorRef.current = id
-      setUnreadAnchor(id)
-      // Pre-arm the load-older cooldown. The unread-scroll smooth-scrolls
-      // the divider to the top of the viewport, and PSB can fire
-      // `onYReachStart` as a side-effect of that motion crossing near
-      // zero (most visible in short DMs). Setting the cooldown the
-      // moment we know we'll be landing near the top guarantees the
-      // ref is armed BEFORE any such event could possibly arrive.
-      ignoreLoadOlderUntilRef.current = Date.now() + 1500
+    if (!id) return
+
+    const msgs = data?.chat?.messages ?? []
+    const myId = String(data?.userContact?.id ?? '')
+    const anchorIdx = msgs.findIndex(m => m.id === id)
+
+    if (anchorIdx >= 0) {
+      // Anchor is in the loaded window — only arm if there are messages
+      // from others AFTER it. If there are none, the chat was opened with
+      // 0 unread (or markRead just advanced lastRead to the latest message)
+      // — don't set the anchor so live messages never trigger the divider.
+      const hasUnreadAfterAnchor = msgs
+        .slice(anchorIdx + 1)
+        .some(m => m.id && String(m.senderId) !== myId)
+      if (!hasUnreadAfterAnchor) return
     }
+    // anchorIdx < 0: anchor is in an older page not yet loaded.
+    // Let it through — the jump-to-message path will load the context window.
+
+    unreadAnchorRef.current = id
+    setUnreadAnchor(id)
+    // Pre-arm the load-older cooldown. The unread-scroll smooth-scrolls
+    // the divider to the top of the viewport, and PSB can fire
+    // `onYReachStart` as a side-effect of that motion crossing near
+    // zero (most visible in short DMs). Setting the cooldown the
+    // moment we know we'll be landing near the top guarantees the
+    // ref is armed BEFORE any such event could possibly arrive.
+    ignoreLoadOlderUntilRef.current = Date.now() + 1500
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChatId, lastReadFromSdk])
 
   // Pagination — surfaced via `data.chat` from Redux. ChatLog only triggers;
@@ -474,6 +512,15 @@ const ChatLog = (props: ChatLogType) => {
     return { id: null, count: 0 }
   })()
 
+  // Freeze the count the first time it resolves to a non-zero value.
+  // After that, new messages arriving while the chat is open must NOT
+  // increase the number — mirrors mobile's static `unreadCount` nav prop
+  // which is captured once at screen open and never mutated.
+  if (firstUnreadInfo.count > 0 && frozenUnreadCountRef.current === 0) {
+    frozenUnreadCountRef.current = firstUnreadInfo.count
+  }
+  const unreadDisplayCount = frozenUnreadCountRef.current || firstUnreadInfo.count
+
   // ── Unread-divider auto-scroll + jump-load (WhatsApp parity) ─────────────
   // Gap 1: when the first-unread message is in the loaded window, scroll
   // its bubble into view so the user lands at the divider, not at bottom.
@@ -665,6 +712,17 @@ const ChatLog = (props: ChatLogType) => {
         time: msg.time,
         msg: msg.message,
         feedback: msg.feedback,
+        // Forwarded for system-message perspective rewrite — see render
+        // branch below ("You created group …", "Anil removed you", etc.)
+        ...(msg.senderId ? { senderId: msg.senderId } : {}),
+        ...(msg.senderName ? { senderName: msg.senderName } : {}),
+        // Structured system-message metadata from the server. Lets the
+        // perspective rewrite resolve actor / target by ID (robust to
+        // display-name drift) and render specific text per event type
+        // (e.g. "You're now an admin" for `admin_promoted`).
+        ...(msg.targetUserId ? { targetUserId: msg.targetUserId } : {}),
+        ...(msg.targetUserName ? { targetUserName: msg.targetUserName } : {}),
+        ...(msg.systemOperationType ? { systemOperationType: msg.systemOperationType } : {}),
         ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
         ...(msg.contentType ? { contentType: msg.contentType } : {}),
         // Interaction state — forwarded so the bubble renderer can decorate
@@ -725,9 +783,9 @@ const ChatLog = (props: ChatLogType) => {
             {
               id: `unread-divider-${firstUnreadInfo.id}`,
               msg:
-                firstUnreadInfo.count === 1
+                unreadDisplayCount === 1
                   ? '1 unread message'
-                  : `${firstUnreadInfo.count} unread messages`,
+                  : `${unreadDisplayCount} unread messages`,
               time: msg.time,
               feedback: { isSent: true, isDelivered: false, isSeen: false }
             }
@@ -898,6 +956,17 @@ const ChatLog = (props: ChatLogType) => {
         // use Fragment with an explicit key instead of a bare `<>`.
         if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
 
+        // WhatsApp-style perspective rewrite — delegated to the
+        // shared resolver so ChatLog, SidebarLeft, and ChatContent all
+        // produce identical text for the same event. The resolver
+        // handles structured ops, actor-prefix fallback, target-name
+        // replace, and the legacy verb-regex cold-load fallback. See
+        // src/lib/chat/systemMessagePerspective.ts.
+        const perspectiveCtx = {
+          meId: String(data.userContact.id ?? ''),
+          meName: data.userContact.fullName ?? ''
+        }
+
         return (
           <Fragment key={`sys-grp-${index}`}>
             {item.messages.map((chat, msgIdx) => (
@@ -914,7 +983,17 @@ const ChatLog = (props: ChatLogType) => {
                     textAlign: 'center'
                   }}
                 >
-                  {chat.msg}
+                  {resolveSystemMessageText(
+                    {
+                      message: chat.msg,
+                      senderId: chat.senderId,
+                      senderName: chat.senderName,
+                      targetUserId: chat.targetUserId,
+                      targetUserName: chat.targetUserName,
+                      systemOperationType: chat.systemOperationType
+                    } as MessageType,
+                    perspectiveCtx
+                  )}
                 </Typography>
               </Box>
             ))}
@@ -1081,12 +1160,13 @@ const ChatLog = (props: ChatLogType) => {
                                     senderName={isSender ? data.userContact.fullName : data.contact.fullName}
                                     senderId={item.senderId}
                                     canPin={(() => {
+                                      // DM: both sides can always pin. Group:
+                                      // any active member can pin (matches
+                                      // WhatsApp). Kicked members blocked.
                                       const isGroup = data.contact.isGroup === true
                                       if (!isGroup) return true
-                                      const me = String(data.userContact.id ?? '')
-                                      const admins = data.contact.adminIds?.map(String) ?? []
 
-                                      return admins.includes(me)
+                                      return data.contact.isCurrentUserActive !== false
                                     })()}
                                     showEdit={false}
                                     showCopyText={false}
@@ -1434,14 +1514,14 @@ const ChatLog = (props: ChatLogType) => {
                             senderName={isSender ? data.userContact.fullName : data.contact.fullName}
                             senderId={item.senderId}
                             canPin={(() => {
-                              // DM: both participants can pin any message (their
-                              // own or received). Group: still admin-only.
+                              // DM: both participants can pin any message
+                              // (their own or received). Group: any active
+                              // member can pin (matches WhatsApp behavior).
+                              // Kicked members are blocked.
                               const isGroup = data.contact.isGroup === true
                               if (!isGroup) return true
-                              const me = String(data.userContact.id ?? '')
-                              const admins = data.contact.adminIds?.map(String) ?? []
 
-                              return admins.includes(me)
+                              return data.contact.isCurrentUserActive !== false
                             })()}
                             isSearchMatch={isMatch}
                             isActiveSearchMatch={isActiveMatch}

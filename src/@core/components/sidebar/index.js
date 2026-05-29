@@ -33,6 +33,13 @@ const Sidebar = props => {
           position: 'absolute',
           transition: 'all 0.25s ease-in-out',
           backgroundColor: 'background.paper',
+          // Closed sidebars must NOT intercept clicks. opacity: 0 alone
+          // still receives pointer events, and the slide-off (`right: -100%`)
+          // is not always enough — the closed panel can still overlap
+          // siblings (e.g. MessageInfoDialog covering the chat header's
+          // enlarge icon). Gate pointer events on `show` so a hidden
+          // sidebar is fully transparent to taps.
+          pointerEvents: show ? 'auto' : 'none',
           ...(show ? { opacity: 1 } : { opacity: 0 }),
           ...(direction === 'right'
             ? { left: 'auto', right: show ? 0 : '-100%' }

@@ -32,7 +32,7 @@ const ForwardedTag = ({ isSender = false }: ForwardedTagProps) => {
         color: isSender ? 'common.white' : 'text.secondary'
       }}
     >
-      <Icon icon='mdi:share' fontSize='0.875rem' style={{ transform: 'scaleX(-1)' }} />
+      <Icon icon='mdi:share' fontSize='0.875rem' />
       <Typography variant='caption' sx={{ fontStyle: 'italic', color: 'inherit' }}>
         Forwarded
       </Typography>

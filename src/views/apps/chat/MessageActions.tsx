@@ -138,7 +138,8 @@ const MessageActions = ({
         messageText: chat.msg,
         attachments: chat.attachments,
         senderName,
-        senderId
+        senderId,
+        isOwnMessage: isSender
       })
     )
   }

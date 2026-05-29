@@ -32,7 +32,7 @@ import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 // Belt-and-suspenders: `useChatClient`'s effect cleanup also runs when
 // `auth.userData.user` clears, but the WSO2 path navigates the page before
 // React cleanup finishes and the legacy happy path doesn't flip auth state.
-import { disconnectSocket as chatDisconnectSocket } from '@antzsoft/chat-core'
+import { disconnectSocket as chatDisconnectSocket, getAuthStore } from '@antzsoft/chat-core'
 import { disposeChatClient as chatDisposeClient } from 'src/lib/chat/client'
 
 // Push Notifications cleanup on logout
@@ -505,6 +505,12 @@ const AuthProvider = ({ children }) => {
     } catch (e) {
       console.warn('[auth] chat client dispose failed:', e)
     }
+    try {
+      getAuthStore()?.authTokenStore?.clearTokens()
+    } catch (e) {
+      console.warn('[auth] authTokenStore.clearTokens failed:', e)
+    }
+
     try {
       const deviceId = localStorage.getItem('antz_device_id')
 

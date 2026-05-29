@@ -143,6 +143,11 @@ const LinkifyText = ({ text, renderText, isSender = false }: LinkifyTextProps) =
               textUnderlineOffset: '2px',
               cursor: 'pointer',
               fontWeight: 500,
+              // Long URLs have no natural break opportunities — without
+              // `anywhere` the bubble's max-width gets violated and the
+              // whole row overflows leftward on narrow screens.
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
               '&:hover': {
                 textDecoration: 'underline',
                 opacity: isSender ? 0.85 : 1,

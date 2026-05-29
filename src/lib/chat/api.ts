@@ -23,6 +23,7 @@ import type {
   MessageDeletedEvent,
   MessageDeletedForMeEvent,
   MessageDeliveredEvent,
+  MessageReceiptsResponse,
   MessagesDeliveredEvent,
   MessageUpdatedEvent,
   MobileDeviceToken,
@@ -40,6 +41,7 @@ import type {
   TypingIndicatorEvent,
   UnreadSummary,
   UpdateConversationData,
+  UpdateProfilePayload,
   UploadableFile,
   User,
   UserPreferences,
@@ -65,9 +67,17 @@ import {
   reconnectSocket as sdkReconnectSocket,
   refreshSocketAuth as sdkRefreshSocketAuth,
   appConfigApi as sdkAppConfigApi,
+  uploadBatch as sdkUploadBatch,
   type AppConfig,
   type SocketStatus
 } from '@antzsoft/chat-core'
+
+// Platform upload fns live in client.ts (passed to AntzChatConfig). We
+// import them here because `client.uploadFiles` in chat-core 1.2.4 does
+// NOT forward `platformUploadPartFn` to its internal uploadBatch — so we
+// bypass it and call `uploadBatch` directly with BOTH fns to get chunked
+// multipart uploads for large files (≥ 10 MB).
+import { platformUploadFn, platformUploadPartFn } from './client'
 
 import { getChatClientOrNull } from './client'
 
@@ -90,6 +100,7 @@ export type {
   MessageDeletedEvent,
   MessageDeletedForMeEvent,
   MessageDeliveredEvent,
+  MessageReceiptsResponse,
   MessagesDeliveredEvent,
   MessageUpdatedEvent,
   MobileDeviceToken,
@@ -106,6 +117,7 @@ export type {
   TypingIndicatorEvent,
   UnreadSummary,
   UpdateConversationData,
+  UpdateProfilePayload,
   UploadableFile,
   User,
   UserPreferences,
@@ -290,6 +302,18 @@ export function syncAvatar(source: { url?: string; base64?: string }): Promise<{
   return requireClient('syncAvatar').auth.syncAvatar(source)
 }
 
+/**
+ * Push the current user's basic profile fields (name) to the chat server.
+ * Works in builtin AND non-builtin auth modes — lets the host app reflect
+ * a profile change immediately instead of waiting for the server's
+ * background sync from the external auth system. The new `displayName`
+ * is what other participants see (drives `sdkUserToProfile.fullName`).
+ * REST-only — the SDK has no socket path for profile updates.
+ */
+export function updateChatProfile(payload: UpdateProfilePayload): Promise<User> {
+  return requireClient('updateChatProfile').users.updateProfile(payload)
+}
+
 // App-wide tenant config — exposes server-enforced limits like
 // `maxPinnedConversations`. The result is stable per tenant, so we
 // cache it at module level after the first successful fetch. Callers
@@ -444,6 +468,16 @@ export function getMessage(messageId: string): Promise<Message> {
   return requireClient('getMessage').messages.get(messageId)
 }
 
+/**
+ * Fetch read/delivered receipts for a message with sender profiles
+ * (displayName + avatarUrl) already resolved server-side. Use for the
+ * Message Info screen — no secondary user lookup needed. Added in
+ * chat-core 1.2.3.
+ */
+export function getMessageReceipts(messageId: string): Promise<MessageReceiptsResponse> {
+  return requireClient('getMessageReceipts').messages.getReceipts(messageId)
+}
+
 export function updateMessage(messageId: string, text: string): Promise<Message> {
   return requireClient('updateMessage').messages.update(messageId, text)
 }
@@ -574,8 +608,22 @@ export type UploadChatFilesResult = {
 // each successful FileResponse into a SendMessageAttachment ready to pass to
 // `sendMessageOverSocket({ attachments })`.
 export async function uploadChatFiles(files: UploadableFile[], conversationId: string): Promise<UploadChatFilesResult> {
-  const client = requireClient('uploadChatFiles')
-  const result = await client.uploadFiles(files, conversationId)
+  // Ensure the SDK is initialized (uploadBatch uses the API-client + socket
+  // singletons under the hood). We deliberately do NOT use
+  // `client.uploadFiles` — in chat-core 1.2.4 it omits `platformUploadPartFn`
+  // when calling uploadBatch, so files ≥ 10 MB skip the multipart path and
+  // 400 on the single-shot fallback. Calling uploadBatch directly with both
+  // platform fns fixes large-file uploads.
+  requireClient('uploadChatFiles')
+  const result = await sdkUploadBatch(
+    files,
+    platformUploadFn,
+    conversationId,
+    undefined, // onProgress — not surfaced here
+    undefined, // platformCompressFn — compression not configured
+    undefined, // compressionConfig
+    platformUploadPartFn // ← the arg client.uploadFiles drops; enables chunked multipart
+  )
 
   const attachments: SendMessageAttachment[] = result.successful.map(f => ({
     fileId: f.id,
@@ -739,9 +787,49 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   // messages; capturing it here means the sidebar's "Saket: hello" prefix
   // doesn't depend on the global contacts cache (which can lose entries
   // when a member leaves the group).
+  // Falls back to `msg.senderName` (top-level field the server includes
+  // on broadcast system messages, e.g. participant_removed events).
   const senderName =
     (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
-    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.username
+    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.username ??
+    (msg as typeof msg & { senderName?: string }).senderName
+
+  // Structured system-message metadata. Backend sends this alongside the
+  // free-text `content.text` for membership / admin events so the client
+  // can resolve actor/target by ID (robust to display-name changes).
+  // Used by ChatLog + SidebarLeft perspective rewrites.
+  // Backend uses inconsistent metadata field names across event types:
+  //   • admin_promoted / admin_demoted  → `targetUserId`  / `targetUserName`
+  //   • user_removed                    → `removedUserId` / `removedUserName`
+  //   • user_added                      → `addedUserId`   / `addedUserName`
+  // Normalize all variants into our canonical `targetUserId` /
+  // `targetUserName` so downstream consumers (ChatLog, SidebarLeft,
+  // adapter sidebar override) don't need to know about the source field.
+  const systemMeta = (
+    msg as typeof msg & {
+      metadata?: {
+        targetUserId?: string
+        targetUserName?: string
+        removedUserId?: string
+        removedUserName?: string
+        addedUserId?: string
+        addedUserName?: string
+        affectedUserId?: string
+        affectedUserName?: string
+        systemOperationType?: string
+      }
+    }
+  ).metadata
+  const normalizedTargetUserId =
+    systemMeta?.targetUserId ??
+    systemMeta?.removedUserId ??
+    systemMeta?.addedUserId ??
+    systemMeta?.affectedUserId
+  const normalizedTargetUserName =
+    systemMeta?.targetUserName ??
+    systemMeta?.removedUserName ??
+    systemMeta?.addedUserName ??
+    systemMeta?.affectedUserName
 
   return {
     id: msg.id,
@@ -759,7 +847,25 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     // Skip attachments + reactions on tombstones — the placeholder is the
     // only thing that should render. Matches applyMessageDelete reducer.
     ...(!isDeletedForEveryone && attachments && attachments.length ? { attachments } : {}),
-    ...(msg.content?.type ? { contentType: msg.content.type } : {}),
+    // Normalize contentType — REST sometimes strips `content.type` from
+    // `conv.lastMessage` in the listConversations response, leaving it
+    // undefined. When `systemOperationType` IS present, we know it's a
+    // system message regardless of what content.type says (it must be
+    // 'system' for the metadata to exist). Forcing the field here means
+    // every downstream consumer (sidebar prefix guard, ChatLog system
+    // pill branch, banner logic) gets a single reliable signal — no
+    // duplicate "Anil Rathod: Anil Rathod dismissed you as admin"
+    // because the sidebar prefix block thought it was a regular message.
+    ...(msg.content?.type
+      ? { contentType: msg.content.type }
+      : systemMeta?.systemOperationType
+        ? { contentType: 'system' as const }
+        : {}),
+    ...(normalizedTargetUserId ? { targetUserId: normalizedTargetUserId } : {}),
+    ...(normalizedTargetUserName ? { targetUserName: normalizedTargetUserName } : {}),
+    ...(systemMeta?.systemOperationType
+      ? { systemOperationType: systemMeta.systemOperationType }
+      : {}),
     ...(!isDeletedForEveryone && reactions ? { reactions } : {}),
     ...(replyTo ? { replyTo } : {}),
     ...(msg.isPinned ? { isPinned: true } : {}),
@@ -772,6 +878,105 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     ...(!isDeletedForEveryone && msg.readBy?.length ? { readBy: msg.readBy } : {}),
     ...(!isDeletedForEveryone && msg.deliveredTo?.length ? { deliveredTo: msg.deliveredTo } : {})
   }
+}
+
+// ─── Kicked-actor localStorage cache ───────────────────────────────────────
+// The cold-load adapter has no way to know who removed the current user from
+// a group, because the REST conversation list strips system-message metadata
+// from `lastMessage` (only `senderName` and `text` survive — neither
+// reliable, since lastMessage may be a later non-kick event). Without a
+// cache, the sidebar shows "You were removed from this group" until
+// messages.list runs and `setChatMessages` derivation kicks in — a
+// noticeable flash.
+//
+// This cache is populated by the live socket path (`applyParticipantLeft`
+// in chat slice) and by the refresh path (`setChatMessages` derivation),
+// and cleared on re-add (`applyParticipantJoined`). On subsequent refreshes
+// the adapter hydrates `removedBy` / `removedByName` from the cache
+// instantly, so the sidebar shows "<Actor> removed you" with zero flash.
+//
+// Per-tab via sessionStorage would also work, but localStorage means even
+// the first refresh in a brand-new tab (after a kick from a previous
+// session) renders correctly.
+const KICK_ACTOR_KEY = 'antz-chat:kick-actor'
+type KickActorCache = Record<string, { id?: string; name: string }>
+
+function readKickActorCache(): KickActorCache {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = window.localStorage.getItem(KICK_ACTOR_KEY)
+    return raw ? (JSON.parse(raw) as KickActorCache) : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeKickActorCache(cache: KickActorCache): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(KICK_ACTOR_KEY, JSON.stringify(cache))
+  } catch {
+    /* quota / disabled storage — silent no-op, falls back to flash */
+  }
+}
+
+export function readKickActor(chatId: string | number): { id?: string; name: string } | undefined {
+  return readKickActorCache()[String(chatId)]
+}
+
+export function writeKickActor(chatId: string | number, info: { id?: string; name: string }): void {
+  const cache = readKickActorCache()
+  cache[String(chatId)] = info
+  writeKickActorCache(cache)
+}
+
+export function clearKickActor(chatId: string | number): void {
+  const cache = readKickActorCache()
+  delete cache[String(chatId)]
+  writeKickActorCache(cache)
+}
+
+// ─── Self-left localStorage flag ───────────────────────────────────────────
+// Mirrors the kick-actor cache: persists across refresh so the banner and
+// sidebar can show "You left the group" / "You left the group." instantly
+// on cold-load, instead of falling back to the generic "You're no longer
+// a member" copy when REST conversation list strips system metadata.
+// Single Set serialized as a JSON array.
+const SELF_LEFT_KEY = 'antz-chat:self-left'
+
+function readSelfLeftSet(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    const raw = window.localStorage.getItem(SELF_LEFT_KEY)
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set()
+  } catch {
+    return new Set()
+  }
+}
+
+function writeSelfLeftSet(set: Set<string>): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(SELF_LEFT_KEY, JSON.stringify(Array.from(set)))
+  } catch {
+    /* quota / disabled storage — silent no-op */
+  }
+}
+
+export function hasSelfLeft(chatId: string | number): boolean {
+  return readSelfLeftSet().has(String(chatId))
+}
+
+export function markSelfLeft(chatId: string | number): void {
+  const set = readSelfLeftSet()
+  set.add(String(chatId))
+  writeSelfLeftSet(set)
+}
+
+export function clearSelfLeft(chatId: string | number): void {
+  const set = readSelfLeftSet()
+  set.delete(String(chatId))
+  writeSelfLeftSet(set)
 }
 
 export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEntityId): ChatsArrType {
@@ -851,6 +1056,65 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   const ownEntry = meId ? rawParticipants.find(p => p.userId === meId) : undefined
   const isCurrentUserActive = isGroup ? ownEntry?.isActive !== false : true
 
+  // Freeze the sidebar preview for kicked groups. The server keeps returning
+  // the live `lastMessage` (post-kick) in `listConversations`, which would
+  // otherwise leak into the sidebar after a hard refresh. Override the text
+  // with a removal placeholder; downstream renderers branch on
+  // `contentType === 'system'` to style it as a system pill.
+  //
+  // When `lastMessage` IS the kick system event about the current user
+  // (matched by metadata.systemOperationType + targetUserId), prefer the
+  // WhatsApp-style "<Actor> removed you" wording — same form the in-chat
+  // pill uses — so refresh stays consistent with the live UX. Falls back
+  // to the generic placeholder for any other post-kick content.
+  // Cached actor (id + display name) populated by previous live-kick /
+  // messages.list derivation passes. Read once here so we can use it for
+  // both the sidebar copy AND the banner snapshot below.
+  const cachedKickActor = isGroup && !isCurrentUserActive ? readKickActor(conv.id) : undefined
+  // Parallel cache for self-exit so the banner can show "You left the
+  // group." on cold-load (no kick actor present, but we still know the
+  // user walked out themselves).
+  const cachedSelfLeft = isGroup && !isCurrentUserActive ? hasSelfLeft(conv.id) : false
+
+  const sidebarLastMessage = (() => {
+    if (!(isGroup && !isCurrentUserActive && lastMessage)) return lastMessage
+    // Accept both naming conventions ("user_*" / "participant_*") so the
+    // detection is resilient to backend renaming.
+    const op = lastMessage.systemOperationType
+    const isRemovalEvent = op === 'user_removed' || op === 'participant_removed'
+    const isKickAboutMe =
+      isRemovalEvent && lastMessage.targetUserId !== undefined && String(lastMessage.targetUserId) === meId
+    if (isKickAboutMe && lastMessage.senderName) {
+      return {
+        ...lastMessage,
+        message: `${lastMessage.senderName} removed you`,
+        contentType: 'system' as const
+      }
+    }
+    // Self-exit cold-load: localStorage marker tells us the user left
+    // voluntarily. Show "You left the group" instead of the generic
+    // "You were removed from this group" placeholder.
+    if (cachedSelfLeft) {
+      return {
+        ...lastMessage,
+        message: 'You left the group',
+        contentType: 'system' as const
+      }
+    }
+    // localStorage cache fallback — eliminates the cold-load flash by
+    // using the actor name persisted from the prior session's kick
+    // event. Cleared on re-add.
+    if (cachedKickActor?.name) {
+      return {
+        ...lastMessage,
+        message: `${cachedKickActor.name} removed you`,
+        contentType: 'system' as const
+      }
+    }
+
+    return { ...lastMessage, message: 'You were removed from this group', contentType: 'system' as const }
+  })()
+
   return {
     id: conv.id,
     fullName,
@@ -878,11 +1142,18 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     // name from `state.chat.contacts` when no real lastMessage exists.
     createdBy: conv.createdBy,
     createdAt: conv.createdAt,
+    // Banner snapshot — hydrate from localStorage cache on cold load so
+    // ChatContent's banner shows the right copy immediately (otherwise it
+    // would wait for setChatMessages derivation and flash through the
+    // generic placeholder).
+    ...(cachedKickActor?.name ? { removedByName: cachedKickActor.name } : {}),
+    ...(cachedKickActor?.id ? { removedBy: cachedKickActor.id } : {}),
+    ...(cachedSelfLeft ? { selfLeft: true } : {}),
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,
       messages: [],
-      lastMessage
+      lastMessage: sidebarLastMessage
     }
   }
 }

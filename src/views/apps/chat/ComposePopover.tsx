@@ -10,6 +10,7 @@ import { searchUsers, sdkUserToContact } from 'src/lib/chat/api'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import List from '@mui/material/List'
+import Skeleton from '@mui/material/Skeleton'
 import Popover from '@mui/material/Popover'
 import ListItem from '@mui/material/ListItem'
 import MuiAvatar from '@mui/material/Avatar'
@@ -38,28 +39,30 @@ const getInitials = (name: string): string => {
   return (first + last).toUpperCase()
 }
 
+const SkeletonListItem = () => (
+  <ListItem disablePadding>
+    <Box sx={{ px: 4, py: 0.8, width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Skeleton variant='circular' width={34} height={34} />
+      <Box sx={{ flex: 1 }}>
+        <Skeleton variant='text' width='60%' height={20} />
+      </Box>
+    </Box>
+  </ListItem>
+)
+
 // ** Types
 import type { ContactType, ChatsArrType, ChatEntityId } from 'src/types/apps/chatTypes'
 
-interface ComposePopoverProps {
-  open: boolean
-  anchorEl: HTMLElement | null
-  onClose: () => void
+interface ComposePanelProps {
   contacts: ContactType[] | null
   chats: ChatsArrType[] | null
+  onClose: () => void
   onNewGroup: () => void
   onSelectContact: (id: ChatEntityId) => void
 }
 
-const ComposePopover = ({
-  open,
-  anchorEl,
-  onClose,
-  contacts,
-  chats,
-  onNewGroup,
-  onSelectContact
-}: ComposePopoverProps) => {
+// Reusable compose panel — used by both Popover and Sidebar inline
+export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectContact }: ComposePanelProps) => {
   const [query, setQuery] = useState<string>('')
   const [searchResults, setSearchResults] = useState<ContactType[]>([])
   const [searching, setSearching] = useState<boolean>(false)
@@ -72,13 +75,7 @@ const ComposePopover = ({
     return contacts.filter(c => chatContactIds.has(c.id)).slice(0, 4)
   }, [contacts, chats])
 
-  // SDK user lookup via `users.list({ query })`. Empty query returns everyone,
-  // so we use that for the default list when the popover opens, and re-query
-  // (debounced) as the user types. Falls back to filtering the local mock contacts list
-  // when the SDK isn't ready (dev / pre-auth).
   useEffect(() => {
-    if (!open) return
-
     const q = query.trim()
     const client = getChatClientOrNull()
 
@@ -109,11 +106,10 @@ const ComposePopover = ({
     )
 
     return () => clearTimeout(t)
-  }, [open, query, contacts])
+  }, [query, contacts])
 
   const handleContactClick = (id: ChatEntityId) => {
     onSelectContact(id)
-    onClose()
     setQuery('')
   }
 
@@ -124,32 +120,10 @@ const ComposePopover = ({
 
   const handleNewGroup = () => {
     onNewGroup()
-    handleClose()
   }
 
   return (
-    <Popover
-      open={open}
-      anchorEl={anchorEl}
-      onClose={handleClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      slotProps={{
-        paper: {
-          sx: {
-            mt: 1,
-            width: 380,
-            maxHeight: 600,
-            display: 'flex',
-            flexDirection: 'column',
-            borderRadius: 1,
-            backgroundColor: 'background.paper',
-            boxShadow: theme => `0 12px 32px -8px ${theme.palette.primary.main}26, 0 4px 16px -2px rgba(0,0,0,0.10)`,
-            overflow: 'hidden'
-          }
-        }
-      }}
-    >
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
       <Box
         sx={{
@@ -203,42 +177,42 @@ const ComposePopover = ({
         />
       </Box>
 
-      {/* New group CTA — contained-primary button style */}
-      <ListItemButton
+      {/* New group CTA */}
+      <Box
         onClick={handleNewGroup}
         sx={{
           mx: 3,
           mb: 2,
+          py: 2.5,
+          px: 2.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
           borderRadius: 1,
-          backgroundColor: '#1F515B',
+          backgroundColor: '#1F515B !important',
           color: 'common.white',
+          cursor: 'pointer',
+          transition: 'background-color 200ms',
           '&:hover': { backgroundColor: '#1a3f47' }
         }}
       >
-        {/* Teal-gradient circle + white glyph — same group icon used in
-            sidebar / chat header / group-created card. Keeps the
-            new-group affordance visually consistent across surfaces. */}
         <Box
           sx={{
-            width: 36,
-            height: 36,
+            width: 28,
+            height: 28,
             borderRadius: '50%',
             background: theme =>
               `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mr: 3.5
+            flexShrink: 0
           }}
         >
-          <Icon icon='mdi:account-group' fontSize='1.125rem' style={{ color: '#fff' }} />
+          <Icon icon='mdi:account-group' fontSize='0.875rem' style={{ color: '#fff' }} />
         </Box>
-        <ListItemText
-          primary={
-            <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: 'common.white' }}>New group</Typography>
-          }
-        />
-      </ListItemButton>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'common.white' }}>New group</Typography>
+      </Box>
 
       {/* Scrollable section */}
       <Box sx={{ flex: 1, overflowY: 'auto', pb: 2 }}>
@@ -262,7 +236,7 @@ const ComposePopover = ({
             <List dense sx={{ p: 0 }}>
               {frequentlyContacted.map(contact => (
                 <ListItem key={`freq-${contact.id}`} disablePadding>
-                  <ListItemButton onClick={() => handleContactClick(contact.id)} sx={{ px: 4, py: 1.5 }}>
+                  <ListItemButton onClick={() => handleContactClick(contact.id)} sx={{ px: 4, py: 0.8 }}>
                     <ListItemAvatar sx={{ minWidth: 46 }}>
                       {contact.avatar ? (
                         <MuiAvatar src={contact.avatar} alt={contact.fullName} sx={{ width: 34, height: 34 }} />
@@ -284,8 +258,6 @@ const ComposePopover = ({
           </>
         ) : null}
 
-        {/* User list — default-browse on open, debounced-search on input.
-            Section header reflects which mode we're in. */}
         <Typography
           variant='caption'
           sx={{
@@ -302,7 +274,13 @@ const ComposePopover = ({
           {searching ? 'Searching…' : query.trim().length ? 'Results' : 'People'}
         </Typography>
 
-        {!searching && searchResults.length === 0 ? (
+        {searching ? (
+          <List dense sx={{ p: 0 }}>
+            {[...Array(4)].map((_, idx) => (
+              <SkeletonListItem key={`skeleton-search-${idx}`} />
+            ))}
+          </List>
+        ) : searchResults.length === 0 ? (
           <Box sx={{ px: 4, py: 3 }}>
             <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
               {query.trim().length ? 'No people found' : 'No users available'}
@@ -312,7 +290,7 @@ const ComposePopover = ({
           <List dense sx={{ p: 0 }}>
             {searchResults.map(contact => (
               <ListItem key={`search-${contact.id}`} disablePadding>
-                <ListItemButton onClick={() => handleContactClick(contact.id)} sx={{ px: 4, py: 1.25 }}>
+                <ListItemButton onClick={() => handleContactClick(contact.id)} sx={{ px: 4, py: 0.8 }}>
                   <ListItemAvatar sx={{ minWidth: 46 }}>
                     {contact.avatar ? (
                       <MuiAvatar src={contact.avatar} alt={contact.fullName} sx={{ width: 34, height: 34 }} />
@@ -333,6 +311,63 @@ const ComposePopover = ({
           </List>
         )}
       </Box>
+    </Box>
+  )
+}
+
+interface ComposePopoverProps {
+  open: boolean
+  anchorEl: HTMLElement | null
+  onClose: () => void
+  contacts: ContactType[] | null
+  chats: ChatsArrType[] | null
+  onNewGroup: () => void
+  onSelectContact: (id: ChatEntityId) => void
+}
+
+const ComposePopover = ({
+  open,
+  anchorEl,
+  onClose,
+  contacts,
+  chats,
+  onNewGroup,
+  onSelectContact
+}: ComposePopoverProps) => {
+  const handleClose = () => {
+    onClose()
+  }
+
+  return (
+    <Popover
+      open={open}
+      anchorEl={anchorEl}
+      onClose={handleClose}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      slotProps={{
+        paper: {
+          sx: {
+            mt: 1,
+            width: 380,
+            maxHeight: 600,
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: 1,
+            backgroundColor: 'background.paper',
+            boxShadow: theme => `0 12px 32px -8px ${theme.palette.primary.main}26, 0 4px 16px -2px rgba(0,0,0,0.10)`,
+            overflow: 'hidden'
+          }
+        }
+      }}
+    >
+      <ComposePanel
+        contacts={contacts}
+        chats={chats}
+        onClose={handleClose}
+        onNewGroup={onNewGroup}
+        onSelectContact={onSelectContact}
+      />
     </Popover>
   )
 }

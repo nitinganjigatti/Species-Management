@@ -12,6 +12,7 @@ import List from '@mui/material/List'
 import Chip from '@mui/material/Chip'
 import Badge from '@mui/material/Badge'
 import Drawer from '@mui/material/Drawer'
+import Skeleton from '@mui/material/Skeleton'
 import MuiAvatar from '@mui/material/Avatar'
 import ListItem from '@mui/material/ListItem'
 import TextField from '@mui/material/TextField'
@@ -45,9 +46,15 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Chat App Components
 import UserProfileLeft from 'src/views/apps/chat/UserProfileLeft'
-import ComposePopover from 'src/views/apps/chat/ComposePopover'
+import ComposePopover, { ComposePanel } from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
+
+// ** Single source of truth for system-message perspective rewriting —
+// shared with ChatLog + ChatContent banner. Keeps all three surfaces
+// in lockstep across actor / target / bystander views.
+import { resolveSystemMessageText } from 'src/lib/chat/systemMessagePerspective'
+import { isForwarded, stripForwardMarker } from 'src/lib/chat/forwardMarker'
 
 // Mirror of mobile ChatListCard's filename→label/icon helpers.
 // Used to convert raw filenames (e.g. "sample-9s.mp3") from the SDK's
@@ -96,6 +103,18 @@ const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: bool
   return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
 }
 
+const SkeletonChatItem = () => (
+  <ListItem disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
+    <Box sx={{ px: 2.5, py: 2.5, width: '100%', display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
+      <Skeleton variant='circular' width={40} height={40} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Skeleton variant='text' width='70%' height={20} />
+        <Skeleton variant='text' width='90%' height={16} sx={{ mt: 1 }} />
+      </Box>
+    </Box>
+  </ListItem>
+)
+
 const FILTER_TABS: { value: ChatFilterType; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'unread', label: 'Unread' },
@@ -126,8 +145,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ** Local UI state
   const [query, setQuery] = useState<string>('')
-  const [composeAnchorEl, setComposeAnchorEl] = useState<HTMLElement | null>(null)
-  const [view, setView] = useState<'chats' | 'create-group'>('chats')
+  const [view, setView] = useState<'chats' | 'create-group' | 'compose'>('chats')
 
   const pathname = usePathname()
   const activeFilter: ChatFilterType = store?.activeFilter ?? 'all'
@@ -185,15 +203,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     dispatch(setActiveFilter(filter))
   }
 
-  const handleComposeOpen = (e: React.MouseEvent<HTMLElement>) => {
-    setComposeAnchorEl(e.currentTarget)
+  const handleComposeOpen = () => {
+    setView('compose')
   }
-
-  const handleComposeClose = () => setComposeAnchorEl(null)
 
   const handleOpenCreateGroup = () => {
     setView('create-group')
-    setComposeAnchorEl(null)
   }
 
   const handleCancelCreateGroup = () => setView('chats')
@@ -267,12 +282,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   })()
 
   const renderChats = () => {
-    // chats is null until the first fetch resolves — show a spinner.
+    // chats is null until the first fetch resolves — show skeleton items.
     if (!store?.chats) {
       return (
-        <ListItem>
-          <Typography sx={{ color: 'text.secondary' }}>Loading…</Typography>
-        </ListItem>
+        <List sx={{ p: 0 }}>
+          {[...Array(5)].map((_, idx) => (
+            <SkeletonChatItem key={`skeleton-chat-${idx}`} />
+          ))}
+        </List>
       )
     }
 
@@ -351,25 +368,106 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       //   2. Current user id match → "You: "
       //   3. `store.contacts` lookup (last fallback for older messages
       //      cached before senderName was captured).
+      // Detect server-stored "actor-prefixed" system events that aren't
+      // tagged with contentType='system' — e.g. "Anil Rathod created group
+      // …" coming back as a regular message. When the actor IS the current
+      // user we rewrite the text inline ("You created group …") AND skip
+      // the redundant "You: " sender prefix that would otherwise be added
+      // by the regular-text branch. Triggers only when (sender or creator)
+      // matches the current user AND the text starts with their exact
+      // full name + space — falls back to the original text on any
+      // mismatch. Pure render-time transformation; no state, socket, or
+      // REST changes; survives hard refresh because it re-runs on every
+      // render once userProfile is loaded.
+      // Delegate all perspective rewriting to the shared resolver
+      // (src/lib/chat/systemMessagePerspective.ts) so the sidebar
+      // preview matches the in-chat pill exactly across all three
+      // perspectives (actor / target / bystander) and all event types.
+      //
+      // For NON-system messages we still consult `isActorPrefixedSelfMessage`
+      // so a server-stored "actor-prefixed" event that isn't tagged with
+      // contentType='system' (e.g. some "X created group Y" variants)
+      // still rewrites to "You ..." when the actor is the current user.
+      // That branch also drives the `senderPrefix` suppression below.
+      const meIdStrForRewrite = String(store?.userProfile?.id ?? '')
+      const myNameForRewrite = store?.userProfile?.fullName ?? ''
+      const lastMsgText = lastMessage?.message ?? ''
+      const actorIsMe = Boolean(
+        meIdStrForRewrite &&
+          ((lastMessage?.senderId && String(lastMessage.senderId) === meIdStrForRewrite) ||
+            (chat.createdBy && String(chat.createdBy) === meIdStrForRewrite))
+      )
+      const isActorPrefixedSelfMessage = Boolean(
+        actorIsMe && myNameForRewrite && lastMsgText.startsWith(myNameForRewrite + ' ')
+      )
+
+      const rawDisplayText = lastMessage
+        ? resolveSystemMessageText(lastMessage, {
+            meId: meIdStrForRewrite,
+            meName: myNameForRewrite
+          })
+        : ''
+      const isLastMsgForwarded = Boolean(
+        lastMessage &&
+          !lastMessage.isDeletedForEveryone &&
+          lastMessage.contentType !== 'system' &&
+          !lastMessage.systemOperationType &&
+          isForwarded(lastMessage.message)
+      )
+      const displayLastMessageText = stripForwardMarker(rawDisplayText)
+
       let senderPrefix = ''
       if (
         isGroup &&
         lastMessage &&
         lastMessage.senderId &&
         !lastMessage.isDeletedForEveryone &&
-        lastMessage.contentType !== 'system'
+        lastMessage.contentType !== 'system' &&
+        // Belt-and-suspenders — `systemOperationType` presence implies
+        // a system event even if upstream stripped `contentType`. Stops
+        // the sidebar from prepending "<sender>: " to text the resolver
+        // already rewrote into actor / target voice ("Anil Rathod
+        // dismissed you as admin"), which would render duplicated
+        // "Anil Rathod: Anil Rathod dismissed you as admin".
+        !lastMessage.systemOperationType &&
+        !isActorPrefixedSelfMessage
       ) {
         const senderIdStr = String(lastMessage.senderId)
         const meIdStr = String(store?.userProfile?.id ?? '')
         if (meIdStr && senderIdStr === meIdStr) {
           senderPrefix = 'You: '
         } else if (lastMessage.senderName) {
-          senderPrefix = `${lastMessage.senderName.split(' ')[0]}: `
+          senderPrefix = `${lastMessage.senderName}: `
         } else {
           const sender = store?.contacts?.find(c => String(c.id) === senderIdStr)
-          if (sender?.fullName) senderPrefix = `${sender.fullName.split(' ')[0]}: `
+          if (sender?.fullName) senderPrefix = `${sender.fullName}: `
         }
       }
+
+      // WhatsApp-style tick in sidebar — only for own messages that are not
+      // deleted-for-everyone or system messages. Color follows WhatsApp:
+      //   blue double = seen, grey double = delivered, grey single = sent.
+      const isOwnLastMessage = Boolean(
+        lastMessage &&
+          !lastMessage.isDeletedForEveryone &&
+          lastMessage.contentType !== 'system' &&
+          currentUserIdForPresence &&
+          String(lastMessage.senderId) === currentUserIdForPresence
+      )
+      const lastMsgTick =
+        isOwnLastMessage && lastMessage?.feedback
+          ? (() => {
+              const { isSent, isDelivered, isSeen } = lastMessage.feedback
+              if (!isSent && !isDelivered && !isSeen) return null
+              const icon = isSeen || isDelivered ? 'mdi:check-all' : 'mdi:check'
+              const color = isSeen ? '#53BDEB' : activeCondition ? 'rgba(255,255,255,0.75)' : '#7A8A8E'
+              return (
+                <Box component='span' sx={{ display: 'inline-flex', flexShrink: 0, color, mr: 0.5 }}>
+                  <Icon icon={icon} fontSize='0.875rem' />
+                </Box>
+              )
+            })()
+          : null
 
       return (
         <ListItem
@@ -524,7 +622,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       This message was deleted
                     </Typography>
-                  ) : lastMessage.contentType === 'system' ? (
+                  ) : lastMessage.contentType === 'system' || lastMessage.systemOperationType ? (
+                    // System events render as italic preview, never with a
+                    // "<sender>: " prefix. `systemOperationType` is a
+                    // belt-and-suspenders check for cases where REST
+                    // stripped `contentType` from `conv.lastMessage`.
                     <Typography
                       component='span'
                       noWrap
@@ -535,22 +637,43 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
                       }}
                     >
-                      {lastMessage.message || 'System message'}
+                      {displayLastMessageText || 'System message'}
                     </Typography>
-                  ) : lastMessage.message && !isFilename ? (
-                    <Typography
-                      component='span'
-                      noWrap
-                      variant='body2'
-                      sx={{ display: 'block', ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' }) }}
-                    >
-                      {senderPrefix ? (
-                        <Box component='span' sx={{ fontWeight: 600 }}>
-                          {senderPrefix}
+                  ) : displayLastMessageText && !isFilename ? (
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                      {lastMsgTick}
+                      {isLastMsgForwarded ? (
+                        <Box
+                          component='span'
+                          sx={{
+                            display: 'inline-flex',
+                            flexShrink: 0,
+                            mr: 0.5,
+                            color: activeCondition ? 'rgba(255,255,255,0.75)' : 'customColors.neutralSecondary'
+                          }}
+                        >
+                          <Icon icon='mdi:share' fontSize='1.1rem' />
                         </Box>
                       ) : null}
-                      {lastMessage.message}
-                    </Typography>
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{
+                          display: 'block',
+                          flex: 1,
+                          minWidth: 0,
+                          ...(!activeCondition && { color: '#44544A', lineHeight: 'normal' })
+                        }}
+                      >
+                        {senderPrefix ? (
+                          <Box component='span' sx={{ fontWeight: 600 }}>
+                            {senderPrefix}
+                          </Box>
+                        ) : null}
+                        {displayLastMessageText}
+                      </Typography>
+                    </Box>
                   ) : lastMessage.attachments?.length || lastMessage.contentType === 'attachment' || isFilename ? (
                     (() => {
                       // Derive icon + label from attachment metadata or filename — mirrors mobile ChatListCard logic.
@@ -575,6 +698,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
                       return (
                         <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                          {lastMsgTick}
                           <Box
                             component='span'
                             sx={{
@@ -686,10 +810,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   return (
     <div>
       <Drawer
+        anchor='left'
         open={leftSidebarOpen}
         onClose={handleLeftSidebarToggle}
         variant={mdAbove ? 'permanent' : 'temporary'}
-        ModalProps={{ disablePortal: true, keepMounted: true }}
+        ModalProps={{ disablePortal: true, keepMounted: true, disableScrollLock: true }}
+        slotProps={{ transition: { appear: false } }}
         sx={{
           zIndex: 7,
           height: '100%',
@@ -699,9 +825,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
             boxShadow: 'none',
             overflow: 'hidden',
             width: sidebarWidth,
-            position: mdAbove ? 'static' : 'absolute',
-            borderTopLeftRadius: theme => theme.shape.borderRadius,
-            borderBottomLeftRadius: theme => theme.shape.borderRadius
+            position: mdAbove ? 'static' : 'absolute'
+            // borderTopLeftRadius: theme => theme.shape.borderRadius,
+            // borderBottomLeftRadius: theme => theme.shape.borderRadius
           },
           '& > .MuiBackdrop-root': {
             borderRadius: 1,
@@ -713,8 +839,22 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         {view === 'create-group' ? (
           <CreateGroupDrawer
             contacts={store?.contacts ?? null}
+            currentUserId={currentUserIdForPresence}
+            currentUserName={store?.userProfile?.fullName}
+            currentUserAvatar={store?.userProfile?.avatar}
             onCancel={handleCancelCreateGroup}
             onCreate={handleCreateGroup}
+          />
+        ) : view === 'compose' ? (
+          <ComposePanel
+            contacts={store?.contacts ?? null}
+            chats={store?.chats ?? null}
+            onClose={() => setView('chats')}
+            onNewGroup={handleOpenCreateGroup}
+            onSelectContact={(id: ChatEntityId) => {
+              handleChatClick('contact', id)
+              setView('chats')
+            }}
           />
         ) : (
           <>
@@ -735,35 +875,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   justifyContent: 'space-between'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  {store?.userProfile ? (
-                    <Badge
-                      overlap='circular'
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      // Profile drawer is hidden for now — see <UserProfileLeft />
-                      // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
-                      // when the drawer comes back.
-                      badgeContent={
-                        <Box
-                          component='span'
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            color: `${statusObj[userStatus]}.main`,
-                            backgroundColor: `${statusObj[userStatus]}.main`,
-                            boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
-                          }}
-                        />
-                      }
-                    >
-                      <MuiAvatar
-                        src={store.userProfile.avatar}
-                        alt={store.userProfile.fullName}
-                        sx={{ width: 36, height: 36, cursor: 'pointer' }}
-                      />
-                    </Badge>
-                  ) : null}
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h6' sx={{ fontWeight: 600 }}>
                     Chats
                   </Typography>
@@ -867,17 +979,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           </>
         )}
       </Drawer>
-
-      {/* Compose popover */}
-      <ComposePopover
-        open={Boolean(composeAnchorEl)}
-        anchorEl={composeAnchorEl}
-        onClose={handleComposeClose}
-        contacts={store?.contacts ?? null}
-        chats={store?.chats ?? null}
-        onNewGroup={handleOpenCreateGroup}
-        onSelectContact={(id: ChatEntityId) => handleChatClick('contact', id)}
-      />
 
       {/* Hidden for now — own-profile drawer (About / Status / Settings).
           Restore the <UserProfileLeft /> render and the avatar's onClick

@@ -91,6 +91,7 @@ export type ForwardingMessageRef = {
   attachments?: ChatAttachmentType[]
   senderName?: string
   senderId?: ChatEntityId
+  isOwnMessage?: boolean
 }
 
 export type MessageType = {
@@ -111,6 +112,16 @@ export type MessageType = {
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
   contentType?: 'text' | 'attachment' | 'system'
+  /**
+   * Structured metadata for `contentType === 'system'` messages — the
+   * server includes targetUserId / targetUserName / systemOperationType
+   * on add/remove/admin events so the client can render perspective-aware
+   * text without parsing the message body. Optional everywhere because
+   * older messages and non-system messages don't carry them.
+   */
+  targetUserId?: ChatEntityId
+  targetUserName?: string
+  systemOperationType?: string
   // Interaction state — populated by the SDK adapter when the server includes
   // these, mutated by the new message-actions reducers. All optional so
   // existing send/receive paths don't need updates.
@@ -228,6 +239,15 @@ export type ChatsArrType = {
   removedBy?: ChatEntityId
   /** Display name of the admin who removed the current user, when supplied. */
   removedByName?: string
+  /**
+   * Self-exit flag — set when the current user left this group
+   * voluntarily (vs being kicked by an admin). Drives banner copy
+   * ("You left the group." vs "You're no longer a member of this
+   * group."). Hydrated from a localStorage marker on cold refresh
+   * so the signal survives REST conversation list stripping system
+   * metadata. Cleared when the user re-joins.
+   */
+  selfLeft?: boolean
   /**
    * WhatsApp-style "draft" DM — the conversation only exists in local
    * state (no server `Conversation` record yet). Created by
@@ -397,6 +417,15 @@ export type ChatLogChatType = {
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
   contentType?: 'text' | 'attachment' | 'system'
+  // System-message metadata — forwarded from MessageType so the
+  // shared perspective resolver (src/lib/chat/systemMessagePerspective.ts)
+  // can render the right text per viewer (sender / target / bystander)
+  // for membership / role / metadata events.
+  senderId?: ChatEntityId
+  senderName?: string
+  targetUserId?: ChatEntityId
+  targetUserName?: string
+  systemOperationType?: string
   // Forwarded from MessageType so the bubble renderer can show interaction
   // state without going back to Redux for each message.
   replyTo?: MessageReplyRef
