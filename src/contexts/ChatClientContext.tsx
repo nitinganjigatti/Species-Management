@@ -61,10 +61,13 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const [connected, setConnected] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
-  // Tenant gate — short-circuit to a passthrough when `ENABLE_CHAT_MODULE`
-  // is off so we don't fetch profile / open a socket / register listeners
-  // for tenants that don't have chat enabled.
-  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
+  // Tenant gate — short-circuit to a passthrough when either
+  // `ENABLE_CHAT_MODULE` or `ENABLE_CHAT_MODULE_IN_WEB` is off so we don't
+  // fetch profile / open a socket / register listeners for tenants that
+  // don't have chat enabled on the web client.
+  const enableChatModule = Boolean(
+    auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
+  )
 
   useEffect(() => {
     if (!enableChatModule) return

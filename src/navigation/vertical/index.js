@@ -60,7 +60,8 @@ const ComposeNavigation = () => {
   const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
-  const enableChatModule = authData?.userData?.settings?.ENABLE_CHAT_MODULE
+  const enableChatModule =
+    authData?.userData?.settings?.ENABLE_CHAT_MODULE && authData?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
 
   const userRole = authData?.userData?.roles?.role_name
 

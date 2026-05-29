@@ -60,7 +60,9 @@ const ChatLauncher = () => {
   // we can probe the zoo-settings flag without TS friction. Same pattern as
   // AppChat.tsx:112.
   const auth = useAuth() as any
-  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
+  const enableChatModule = Boolean(
+    auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
+  )
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
