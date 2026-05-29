@@ -1615,6 +1615,57 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // WhatsApp-style "Undo" for a just-removed delete-for-me. Re-inserts
+    // the snapshotted message back into `chat.messages` at its correct
+    // time-sorted position so the bubble re-appears exactly where it
+    // was. Used ONLY by the MessageActions undo toast click handler.
+    // Idempotent — if a message with the same id is already present
+    // (e.g., the server broadcast got back here first), the insert is a
+    // no-op so we never duplicate.
+    restoreDeletedMessage: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; message: MessageType }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, message } = action.payload
+      if (!message?.id) return
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      if (chatEntry.chat.messages.some(m => m.id === message.id)) return
+
+      const restoredTime = message.time ? new Date(message.time as string | Date).getTime() : 0
+      // Find the first message whose time is strictly newer — insert
+      // before it to preserve chronological order. If none, append.
+      const insertAt = chatEntry.chat.messages.findIndex(m => {
+        const t = m.time ? new Date(m.time as string | Date).getTime() : 0
+        return t > restoredTime
+      })
+      if (insertAt < 0) {
+        chatEntry.chat.messages = [...chatEntry.chat.messages, message]
+      } else {
+        chatEntry.chat.messages = [
+          ...chatEntry.chat.messages.slice(0, insertAt),
+          message,
+          ...chatEntry.chat.messages.slice(insertAt)
+        ]
+      }
+
+      // If the restored message is now the newest, bring the sidebar
+      // preview back to it. Otherwise leave the current lastMessage alone.
+      const lastTime = chatEntry.chat.lastMessage?.time
+        ? new Date(chatEntry.chat.lastMessage.time as string | Date).getTime()
+        : 0
+      if (restoredTime >= lastTime) {
+        chatEntry.chat.lastMessage = message
+      }
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+          contact: chatEntry
+        }
+      }
+    },
     // Apply a server-broadcast edit. Updates `message`, `isEdited` and
     // `editedAt` on whichever message matches.
     applyMessageUpdate: (
@@ -2836,6 +2887,7 @@ export const {
   applyMessageUpdate,
   applyMessageDelete,
   applyMessageDeleteForMe,
+  restoreDeletedMessage,
   setMessageStarred,
   applyMessagePin,
   applyReactionUpdate,

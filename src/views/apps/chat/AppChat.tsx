@@ -29,6 +29,7 @@ import {
   updateMessagesFeedback,
   addOrReplaceChat,
   patchConversationFromEvent,
+  removeChatFromList,
   updateChatFlags
 } from 'src/store/apps/chat'
 
@@ -622,12 +623,16 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       })
     }
 
-    // When a conversation is deleted (admin action, leave-and-delete), remove
-    // it from the sidebar so the stale row doesn't linger.
+    // Multi-device sync — `conversation_deleted` fires on this user's
+    // OTHER sessions when they delete a chat elsewhere (per chat-core docs:
+    // `conversationsApi.delete()` is per-user, never broadcast to other
+    // participants). Drop the row + close it if it was open, using the
+    // SAME reducer the local "Delete chat" / "Exit and Delete" paths use
+    // — instant, no REST refetch, idempotent on unknown ids.
     const onConversationDeleted = (evt: any) => {
       const convId = evt?.conversationId ?? evt?.id
       if (!convId) return
-      dispatch(fetchChatsContacts())
+      dispatch(removeChatFromList(convId))
     }
 
     // Reactions — server broadcasts the full `reactions` array for one
