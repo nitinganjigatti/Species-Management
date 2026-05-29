@@ -75,32 +75,32 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
   const schema = useMemo(() => {
     if (isRoomEditMode) {
       return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_id: yup.string().trim().required('Room Name is required'),
+        hospital_id: yup.string().trim().required(t('hospital_module.hospital_name_required') as string),
+        room_id: yup.string().trim().required(t('hospital_module.room_name_required') as string),
         ...(isRoomEmpty && {
-          status: yup.boolean().required('Status is required')
+          status: yup.boolean().required(t('hospital_module.status_required') as string)
         })
       })
     }
 
     if (isBedEditMode) {
       return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_id: yup.string().trim().required('Room Name is required'),
-        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
+        hospital_id: yup.string().trim().required(t('hospital_module.hospital_name_required') as string),
+        room_id: yup.string().trim().required(t('hospital_module.room_name_required') as string),
+        bed_name: yup.string().trim().required(t('hospital_module.cage_stall_enclosure_name_required') as string),
         ...(isBedEmpty && {
-          status: yup.boolean().required('Status is required')
+          status: yup.boolean().required(t('hospital_module.status_required') as string)
         })
       })
     } else {
       return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_id: yup.string().trim().required('Room Name is required'),
-        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
-        status: yup.boolean().required('Status is required')
+        hospital_id: yup.string().trim().required(t('hospital_module.hospital_name_required') as string),
+        room_id: yup.string().trim().required(t('hospital_module.room_name_required') as string),
+        bed_name: yup.string().trim().required(t('hospital_module.cage_stall_enclosure_name_required') as string),
+        status: yup.boolean().required(t('hospital_module.status_required') as string)
       })
     }
-  }, [isRoomEditMode, isBedEditMode, isRoomEmpty, isBedEmpty])
+  }, [isRoomEditMode, isBedEditMode, isRoomEmpty, isBedEmpty, t])
 
   const {
     reset,
@@ -183,11 +183,11 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
   }, [handleSidebarClose])
 
   const drawerTitle = useMemo(() => {
-    if (isRoomEditMode) return 'Update Room'
-    if (editParams?.id) return 'Edit Enclosure'
+    if (isRoomEditMode) return t('hospital_module.update_room')
+    if (editParams?.id) return t('hospital_module.edit_enclosure')
 
     return t('hospital_module.add_new_enclosure')
-  }, [isRoomEditMode, editParams])
+  }, [isRoomEditMode, editParams, t])
 
   return (
     <Drawer
@@ -233,18 +233,18 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
               <ControlledTextField
                 control={control}
                 errors={errors}
-                label='Hospital Name'
+                label={t('hospital_module.hospital_name') as string}
                 name='hospital_id'
-                placeholder='Hospital Name'
+                placeholder={t('hospital_module.hospital_name') as string}
                 fullWidth
                 disabled={hospitalNameDisabled}
               />
               <ControlledTextField
                 control={control}
                 errors={errors}
-                label='Room Name*'
+                label={`${t('hospital_module.room_name')}*`}
                 name='room_id'
-                placeholder='Enter Room Name'
+                placeholder={t('hospital_module.enter_room_name') as string}
                 fullWidth
                 disabled={roomNameDisabled}
               />
@@ -252,9 +252,9 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Cage/Stall/Enclosure Name*'
+                  label={`${t('hospital_module.cage_stall_enclosure_name')}*`}
                   name='bed_name'
-                  placeholder='Enter Cage/Stall/Enclosure'
+                  placeholder={t('hospital_module.enter_cage_stall_enclosure') as string}
                   fullWidth
                 />
               )}
@@ -263,11 +263,11 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
                   name='status'
                   control={control}
                   errors={errors}
-                  label='Select Status'
+                  label={t('hospital_module.select_status') as string}
                   required
                   options={[
-                    { label: 'Active', value: true },
-                    { label: 'Inactive', value: false }
+                    { label: t('hospital_module.active') as string, value: true },
+                    { label: t('hospital_module.inactive') as string, value: false }
                   ]}
                   {...({ row: true, radioColor: 'primary', gap: 4 } as any)}
                 />
@@ -305,7 +305,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
               }}
               onClick={handleSidebarClose}
             >
-              Cancel
+              {t('cancel')}
             </LoadingButton>
           )}
           <LoadingButton
@@ -315,7 +315,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
             sx={{ flex: 1, py: 4 }}
             disabled={!isValid || submitLoader}
           >
-            {editParams?.id || isRoomEditMode ? 'Update' : 'Add Enclosure'}
+            {editParams?.id || isRoomEditMode ? t('update') : t('hospital_module.add_enclosure')}
           </LoadingButton>
         </Box>
       </Box>
