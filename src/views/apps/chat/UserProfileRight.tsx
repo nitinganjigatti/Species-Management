@@ -329,6 +329,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
     | { type: 'delete' }
     | { type: 'deleteChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
+    // Sole-admin warning — shown BEFORE the regular exit confirm when the
+    // current user is the only admin AND other active members remain.
+    // Dialog offers two paths: cancel ("Make someone admin" — closes so
+    // the user can use the member kebab to promote) or confirm ("Exit
+    // anyway" — proceeds with the underlying intent). `underlying` tracks
+    // which exit action they originally triggered.
+    | { type: 'exitAsOnlyAdmin'; underlying: 'exit' | 'exitAndDelete' }
 
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const closeConfirm = () => setConfirmAction(null)
@@ -340,6 +347,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // `canInteract` gate but the chat stays visible / scrollable.
   const handleExitGroup = () => {
     if (currentGroupId === null) return
+    // Sole-admin guard: surface the warning dialog first; user can
+    // promote someone via member kebab (Cancel) or proceed (Confirm).
+    if (isOnlyAdmin) {
+      setConfirmAction({ type: 'exitAsOnlyAdmin', underlying: 'exit' })
+
+      return
+    }
     setConfirmAction({ type: 'exit' })
   }
 
@@ -350,6 +364,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // path — local removal is idempotent with the listener).
   const handleExitAndDelete = () => {
     if (currentGroupId === null) return
+    if (isOnlyAdmin) {
+      setConfirmAction({ type: 'exitAsOnlyAdmin', underlying: 'exitAndDelete' })
+
+      return
+    }
     setConfirmAction({ type: 'exitAndDelete' })
   }
 
@@ -362,6 +381,18 @@ const UserProfileRight = (props: UserProfileRightType) => {
     if (!confirmAction) return
     const chatId = store?.selectedChat?.contact?.id ?? null
     if (chatId === null) return
+
+    // Two-step confirmation for sole admins. Clicking "Exit anyway" in
+    // the warning does NOT immediately leave — it transitions the dialog
+    // to the regular "Exit group?" / "Exit and delete?" confirmation,
+    // forcing a second deliberate confirm. Same Dialog component re-
+    // renders with new copy + buttons, so visually it feels like step 2
+    // of a 2-step flow. The user can still cancel at this stage.
+    if (confirmAction.type === 'exitAsOnlyAdmin') {
+      setConfirmAction({ type: confirmAction.underlying })
+
+      return
+    }
 
     if (confirmAction.type === 'exit') {
       // v1.1.3 — Exit Group, stays in list as read-only. Direct SDK
@@ -442,6 +473,24 @@ const UserProfileRight = (props: UserProfileRightType) => {
             "The group will stay in your chat list as read-only — you can scroll history but can't send messages.",
           confirmText: 'Exit group',
           icon: 'mdi:exit-to-app',
+          iconColor: '#ff3838'
+        }
+      case 'exitAsOnlyAdmin':
+        // Two clear paths surfaced as named buttons. Left button =
+        // "Make someone admin" (closes the dialog so the user can use
+        // the existing member-row kebab to promote). Right button =
+        // "Exit anyway" (proceeds with the underlying exit action).
+        // Copy is neutral about server behavior after the leave —
+        // whether the server auto-promotes is not the client's concern;
+        // we just give the leaving admin the choice to hand off the
+        // role explicitly before they go.
+        return {
+          title: `You're the only admin of "${chatName}"`,
+          description:
+            'Make another member an admin before you leave, so they can keep managing the group. Or exit anyway.',
+          confirmText: 'Exit anyway',
+          cancelText: 'Make someone admin',
+          icon: 'mdi:shield-account-outline',
           iconColor: '#ff3838'
         }
       case 'exitAndDelete':
@@ -559,6 +608,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const adminIdSet = new Set(adminIds.map(String))
   // Current user can only manage members / edit info if they're a group admin.
   const isCurrentUserAdmin = adminIdSet.has(String(currentUserId))
+
+  // Sole-admin guard for the Exit flow. We surface a warning when:
+  //   1. The current user is an admin
+  //   2. They are the ONLY admin in the group
+  //   3. Other active members remain (anyone whose `isActive !== false`,
+  //      excluding self). Members who already left are flagged
+  //      `isActive: false` server-side and don't count — leaving an
+  //      already-empty group strands no one.
+  // When all three are true, the group would be left with no admin after
+  // the leave — no one could add members / edit info / promote. The
+  // warning gives the user a chance to promote someone first.
+  const activeOtherMemberCount = (store?.selectedChat?.contact?.participants ?? []).filter(
+    p => p.isActive !== false && String(p.userId) !== String(currentUserId)
+  ).length
+  const isOnlyAdmin = isCurrentUserAdmin && adminIds.length === 1 && activeOtherMemberCount > 0
   const groupMembers = (() => {
     if (!isGroup || !store?.selectedChat) return []
     const ids = store.selectedChat.contact.participantIds ?? []
@@ -1697,7 +1761,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
         icon={confirmCopy?.icon}
         iconColor={confirmCopy?.iconColor}
         ConfirmationText={confirmCopy?.confirmText}
-        cancelText='Cancel'
+        cancelText={confirmCopy?.cancelText ?? 'Cancel'}
       />
     </Sidebar>
   )

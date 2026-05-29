@@ -92,9 +92,15 @@ const GroupIconEditor = ({
     if (!file) return
 
     setUploading(true)
-    const previewUrl = URL.createObjectURL(file)
+    let previewUrl = ''
     try {
       const compressed = await maybeCompressImage(file, ICON_COMPRESS_OPTIONS)
+      // Create the blob URL FROM the compressed file so `name`, `type`, `size`,
+      // and the actual upload payload all match. Without this the SDK requests
+      // a presigned URL for compressed.size + compressed.type, but
+      // `platformUploadFn` does `fetch(uri)` on the original blob — and S3
+      // rejects the mismatched upload with HTTP 400.
+      previewUrl = URL.createObjectURL(compressed)
       const uploadable = {
         uri: previewUrl,
         name: compressed.name,
@@ -107,7 +113,7 @@ const GroupIconEditor = ({
       toast.error('Failed to update group icon')
     } finally {
       setUploading(false)
-      URL.revokeObjectURL(previewUrl)
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }
 
