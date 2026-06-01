@@ -28,6 +28,8 @@ import { getMessageReceipts, getChatSocket } from 'src/lib/chat/api'
 import type { ReadReceiptEvent, MessageDeliveredEvent } from '@antzsoft/chat-core'
 import { setInfoMessage } from 'src/store/apps/chat'
 import { getInitials } from 'src/@core/utils/get-initials'
+import { isForwarded, stripForwardMarker } from 'src/lib/chat/forwardMarker'
+import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
 
 import Sidebar from 'src/@core/components/sidebar'
 
@@ -321,8 +323,9 @@ const MessageInfoDialog = () => {
                   boxShadow: 1
                 }}
               >
+                {isForwarded(messageText) && <ForwardedTag isSender />}
                 <Typography sx={{ fontSize: '0.875rem', wordBreak: 'break-word', whiteSpace: 'pre-wrap', color: 'inherit' }}>
-                  {messageText}
+                  {stripForwardMarker(messageText)}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, mt: 0.5, color: 'rgba(255,255,255,0.85)' }}>
                   {bubbleSentAt && (

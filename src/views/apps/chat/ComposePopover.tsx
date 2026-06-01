@@ -148,7 +148,7 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
           autoFocus
           value={query}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-          placeholder='Search name or staff ID'
+          placeholder='Search'
           sx={{
             '& .MuiInputBase-root': { borderRadius: 5 },
             '& .MuiOutlinedInput-root': {
@@ -172,7 +172,14 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
               <InputAdornment position='start'>
                 <Icon icon='mdi:magnify' fontSize='1.125rem' />
               </InputAdornment>
-            )
+            ),
+            endAdornment: query ? (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={() => setQuery('')} edge='end' aria-label='Clear search'>
+                  <Icon icon='mdi:close' fontSize='1rem' />
+                </IconButton>
+              </InputAdornment>
+            ) : null
           }}
         />
       </Box>
@@ -244,7 +251,15 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
                         <CustomAvatar
                           skin='light'
                           color={contact.avatarColor}
-                          sx={{ width: 34, height: 34, fontSize: '0.8rem' }}
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            fontSize: '0.8rem',
+                            background: theme =>
+                              `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                            color: 'common.white',
+                            fontWeight: 600
+                          }}
                         >
                           {getInitials(contact.fullName)}
                         </CustomAvatar>
@@ -298,7 +313,15 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
                       <CustomAvatar
                         skin='light'
                         color={contact.avatarColor}
-                        sx={{ width: 34, height: 34, fontSize: '0.8rem' }}
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          fontSize: '0.8rem',
+                          background: theme =>
+                            `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                          color: 'common.white',
+                          fontWeight: 600
+                        }}
                       >
                         {getInitials(contact.fullName)}
                       </CustomAvatar>

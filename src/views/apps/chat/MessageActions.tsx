@@ -8,7 +8,7 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import toast from 'react-hot-toast'
+import toast, { Toast } from 'react-hot-toast'
 
 // ** Redux
 import { useDispatch, useSelector } from 'react-redux'
@@ -17,7 +17,9 @@ import {
   setEditingMessage,
   setMessageStarred,
   setInfoMessage,
-  setForwardingMessage
+  setForwardingMessage,
+  applyMessageDeleteForMe,
+  restoreDeletedMessage
 } from 'src/store/apps/chat'
 import type { AppDispatch, RootState } from 'src/store'
 
@@ -84,6 +86,11 @@ const MessageActions = ({
   )
   const deleteWindowSeconds = useSelector(
     (s: RootState) => s.chat?.selectedChat?.contact.deleteWindowSeconds
+  )
+  // Conversation id the message belongs to — needed by the delete-for-me
+  // Undo path to know which chat to restore the snapshot into.
+  const currentChatId = useSelector(
+    (s: RootState) => s.chat?.selectedChat?.contact.id ?? null
   )
 
   // Whether `chat.time` is still within `windowSeconds` of now. Defensive
@@ -187,18 +194,128 @@ const MessageActions = ({
 
   const handleConfirmDelete = async () => {
     if (!chat.id || !confirmingDelete) return
-    const call =
-      confirmingDelete === 'everyone' ? deleteMessageOverSocket(chat.id) : deleteMessageForMeOverSocket(chat.id)
-    setDeleting(true)
-    try {
-      await call
-      setConfirmingDelete(null)
-    } catch (err) {
-      console.error('[chat] delete failed:', err)
-      toast.error('Delete failed')
-    } finally {
-      setDeleting(false)
+
+    // Delete-for-everyone path — unchanged. Fires immediately, no undo.
+    if (confirmingDelete === 'everyone') {
+      setDeleting(true)
+      try {
+        await deleteMessageOverSocket(chat.id)
+        setConfirmingDelete(null)
+      } catch (err) {
+        console.error('[chat] delete failed:', err)
+        toast.error('Delete failed')
+      } finally {
+        setDeleting(false)
+      }
+
+      return
     }
+
+    // Delete-for-me — WhatsApp-style optimistic remove + 5s Undo window.
+    // We deliberately DO NOT call the server immediately. Instead:
+    //   1. Optimistically dispatch the local removal (same reducer the
+    //      socket echo would dispatch — idempotent if the server later
+    //      broadcasts the same event back).
+    //   2. Show a toast with an Undo button for 5s.
+    //   3. Schedule the actual server call to fire AFTER the window.
+    //   4. If the user clicks Undo, cancel the timer + dispatch
+    //      `restoreDeletedMessage` to re-insert the snapshot.
+    // If the user never clicks Undo (toast auto-dismisses or they
+    // navigate away), the timer still fires and the server gets the
+    // same call that would have fired immediately before.
+    const messageId = chat.id
+    const chatIdForUndo = currentChatId
+    if (!chatIdForUndo) {
+      // Defensive: no open chat → just do the immediate delete (legacy path).
+      setDeleting(true)
+      try {
+        await deleteMessageForMeOverSocket(messageId)
+        setConfirmingDelete(null)
+      } catch (err) {
+        console.error('[chat] delete-for-me failed:', err)
+        toast.error('Delete failed')
+      } finally {
+        setDeleting(false)
+      }
+
+      return
+    }
+
+    // Snapshot the full message so the Undo can restore it identically.
+    // `chat` is the per-bubble ChatLogChatType — already has id, msg, time,
+    // feedback, attachments, reactions, etc. We map back to MessageType
+    // shape (the reducer uses MessageType; field names align).
+    const messageSnapshot = {
+      id: chat.id,
+      message: chat.msg,
+      time: chat.time,
+      feedback: chat.feedback,
+      senderId: chat.senderId,
+      senderName: chat.senderName,
+      attachments: chat.attachments,
+      contentType: chat.contentType,
+      systemOperationType: chat.systemOperationType,
+      targetUserId: chat.targetUserId,
+      targetUserName: chat.targetUserName,
+      replyTo: chat.replyTo,
+      reactions: chat.reactions,
+      isPinned: chat.isPinned,
+      isStarred: chat.isStarred,
+      isEdited: chat.isEdited,
+      editedAt: chat.editedAt,
+      isDeletedForEveryone: chat.isDeletedForEveryone,
+      readBy: chat.readBy,
+      deliveredTo: chat.deliveredTo
+    } as any
+
+    // 1. Close the confirm dialog
+    setConfirmingDelete(null)
+    // 2. Optimistic local remove — bubble disappears instantly
+    dispatch(applyMessageDeleteForMe({ messageId }))
+
+    // 3. Schedule the server commit (in 5s if not undone)
+    let cancelled = false
+    const commitTimer = setTimeout(() => {
+      if (cancelled) return
+      deleteMessageForMeOverSocket(messageId).catch(err => {
+        console.error('[chat] delete-for-me commit failed:', err)
+      })
+    }, 5000)
+
+    // 4. Toast with Undo button — duration matches the commit timer so
+    //    the affordance disappears at the same time the deletion goes
+    //    through. After that, the button is no longer visible (so Undo
+    //    can't fire after the server already committed).
+    toast(
+      (t: Toast) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+          <span>Message deleted</span>
+          <button
+            type='button'
+            onClick={() => {
+              cancelled = true
+              clearTimeout(commitTimer)
+              dispatch(restoreDeletedMessage({ chatId: chatIdForUndo, message: messageSnapshot }))
+              toast.dismiss(t.id)
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#37BD69',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: 0,
+              textTransform: 'uppercase',
+              fontSize: 12,
+              letterSpacing: 0.5
+            }}
+          >
+            Undo
+          </button>
+        </span>
+      ),
+      { duration: 5000 }
+    )
   }
 
   return (
