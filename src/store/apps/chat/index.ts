@@ -1591,6 +1591,24 @@ export const appChatSlice = createSlice({
           }
         }
 
+        // System-metadata preservation. Two cases preserve the existing
+        // metadata:
+        //   1. `sameMessage` — same id, full preservation as before.
+        //   2. Existing was a system event (e.g. optimistic
+        //      "Anil Rathod removed Ajay Antony" set by
+        //      patchOptimisticLastMessage). The slim
+        //      `conversation_updated` event arrives BEFORE the
+        //      authoritative `new_message` for the same logical event,
+        //      and it brings a different (server-issued) id than the
+        //      optimistic one. Without this preservation, the sidebar's
+        //      perspective rewrite + system gate breaks: the prefix
+        //      block re-fires and renders "Anil: Anil removed Ajay"
+        //      instead of "You removed Ajay" until `new_message`
+        //      arrives. The follow-up `receiveMessage` always
+        //      overwrites lastMessage with the authoritative data, so
+        //      this preservation is a brief, safe placeholder.
+        const preserveSystemMeta = sameMessage || Boolean(existing?.contentType === 'system')
+
         chatEntry.chat.lastMessage = {
           id: lastMessage.messageId,
           time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
@@ -1603,15 +1621,14 @@ export const appChatSlice = createSlice({
             : lastMessage.hasAttachments
             ? existing?.attachments
             : undefined,
-          // System metadata — preserved when same message id. For
-          // different message ids these stay undefined; the next
-          // `new_message` (which arrives shortly after) refills them.
-          ...(sameMessage && existing?.contentType ? { contentType: existing.contentType } : {}),
-          ...(sameMessage && existing?.systemOperationType
+          ...(preserveSystemMeta && existing?.contentType ? { contentType: existing.contentType } : {}),
+          ...(preserveSystemMeta && existing?.systemOperationType
             ? { systemOperationType: existing.systemOperationType }
             : {}),
-          ...(sameMessage && existing?.targetUserId !== undefined ? { targetUserId: existing.targetUserId } : {}),
-          ...(sameMessage && existing?.targetUserName ? { targetUserName: existing.targetUserName } : {})
+          ...(preserveSystemMeta && existing?.targetUserId !== undefined
+            ? { targetUserId: existing.targetUserId }
+            : {}),
+          ...(preserveSystemMeta && existing?.targetUserName ? { targetUserName: existing.targetUserName } : {})
         }
       }
 
@@ -2340,8 +2357,19 @@ export const appChatSlice = createSlice({
         } else if (
           incoming.chat.lastMessage &&
           existing.chat.lastMessage &&
-          incoming.chat.lastMessage.id &&
-          incoming.chat.lastMessage.id === existing.chat.lastMessage.id
+          // System-metadata preservation. Fires when either:
+          //   • same message id (original behaviour), OR
+          //   • existing was a system event but incoming has neither
+          //     `contentType` nor `systemOperationType` (REST/participant-
+          //     mutation responses sometimes strip system metadata from
+          //     `conv.lastMessage`). Without this branch, the sidebar
+          //     loses the italic system styling + perspective rewrite for
+          //     the brief window between the REST response and the
+          //     follow-up `new_message` socket event.
+          (((incoming.chat.lastMessage.id && incoming.chat.lastMessage.id === existing.chat.lastMessage.id) as boolean) ||
+            (existing.chat.lastMessage.contentType === 'system' &&
+              !incoming.chat.lastMessage.contentType &&
+              !incoming.chat.lastMessage.systemOperationType))
         ) {
           mergedLastMessage = {
             ...incoming.chat.lastMessage,

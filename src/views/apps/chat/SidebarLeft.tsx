@@ -407,6 +407,19 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       const isActorPrefixedSelfMessage = Boolean(
         actorIsMe && myNameForRewrite && lastMsgText.startsWith(myNameForRewrite + ' ')
       )
+      // Cold-load heuristic: when the backend strips `contentType` AND
+      // `systemOperationType` from `conv.lastMessage` (backend issue #8
+      // extended — happens on hard refresh before enrichment lands), the
+      // sidebar's system gate fails open and the prefix block would add
+      // "Anil Rathod: Anil Rathod removed Ajeet L". Detect actor-prefix
+      // by text pattern (every system message starts with the actor's
+      // full name + space) so we can gate the prefix block + render as
+      // system-style italic even without explicit metadata. The next
+      // `new_message` socket event / enrichment fetch restores the real
+      // metadata and the cosmetic path becomes a no-op.
+      const isActorPrefixedAnyMessage = Boolean(
+        lastMessage?.senderName && lastMsgText.startsWith(lastMessage.senderName + ' ')
+      )
 
       const rawDisplayText = lastMessage
         ? resolveSystemMessageText(lastMessage, {
@@ -444,7 +457,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         // dismissed you as admin"), which would render duplicated
         // "Anil Rathod: Anil Rathod dismissed you as admin".
         !lastMessage.systemOperationType &&
-        !isActorPrefixedSelfMessage
+        !isActorPrefixedSelfMessage &&
+        // Generalized actor-prefix gate — catches cold-load system
+        // events where the backend has stripped ALL metadata. Without
+        // this, "Anil Rathod removed Ajeet L" would get "Anil Rathod: "
+        // prepended (the bug visible on hard refresh).
+        !isActorPrefixedAnyMessage
       ) {
         const senderIdStr = String(lastMessage.senderId ?? '')
         const meIdStr = String(store?.userProfile?.id ?? '')
@@ -674,11 +692,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       This message was deleted
                     </Typography>
-                  ) : lastMessage.contentType === 'system' || lastMessage.systemOperationType ? (
+                  ) : lastMessage.contentType === 'system' ||
+                    lastMessage.systemOperationType ||
+                    isActorPrefixedAnyMessage ? (
                     // System events render as italic preview, never with a
-                    // "<sender>: " prefix. `systemOperationType` is a
-                    // belt-and-suspenders check for cases where REST
-                    // stripped `contentType` from `conv.lastMessage`.
+                    // "<sender>: " prefix. Three signals trigger the
+                    // system path:
+                    //   1. Explicit `contentType: 'system'`
+                    //   2. `systemOperationType` set (belt-and-suspenders
+                    //      for cases where REST stripped `contentType`)
+                    //   3. `isActorPrefixedAnyMessage` — heuristic for
+                    //      hard-refresh cold load where the backend has
+                    //      stripped BOTH metadata fields; the message
+                    //      text still starts with the actor name, so we
+                    //      treat it as a system event until the real
+                    //      metadata arrives via socket/enrichment.
                     <Typography
                       component='span'
                       noWrap
