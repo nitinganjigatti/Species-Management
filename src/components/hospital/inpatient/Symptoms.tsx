@@ -14,7 +14,8 @@ import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimme
 import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { GetSymptomRecordResponse, GetSymptomsCardParams, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms'
-import { Id, SymptomList, SymptomStatus } from 'src/types/hospital/models'
+import { Id, SymptomStatus } from 'src/types/hospital/models'
+import { SymptomList } from 'src/types/hospital/models/symptoms'
 
 const STORAGE_KEY = 'medical_record_data'
 

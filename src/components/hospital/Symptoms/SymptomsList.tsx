@@ -21,7 +21,8 @@ import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/sh
 import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { StatusKey } from '../inpatient/Symptoms'
-import { GetSymptomClinicalTabList, Id, Symptom, SymptomsListForAdding } from 'src/types/hospital/models'
+import { Id } from 'src/types/hospital/models'
+import { GetSymptomClinicalTabList, Symptom, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 
 interface SymptomsListProps {
   symptoms?: SymptomsListForAdding[]

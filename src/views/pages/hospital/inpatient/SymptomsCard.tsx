@@ -15,7 +15,8 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { GetSymptomRecordPayload, GetSymptomRecordResponse, UpdateSymptomsCardPayload } from 'src/types/hospital/api/Inpatient/symptoms'
-import { AddSymptomsCard, Id, Severity, SymptomList, SymptomRecords, SymptomStatus, UpdateSymptomsCard } from 'src/types/hospital/models'
+import { Id, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { AddSymptomsCard, SymptomList, SymptomRecords, UpdateSymptomsCard } from 'src/types/hospital/models/symptoms'
 import { DurationUnit } from 'src/types/hospital/models'
 
 interface SymptomsCardProps {

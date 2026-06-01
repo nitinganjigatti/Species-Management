@@ -22,7 +22,8 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
-import type { DurationUnit, Severity, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { DurationUnit, Severity } from 'src/types/hospital/models'
+import { SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 import type { SymptomFormData } from '../inpatient/AddSymptoms'
 
 dayjs.extend(utc)

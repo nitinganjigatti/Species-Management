@@ -13,7 +13,6 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { ApiResponse, SymptomListParams, SymptomListResponse } from 'src/types/hospital'
 import { DeleteSymptomNotesResponse, GetSymptomRecordResponse, GetSymptomRecordPayload, UpdateSymptomsCardResponse, UpdateSymptomsCardPayload, AddSymptomsCardResponse, AddSymptomsCardParams, GetSymptomsListForAddingResponse, GetSymptomsListForAddingParams } from 'src/types/hospital/api/Inpatient/symptoms';
 import { GetSymptomsCardParams, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms';
 

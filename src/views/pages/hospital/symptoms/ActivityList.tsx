@@ -7,7 +7,9 @@ import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
-import { ComplaintNotes, DiagnosisNotes, DurationUnit, Id, NotesDump, Prognosis, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { DurationUnit, Id, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { DiagnosisNotes, Prognosis } from 'src/types/hospital/models/clinicalAssessment'
+import { ComplaintNotes, NotesDump } from 'src/types/hospital/models/symptoms'
 import { UpdateNotesPayload } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface ActivityListProps {
