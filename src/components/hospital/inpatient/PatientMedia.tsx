@@ -17,7 +17,8 @@ import PatientMediaFilterDrawer from 'src/components/hospital/drawer/PatientMedi
 import { getPatientMedia, uploadPatientMedia, deletePatientMedia } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
-import { Id, PatientMediaData } from 'src/types/hospital/models'
+import { Id } from 'src/types/hospital/models'
+import { PatientMediaData } from 'src/types/hospital/models/media'
 import { PatientMediaParams, PatientMediaResponse, UploadPatientMediaResponse } from 'src/types/hospital/api/Media/media'
 
 interface PatientMediaProps {
@@ -144,7 +145,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       if (!isValidType) {
         return {
           code: 'file-invalid-type',
-          message: `File type not supported. Allowed types: ${allowedExtensions.join(', ')}`
+          message: t('hospital_module.file_type_not_supported', { types: allowedExtensions.join(', ') }) as string
         }
       }
 

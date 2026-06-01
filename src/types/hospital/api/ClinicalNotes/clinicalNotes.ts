@@ -1,4 +1,5 @@
-import { ClinicalNotesList, Id } from "../../models";
+import { Id } from "../../models";
+import { ClinicalNotesList } from "../../models/clinicalNotes";
 
 export type GetClinicalNotesResponse =
   | {

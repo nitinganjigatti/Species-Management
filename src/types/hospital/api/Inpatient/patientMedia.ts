@@ -1,4 +1,5 @@
-import { Files, HospitalVisitSummary, Id } from "../../models"
+import { Id } from "../../models"
+import { Files, HospitalVisitSummary } from "../../models/media"
 
 export interface GetPatientMediaResponse {
     success?: boolean
