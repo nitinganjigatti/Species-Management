@@ -12,7 +12,7 @@ import GenericMeasurementDialog from './vitalForms/GenericMeasurementDialog'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import { deleteVitalMonitoring } from 'src/lib/api/hospital/anesthesia'
-import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models'
+import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models/anesthesia'
 import { DeleteApiResponse } from 'src/types/hospital/api'
 
 const HEADER_CELL_HEIGHT = '48px'

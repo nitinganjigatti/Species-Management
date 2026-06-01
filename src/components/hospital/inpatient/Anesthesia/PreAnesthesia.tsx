@@ -10,7 +10,7 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import CustomOtherPurposeSection from 'src/views/utility/CustomOtherPurposeSection'
 import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
-import { AnesthesiaAssessmentType, PreAnesthesiaSelectOption } from 'src/types/hospital/models'
+import { AnesthesiaAssessmentType, PreAnesthesiaSelectOption } from 'src/types/hospital/models/anesthesia'
 
 interface PreAnesthesiaProps {
   physicalHealthStatusOptions?: PreAnesthesiaSelectOption[]
