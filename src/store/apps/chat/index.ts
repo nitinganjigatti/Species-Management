@@ -52,7 +52,10 @@ import {
   writeKickActor,
   clearKickActor,
   markSelfLeft,
-  clearSelfLeft
+  clearSelfLeft,
+  readDeletedForMeIds,
+  addDeletedForMeId,
+  removeDeletedForMeId
 } from 'src/lib/chat/api'
 
 import { useChatStore } from '@antzsoft/chat-core'
@@ -1622,6 +1625,16 @@ export const appChatSlice = createSlice({
     applyMessageDeleteForMe: (state, action: PayloadAction<{ messageId: string }>) => {
       if (!state.chats) return
       const { messageId } = action.payload
+
+      // Persist into the deleted-for-me localStorage cache so future
+      // `setChatMessages` payloads (which may include this id again — the
+      // backend currently does NOT filter messages.list for the user who
+      // deleted) can filter it out before the bubble re-renders.
+      // Keyed per-user so account switches don't leak deletions.
+      // REMOVE ONCE BACKEND ships server-side filtering.
+      const meId = state.userProfile?.id
+      if (meId) addDeletedForMeId(meId, messageId)
+
       let touched: ChatEntityId | null = null
       state.chats.forEach(chat => {
         const before = chat.chat.messages.length
@@ -1656,6 +1669,13 @@ export const appChatSlice = createSlice({
       if (!state.chats) return
       const { chatId, message } = action.payload
       if (!message?.id) return
+
+      // Undo wins over the deferred-commit timer + the localStorage cache.
+      // Remove the id from the deleted-for-me cache so a fresh fetch
+      // doesn't accidentally filter it out (the user explicitly un-deleted).
+      const meId = state.userProfile?.id
+      if (meId) removeDeletedForMeId(meId, String(message.id))
+
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
       if (chatEntry.chat.messages.some(m => m.id === message.id)) return
@@ -2486,7 +2506,21 @@ export const appChatSlice = createSlice({
       }>
     ) => {
       if (!state.chats) return
-      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
+      const { chatId, messages: rawMessages, oldestCursor, hasMoreOlder } = action.payload
+
+      // Filter out messages this user previously deleted-for-me. The
+      // server currently DOES NOT filter `messages.list` for the user
+      // who deleted — after a delete + commit, a subsequent
+      // setChatMessages arrives with the deleted id back in the list,
+      // causing the bubble to reappear. Cache is per-user via
+      // localStorage; gone is gone across refreshes.
+      // REMOVE ONCE BACKEND ships server-side filtering on messages.list.
+      const meIdForFilter = state.userProfile?.id
+      const deletedForMeIds = meIdForFilter ? readDeletedForMeIds(meIdForFilter) : null
+      const messages =
+        deletedForMeIds && deletedForMeIds.size > 0
+          ? rawMessages.filter(m => !deletedForMeIds.has(String(m.id)))
+          : rawMessages
 
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return

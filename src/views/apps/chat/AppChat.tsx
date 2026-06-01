@@ -43,7 +43,6 @@ import {
   getOnlineUsersOverSocket
 } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
-import toast from 'react-hot-toast'
 // ** Types
 import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
