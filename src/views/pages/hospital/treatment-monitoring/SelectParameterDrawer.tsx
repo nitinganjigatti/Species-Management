@@ -25,7 +25,7 @@ import {
   GetHospitalParamsFilterOptionsResponse,
   GetParametersBasedOnFiltersParams
 } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
-import { HospitalParamsFilterOption, ParametersBasedOnFilters } from 'src/types/hospital/models'
+import { HospitalParamsFilterOption, ParametersBasedOnFilters } from 'src/types/hospital/models/treatmentMonitoring'
 import { AssessmentFormItem } from './AddParameterDrawer'
 
 const PAGE_SIZE = 10

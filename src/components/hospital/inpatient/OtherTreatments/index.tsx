@@ -23,7 +23,8 @@ import {
   updateTreatmentRecord,
   deleteTreatmentRecord
 } from 'src/lib/api/hospital/treatmentMaster'
-import type { Id, OtherTreatment, OtherTreatmentRecord } from 'src/types/hospital/models'
+import type { Id } from 'src/types/hospital/models'
+import type { OtherTreatment, OtherTreatmentRecord } from 'src/types/hospital/models/treatmentMonitoring'
 import type {
   AddTreatmentParams,
   GetOtherTreatmentsResponse,
@@ -972,7 +973,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                                     color: theme.palette.customColors.neutralSecondary
                                   }}
                                 >
-                                  Notes:
+                                  {t('notes_label')}
                                 </Typography>
                                 <Typography
                                   sx={{
@@ -1128,7 +1129,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         open={isDeleteDialogOpen}
         handleClose={handleCancelDeleteTreatment}
         action={handleConfirmDeleteTreatment}
-        message='Are you sure you want to delete this note?'
+        message={t('hospital_module.confirm_delete_treatment_note')}
         loading={isDeletingTreatment}
       />
     </Box>

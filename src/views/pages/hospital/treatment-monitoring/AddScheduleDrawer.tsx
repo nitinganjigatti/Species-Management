@@ -22,7 +22,7 @@ import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { addIntervalsForParameters } from 'src/lib/api/hospital/treatmentMonitoring'
 import { AddIntervalForParameterPayload, MonitoringParametersResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
-import { MonitoringParameters } from 'src/types/hospital/models'
+import { MonitoringParameters } from 'src/types/hospital/models/treatmentMonitoring'
 
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
