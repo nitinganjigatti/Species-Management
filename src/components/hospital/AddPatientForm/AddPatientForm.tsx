@@ -519,6 +519,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     clearErrors('selectedAnimal')
   }
 
+
   const filteredAttendingDoctors = attendingDoctors.filter((item: any) => item.value !== selectedDoctor?.id)
 
   const getStaffList = async () => {
@@ -555,6 +556,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   useEffect(() => {
     getStaffList()
   }, [searchAttendDoctor])
+
 
   const handleDoctorSelection = (doctor: any) => {
     setSelectedDoctor(doctor)
@@ -623,7 +625,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select Patient*
+                  {t('hospital_module.select_patient_required')}
                 </Typography>
                 {selectedAnimal !== null ? (
                   <>
@@ -671,7 +673,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                           : theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      Select Animal*
+                      {t('hospital_module.select_animal_required')}
                     </Typography>
                     <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                   </Box>
@@ -688,7 +690,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select treatment type*
+                  {t('hospital_module.select_treatment_type_required')}
                 </Typography>
                 <Controller
                   name='treatmentType'
@@ -725,7 +727,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Health Status
+                  {t('hospital_module.health_status')}
                 </Typography>
                 <Controller
                   name='healthStatus'
@@ -758,7 +760,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Date and Time
+                      {t('date_and_time')}
                     </Typography>
                   </Grid>
 
@@ -807,7 +809,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Medical Record ID
+                            {t('hospital_module.medical_record_id')}
                           </Typography>
                         </Grid>
                         {medicalRecordType?.map((item, index) => (
@@ -876,7 +878,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Visit Type
+                    {t('hospital_module.visit_type')}
                   </Typography>
                   <ControlledSelect
                     control={control}
@@ -894,7 +896,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending chief Veterinarian
+                      {t('hospital_module.attending_chief_veterinarian')}
                     </Typography>
                     {selectedDoctor === null ? (
                       <Box
@@ -922,8 +924,8 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                        Select chief Veterinarian*   
-                        </Typography>
+                          {t('hospital_module.select_chief_veterinarian_required')}      
+                          </Typography>
                         <Icon
                           icon='mdi:chevron-down'
                           fontSize={24}
@@ -988,7 +990,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending Veterinarian
+                      {t('hospital_module.attending_veterinarian')}
                     </Typography>
                     <Controller
                       name='attendingDoctors'
@@ -1018,6 +1020,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                             field.onChange(newValue)
                           }}
                           noOptionsText='No available attending vets...'
+                          loadingText='Loading...'
                           renderInput={params => (
                             <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                           )}
@@ -1044,7 +1047,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Purpose of visit*
+                    {t('hospital_module.purpose_of_visit_label_required')}
                   </Typography>
                   <ControlledTextArea
                     control={control}
@@ -1087,7 +1090,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Holding Enclosure
+                    {t('hospital_module.holding_enclosure')}
                   </Typography>
                   <ControlledAutocomplete
                     name='holdingEnclosure'
@@ -1129,7 +1132,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                         fontWeight: 400
                       }}
                     >
-                      No active/available enclosures available
+                      {t('hospital_module.no_active_available_enclosures_available')}
                     </Typography>
                   )}
                 </Grid>
@@ -1137,7 +1140,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Room
+                    {t('hospital_module.room')}
                   </Typography>
                   <ControlledAutocomplete
                     name='room'
@@ -1182,7 +1185,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                         fontWeight: 400
                       }}
                     >
-                      No available Rooms, All Rooms are occupied
+                      {t('hospital_module.no_available_rooms_all_rooms_are_occupied')}
                     </Typography>
                   )}
                 </Grid>
@@ -1225,7 +1228,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
             setAnimalDrawer(false)
           }}
           from='Add Patient Form'
-          btnText='ADD'
+          btnText= {t('add')}
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}
           showFilterAndSort

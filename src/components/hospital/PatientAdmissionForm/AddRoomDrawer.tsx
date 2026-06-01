@@ -289,7 +289,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total Rooms
+                      {t('hospital_module.total_rooms')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -315,7 +315,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total Enclosures
+                      {t('hospital_module.total_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -343,7 +343,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Available Enclosures
+                      {t('hospital_module.available_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -371,7 +371,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Occupied Enclosures
+                      {t('hospital_module.occupied_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>

@@ -411,7 +411,9 @@ const EnclosuresDrawer = ({
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>
-            Continue ({selectedCount})
+            {t('continue_with_count', {
+              count: selectedCount
+            })}
           </Button>
         </Box>
       )}

@@ -28,8 +28,6 @@ import type {
   ApiResponse,
   InpatientListParams,
   InpatientListResponse,
-  PatientMediaListParams,
-  PatientMediaListResponse
 } from 'src/types/hospital'
 import { TotalVisitParams, TotalVisitsResponse } from 'src/types/hospital/api/Inpatient/visitHistory';
 import { GetHospitalVisitSummaryPayload, GetHospitalVisitSummaryResponse, GetPatientMediaResponse } from 'src/types/hospital/api/Inpatient/patientMedia';
