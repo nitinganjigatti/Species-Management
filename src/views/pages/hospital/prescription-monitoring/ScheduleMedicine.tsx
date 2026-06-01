@@ -31,7 +31,8 @@ import { useSelector } from 'react-redux'
 import { useSearchParams } from 'next/navigation'
 import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
 import { BatchListState } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
-import { AddPrescriptionScheduleDose, PatientDetailsData, SelectOption } from 'src/types/hospital/models'
+import { PatientDetailsData, SelectOption } from 'src/types/hospital/models'
+import { AddPrescriptionScheduleDose } from 'src/types/hospital/models/prescription'
 
 const STORAGE_KEY = 'medical_record_data'
 

@@ -43,7 +43,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import { AdministerFormData, BatchListState, MedicineDetailState, SelectedItem, SingleOrMultipleDoseAdministerOrSkipTransformedData, StopMedicineFormData } from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
 import { Id } from 'src/types/hospital'
 import { MedicalMasterFormData } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
-import { PrescriptionDetails } from 'src/types/hospital/models'
+import { PrescriptionDetails } from 'src/types/hospital/models/prescription'
 
 
 

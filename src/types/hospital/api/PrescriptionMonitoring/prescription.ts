@@ -2,25 +2,10 @@ import { string } from 'yup'
 import {
   Id,
   MedicalType,
-  MedicineSideEffect,
-  PrescriptionList,
-  PrescriptionStatus,
-  PrescriptionFrequencyList,
-  PrescriptionIntervalList,
-  PrescriptionMasterData,
-  AddPrescriptionParamList,
-  AddPrescriptionResponseList,
-  RestartStopMedicineItem,
   AnimalCategory,
-  PrescriptionScheduleStatus,
-  PrescriptionDates,
-  DosePurpose,
-  AdministerDoseBatchDetails,
-  ApplyDosage,
-  AddDosageScheduleInfo,
-  DirectAdministerScheduleDose,
-  RestartMedicineDetails
 } from '../../models'
+
+import { MedicineSideEffect, PrescriptionList, PrescriptionStatus, PrescriptionFrequencyList, PrescriptionIntervalList, PrescriptionMasterData, AddPrescriptionParamList, AddPrescriptionResponseList, RestartStopMedicineItem, PrescriptionScheduleStatus, PrescriptionDates, DosePurpose, AdministerDoseBatchDetails, ApplyDosage, AddDosageScheduleInfo, DirectAdministerScheduleDose, RestartMedicineDetails } from '../../models/prescription'
 import { Animal } from 'src/types/housing'
 
 export interface GetPrescriptionListParams {

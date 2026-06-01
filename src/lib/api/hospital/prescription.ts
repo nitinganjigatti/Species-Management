@@ -24,11 +24,7 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  PrescriptionListParams,
-  PrescriptionListResponse
-} from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
 import { AddDirectAdministerParams, AddDirectAdministerResponse, AddPrescriptionParams, AddPrescriptionResponse, GetIntervalListResponse, GetPrescriptionFrequencyResponse, GetPrescriptionListParams, GetPrescriptionListResponse, GetPrescriptionMedicineSideEffectParams, GetPrescriptionMedicineSideEffectResponse,RestartStopMedicineResponse,UpdatePrescriptionParams, UpdatePrescriptionResponse, RestartMedicineParams, StopMedicineParams, UndoPrescriptionResponse, UndoPrescriptionParams, PrescriptionDatesResponse, PrescriptionDatesParams, AdministerDoseResponse, AdministerDoseParams, AdditionalDosageResponse, AdditionalDosageParams, DirectAdministerForPastSlotResponse, DirectAdministerForPastSlotParams, AdministerAllMedicineResponse, AdministerAllMedicineParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription';
 import { GetPrescriptionDetailsParams, GetPrescriptionDetailsResponse } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails';
 import { GetMedicineBatchListParams, GetMedicineBatchListResponse } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch';
