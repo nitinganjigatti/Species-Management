@@ -52,7 +52,10 @@ import {
   writeKickActor,
   clearKickActor,
   markSelfLeft,
-  clearSelfLeft
+  clearSelfLeft,
+  readDeletedForMeIds,
+  addDeletedForMeId,
+  removeDeletedForMeId
 } from 'src/lib/chat/api'
 
 import { useChatStore } from '@antzsoft/chat-core'
@@ -68,39 +71,39 @@ import { composeForwardedText, stripForwardMarker, isForwarded } from 'src/lib/c
 /**
  * Fetch the current user's chat profile via `GET /users/me`.
  */
-export const fetchUserProfile = createAsyncThunk<
-  ProfileUserType | null,
-  { fallbackAvatarUrl?: string } | void
->('appChat/fetchUserProfile', async arg => {
-  const client = getChatClientOrNull()
-  if (!client) return null
+export const fetchUserProfile = createAsyncThunk<ProfileUserType | null, { fallbackAvatarUrl?: string } | void>(
+  'appChat/fetchUserProfile',
+  async arg => {
+    const client = getChatClientOrNull()
+    if (!client) return null
 
-  try {
-    const sdkUser = await getMe()
-    const profile = sdkUserToProfile(sdkUser)
-    const fallback = arg && 'fallbackAvatarUrl' in arg ? arg.fallbackAvatarUrl : undefined
+    try {
+      const sdkUser = await getMe()
+      const profile = sdkUserToProfile(sdkUser)
+      const fallback = arg && 'fallbackAvatarUrl' in arg ? arg.fallbackAvatarUrl : undefined
 
-    // Chat backend's /users/me has no avatarUrl yet → push ours via the
-    // explicit `POST /users/me/avatar/sync` so OTHER participants will see
-    // it in their conversation list (the socket handshake also carries it,
-    // but this is the deterministic REST path the server commits).
-    if (!profile.avatar && fallback) {
-      try {
-        const synced = await syncAvatar({ url: fallback })
-        profile.avatar = synced.avatarUrl || fallback
-      } catch (syncErr) {
-        console.warn('[chat] syncAvatar failed — using local fallback only:', syncErr)
-        profile.avatar = fallback
+      // Chat backend's /users/me has no avatarUrl yet → push ours via the
+      // explicit `POST /users/me/avatar/sync` so OTHER participants will see
+      // it in their conversation list (the socket handshake also carries it,
+      // but this is the deterministic REST path the server commits).
+      if (!profile.avatar && fallback) {
+        try {
+          const synced = await syncAvatar({ url: fallback })
+          profile.avatar = synced.avatarUrl || fallback
+        } catch (syncErr) {
+          console.warn('[chat] syncAvatar failed — using local fallback only:', syncErr)
+          profile.avatar = fallback
+        }
       }
+
+      return profile
+    } catch (err) {
+      console.error('[chat] fetchUserProfile failed:', err)
+
+      return null
     }
-
-    return profile
-  } catch (err) {
-    console.error('[chat] fetchUserProfile failed:', err)
-
-    return null
   }
-})
+)
 
 /**
  * Fetch the user's conversation list + a derived contact directory.
@@ -117,10 +120,22 @@ export const fetchChatsContacts = createAsyncThunk<{
   const client = getChatClientOrNull()
   if (!client) return { chatsContacts: [], contacts: [] }
 
-  // Use the authenticated user's id (set by fetchUserProfile) so the adapter
+  // const state = getState() as { chat?: ChatStoreType }
+  // const currentUserId = state.chat?.userProfile?.id ?? ''
   // can identify the "other" participant in each direct conversation.
+  // If the profile hasn't landed in Redux yet (race on first load), fall back
+  // to a live getMe() call — avoids showing the current user's own name in
+  // every DM sidebar row.
   const state = getState() as { chat?: ChatStoreType }
-  const currentUserId = state.chat?.userProfile?.id ?? ''
+  let currentUserId: string | number = state.chat?.userProfile?.id ?? ''
+  if (!currentUserId) {
+    try {
+      const me = await getMe()
+      currentUserId = me.id
+    } catch {
+      // proceed with empty id — sidebar will self-heal on next profile load
+    }
+  }
 
   try {
     // Omit page+limit: SDK returns all matching conversations in one response
@@ -153,6 +168,12 @@ export const fetchChatsContacts = createAsyncThunk<{
  * repeatedly (every `conversation_updated`, focus, etc.). Failures are
  * silent — the prefix falls back to "no prefix", same as before.
  */
+// REMOVE ONCE BACKEND ships `senderId` + `sender.displayName` +
+// `deliveryStatus` on `lastMessage` in the `GET /conversations` response
+// (api-integration-status.md backend issue #8). At that point both the
+// thunk below and the `feedback` parameter on `patchLastMessageSender`
+// become redundant — the conv-list response would supply everything the
+// sidebar needs to render prefix + tick correctly on cold load.
 const enrichedLastMessageIds = new Set<string>()
 export const enrichLastMessageSenders = createAsyncThunk<void, void>(
   'appChat/enrichLastMessageSenders',
@@ -163,20 +184,91 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
     const state = getState() as { chat?: ChatStoreType }
     const chats = state.chat?.chats ?? []
 
-    // Pick group chats whose lastMessage is missing sender info AND has an id
-    // we haven't already enriched in this session.
-    const targets = chats
-      .filter(c => c.isGroup)
-      .map(c => ({
-        chatId: c.id,
-        messageId: c.chat.lastMessage?.id,
-        senderId: c.chat.lastMessage?.senderId,
-        hasSender: Boolean(c.chat.lastMessage?.senderName),
-        participants: c.participants ?? []
-      }))
-      .filter(t => t.messageId && !t.hasSender && !enrichedLastMessageIds.has(t.messageId))
+    // Pick candidates whose lastMessage needs REST enrichment.
+    //
+    // Backend issue #8: conv-list endpoint returns lastMessage with
+    //   • Groups: empty senderId, missing senderName, missing
+    //     deliveryStatus → need BOTH sender enrichment (for the
+    //     "Saket: …" prefix) AND feedback enrichment (for the tick).
+    //   • DMs: senderId IS populated, senderName usually too — but
+    //     deliveryStatus is STILL missing → need feedback enrichment
+    //     only, so the tick can reflect the real sent/delivered/seen
+    //     state on cold load instead of always showing single check.
+    //
+    // We now include BOTH chat kinds. The `feedbackIncomplete` heuristic
+    // gates the DM path: only fires REST when the message is likely
+    // own AND the adapter's default feedback hasn't been bumped past
+    // the sent-only state yet.
+    const myName = state.chat?.userProfile?.fullName ?? ''
+    const myId = String(state.chat?.userProfile?.id ?? '')
+    const allCandidates = chats.map(c => {
+      const lm = c.chat.lastMessage
+      // "Looks own" — covers both DMs (id match) and groups
+      // (name match because group senderId is empty per issue #8).
+      const looksOwn = Boolean(
+        (lm?.senderId && myId && String(lm.senderId) === myId) ||
+          (myName && lm?.senderName === myName)
+      )
+      const feedbackIncomplete = Boolean(
+        looksOwn && lm?.feedback && !lm.feedback.isDelivered && !lm.feedback.isSeen
+      )
 
-    if (targets.length === 0) return
+      return {
+        chatId: c.id,
+        isGroup: Boolean(c.isGroup),
+        fullName: c.fullName,
+        messageId: lm?.id,
+        senderId: lm?.senderId,
+        senderName: lm?.senderName,
+        // For groups we need senderName for the prefix. For DMs the
+        // prefix is irrelevant, so `hasSender: true` (skip the
+        // sender-missing trigger; only feedback can cause enrichment).
+        hasSender: c.isGroup ? Boolean(lm?.senderName) : true,
+        feedbackIncomplete,
+        participants: c.participants ?? [],
+        lastMessageText: lm?.message?.slice?.(0, 30)
+      }
+    })
+
+    // [chat:enrich-trace] Per-candidate reason enrichment will or won't run.
+    try {
+      console.log(
+        '[chat:enrich-trace] candidates',
+        allCandidates.map(c => ({
+          chatId: String(c.chatId),
+          isGroup: c.isGroup,
+          name: c.fullName,
+          messageId: c.messageId,
+          senderId: c.senderId,
+          senderName: c.senderName,
+          hasSender: c.hasSender,
+          feedbackIncomplete: c.feedbackIncomplete,
+          alreadyEnriched: c.messageId ? enrichedLastMessageIds.has(c.messageId) : false,
+          participantCount: c.participants.length,
+          willEnrich: Boolean(
+            c.messageId &&
+              (!c.hasSender || c.feedbackIncomplete) &&
+              !enrichedLastMessageIds.has(c.messageId)
+          ),
+          lastMessageText: c.lastMessageText
+        }))
+      )
+    } catch (e) {
+      console.warn('[chat:enrich-trace] candidates log failed', e)
+    }
+
+    // Enrich when EITHER sender is missing OR feedback is incomplete on
+    // a (likely) own message. The session-dedupe Set still applies so
+    // we never refetch the same messageId twice.
+    const targets = allCandidates.filter(
+      t => t.messageId && (!t.hasSender || t.feedbackIncomplete) && !enrichedLastMessageIds.has(t.messageId)
+    )
+
+    if (targets.length === 0) {
+      console.log('[chat:enrich-trace] no targets — nothing to enrich')
+
+      return
+    }
 
     // Fast path — for each target, try to resolve the sender's display
     // name from the chat's already-loaded `participants` array (matched
@@ -191,6 +283,13 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
         const senderIdStr = String(t.senderId)
         const found = t.participants.find(p => String(p.userId) === senderIdStr)
         const resolvedName = found?.displayName || found?.username
+        console.log('[chat:enrich-trace] fast-path attempt', {
+          chatId: String(t.chatId),
+          name: t.fullName,
+          senderIdFromList: t.senderId,
+          foundInParticipants: Boolean(found),
+          resolvedName
+        })
         if (resolvedName) {
           enrichedLastMessageIds.add(t.messageId)
           dispatch(
@@ -202,11 +301,25 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
           )
           continue
         }
+      } else {
+        console.log('[chat:enrich-trace] fast-path skipped — empty senderId', {
+          chatId: String(t.chatId),
+          name: t.fullName,
+          senderIdFromList: t.senderId
+        })
       }
       networkFallbackTargets.push(t)
     }
 
-    if (networkFallbackTargets.length === 0) return
+    if (networkFallbackTargets.length === 0) {
+      console.log('[chat:enrich-trace] all resolved on fast path — done')
+
+      return
+    }
+    console.log(
+      '[chat:enrich-trace] slow-path (getMessage REST) needed for',
+      networkFallbackTargets.map(t => ({ chatId: String(t.chatId), name: t.fullName, messageId: t.messageId }))
+    )
 
     // Slow path — only chats whose sender isn't in `participants`
     // (shouldn't be common — happens if the sender has been removed
@@ -221,19 +334,41 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
           const senderName =
             (msg as { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
             (msg as { sender?: { displayName?: string; username?: string } }).sender?.username
-          if (senderId || senderName) {
+          // Extract deliveryStatus so the sidebar tick reflects the
+          // server-authoritative state (sent / delivered / read) on
+          // cold load. Mirrors the same derivation the adapter does in
+          // `sdkMessageToMessage`. Falls back to undefined → patch
+          // omits feedback → no overwrite of any existing value.
+          const deliveryStatus = (msg as { deliveryStatus?: string }).deliveryStatus
+          const status = (msg as { status?: string }).status
+          const feedback = deliveryStatus
+            ? {
+                isSent: status !== 'failed' && deliveryStatus !== 'failed',
+                isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
+                isSeen: deliveryStatus === 'read'
+              }
+            : undefined
+          console.log('[chat:enrich-trace] slow-path REST returned', {
+            chatId: String(t.chatId),
+            name: t.fullName,
+            messageId: t.messageId,
+            senderId,
+            senderName,
+            deliveryStatus,
+            willPatch: Boolean(senderId || senderName || feedback)
+          })
+          if (senderId || senderName || feedback) {
             dispatch(
               patchLastMessageSender({
                 chatId: t.chatId,
                 senderId,
-                senderName
+                senderName,
+                ...(feedback ? { feedback } : {})
               })
             )
           }
         } catch (err) {
-          // Silent — prefix degrades to "no prefix" which is what it was before.
-          // eslint-disable-next-line no-console
-          console.warn('[chat] enrichLastMessageSenders failed for', t.messageId, err)
+          console.warn('[chat:enrich-trace] slow-path REST failed for', t.messageId, err)
         }
       })
     )
@@ -534,24 +669,24 @@ export const fetchConversation = createAsyncThunk<void, ChatEntityId>(
  * Update group metadata (name / description / icon).
  * Server returns the updated Conversation; we reconcile via `addOrReplaceChat`.
  */
-export const updateGroupChat = createAsyncThunk<
-  void,
-  { chatId: ChatEntityId; name?: string; description?: string }
->('appChat/updateGroupChat', async ({ chatId, name, description }, { dispatch, getState }) => {
-  const client = getChatClientOrNull()
-  if (!client || typeof chatId !== 'string') return
+export const updateGroupChat = createAsyncThunk<void, { chatId: ChatEntityId; name?: string; description?: string }>(
+  'appChat/updateGroupChat',
+  async ({ chatId, name, description }, { dispatch, getState }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof chatId !== 'string') return
 
-  try {
-    // SDK 1.0.6 dropped `icon` from UpdateConversationData. Icon updates go
-    // through `uploadConversationIcon(groupId, fileId)` instead.
-    const conv = await updateConversation(chatId, { name, description })
-    const state = getState() as { chat?: ChatStoreType }
-    const currentUserId = state.chat?.userProfile?.id ?? ''
-    dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
-  } catch (err) {
-    console.error('[chat] updateGroupChat failed:', err)
+    try {
+      // SDK 1.0.6 dropped `icon` from UpdateConversationData. Icon updates go
+      // through `uploadConversationIcon(groupId, fileId)` instead.
+      const conv = await updateConversation(chatId, { name, description })
+      const state = getState() as { chat?: ChatStoreType }
+      const currentUserId = state.chat?.userProfile?.id ?? ''
+      dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
+    } catch (err) {
+      console.error('[chat] updateGroupChat failed:', err)
+    }
   }
-})
+)
 
 /**
  * Upload a new group icon. The SDK's `client.uploadIcon(conversationId, file)`
@@ -568,7 +703,12 @@ export const uploadGroupIcon = createAsyncThunk<
   { chatId: ChatEntityId; file: { uri: string; name: string; type: string; size: number } }
 >('appChat/uploadGroupIcon', async ({ chatId, file }, { dispatch, getState }) => {
   // eslint-disable-next-line no-console
-  console.log('[chat:icon-upload] thunk start', { chatId, fileName: file?.name, fileType: file?.type, fileSize: file?.size })
+  console.log('[chat:icon-upload] thunk start', {
+    chatId,
+    fileName: file?.name,
+    fileType: file?.type,
+    fileSize: file?.size
+  })
 
   const client = getChatClientOrNull()
   if (!client || typeof chatId !== 'string') {
@@ -632,49 +772,49 @@ export const uploadGroupIcon = createAsyncThunk<
  * (not `chat.messages`) so the eventual server `new_message` doesn't
  * collide / duplicate the in-chat pill.
  */
-export const removeParticipantFromGroup = createAsyncThunk<
-  void,
-  { groupId: ChatEntityId; userId: ChatEntityId }
->('appChat/removeParticipantFromGroup', async ({ groupId, userId }, { dispatch, getState }) => {
-  const client = getChatClientOrNull()
-  if (!client || typeof groupId !== 'string') return
+export const removeParticipantFromGroup = createAsyncThunk<void, { groupId: ChatEntityId; userId: ChatEntityId }>(
+  'appChat/removeParticipantFromGroup',
+  async ({ groupId, userId }, { dispatch, getState }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof groupId !== 'string') return
 
-  // Optimistic preview — derive target's display name from participants
-  // (always present at this point since the admin just selected them).
-  const preState = getState() as { chat?: ChatStoreType }
-  const me = preState.chat?.userProfile
-  const chat = preState.chat?.chats?.find(c => c.id === groupId)
-  const target = chat?.participants?.find(p => String(p.userId) === String(userId))
-  const targetName = target?.displayName ?? target?.username ?? ''
-  if (me?.id !== undefined && me.fullName && targetName) {
-    dispatch(
-      patchOptimisticLastMessage({
-        chatId: groupId,
-        message: {
-          id: `optimistic-remove-${String(groupId)}-${Date.now()}`,
-          message: `${me.fullName} removed ${targetName}`,
-          time: new Date().toISOString(),
-          senderId: me.id,
-          senderName: me.fullName,
-          feedback: { isSent: true, isDelivered: false, isSeen: false },
-          contentType: 'system',
-          systemOperationType: 'user_removed',
-          targetUserId: userId,
-          targetUserName: targetName
-        }
-      })
-    )
-  }
+    // Optimistic preview — derive target's display name from participants
+    // (always present at this point since the admin just selected them).
+    const preState = getState() as { chat?: ChatStoreType }
+    const me = preState.chat?.userProfile
+    const chat = preState.chat?.chats?.find(c => c.id === groupId)
+    const target = chat?.participants?.find(p => String(p.userId) === String(userId))
+    const targetName = target?.displayName ?? target?.username ?? ''
+    if (me?.id !== undefined && me.fullName && targetName) {
+      dispatch(
+        patchOptimisticLastMessage({
+          chatId: groupId,
+          message: {
+            id: `optimistic-remove-${String(groupId)}-${Date.now()}`,
+            message: `${me.fullName} removed ${targetName}`,
+            time: new Date().toISOString(),
+            senderId: me.id,
+            senderName: me.fullName,
+            feedback: { isSent: true, isDelivered: false, isSeen: false },
+            contentType: 'system',
+            systemOperationType: 'user_removed',
+            targetUserId: userId,
+            targetUserName: targetName
+          }
+        })
+      )
+    }
 
-  try {
-    const conv = await apiRemoveParticipant(groupId, String(userId))
-    const state = getState() as { chat?: ChatStoreType }
-    const currentUserId = state.chat?.userProfile?.id ?? ''
-    dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
-  } catch (err) {
-    console.error('[chat] removeParticipantFromGroup failed:', err)
+    try {
+      const conv = await apiRemoveParticipant(groupId, String(userId))
+      const state = getState() as { chat?: ChatStoreType }
+      const currentUserId = state.chat?.userProfile?.id ?? ''
+      dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
+    } catch (err) {
+      console.error('[chat] removeParticipantFromGroup failed:', err)
+    }
   }
-})
+)
 
 /**
  * Promote / demote a participant within a group (admin-only).
@@ -698,7 +838,9 @@ export const updateParticipantRoleInGroup = createAsyncThunk<
   if (me?.id !== undefined && me.fullName && targetName) {
     const op = role === 'admin' ? 'admin_promoted' : 'admin_demoted'
     const previewText =
-      role === 'admin' ? `${me.fullName} made ${targetName} an admin` : `${me.fullName} dismissed ${targetName} as admin`
+      role === 'admin'
+        ? `${me.fullName} made ${targetName} an admin`
+        : `${me.fullName} dismissed ${targetName} as admin`
     dispatch(
       patchOptimisticLastMessage({
         chatId: groupId,
@@ -732,20 +874,20 @@ export const updateParticipantRoleInGroup = createAsyncThunk<
  * Mute / unmute a conversation. `mute` accepts an optional ISO `mutedUntil`
  * date — omit it for an indefinite mute.
  */
-export const muteConversation = createAsyncThunk<
-  void,
-  { chatId: ChatEntityId; mutedUntil?: string }
->('appChat/muteConversation', async ({ chatId, mutedUntil }, { dispatch }) => {
-  const client = getChatClientOrNull()
-  if (!client || typeof chatId !== 'string') return
+export const muteConversation = createAsyncThunk<void, { chatId: ChatEntityId; mutedUntil?: string }>(
+  'appChat/muteConversation',
+  async ({ chatId, mutedUntil }, { dispatch }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof chatId !== 'string') return
 
-  try {
-    await apiMuteConversation(chatId, mutedUntil)
-    dispatch(updateChatFlags({ chatId, isMuted: true }))
-  } catch (err) {
-    console.error('[chat] muteConversation failed:', err)
+    try {
+      await apiMuteConversation(chatId, mutedUntil)
+      dispatch(updateChatFlags({ chatId, isMuted: true }))
+    } catch (err) {
+      console.error('[chat] muteConversation failed:', err)
+    }
   }
-})
+)
 
 export const unmuteConversation = createAsyncThunk<void, ChatEntityId>(
   'appChat/unmuteConversation',
@@ -827,55 +969,52 @@ export const getGroupMembers = createAsyncThunk<
  *      reverse for chronological render) and `markAsRead` to clear the
  *      server-side unread badge.
  */
-export const selectChat = createAsyncThunk<void, ChatEntityId>(
-  'appChat/selectChat',
-  async (chatId, { dispatch }) => {
-    // Phase 1 — open immediately
-    dispatch(setSelectedChat(chatId))
+export const selectChat = createAsyncThunk<void, ChatEntityId>('appChat/selectChat', async (chatId, { dispatch }) => {
+  // Phase 1 — open immediately
+  dispatch(setSelectedChat(chatId))
 
-    // Phase 2 — load real messages
-    const client = getChatClientOrNull()
-    if (!client) return
-    if (typeof chatId !== 'string') return
+  // Phase 2 — load real messages
+  const client = getChatClientOrNull()
+  if (!client) return
+  if (typeof chatId !== 'string') return
 
-    // Seed the SDK's useChatStore.lastRead in parallel with the message fetch.
-    // Pure side-effect into Zustand — does not gate or alter the message
-    // pipeline, so a failure or slow response here cannot affect live
-    // messaging. Powers the unread divider + jump-to-first-unread UI.
-    getLastRead(chatId)
-      .then(({ lastReadMessageId, lastReadAt }) => {
-        if (lastReadMessageId && lastReadAt) {
-          useChatStore.getState().setLastRead(chatId, lastReadMessageId, lastReadAt)
-        }
+  // Seed the SDK's useChatStore.lastRead in parallel with the message fetch.
+  // Pure side-effect into Zustand — does not gate or alter the message
+  // pipeline, so a failure or slow response here cannot affect live
+  // messaging. Powers the unread divider + jump-to-first-unread UI.
+  getLastRead(chatId)
+    .then(({ lastReadMessageId, lastReadAt }) => {
+      if (lastReadMessageId && lastReadAt) {
+        useChatStore.getState().setLastRead(chatId, lastReadMessageId, lastReadAt)
+      }
+    })
+    .catch(err => {
+      console.warn('[chat] getLastRead failed for', chatId, err)
+    })
+
+  try {
+    const resp = await listMessages(chatId, { limit: 50 })
+    const sdkMessages = resp.data ?? []
+
+    // SDK returns newest-first; the UI renders top-to-bottom oldest-to-newest.
+    const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
+
+    dispatch(
+      setChatMessages({
+        chatId,
+        messages,
+        oldestCursor: resp.meta?.nextCursor ?? null,
+        hasMoreOlder: resp.meta?.hasMore ?? false
       })
-      .catch(err => {
-        console.warn('[chat] getLastRead failed for', chatId, err)
-      })
+    )
 
-    try {
-      const resp = await listMessages(chatId, { limit: 50 })
-      const sdkMessages = resp.data ?? []
-
-      // SDK returns newest-first; the UI renders top-to-bottom oldest-to-newest.
-      const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
-
-      dispatch(
-        setChatMessages({
-          chatId,
-          messages,
-          oldestCursor: resp.meta?.nextCursor ?? null,
-          hasMoreOlder: resp.meta?.hasMore ?? false
-        })
-      )
-
-      // Mark via socket so the server broadcasts read_receipt to the sender.
-      // The REST markAsRead endpoint does NOT trigger a socket broadcast.
-      markReadOverSocket(chatId)
-    } catch (err) {
-      console.error('[chat] selectChat failed to load messages:', err)
-    }
+    // Mark via socket so the server broadcasts read_receipt to the sender.
+    // The REST markAsRead endpoint does NOT trigger a socket broadcast.
+    markReadOverSocket(chatId)
+  } catch (err) {
+    console.error('[chat] selectChat failed to load messages:', err)
   }
-)
+})
 
 /**
  * Load the next older page of messages for the currently visible chat.
@@ -940,51 +1079,51 @@ export const loadOlderMessages = createAsyncThunk<void, ChatEntityId>(
  * supported yet — to get back to the very latest messages, the user reopens
  * the chat.
  */
-export const jumpToMessage = createAsyncThunk<
-  void,
-  { chatId: ChatEntityId; messageId: string }
->('appChat/jumpToMessage', async ({ chatId, messageId }, { dispatch }) => {
-  const client = getChatClientOrNull()
-  if (!client || typeof chatId !== 'string' || !messageId) return
+export const jumpToMessage = createAsyncThunk<void, { chatId: ChatEntityId; messageId: string }>(
+  'appChat/jumpToMessage',
+  async ({ chatId, messageId }, { dispatch }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof chatId !== 'string' || !messageId) return
 
-  try {
-    const [before, after, target] = await Promise.all([
-      listMessages(chatId, { cursor: messageId, direction: 'before', limit: 25 }),
-      listMessages(chatId, { cursor: messageId, direction: 'after', limit: 25 }),
-      getMessage(messageId)
-    ])
+    try {
+      const [before, after, target] = await Promise.all([
+        listMessages(chatId, { cursor: messageId, direction: 'before', limit: 25 }),
+        listMessages(chatId, { cursor: messageId, direction: 'after', limit: 25 }),
+        getMessage(messageId)
+      ])
 
-    // SDK returns each page newest-first; reverse so the merged array reads
-    // oldest → target → newest, matching how ChatLog renders.
-    const olderMessages = [...(before.data ?? [])].reverse().map(sdkMessageToMessage)
-    const newerMessages = [...(after.data ?? [])].reverse().map(sdkMessageToMessage)
-    const targetMessage = sdkMessageToMessage(target)
+      // SDK returns each page newest-first; reverse so the merged array reads
+      // oldest → target → newest, matching how ChatLog renders.
+      const olderMessages = [...(before.data ?? [])].reverse().map(sdkMessageToMessage)
+      const newerMessages = [...(after.data ?? [])].reverse().map(sdkMessageToMessage)
+      const targetMessage = sdkMessageToMessage(target)
 
-    // Dedupe — cursor pagination semantics around the cursor message itself
-    // are SDK-defined, so the target id can appear in either the before /
-    // after page in addition to our explicit getMessage call.
-    const merged = [...olderMessages, targetMessage, ...newerMessages]
-    const seen = new Set<string>()
-    const messages = merged.filter(m => {
-      if (!m.id) return true
-      if (seen.has(m.id)) return false
-      seen.add(m.id)
+      // Dedupe — cursor pagination semantics around the cursor message itself
+      // are SDK-defined, so the target id can appear in either the before /
+      // after page in addition to our explicit getMessage call.
+      const merged = [...olderMessages, targetMessage, ...newerMessages]
+      const seen = new Set<string>()
+      const messages = merged.filter(m => {
+        if (!m.id) return true
+        if (seen.has(m.id)) return false
+        seen.add(m.id)
 
-      return true
-    })
-
-    dispatch(
-      setChatMessages({
-        chatId,
-        messages,
-        oldestCursor: before.meta?.nextCursor ?? null,
-        hasMoreOlder: before.meta?.hasMore ?? false
+        return true
       })
-    )
-  } catch (err) {
-    console.error('[chat] jumpToMessage failed:', err)
+
+      dispatch(
+        setChatMessages({
+          chatId,
+          messages,
+          oldestCursor: before.meta?.nextCursor ?? null,
+          hasMoreOlder: before.meta?.hasMore ?? false
+        })
+      )
+    } catch (err) {
+      console.error('[chat] jumpToMessage failed:', err)
+    }
   }
-})
+)
 
 /**
  * Send a message via the **Socket.IO `send_message` event** with an ack.
@@ -1020,6 +1159,44 @@ export const materializeDraftIfNeeded = createAsyncThunk<string, ChatsArrType>(
     const isSelfChat = ids.length > 0 && ids.every(id => id === currentUserId)
     const peerUserId = isSelfChat ? currentUserId : ids.find(id => id !== currentUserId)
     if (!peerUserId) throw new Error('[chat] draft chat is missing a peer userId')
+
+    // CLIENT-SIDE DEFENSE — re-check state.chats at the last moment before
+    // hitting `POST /conversations/direct`. The user may have clicked the
+    // contact while `fetchChatsContacts` was still in flight (common when
+    // opening the floating ChatLauncher panel — every toggle remounts
+    // AppChat and re-runs the conversation list fetch). By the time
+    // sendMsg fires the user has typed + clicked Send, so several hundred
+    // ms have elapsed and the list has very likely populated.
+    //
+    // If the DM already exists in state, dispatch `materializeDraft` with
+    // that entry (it swaps `selectedChat` from the draft to the real
+    // conversation) and return its id — skipping the server create call
+    // and preventing a duplicate row.
+    //
+    // Frontend band-aid for backend ticket #13 (api-integration-status.md).
+    // Remove this block once `POST /conversations/direct` is find-or-create
+    // server-side; until then, this prevents the launcher race from
+    // producing duplicate DM conversations on the server.
+    //
+    // Note: this does NOT prevent cross-user races (e.g. you + peer both
+    // opening a fresh DM at the same time) — only the server fix handles
+    // that. But it eliminates the launcher-induced same-user race.
+    const peerIdStr = String(peerUserId)
+    const existingDM = (state.chat?.chats ?? []).find(c => {
+      if (c.isGroup === true) return false
+      if (c.isDraft === true) return false
+      const partIds = c.participantIds?.map(String) ?? []
+      if (isSelfChat) {
+        return partIds.length > 0 && partIds.every(id => id === currentUserId)
+      }
+
+      return partIds.includes(peerIdStr) && partIds.includes(currentUserId)
+    })
+    if (existingDM && typeof existingDM.id === 'string' && !existingDM.id.startsWith('__draft__')) {
+      dispatch(materializeDraft(existingDM))
+
+      return String(existingDM.id)
+    }
 
     const conv = await createDirectConversation({ userId: peerUserId })
     const realChat = sdkConversationToChat(conv, currentUserId)
@@ -1059,17 +1236,15 @@ export const sendMsg = createAsyncThunk(
     // undefined — the SDK field is optional.
     const attachments = obj.attachments?.length
       ? obj.attachments.map(a => ({
-        fileId: a.id,
-        type: a.type,
-        url: a.url,
-        thumbnailUrl: a.thumbnailUrl,
-        filename: a.filename,
-        mimeType: a.mimeType,
-        size: a.size,
-        ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video')
-          ? { duration: a.duration }
-          : {})
-      }))
+          fileId: a.id,
+          type: a.type,
+          url: a.url,
+          thumbnailUrl: a.thumbnailUrl,
+          filename: a.filename,
+          mimeType: a.mimeType,
+          size: a.size,
+          ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video') ? { duration: a.duration } : {})
+        }))
       : undefined
 
     // Reply: include the original message id so the server attaches a
@@ -1161,23 +1336,22 @@ export const forwardMessage = createAsyncThunk<
   // Map ChatAttachmentType → SendMessageAttachment. Same shape as sendMsg.
   const attachments = sourceAttachments?.length
     ? sourceAttachments.map(a => ({
-      fileId: a.id,
-      type: a.type,
-      url: a.url,
-      thumbnailUrl: a.thumbnailUrl,
-      filename: a.filename,
-      mimeType: a.mimeType,
-      size: a.size
-    }))
+        fileId: a.id,
+        type: a.type,
+        url: a.url,
+        thumbnailUrl: a.thumbnailUrl,
+        filename: a.filename,
+        mimeType: a.mimeType,
+        size: a.size
+      }))
     : undefined
 
   // Add the [fwd] marker unless this is the user's own original message.
   // Exception: if the source already carries a forward marker (i.e. it was
   // itself a forwarded message), always preserve the marker — the content
   // originated from a third party regardless of who relayed it last.
-  const text = (isOwnMessage && !isForwarded(sourceText))
-    ? stripForwardMarker(sourceText)
-    : composeForwardedText(sourceText)
+  const text =
+    isOwnMessage && !isForwarded(sourceText) ? stripForwardMarker(sourceText) : composeForwardedText(sourceText)
 
   try {
     await sendMessageOverSocket({
@@ -1197,6 +1371,30 @@ export const forwardMessage = createAsyncThunk<
     dispatch(selectChat(targetChatId))
   }
 })
+
+// ----------------------------------------------------------------------
+// Group tick helper — mirrors mobile's computeGroupTickStatus logic.
+// Returns true only when ALL eligible active participants (excluding the
+// sender) are in `deliveredTo` OR `readBy` (read implies delivered).
+// When participants is empty/unknown, returns false (fail-open: never
+// prematurely flip to double tick).
+// ----------------------------------------------------------------------
+
+function computeGroupDelivered(
+  msg: MessageType,
+  participants: Array<{ userId: string; isActive: boolean }> | undefined
+): boolean {
+  if (!participants?.length) return false
+  const senderId = String(msg.senderId ?? '')
+  const eligible = participants
+    .filter(p => p.isActive !== false && (senderId ? String(p.userId) !== senderId : true))
+    .map(p => String(p.userId))
+    .filter(Boolean)
+  if (eligible.length === 0) return false
+  const deliveredSet = new Set((msg.deliveredTo ?? []).map(d => String(d.userId)))
+  const readSet = new Set((msg.readBy ?? []).map(r => String(r.userId)))
+  return eligible.every(id => deliveredSet.has(id) || readSet.has(id))
+}
 
 // ----------------------------------------------------------------------
 // Slice
@@ -1377,12 +1575,7 @@ export const appChatSlice = createSlice({
         let resolvedSenderId: ChatEntityId | '' = ''
         if (sameMessage) {
           resolvedSenderId = existing!.senderId ?? ''
-        } else if (
-          myFullName &&
-          incomingSenderName &&
-          incomingSenderName === myFullName &&
-          myId !== undefined
-        ) {
+        } else if (myFullName && incomingSenderName && incomingSenderName === myFullName && myId !== undefined) {
           resolvedSenderId = myId
         } else if (incomingSenderName) {
           const fromParticipants = (chatEntry.participants ?? []).find(
@@ -1398,6 +1591,24 @@ export const appChatSlice = createSlice({
           }
         }
 
+        // System-metadata preservation. Two cases preserve the existing
+        // metadata:
+        //   1. `sameMessage` — same id, full preservation as before.
+        //   2. Existing was a system event (e.g. optimistic
+        //      "Anil Rathod removed Ajay Antony" set by
+        //      patchOptimisticLastMessage). The slim
+        //      `conversation_updated` event arrives BEFORE the
+        //      authoritative `new_message` for the same logical event,
+        //      and it brings a different (server-issued) id than the
+        //      optimistic one. Without this preservation, the sidebar's
+        //      perspective rewrite + system gate breaks: the prefix
+        //      block re-fires and renders "Anil: Anil removed Ajay"
+        //      instead of "You removed Ajay" until `new_message`
+        //      arrives. The follow-up `receiveMessage` always
+        //      overwrites lastMessage with the authoritative data, so
+        //      this preservation is a brief, safe placeholder.
+        const preserveSystemMeta = sameMessage || Boolean(existing?.contentType === 'system')
+
         chatEntry.chat.lastMessage = {
           id: lastMessage.messageId,
           time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
@@ -1408,21 +1619,16 @@ export const appChatSlice = createSlice({
           attachments: sameMessage
             ? existing?.attachments
             : lastMessage.hasAttachments
-              ? existing?.attachments
-              : undefined,
-          // System metadata — preserved when same message id. For
-          // different message ids these stay undefined; the next
-          // `new_message` (which arrives shortly after) refills them.
-          ...(sameMessage && existing?.contentType ? { contentType: existing.contentType } : {}),
-          ...(sameMessage && existing?.systemOperationType
+            ? existing?.attachments
+            : undefined,
+          ...(preserveSystemMeta && existing?.contentType ? { contentType: existing.contentType } : {}),
+          ...(preserveSystemMeta && existing?.systemOperationType
             ? { systemOperationType: existing.systemOperationType }
             : {}),
-          ...(sameMessage && existing?.targetUserId !== undefined
+          ...(preserveSystemMeta && existing?.targetUserId !== undefined
             ? { targetUserId: existing.targetUserId }
             : {}),
-          ...(sameMessage && existing?.targetUserName
-            ? { targetUserName: existing.targetUserName }
-            : {})
+          ...(preserveSystemMeta && existing?.targetUserName ? { targetUserName: existing.targetUserName } : {})
         }
       }
 
@@ -1456,10 +1662,7 @@ export const appChatSlice = createSlice({
     },
     // Composer edit state — set by clicking "Edit" on an own bubble; cleared
     // when the edit completes or the user cancels.
-    setEditingMessage: (
-      state,
-      action: PayloadAction<{ messageId: string; originalText: string } | null>
-    ) => {
+    setEditingMessage: (state, action: PayloadAction<{ messageId: string; originalText: string } | null>) => {
       state.editingMessage = action.payload
     },
     // "Message info" drawer state — opens the right-side panel showing
@@ -1470,15 +1673,12 @@ export const appChatSlice = createSlice({
     // "Info" from the chevron menu; cleared when the drawer closes.
     setInfoMessage: (
       state,
-      action: PayloadAction<
-        | {
-          messageId: string
-          messageText?: string
-          readBy?: Array<{ userId: string; readAt: string }>
-          deliveredTo?: Array<{ userId: string; deliveredAt: string }>
-        }
-        | null
-      >
+      action: PayloadAction<{
+        messageId: string
+        messageText?: string
+        readBy?: Array<{ userId: string; readAt: string }>
+        deliveredTo?: Array<{ userId: string; deliveredAt: string }>
+      } | null>
     ) => {
       state.infoMessage = action.payload
     },
@@ -1491,10 +1691,7 @@ export const appChatSlice = createSlice({
     },
     // Pin — server-broadcast on `message_pin_updated`. Visible to all
     // participants of the conversation.
-    applyMessagePin: (
-      state,
-      action: PayloadAction<{ messageId: string; isPinned: boolean }>
-    ) => {
+    applyMessagePin: (state, action: PayloadAction<{ messageId: string; isPinned: boolean }>) => {
       if (!state.chats) return
       const { messageId, isPinned } = action.payload
       let touched: ChatEntityId | null = null
@@ -1519,10 +1716,7 @@ export const appChatSlice = createSlice({
     // Star — personal flag. No server broadcast; we toggle locally and call
     // REST. The thunk-level call is fire-and-forget; if the network fails the
     // UI is slightly off until the next refresh.
-    setMessageStarred: (
-      state,
-      action: PayloadAction<{ messageId: string; isStarred: boolean }>
-    ) => {
+    setMessageStarred: (state, action: PayloadAction<{ messageId: string; isStarred: boolean }>) => {
       if (!state.chats) return
       const { messageId, isStarred } = action.payload
       let touched: ChatEntityId | null = null
@@ -1592,6 +1786,16 @@ export const appChatSlice = createSlice({
     applyMessageDeleteForMe: (state, action: PayloadAction<{ messageId: string }>) => {
       if (!state.chats) return
       const { messageId } = action.payload
+
+      // Persist into the deleted-for-me localStorage cache so future
+      // `setChatMessages` payloads (which may include this id again — the
+      // backend currently does NOT filter messages.list for the user who
+      // deleted) can filter it out before the bubble re-renders.
+      // Keyed per-user so account switches don't leak deletions.
+      // REMOVE ONCE BACKEND ships server-side filtering.
+      const meId = state.userProfile?.id
+      if (meId) addDeletedForMeId(meId, messageId)
+
       let touched: ChatEntityId | null = null
       state.chats.forEach(chat => {
         const before = chat.chat.messages.length
@@ -1615,12 +1819,64 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // WhatsApp-style "Undo" for a just-removed delete-for-me. Re-inserts
+    // the snapshotted message back into `chat.messages` at its correct
+    // time-sorted position so the bubble re-appears exactly where it
+    // was. Used ONLY by the MessageActions undo toast click handler.
+    // Idempotent — if a message with the same id is already present
+    // (e.g., the server broadcast got back here first), the insert is a
+    // no-op so we never duplicate.
+    restoreDeletedMessage: (state, action: PayloadAction<{ chatId: ChatEntityId; message: MessageType }>) => {
+      if (!state.chats) return
+      const { chatId, message } = action.payload
+      if (!message?.id) return
+
+      // Undo wins over the deferred-commit timer + the localStorage cache.
+      // Remove the id from the deleted-for-me cache so a fresh fetch
+      // doesn't accidentally filter it out (the user explicitly un-deleted).
+      const meId = state.userProfile?.id
+      if (meId) removeDeletedForMeId(meId, String(message.id))
+
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      if (chatEntry.chat.messages.some(m => m.id === message.id)) return
+
+      const restoredTime = message.time ? new Date(message.time as string | Date).getTime() : 0
+      // Find the first message whose time is strictly newer — insert
+      // before it to preserve chronological order. If none, append.
+      const insertAt = chatEntry.chat.messages.findIndex(m => {
+        const t = m.time ? new Date(m.time as string | Date).getTime() : 0
+        return t > restoredTime
+      })
+      if (insertAt < 0) {
+        chatEntry.chat.messages = [...chatEntry.chat.messages, message]
+      } else {
+        chatEntry.chat.messages = [
+          ...chatEntry.chat.messages.slice(0, insertAt),
+          message,
+          ...chatEntry.chat.messages.slice(insertAt)
+        ]
+      }
+
+      // If the restored message is now the newest, bring the sidebar
+      // preview back to it. Otherwise leave the current lastMessage alone.
+      const lastTime = chatEntry.chat.lastMessage?.time
+        ? new Date(chatEntry.chat.lastMessage.time as string | Date).getTime()
+        : 0
+      if (restoredTime >= lastTime) {
+        chatEntry.chat.lastMessage = message
+      }
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+          contact: chatEntry
+        }
+      }
+    },
     // Apply a server-broadcast edit. Updates `message`, `isEdited` and
     // `editedAt` on whichever message matches.
-    applyMessageUpdate: (
-      state,
-      action: PayloadAction<{ messageId: string; text: string; editedAt?: string }>
-    ) => {
+    applyMessageUpdate: (state, action: PayloadAction<{ messageId: string; text: string; editedAt?: string }>) => {
       if (!state.chats) return
       const { messageId, text, editedAt } = action.payload
       let touched: ChatEntityId | null = null
@@ -1710,10 +1966,7 @@ export const appChatSlice = createSlice({
     // sidebar tile + chat header + Group info drawer in sync (mirrors
     // the selectedChat sync that addOrReplaceChat does). The real signed
     // URL from the server overwrites this when the upload resolves.
-    setChatAvatarOptimistic: (
-      state,
-      action: PayloadAction<{ chatId: ChatEntityId; avatar: string }>
-    ) => {
+    setChatAvatarOptimistic: (state, action: PayloadAction<{ chatId: ChatEntityId; avatar: string }>) => {
       if (!state.chats) return
       const { chatId, avatar } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
@@ -1790,30 +2043,30 @@ export const appChatSlice = createSlice({
       const existing = (chat.participants ?? []).find(p => String(p.userId) === userIdStr)
       const updatedParticipants = existing
         ? (chat.participants ?? []).map(p =>
-          String(p.userId) === userIdStr
-            ? {
-              ...p,
-              isActive: true,
-              // Re-add can carry fresh display info; only overwrite
-              // when the event actually provides each field.
-              ...(displayName ? { displayName } : {}),
-              ...(username ? { username } : {}),
-              ...(avatarUrl ? { avatarUrl } : {}),
-              ...(role ? { role } : {})
-            }
-            : p
-        )
+            String(p.userId) === userIdStr
+              ? {
+                  ...p,
+                  isActive: true,
+                  // Re-add can carry fresh display info; only overwrite
+                  // when the event actually provides each field.
+                  ...(displayName ? { displayName } : {}),
+                  ...(username ? { username } : {}),
+                  ...(avatarUrl ? { avatarUrl } : {}),
+                  ...(role ? { role } : {})
+                }
+              : p
+          )
         : [
-          ...(chat.participants ?? []),
-          {
-            userId: userIdStr,
-            isActive: true,
-            role: role ?? 'member',
-            displayName,
-            username,
-            avatarUrl
-          }
-        ]
+            ...(chat.participants ?? []),
+            {
+              userId: userIdStr,
+              isActive: true,
+              role: role ?? 'member',
+              displayName,
+              username,
+              avatarUrl
+            }
+          ]
 
       const participantIdSet = new Set((chat.participantIds ?? []).map(String))
       participantIdSet.add(userIdStr)
@@ -1893,9 +2146,7 @@ export const appChatSlice = createSlice({
       const updatedParticipants = (chat.participants ?? []).map(p =>
         String(p.userId) === userIdStr ? { ...p, isActive: false } : p
       )
-      const updatedParticipantIds = (chat.participantIds ?? []).filter(
-        id => String(id) !== userIdStr
-      )
+      const updatedParticipantIds = (chat.participantIds ?? []).filter(id => String(id) !== userIdStr)
       const updatedAdminIds = (chat.adminIds ?? []).filter(id => String(id) !== userIdStr)
       const meIsLeaver = String(state.userProfile?.id ?? '') === userIdStr
 
@@ -1904,9 +2155,7 @@ export const appChatSlice = createSlice({
       // leaves these fields untouched so the placeholder defaults to
       // "You're no longer a member".
       const removalFields =
-        meIsLeaver && removedBy !== undefined && removedBy !== null
-          ? { removedBy, removedByName }
-          : {}
+        meIsLeaver && removedBy !== undefined && removedBy !== null ? { removedBy, removedByName } : {}
 
       // When self is the leaver, overwrite chat.lastMessage so the
       // sidebar preview updates immediately. Use the most specific copy
@@ -1924,8 +2173,8 @@ export const appChatSlice = createSlice({
       const meIsLeaverPreview = isSelfExit
         ? 'You left the group'
         : removedByName
-          ? `${removedByName} removed you`
-          : 'You were removed from this group'
+        ? `${removedByName} removed you`
+        : 'You were removed from this group'
       const updatedChatBlock = meIsLeaver
         ? {
             ...chat.chat,
@@ -1971,24 +2220,39 @@ export const appChatSlice = createSlice({
         }
       }
     },
-    // Patch a chat's `lastMessage` with sender info that wasn't included
-    // in the conversation-list response. Used by the `enrichLastMessageSenders`
-    // thunk after it fetches full message details via `getMessage(id)` to
-    // resolve the WhatsApp-style "Saket: …" sidebar prefix on cold load.
+    // Patch a chat's `lastMessage` with sender info AND feedback that
+    // weren't included in the conversation-list response. Used by the
+    // `enrichLastMessageSenders` thunk after it fetches full message
+    // details via `getMessage(id)` to resolve both the WhatsApp-style
+    // "Saket: …" sidebar prefix AND the read-receipt tick on cold load.
+    // REMOVE ONCE BACKEND issue #8 ships — the `feedback` field on the
+    // payload becomes unnecessary; the action can revert to sender-only.
     patchLastMessageSender: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; senderId: ChatEntityId; senderName?: string }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        senderId: ChatEntityId
+        senderName?: string
+        feedback?: { isSent: boolean; isDelivered: boolean; isSeen: boolean }
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, senderId, senderName } = action.payload
+      const { chatId, senderId, senderName, feedback } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
       if (idx < 0) return
       const chat = state.chats[idx]
       if (!chat.chat.lastMessage) return
+      // Sender fields: keep what's already there if it's truthy; only
+      // overwrite the empty/missing ones. Feedback: take the freshly-
+      // fetched value when provided — it represents the authoritative
+      // server state from the per-message REST. Falls back to the
+      // existing feedback when not provided so the call site can
+      // selectively patch sender-only or feedback-only.
       chat.chat.lastMessage = {
         ...chat.chat.lastMessage,
         senderId: chat.chat.lastMessage.senderId || senderId,
-        senderName: chat.chat.lastMessage.senderName ?? senderName
+        senderName: chat.chat.lastMessage.senderName ?? senderName,
+        ...(feedback ? { feedback } : {})
       }
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
@@ -2005,10 +2269,7 @@ export const appChatSlice = createSlice({
     // The real broadcast will overwrite `chat.lastMessage` via
     // `receiveMessage` + `patchConversationFromEvent` shortly after,
     // reconciling any field differences.
-    patchOptimisticLastMessage: (
-      state,
-      action: PayloadAction<{ chatId: ChatEntityId; message: MessageType }>
-    ) => {
+    patchOptimisticLastMessage: (state, action: PayloadAction<{ chatId: ChatEntityId; message: MessageType }>) => {
       if (!state.chats) return
       const { chatId, message } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
@@ -2082,17 +2343,12 @@ export const appChatSlice = createSlice({
         //      mutation responses tend to drop (senderId, senderName,
         //      contentType, system metadata).
         //   3. Different id, incoming newer → use incoming.
-        const existingTimeMs = existing.chat.lastMessage?.time
-          ? new Date(existing.chat.lastMessage.time).getTime()
-          : 0
-        const incomingTimeMs = incoming.chat.lastMessage?.time
-          ? new Date(incoming.chat.lastMessage.time).getTime()
-          : 0
+        const existingTimeMs = existing.chat.lastMessage?.time ? new Date(existing.chat.lastMessage.time).getTime() : 0
+        const incomingTimeMs = incoming.chat.lastMessage?.time ? new Date(incoming.chat.lastMessage.time).getTime() : 0
         let mergedLastMessage = incoming.chat.lastMessage ?? existing.chat.lastMessage
         if (
           existing.chat.lastMessage &&
-          (!incoming.chat.lastMessage ||
-            (existingTimeMs > 0 && incomingTimeMs > 0 && existingTimeMs > incomingTimeMs))
+          (!incoming.chat.lastMessage || (existingTimeMs > 0 && incomingTimeMs > 0 && existingTimeMs > incomingTimeMs))
         ) {
           // Existing is newer (optimistic preview, live socket update,
           // etc.) — keep it. The follow-on socket broadcasts will land
@@ -2101,8 +2357,19 @@ export const appChatSlice = createSlice({
         } else if (
           incoming.chat.lastMessage &&
           existing.chat.lastMessage &&
-          incoming.chat.lastMessage.id &&
-          incoming.chat.lastMessage.id === existing.chat.lastMessage.id
+          // System-metadata preservation. Fires when either:
+          //   • same message id (original behaviour), OR
+          //   • existing was a system event but incoming has neither
+          //     `contentType` nor `systemOperationType` (REST/participant-
+          //     mutation responses sometimes strip system metadata from
+          //     `conv.lastMessage`). Without this branch, the sidebar
+          //     loses the italic system styling + perspective rewrite for
+          //     the brief window between the REST response and the
+          //     follow-up `new_message` socket event.
+          (((incoming.chat.lastMessage.id && incoming.chat.lastMessage.id === existing.chat.lastMessage.id) as boolean) ||
+            (existing.chat.lastMessage.contentType === 'system' &&
+              !incoming.chat.lastMessage.contentType &&
+              !incoming.chat.lastMessage.systemOperationType))
         ) {
           mergedLastMessage = {
             ...incoming.chat.lastMessage,
@@ -2112,8 +2379,7 @@ export const appChatSlice = createSlice({
             systemOperationType:
               incoming.chat.lastMessage.systemOperationType ?? existing.chat.lastMessage.systemOperationType,
             targetUserId: incoming.chat.lastMessage.targetUserId ?? existing.chat.lastMessage.targetUserId,
-            targetUserName:
-              incoming.chat.lastMessage.targetUserName ?? existing.chat.lastMessage.targetUserName
+            targetUserName: incoming.chat.lastMessage.targetUserName ?? existing.chat.lastMessage.targetUserName
           }
         }
 
@@ -2202,15 +2468,12 @@ export const appChatSlice = createSlice({
       })
 
       const missed = messageIds.filter(id => !matchedIds.includes(id))
-      console.log(
-        `[chat:receipt] R2 reducer: matched ${matchedIds.length}/${messageIds.length} messages`,
-        {
-          matchedIds,
-          missedIds: missed,
-          touchedChats: Array.from(touchedChatIds),
-          eventConversationId: conversationId
-        }
-      )
+      console.log(`[chat:receipt] R2 reducer: matched ${matchedIds.length}/${messageIds.length} messages`, {
+        matchedIds,
+        missedIds: missed,
+        touchedChats: Array.from(touchedChatIds),
+        eventConversationId: conversationId
+      })
       if (missed.length) {
         // Buffer pending feedback for messages we haven't appended yet.
         // Drained by sendMsg.fulfilled / receiveMessage. This handles the
@@ -2245,6 +2508,129 @@ export const appChatSlice = createSlice({
         }
       }
     },
+
+    // Per-recipient read receipt (updatedMessageIds path). Updates `readBy` for
+    // each affected message so computeGroupDelivered has complete data — a
+    // reader counts as delivered (mirrors mobile's handleReadReceipt logic).
+    // Does NOT set isSeen; that stays gated on fullyReadMessageIds only.
+    applyReadReceiptEntry: (
+      state,
+      action: PayloadAction<{
+        conversationId: ChatEntityId
+        messageIds: string[]
+        userId: string
+        readAt?: string
+      }>
+    ) => {
+      if (!state.chats) return
+      const { messageIds, userId, readAt } = action.payload
+      const uidStr = String(userId)
+      const readAtStr = readAt ?? new Date().toISOString()
+      const idSet = new Set(messageIds)
+      const touchedChatIds = new Set<ChatEntityId>()
+
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+          const alreadyIn = (m.readBy ?? []).some(r => String(r.userId) === uidStr)
+          if (!alreadyIn) {
+            m.readBy = [...(m.readBy ?? []), { userId: uidStr, readAt: readAtStr }]
+          }
+          // Read implies delivered — recompute for groups.
+          if (chat.isGroup) {
+            const groupDelivered = computeGroupDelivered(m, chat.participants)
+            if (groupDelivered && !m.feedback.isDelivered) {
+              m.feedback.isDelivered = true
+              if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+                chat.chat.lastMessage.feedback.isDelivered = true
+              }
+            }
+          }
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+
+    // Per-recipient delivery receipt. Appends the recipient to each message's
+    // `deliveredTo` array, then recomputes `isDelivered`:
+    //   • DM  → any delivery flips to true (existing behavior).
+    //   • Group → only true when ALL eligible active participants have
+    //     delivered or read (mirrors mobile's computeGroupTickStatus).
+    // Buffered in `pendingFeedback.deliveredUsers` when the message hasn't
+    // landed in state yet (race: delivery arrives before send-ack).
+    applyDeliveryReceipt: (
+      state,
+      action: PayloadAction<{
+        conversationId: ChatEntityId
+        messageIds: string[]
+        userId: string
+        deliveredAt?: string
+      }>
+    ) => {
+      if (!state.chats) return
+      const { messageIds, userId, deliveredAt } = action.payload
+      const uidStr = String(userId)
+      const deliveredAtStr = deliveredAt ?? new Date().toISOString()
+      const idSet = new Set(messageIds)
+      const matchedIds: string[] = []
+      const touchedChatIds = new Set<ChatEntityId>()
+
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+
+          // Append to deliveredTo if this user isn't already there.
+          const alreadyIn = (m.deliveredTo ?? []).some(d => String(d.userId) === uidStr)
+          if (!alreadyIn) {
+            m.deliveredTo = [...(m.deliveredTo ?? []), { userId: uidStr, deliveredAt: deliveredAtStr }]
+          }
+
+          // Recompute isDelivered based on group vs DM semantics.
+          const newDelivered = chat.isGroup ? computeGroupDelivered(m, chat.participants) : true
+          if (newDelivered && !m.feedback.isDelivered) {
+            m.feedback.isDelivered = true
+            if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+              chat.chat.lastMessage.feedback.isDelivered = true
+            }
+          }
+
+          matchedIds.push(m.id)
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      // Buffer for messages not yet in state (delivery beat send-ack race).
+      const missed = messageIds.filter(id => !matchedIds.includes(id))
+      missed.forEach(id => {
+        const existing = state.pendingFeedback[id] ?? {}
+        const prev = existing.deliveredUsers ?? []
+        if (!prev.includes(uidStr)) {
+          state.pendingFeedback[id] = { ...existing, deliveredUsers: [...prev, uidStr] }
+        }
+      })
+
+      // Mirror into selectedChat so the open panel re-renders.
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+
     // Live-incoming message from the socket. Dispatched by AppChat's
     // `new_message` handler. The same event fires for our own sends (server
     // echo), so we dedupe by id — `sendMsg.fulfilled` will have already
@@ -2280,34 +2666,59 @@ export const appChatSlice = createSlice({
       // through — so when the server eventually broadcasts pills like
       // "X removed you from the group", the kicked user sees them.
       const incomingContentType = (message as { contentType?: string }).contentType
-      if (
-        chatEntry.isGroup &&
-        chatEntry.isCurrentUserActive === false &&
-        incomingContentType !== 'system'
-      ) {
+      if (chatEntry.isGroup && chatEntry.isCurrentUserActive === false && incomingContentType !== 'system') {
         return
       }
 
       if (message.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
         if (existingIdx >= 0) {
-          // Dedupe but MERGE feedback — the broadcast echo may carry a
-          // stronger delivery status than the ack we already stored
-          // (e.g. ack returned `sent` but by the time the broadcast
-          // round-tripped, server flipped to `delivered`). isSent/isDelivered/isSeen
-          // are monotonic: once true, they stay true.
+          // Dedupe but MERGE feedback. For groups, isDelivered must be
+          // recomputed from deliveredTo/readBy arrays — the broadcast echo
+          // carries deliveryStatus: 'delivered' even when only some members
+          // have received the message, so OR-ing booleans is wrong for groups.
+          // For DMs, OR remains correct (any delivery = delivered).
           const existing = chatEntry.chat.messages[existingIdx]
+          // Merge deliveredTo/readBy arrays from the broadcast into the stored
+          // message so computeGroupDelivered has complete data.
+          const mergedDeliveredTo = (() => {
+            const base = existing.deliveredTo ?? []
+            const incoming = message.deliveredTo ?? []
+            if (!incoming.length) return base
+            const ids = new Set(base.map(d => String(d.userId)))
+            const toAdd = incoming.filter(d => !ids.has(String(d.userId)))
+            return toAdd.length ? [...base, ...toAdd] : base
+          })()
+          const mergedReadBy = (() => {
+            const base = existing.readBy ?? []
+            const incoming = message.readBy ?? []
+            if (!incoming.length) return base
+            const ids = new Set(base.map(r => String(r.userId)))
+            const toAdd = incoming.filter(r => !ids.has(String(r.userId)))
+            return toAdd.length ? [...base, ...toAdd] : base
+          })()
+          const msgForDeliveryCheck = { ...existing, deliveredTo: mergedDeliveredTo, readBy: mergedReadBy }
+          const mergedIsDelivered = chatEntry.isGroup
+            ? computeGroupDelivered(msgForDeliveryCheck, chatEntry.participants)
+            : existing.feedback.isDelivered || message.feedback.isDelivered
           const mergedFeedback = {
             isSent: existing.feedback.isSent || message.feedback.isSent,
-            isDelivered: existing.feedback.isDelivered || message.feedback.isDelivered,
+            isDelivered: mergedIsDelivered,
             isSeen: existing.feedback.isSeen || message.feedback.isSeen
           }
+          const arraysChanged =
+            mergedDeliveredTo !== (existing.deliveredTo ?? []) ||
+            mergedReadBy !== (existing.readBy ?? [])
           const feedbackChanged =
             mergedFeedback.isSent !== existing.feedback.isSent ||
             mergedFeedback.isDelivered !== existing.feedback.isDelivered ||
             mergedFeedback.isSeen !== existing.feedback.isSeen
-          if (feedbackChanged) {
-            chatEntry.chat.messages[existingIdx] = { ...existing, feedback: mergedFeedback }
+          if (feedbackChanged || arraysChanged) {
+            chatEntry.chat.messages[existingIdx] = {
+              ...existing,
+              feedback: mergedFeedback,
+              ...(arraysChanged ? { deliveredTo: mergedDeliveredTo, readBy: mergedReadBy } : {})
+            }
             console.log('[chat:receipt] R1c.feedback-merge dedupe + upgraded feedback for', message.id, {
               before: existing.feedback,
               after: mergedFeedback
@@ -2330,16 +2741,40 @@ export const appChatSlice = createSlice({
       // our own send. Server's broadcast `senderId` is sometimes the
       // numeric WSO2 user id, which mismatches the chat backend's ObjectId
       // we use as `userProfile.id`.
-      const stored: MessageType =
-        isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
+      const rawStored: MessageType = isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
+      // For group chats, recompute isDelivered from arrays rather than trusting
+      // deliveryStatus from the broadcast — server emits 'delivered' prematurely.
+      const stored: MessageType = chatEntry.isGroup
+        ? (() => {
+            const groupDelivered = computeGroupDelivered(rawStored, chatEntry.participants)
+            return groupDelivered === rawStored.feedback.isDelivered
+              ? rawStored
+              : { ...rawStored, feedback: { ...rawStored.feedback, isDelivered: groupDelivered } }
+          })()
+        : rawStored
 
       // Drain pending feedback if any receipts arrived before this broadcast.
       if (stored.id && state.pendingFeedback[stored.id]) {
         const pf = state.pendingFeedback[stored.id]
         const before = { ...stored.feedback }
+
+        // Apply pending per-user deliveries to deliveredTo, then recompute
+        // isDelivered using group semantics (or true for DMs).
+        if (pf.deliveredUsers?.length) {
+          const existingDelivered = stored.deliveredTo ?? []
+          const existingIds = new Set(existingDelivered.map(d => String(d.userId)))
+          const toAdd = pf.deliveredUsers.filter(uid => !existingIds.has(uid))
+          if (toAdd.length) {
+            stored.deliveredTo = [...existingDelivered, ...toAdd.map(uid => ({ userId: uid, deliveredAt: new Date().toISOString() }))]
+          }
+        }
+        const pendingDelivered = chatEntry.isGroup
+          ? computeGroupDelivered(stored, chatEntry.participants)
+          : Boolean(pf.isDelivered) || Boolean(pf.deliveredUsers?.length) || Boolean(pf.isSeen)
+
         stored.feedback = {
           isSent: stored.feedback.isSent,
-          isDelivered: stored.feedback.isDelivered || Boolean(pf.isDelivered) || Boolean(pf.isSeen),
+          isDelivered: stored.feedback.isDelivered || pendingDelivered,
           isSeen: stored.feedback.isSeen || Boolean(pf.isSeen)
         }
         delete state.pendingFeedback[stored.id]
@@ -2435,7 +2870,21 @@ export const appChatSlice = createSlice({
       }>
     ) => {
       if (!state.chats) return
-      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
+      const { chatId, messages: rawMessages, oldestCursor, hasMoreOlder } = action.payload
+
+      // Filter out messages this user previously deleted-for-me. The
+      // server currently DOES NOT filter `messages.list` for the user
+      // who deleted — after a delete + commit, a subsequent
+      // setChatMessages arrives with the deleted id back in the list,
+      // causing the bubble to reappear. Cache is per-user via
+      // localStorage; gone is gone across refreshes.
+      // REMOVE ONCE BACKEND ships server-side filtering on messages.list.
+      const meIdForFilter = state.userProfile?.id
+      const deletedForMeIds = meIdForFilter ? readDeletedForMeIds(meIdForFilter) : null
+      const messages =
+        deletedForMeIds && deletedForMeIds.size > 0
+          ? rawMessages.filter(m => !deletedForMeIds.has(String(m.id)))
+          : rawMessages
 
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
@@ -2457,7 +2906,18 @@ export const appChatSlice = createSlice({
       const skipMessagesWrite = isKickedGroup && chatEntry.chat.messages.length > 0
 
       if (!skipMessagesWrite) {
-        chatEntry.chat.messages = messages
+        // For group chats, recompute isDelivered from deliveredTo/readBy arrays
+        // rather than trusting deliveryStatus from sdkMessageToMessage — the
+        // server sets deliveryStatus: 'delivered' for groups even when only some
+        // members have received it. Mirrors mobile's computeGroupTickStatus.
+        chatEntry.chat.messages = chatEntry.isGroup
+          ? messages.map(m => {
+              const groupDelivered = computeGroupDelivered(m, chatEntry.participants)
+              return groupDelivered === m.feedback.isDelivered
+                ? m
+                : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+            })
+          : messages
       }
 
       // Kicked-group derivation pass — runs whether we wrote the messages
@@ -2483,8 +2943,7 @@ export const appChatSlice = createSlice({
           if (m.contentType !== 'system') continue
           const op = m.systemOperationType
           if (op !== 'user_removed' && op !== 'participant_removed') continue
-          const targetMatch =
-            m.targetUserId !== undefined && myId !== '' && String(m.targetUserId) === myId
+          const targetMatch = m.targetUserId !== undefined && myId !== '' && String(m.targetUserId) === myId
           const nameMatch = !targetMatch && myName !== '' && Boolean(m.message && m.message.includes(myName))
           if (targetMatch || nameMatch) {
             kickMsg = m
@@ -2493,10 +2952,7 @@ export const appChatSlice = createSlice({
         }
         if (kickMsg) {
           // Append to messages if missing (only relevant when skipMessagesWrite)
-          if (
-            kickMsg.id &&
-            !chatEntry.chat.messages.some(m => m.id === kickMsg!.id)
-          ) {
+          if (kickMsg.id && !chatEntry.chat.messages.some(m => m.id === kickMsg!.id)) {
             chatEntry.chat.messages = [...chatEntry.chat.messages, kickMsg]
           }
           // Sidebar preview — WhatsApp-style.
@@ -2568,7 +3024,16 @@ export const appChatSlice = createSlice({
 
       // Dedupe — in rare races a page boundary message could already exist.
       const existingIds = new Set(chatEntry.chat.messages.map(m => m.id).filter(Boolean) as string[])
-      const incoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+      const rawIncoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+      // Recompute group delivery from arrays (same fix as setChatMessages).
+      const incoming = chatEntry.isGroup
+        ? rawIncoming.map(m => {
+            const groupDelivered = computeGroupDelivered(m, chatEntry.participants)
+            return groupDelivered === m.feedback.isDelivered
+              ? m
+              : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+          })
+        : rawIncoming
 
       chatEntry.chat.messages = [...incoming, ...chatEntry.chat.messages]
       chatEntry.chat.oldestCursor = oldestCursor
@@ -2585,10 +3050,7 @@ export const appChatSlice = createSlice({
     // Toggle the `loadingOlder` flag for a chat. The thunk sets it true before
     // the network call; the prepend reducer (or the thunk's catch branch)
     // clears it.
-    setLoadingOlder: (
-      state,
-      action: PayloadAction<{ chatId: ChatEntityId; loading: boolean }>
-    ) => {
+    setLoadingOlder: (state, action: PayloadAction<{ chatId: ChatEntityId; loading: boolean }>) => {
       if (!state.chats) return
       const { chatId, loading } = action.payload
       const chatEntry = state.chats.find(c => c.id === chatId)
@@ -2716,12 +3178,16 @@ export const appChatSlice = createSlice({
       if (newMsg.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === newMsg.id)
         if (existingIdx >= 0) {
-          // Broadcast echo beat our ack into Redux. Merge senderId AND the
-          // stronger feedback flags so we don't lose delivered/seen state.
+          // Broadcast echo beat our ack into Redux. Merge senderId AND feedback.
+          // For groups: recompute isDelivered from arrays (not boolean OR) so
+          // a premature 'delivered' deliveryStatus on the echo doesn't flip the tick.
           const existing = chatEntry.chat.messages[existingIdx]
+          const isDeliveredMerged = chatEntry.isGroup
+            ? computeGroupDelivered(existing, chatEntry.participants)
+            : existing.feedback.isDelivered || newMsg.feedback.isDelivered
           const mergedFeedback = {
             isSent: existing.feedback.isSent || newMsg.feedback.isSent,
-            isDelivered: existing.feedback.isDelivered || newMsg.feedback.isDelivered,
+            isDelivered: isDeliveredMerged,
             isSeen: existing.feedback.isSeen || newMsg.feedback.isSeen
           }
           console.log('[chat:receipt] 7c.feedback-merge ack: dedupe + merged feedback for', newMsg.id, {
@@ -2741,9 +3207,7 @@ export const appChatSlice = createSlice({
             senderId: newMsg.senderId,
             feedback: mergedFeedback,
             ...(newMsg.replyTo && !existing.replyTo ? { replyTo: newMsg.replyTo } : {}),
-            ...(newMsg.attachments?.length && !existing.attachments?.length
-              ? { attachments: newMsg.attachments }
-              : {})
+            ...(newMsg.attachments?.length && !existing.attachments?.length ? { attachments: newMsg.attachments } : {})
           }
           if (state.selectedChat && state.selectedChat.contact.id === contactId) {
             state.selectedChat = {
@@ -2762,7 +3226,21 @@ export const appChatSlice = createSlice({
       if (newMsg.id && state.pendingFeedback[newMsg.id]) {
         const pf = state.pendingFeedback[newMsg.id]
         const before = { ...newMsg.feedback }
-        if (pf.isDelivered) newMsg.feedback.isDelivered = true
+
+        // Apply pending per-user deliveries before recomputing isDelivered.
+        if (pf.deliveredUsers?.length) {
+          const existingDelivered = newMsg.deliveredTo ?? []
+          const existingIds = new Set(existingDelivered.map(d => String(d.userId)))
+          const toAdd = pf.deliveredUsers.filter(uid => !existingIds.has(uid))
+          if (toAdd.length) {
+            newMsg.deliveredTo = [...existingDelivered, ...toAdd.map(uid => ({ userId: uid, deliveredAt: new Date().toISOString() }))]
+          }
+        }
+        const pendingDelivered = chatEntry.isGroup
+          ? computeGroupDelivered(newMsg, chatEntry.participants)
+          : Boolean(pf.isDelivered) || Boolean(pf.deliveredUsers?.length) || Boolean(pf.isSeen)
+
+        if (pendingDelivered) newMsg.feedback.isDelivered = true
         if (pf.isSeen) {
           newMsg.feedback.isSeen = true
           newMsg.feedback.isDelivered = true
@@ -2782,14 +3260,23 @@ export const appChatSlice = createSlice({
       // and the previous sender's prefix would visibly disappear when we
       // send a new message. Same fix shape as `receiveMessage` does for
       // isOwn echoes.
-      const stampedMsg: MessageType =
-        state.userProfile
-          ? {
+      const rawStampedMsg: MessageType = state.userProfile
+        ? {
             ...newMsg,
             senderId: newMsg.senderId || state.userProfile.id,
             senderName: newMsg.senderName ?? state.userProfile.fullName
           }
-          : newMsg
+        : newMsg
+      // For group chats, recompute isDelivered from arrays (ACK may carry
+      // a full Message with deliveryStatus: 'delivered' set by the server).
+      const stampedMsg: MessageType = chatEntry.isGroup
+        ? (() => {
+            const groupDelivered = computeGroupDelivered(rawStampedMsg, chatEntry.participants)
+            return groupDelivered === rawStampedMsg.feedback.isDelivered
+              ? rawStampedMsg
+              : { ...rawStampedMsg, feedback: { ...rawStampedMsg.feedback, isDelivered: groupDelivered } }
+          })()
+        : rawStampedMsg
 
       const newMessages = [...chatEntry.chat.messages, stampedMsg]
       chatEntry.chat.messages = newMessages
@@ -2820,6 +3307,8 @@ export const {
   setLoadingOlder,
   receiveMessage,
   updateMessagesFeedback,
+  applyDeliveryReceipt,
+  applyReadReceiptEntry,
   addOrReplaceChat,
   setChatAvatarOptimistic,
   clearChatAvatar,
@@ -2836,6 +3325,7 @@ export const {
   applyMessageUpdate,
   applyMessageDelete,
   applyMessageDeleteForMe,
+  restoreDeletedMessage,
   setMessageStarred,
   applyMessagePin,
   applyReactionUpdate,

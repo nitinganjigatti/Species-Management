@@ -380,7 +380,16 @@ const ChatContent = (props: ChatContentType) => {
                         <CustomAvatar
                           skin='light'
                           color={selectedChat.contact.avatarColor}
-                          sx={{ width: 40, height: 40, fontSize: '1rem', flexShrink: 0 }}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            fontSize: '1rem',
+                            flexShrink: 0,
+                            background: theme =>
+                              `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                            color: 'common.white',
+                            fontWeight: 600
+                          }}
                         >
                           {getInitials(selectedChat.contact.fullName)}
                         </CustomAvatar>

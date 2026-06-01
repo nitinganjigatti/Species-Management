@@ -27,8 +27,11 @@ import {
   applyParticipantLeft,
   applyParticipantJoined,
   updateMessagesFeedback,
+  applyDeliveryReceipt,
+  applyReadReceiptEntry,
   addOrReplaceChat,
   patchConversationFromEvent,
+  removeChatFromList,
   updateChatFlags
 } from 'src/store/apps/chat'
 
@@ -42,7 +45,6 @@ import {
   getOnlineUsersOverSocket
 } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
-import toast from 'react-hot-toast'
 // ** Types
 import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
@@ -83,6 +85,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(Boolean(compact))
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
+  const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false)
 
   // ** Router
   const router = useSafeRouter()
@@ -528,13 +531,17 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     }
 
     // Single-message delivered (other side received it).
+    // For group chats, `isDelivered` only flips to true once ALL eligible
+    // active participants have received the message — mirrors mobile's
+    // computeGroupTickStatus logic via the applyDeliveryReceipt reducer.
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
       if (!evt) return
       dispatch(
-        updateMessagesFeedback({
+        applyDeliveryReceipt({
           conversationId: evt.conversationId,
           messageIds: [evt.messageId],
-          isDelivered: true
+          userId: evt.deliveredTo.userId,
+          deliveredAt: evt.deliveredTo.deliveredAt ? String(evt.deliveredTo.deliveredAt) : undefined
         })
       )
     }
@@ -544,20 +551,43 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
       if (!evt?.messageIds?.length) return
       dispatch(
-        updateMessagesFeedback({
+        applyDeliveryReceipt({
           conversationId: evt.conversationId,
           messageIds: evt.messageIds,
-          isDelivered: true
+          userId: evt.deliveredTo,
+          deliveredAt: evt.deliveredAt
         })
       )
     }
 
-    // Read receipt — blue tick only for fullyReadMessageIds (read by ALL
-    // participants). Per SDK docs: updatedMessageIds = one user read,
-    // fullyReadMessageIds = everyone read → show blue tick.
+    // Read receipt handler.
+    // updatedMessageIds = messages this ONE user just read → update readBy
+    //   array so computeGroupDelivered can count readers as delivered.
+    // fullyReadMessageIds = messages ALL participants read → blue tick (isSeen).
+    // Mirrors mobile's handleReadReceipt logic in useSocketRoom.ts.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
       if (!evt) return
 
+      // Per-user read: update readBy arrays. A reader counts as delivered,
+      // so this also recomputes isDelivered for group messages.
+      const perUserIds: string[] =
+        Array.isArray(evt.updatedMessageIds) && evt.updatedMessageIds.length
+          ? evt.updatedMessageIds
+          : evt.messageId
+            ? [evt.messageId]
+            : []
+      if (perUserIds.length && evt.userId) {
+        dispatch(
+          applyReadReceiptEntry({
+            conversationId: evt.conversationId,
+            messageIds: perUserIds,
+            userId: evt.userId,
+            readAt: evt.readAt
+          })
+        )
+      }
+
+      // All-read: set isSeen (blue tick).
       const fullyReadIds = evt.fullyReadMessageIds ?? []
       if (!fullyReadIds.length) return
 
@@ -622,12 +652,16 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       })
     }
 
-    // When a conversation is deleted (admin action, leave-and-delete), remove
-    // it from the sidebar so the stale row doesn't linger.
+    // Multi-device sync — `conversation_deleted` fires on this user's
+    // OTHER sessions when they delete a chat elsewhere (per chat-core docs:
+    // `conversationsApi.delete()` is per-user, never broadcast to other
+    // participants). Drop the row + close it if it was open, using the
+    // SAME reducer the local "Delete chat" / "Exit and Delete" paths use
+    // — instant, no REST refetch, idempotent on unknown ids.
     const onConversationDeleted = (evt: any) => {
       const convId = evt?.conversationId ?? evt?.id
       if (!convId) return
-      dispatch(fetchChatsContacts())
+      dispatch(removeChatFromList(convId))
     }
 
     // Reactions — server broadcasts the full `reactions` array for one
@@ -917,6 +951,9 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
         compact={compact}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={onToggleFullscreen}
+        onCreatingGroupChange={setIsCreatingGroup}
       />
       <ChatContent
         store={store}
@@ -934,6 +971,21 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         onToggleFullscreen={onToggleFullscreen}
         typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
       />
+      {isCreatingGroup && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: sidebarWidth,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(3px)',
+            zIndex: theme => theme.zIndex.drawer - 1,
+            pointerEvents: 'all'
+          }}
+        />
+      )}
     </Box>
   )
 }

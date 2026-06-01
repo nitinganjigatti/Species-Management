@@ -61,6 +61,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
+import Checkbox from '@mui/material/Checkbox'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -329,6 +330,14 @@ const UserProfileRight = (props: UserProfileRightType) => {
     | { type: 'delete' }
     | { type: 'deleteChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
+    // Sole-admin warning — shown when the user is the only admin AND
+    // other active members remain. The confirm-button label tracks
+    // `underlying` so the dialog only ever surfaces the action the
+    // user originally chose in the sidebar:
+    //   • Clicked "Exit group" → confirm button reads "Exit"
+    //   • Clicked "Exit and delete" → confirm button reads "Exit & Delete for me"
+    // Cancel button reads "Make someone admin" and just closes.
+    | { type: 'exitAsOnlyAdmin'; underlying: 'exit' | 'exitAndDelete' }
 
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const closeConfirm = () => setConfirmAction(null)
@@ -340,6 +349,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // `canInteract` gate but the chat stays visible / scrollable.
   const handleExitGroup = () => {
     if (currentGroupId === null) return
+    // Sole-admin guard: warning dialog with confirm button labelled
+    // "Exit" (since that's the action the user originally chose).
+    if (isOnlyAdmin) {
+      setConfirmAction({ type: 'exitAsOnlyAdmin', underlying: 'exit' })
+
+      return
+    }
     setConfirmAction({ type: 'exit' })
   }
 
@@ -350,6 +366,14 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // path — local removal is idempotent with the listener).
   const handleExitAndDelete = () => {
     if (currentGroupId === null) return
+    // Sole-admin guard: same warning dialog as `handleExitGroup` but
+    // the confirm button reads "Exit & Delete for me" since that's the
+    // action the user chose. Cancel button "Make someone admin" stays.
+    if (isOnlyAdmin) {
+      setConfirmAction({ type: 'exitAsOnlyAdmin', underlying: 'exitAndDelete' })
+
+      return
+    }
     setConfirmAction({ type: 'exitAndDelete' })
   }
 
@@ -358,10 +382,60 @@ const UserProfileRight = (props: UserProfileRightType) => {
     setConfirmAction({ type: 'delete' })
   }
 
+  // Extracted so the sole-admin warning dialog can fire the same exact
+  // flow from its outlined "Exit" button (via `cancelAction`), without
+  // duplicating the leave+refetch logic. Closes the host sidebar at the
+  // end just like the original inline branch did.
+  const performExit = (chatId: string) => {
+    const myId = store?.userProfile?.id ?? ''
+    leaveConversation(chatId)
+      .then(() => getConversation(chatId))
+      .then(conv => {
+        dispatch(addOrReplaceChat(sdkConversationToChat(conv, String(myId))))
+      })
+      .catch(err => {
+        console.error('[chat] exitGroup failed:', err)
+        toast.error('Failed to exit group')
+      })
+    handleUserProfileRightSidebarToggle()
+  }
+
+  // Same pattern for atomic exit-and-delete. Optimistically drops the
+  // row locally, then refetches the conversation list as a safety net.
+  const performExitAndDelete = (chatId: string) => {
+    leaveAndDeleteConversation(chatId)
+      .then(() => {
+        dispatch(removeChatFromList(chatId))
+        dispatch(fetchChatsContacts())
+      })
+      .catch(err => {
+        console.error('[chat] exitAndDelete failed:', err)
+        toast.error('Failed to exit and delete group')
+      })
+    handleUserProfileRightSidebarToggle()
+  }
+
   const runConfirmedAction = () => {
     if (!confirmAction) return
     const chatId = store?.selectedChat?.contact?.id ?? null
     if (chatId === null) return
+
+    // Sole-admin warning's confirm button. The label varies by
+    // `underlying` ("Exit" or "Exit & Delete for me"), and so does
+    // the action — we route directly to the matching helper. Cancel
+    // button ("Make someone admin") closes the dialog without acting.
+    if (confirmAction.type === 'exitAsOnlyAdmin') {
+      if (typeof chatId === 'string') {
+        if (confirmAction.underlying === 'exitAndDelete') {
+          performExitAndDelete(chatId)
+        } else {
+          performExit(chatId)
+        }
+      }
+      closeConfirm()
+
+      return
+    }
 
     if (confirmAction.type === 'exit') {
       // v1.1.3 — Exit Group, stays in list as read-only. Direct SDK
@@ -379,40 +453,15 @@ const UserProfileRight = (props: UserProfileRightType) => {
       // with the read-only state. No local reducer patching — the
       // server is the source of truth.
       if (typeof chatId === 'string') {
-        const idForLeave = chatId
-        const myId = store?.userProfile?.id ?? ''
-        leaveConversation(idForLeave)
-          .then(() => getConversation(idForLeave))
-          .then(conv => {
-            dispatch(addOrReplaceChat(sdkConversationToChat(conv, String(myId))))
-          })
-          .catch(err => {
-            console.error('[chat] exitGroup failed:', err)
-            toast.error('Failed to exit group')
-          })
+        performExit(chatId)
       }
-      handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'exitAndDelete') {
-      // v1.1.3 — atomic Exit + Delete. Server exits AND removes from
-      // caller's conversation list in a single write. We optimistically
-      // drop the row from local state right away so the UI feels snappy,
-      // then refetch the full conversation list from the server as a
-      // safety net — same effect as a page refresh. Refetching a single
-      // conversation isn't viable here (the chat is gone, the GET would
-      // 404), so the list refetch is the correct equivalent.
+      // v1.1.3 — atomic Exit + Delete via the shared helper so the
+      // sole-admin warning's confirm button and the standalone "Exit
+      // and delete" sidebar entry share one code path.
       if (typeof chatId === 'string') {
-        const idForRemoval = chatId
-        leaveAndDeleteConversation(idForRemoval)
-          .then(() => {
-            dispatch(removeChatFromList(idForRemoval))
-            dispatch(fetchChatsContacts())
-          })
-          .catch(err => {
-            console.error('[chat] exitAndDelete failed:', err)
-            toast.error('Failed to exit and delete group')
-          })
+        performExitAndDelete(chatId)
       }
-      handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'delete') {
       dispatch(deleteConversation(chatId))
       handleUserProfileRightSidebarToggle()
@@ -422,7 +471,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
       // local-only hide doesn't feel silent. Reappear-on-new-message is
       // handled by the existing `conversation_created` listener.
       dispatch(deleteConversation(chatId))
-      toast.success('Chat deleted')
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
       if (currentGroupId === null) return
@@ -437,19 +485,40 @@ const UserProfileRight = (props: UserProfileRightType) => {
     if (!confirmAction) return null
     switch (confirmAction.type) {
       case 'exit':
+        // Body copy aligned with the mobile app's "Exit group?" dialog —
+        // describes the consequence in member-facing terms ("send or
+        // receive messages") instead of the read-only mode mechanics.
         return {
-          title: `Exit "${chatName}"?`,
-          description:
-            "The group will stay in your chat list as read-only — you can scroll history but can't send messages.",
-          confirmText: 'Exit group',
+          title: 'Exit group?',
+          description: 'You will no longer be able to send or receive messages in this group.',
+          confirmText: 'Exit',
           icon: 'mdi:exit-to-app',
           iconColor: '#ff3838'
         }
-      case 'exitAndDelete':
+      case 'exitAsOnlyAdmin':
+        // Sole-admin variant. The confirm-button label tracks
+        // `underlying`: clicking "Exit group" in the sidebar shows
+        // "Exit"; clicking "Exit and delete" shows "Exit & Delete for me".
+        // Cancel button = "Make someone admin" → just closes the dialog
+        // so the user can promote via the existing member-row kebab.
         return {
-          title: `Exit and delete "${chatName}"?`,
-          description: 'You will exit the group and remove it from your chat list. This cannot be undone.',
-          confirmText: 'Exit and delete',
+          title: 'Exit group?',
+          description:
+            'You are the only admin. Assign another admin before you leave, otherwise admin rights will be transferred to another member automatically.',
+          confirmText: confirmAction.underlying === 'exitAndDelete' ? 'Exit & Delete for me' : 'Exit',
+          cancelText: 'Make someone admin',
+          icon: 'mdi:shield-account-outline',
+          iconColor: '#ff3838'
+        }
+      case 'exitAndDelete':
+        // Body copy aligned with the mobile "Exit group?" dialog so the
+        // wording is identical across platforms. The deletion-specific
+        // consequence is conveyed by the action label "Exit & Delete
+        // for me" rather than the body — matching the mobile pattern.
+        return {
+          title: 'Exit group?',
+          description: 'You will no longer be able to send or receive messages in this group.',
+          confirmText: 'Exit & Delete for me',
           icon: 'mdi:exit-run',
           iconColor: '#ff3838'
         }
@@ -560,6 +629,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const adminIdSet = new Set(adminIds.map(String))
   // Current user can only manage members / edit info if they're a group admin.
   const isCurrentUserAdmin = adminIdSet.has(String(currentUserId))
+
+  // Sole-admin guard for the Exit flow. We surface a warning when:
+  //   1. The current user is an admin
+  //   2. They are the ONLY admin in the group
+  //   3. Other active members remain (anyone whose `isActive !== false`,
+  //      excluding self). Members who already left are flagged
+  //      `isActive: false` server-side and don't count — leaving an
+  //      already-empty group strands no one.
+  // When all three are true, the group would be left with no admin after
+  // the leave — no one could add members / edit info / promote. The
+  // warning gives the user a chance to promote someone first.
+  const activeOtherMemberCount = (store?.selectedChat?.contact?.participants ?? []).filter(
+    p => p.isActive !== false && String(p.userId) !== String(currentUserId)
+  ).length
+  const isOnlyAdmin = isCurrentUserAdmin && adminIds.length === 1 && activeOtherMemberCount > 0
   const groupMembers = (() => {
     if (!isGroup || !store?.selectedChat) return []
     const ids = store.selectedChat.contact.participantIds ?? []
@@ -729,32 +813,25 @@ const UserProfileRight = (props: UserProfileRightType) => {
                                 '&:hover': { backgroundColor: 'customColors.antzSecondaryBg' }
                               }}
                             >
-                              <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                              <Box sx={{ flexShrink: 0 }}>
                                 {c.avatar ? (
                                   <MuiAvatar src={c.avatar} alt={c.fullName} sx={{ width: 42, height: 42 }} />
                                 ) : (
                                   <CustomAvatar
                                     skin='light'
                                     color={c.avatarColor}
-                                    sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                                    sx={{
+                                      width: 42,
+                                      height: 42,
+                                      fontSize: '0.875rem',
+                                      background: theme =>
+                                        `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                                      color: 'common.white',
+                                      fontWeight: 600
+                                    }}
                                   >
                                     {getAvatarInitials(c.fullName)}
                                   </CustomAvatar>
-                                )}
-                                {isSelected && (
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      inset: 0,
-                                      borderRadius: '50%',
-                                      backgroundColor: 'secondary.main',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
-                                    }}
-                                  >
-                                    <Icon icon='mdi:check' fontSize='1.125rem' color='white' />
-                                  </Box>
                                 )}
                               </Box>
                               <ListItemText
@@ -767,7 +844,18 @@ const UserProfileRight = (props: UserProfileRightType) => {
                                   </Typography>
                                 }
                               />
-                              {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='secondary.main' />}
+                              <Checkbox
+                                checked={isSelected}
+                                disableRipple
+                                size='small'
+                                sx={{
+                                  flexShrink: 0,
+                                  p: 0,
+                                  color: 'customColors.SurfaceVariant',
+                                  '&.Mui-checked': { color: 'primary.main' },
+                                  '& .MuiSvgIcon-root': { fontSize: '1.375rem' }
+                                }}
+                              />
                             </ListItemButton>
                           </ListItem>
                           {index < addableContacts.length - 1 && (
@@ -1246,7 +1334,15 @@ const UserProfileRight = (props: UserProfileRightType) => {
                             <CustomAvatar
                               skin='light'
                               color={m.avatarColor}
-                              sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                              sx={{
+                                width: 42,
+                                height: 42,
+                                fontSize: '0.875rem',
+                                background: theme =>
+                                  `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                                color: 'common.white',
+                                fontWeight: 600
+                              }}
                             >
                               {getAvatarInitials(m.fullName)}
                             </CustomAvatar>
@@ -1408,7 +1504,15 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 <CustomAvatar
                   skin='light'
                   color={store.selectedChat.contact.avatarColor}
-                  sx={{ width: 96, height: 96, fontSize: '2rem' }}
+                  sx={{
+                    width: 96,
+                    height: 96,
+                    fontSize: '2rem',
+                    background: theme =>
+                      `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                    color: 'common.white',
+                    fontWeight: 600
+                  }}
                 >
                   {getAvatarInitials(store.selectedChat.contact.fullName)}
                 </CustomAvatar>
@@ -1617,7 +1721,16 @@ const UserProfileRight = (props: UserProfileRightType) => {
                             <CustomAvatar
                               skin='light'
                               color={group.avatarColor}
-                              sx={{ width: 42, height: 42, fontSize: '0.875rem', flexShrink: 0 }}
+                              sx={{
+                                width: 42,
+                                height: 42,
+                                fontSize: '0.875rem',
+                                flexShrink: 0,
+                                background: theme =>
+                                  `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                                color: 'common.white',
+                                fontWeight: 600
+                              }}
                             >
                               {getAvatarInitials(group.fullName)}
                             </CustomAvatar>
@@ -1698,7 +1811,35 @@ const UserProfileRight = (props: UserProfileRightType) => {
         icon={confirmCopy?.icon}
         iconColor={confirmCopy?.iconColor}
         ConfirmationText={confirmCopy?.confirmText}
-        cancelText='Cancel'
+        cancelText={confirmCopy?.cancelText ?? 'Cancel'}
+        showCloseIcon
+        // Match the mobile screenshots — destructive red. The theme's
+        // `error.main` (#FF4D49) maps directly to the vivid red shown in
+        // the mobile dialog; `error.dark` is the hover. Cancel mirrors
+        // it with an outlined variant + low-opacity red hover background.
+        // Theme tokens throughout (no hardcoded hex per CLAUDE.md) so a
+        // future palette change ripples here automatically.
+        confirmBtnStyle={{
+          backgroundColor: 'error.main',
+          color: 'common.white',
+          fontWeight: 600,
+          textTransform: 'none',
+          boxShadow: 'none',
+          '&:hover': {
+            backgroundColor: 'error.dark',
+            boxShadow: 'none'
+          }
+        }}
+        cancelBtnStyle={{
+          color: 'error.main',
+          borderColor: 'error.main',
+          fontWeight: 600,
+          textTransform: 'none',
+          '&:hover': {
+            borderColor: 'error.dark',
+            backgroundColor: 'customColors.BgTeritary'
+          }
+        }}
       />
     </Sidebar>
   )

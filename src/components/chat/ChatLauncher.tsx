@@ -25,6 +25,7 @@ import type { RootState, AppDispatch } from 'src/store'
 import {
   fetchChatsContacts,
   fetchUserProfile,
+  enrichLastMessageSenders,
   receiveMessage,
   setSelectedConversationId,
   addOrReplaceChat,
@@ -60,7 +61,9 @@ const ChatLauncher = () => {
   // we can probe the zoo-settings flag without TS friction. Same pattern as
   // AppChat.tsx:112.
   const auth = useAuth() as any
-  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
+  const enableChatModule = Boolean(
+    auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
+  )
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -119,7 +122,18 @@ const ChatLauncher = () => {
   useEffect(() => {
     if (!enableChatModule) return
     dispatch(fetchUserProfile())
-    if (!chatsLoaded) dispatch(fetchChatsContacts())
+    if (!chatsLoaded) {
+      // Mirror AppChat's bootstrap: after the conversation list lands,
+      // run `enrichLastMessageSenders` so each group's `lastMessage`
+      // carries `senderName` for the WhatsApp-style "Saket: …" prefix.
+      // The conv-list endpoint omits this (backend issue #8). Without
+      // chaining here, users who first see the chat list via the
+      // floating launcher would see no sender prefix until they click
+      // into a group — which is exactly the bug we're fixing.
+      ;(dispatch(fetchChatsContacts()) as unknown as Promise<unknown>).then(() => {
+        dispatch(enrichLastMessageSenders())
+      })
+    }
   }, [dispatch, enableChatModule, chatsLoaded])
 
   // Mirror AppChat's connect-time refetch — the first `fetchChatsContacts`
@@ -139,8 +153,13 @@ const ChatLauncher = () => {
   useEffect(() => onSocketStatus(setSocketStatus), [])
   useEffect(() => {
     if (!enableChatModule) return
-    if (socketStatus !== 'connected') return
-    dispatch(fetchChatsContacts())
+    if (socketStatus !== 'connected')
+      return // Same enrichment chain — the socket-connect refetch can land a
+      // fresh conversation list that hasn't been enriched yet (e.g. when
+      // the socket reconnects after a long backgrounded period).
+    ;(dispatch(fetchChatsContacts()) as unknown as Promise<unknown>).then(() => {
+      dispatch(enrichLastMessageSenders())
+    })
   }, [enableChatModule, socketStatus, dispatch])
 
   // Subscribe to the two socket events that affect unread counts. AppChat

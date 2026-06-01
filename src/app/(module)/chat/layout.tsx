@@ -17,7 +17,9 @@ interface ChatLayoutProps {
 export default function ChatLayout({ children }: ChatLayoutProps) {
   const router = useRouter()
   const auth = useAuth() as any
-  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
+  const enableChatModule = Boolean(
+    auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
+  )
 
   // `mounted` ensures the first render (both SSR and the matching client
   // hydration) renders the same tree — the Box wrapper — regardless of

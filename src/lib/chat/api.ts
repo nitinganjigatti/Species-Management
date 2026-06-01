@@ -936,6 +936,89 @@ export function clearKickActor(chatId: string | number): void {
   writeKickActorCache(cache)
 }
 
+// ─── Deleted-for-me localStorage cache ────────────────────────────────────
+// CLIENT-SIDE WORKAROUND for the backend gap where `messages.list` returns
+// the message back to the user who deleted it. Tracing on 2026-06-01
+// captured this live: after deleting a message, a subsequent
+// `setChatMessages` arrived from the server WITH the deleted id back in
+// the list (newlyAppearedIds contained the just-deleted id). Without the
+// cache, the UI re-renders and the user sees the "deleted" message reappear.
+//
+// Strategy:
+//   • On `applyMessageDeleteForMe` → write id into a Set (capped FIFO).
+//   • On `restoreDeletedMessage` (Undo) → remove id from Set so it can come
+//     back legitimately.
+//   • On `setChatMessages` → filter incoming messages.list to drop any id
+//     present in the Set BEFORE writing to Redux state.
+//
+// The Set is keyed per-user (the cache key includes userProfile.id) so
+// switching accounts doesn't leak deletions across users.
+//
+// REMOVE ONCE BACKEND ships server-side filtering on messages.list for
+// deleted-for-me. Until then, this prevents the user-visible reappearance.
+const DELETED_FOR_ME_KEY = 'antz-chat:deleted-for-me'
+
+// Hard cap to bound localStorage growth. 5000 ids ≈ ~120KB JSON.
+// FIFO eviction (oldest first) — matches the kick-actor cache pattern.
+const DELETED_FOR_ME_CAP = 5000
+
+type DeletedForMeCache = Record<string, string[]>
+
+function readDeletedForMeCache(): DeletedForMeCache {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = window.localStorage.getItem(DELETED_FOR_ME_KEY)
+
+    return raw ? (JSON.parse(raw) as DeletedForMeCache) : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeDeletedForMeCache(cache: DeletedForMeCache): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(DELETED_FOR_ME_KEY, JSON.stringify(cache))
+  } catch {
+    /* quota / disabled storage — silent no-op */
+  }
+}
+
+export function readDeletedForMeIds(userId: string | number): Set<string> {
+  const key = String(userId ?? '')
+  if (!key) return new Set()
+
+  return new Set(readDeletedForMeCache()[key] ?? [])
+}
+
+export function addDeletedForMeId(userId: string | number, messageId: string): void {
+  const key = String(userId ?? '')
+  if (!key || !messageId) return
+  const cache = readDeletedForMeCache()
+  const existing = cache[key] ?? []
+  if (existing.includes(messageId)) return
+  existing.push(messageId)
+  // FIFO trim — drop oldest entries when over cap.
+  if (existing.length > DELETED_FOR_ME_CAP) {
+    existing.splice(0, existing.length - DELETED_FOR_ME_CAP)
+  }
+  cache[key] = existing
+  writeDeletedForMeCache(cache)
+}
+
+export function removeDeletedForMeId(userId: string | number, messageId: string): void {
+  const key = String(userId ?? '')
+  if (!key || !messageId) return
+  const cache = readDeletedForMeCache()
+  const existing = cache[key]
+  if (!existing) return
+  const idx = existing.indexOf(messageId)
+  if (idx === -1) return
+  existing.splice(idx, 1)
+  cache[key] = existing
+  writeDeletedForMeCache(cache)
+}
+
 // ─── Self-left localStorage flag ───────────────────────────────────────────
 // Mirrors the kick-actor cache: persists across refresh so the banner and
 // sidebar can show "You left the group" / "You left the group." instantly
