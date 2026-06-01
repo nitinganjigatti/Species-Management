@@ -62,7 +62,10 @@ import { borderRadius } from '@mui/system'
 import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse } from 'src/types/hospital/api/Masters/surgery'
 import { ApiError } from 'src/types/hospital/api'
 import { AddSurgeryRecordResponse, GetPatientSurgeryListResponse, GetSurgeryMasterParams, GetSurgeryMasterResponse } from 'src/types/hospital/api/Surgery/surgery'
-import { AnesthesiaDetails, DoctorDetails, DoctorOption, Id, PatientDetailsData, SurgeryMaster, SurgeryRecords } from 'src/types/hospital/models'
+import { Id, PatientDetailsData } from 'src/types/hospital/models'
+import { SurgeryMaster } from 'src/types/hospital/models/surgeryMaster'
+import { AnesthesiaDetails, DoctorDetails, DoctorOption } from 'src/types/hospital/models/anesthesia'
+import { SurgeryRecords } from 'src/types/hospital/models/surgery'
 import { HospitalStaffListParams, HospitalStaffListResponse } from 'src/types/hospital/api'
 
 interface SurgeryDrawerFormValues {
@@ -1891,7 +1894,7 @@ const AddSurgeryRecord = () => {
                 textTransform: 'uppercase'
               }}
             >
-              ADD NEW
+              {t('hospital_module.add_new')}
             </Button>
             <Button
               type='button'
@@ -1902,7 +1905,7 @@ const AddSurgeryRecord = () => {
                 height: '48px'
               }}
             >
-              SELECT FROM RECORD
+              {t('hospital_module.select_from_record')}
             </Button>
           </Box>
         ) : (

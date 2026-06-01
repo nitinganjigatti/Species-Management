@@ -1,5 +1,6 @@
 import { Id } from "src/types/compliance";
-import { SurgeryMaster, SurgeryRecords  } from "../../models";
+import { SurgeryMaster } from "../../models/surgeryMaster";
+import { SurgeryRecords } from "../../models/surgery";
 
 export interface GetPatientSurgeryListResponse {
     success: boolean

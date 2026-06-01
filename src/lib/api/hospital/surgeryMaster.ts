@@ -17,7 +17,7 @@ import { axiosFormPost as _axiosFormPost, axiosGet as _axiosGet } from '../utili
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { ApiResponse, SurgeryListParams, SurgeryListResponse } from 'src/types/hospital'
+import type { ApiResponse, SurgeryListParams } from 'src/types/hospital'
 import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse, SurgeryParams, SurgeryResponse, } from 'src/types/hospital/api/Masters/surgery';
 import { AddSurgeryRecordParams, AddSurgeryRecordResponse,DeleteSurgeryRecordResponse, GetPatientSurgeryListParams, GetPatientSurgeryListResponse, GetSurgeryMasterParams, GetSurgeryMasterResponse } from 'src/types/hospital/api/Surgery/surgery';
 import { CreateTemplateParams, DeleteTemplateParams, GetTemplatesResponse, TemplateActionResponse, UpdateTemplateParams } from 'src/types/hospital/api/Template/template';
