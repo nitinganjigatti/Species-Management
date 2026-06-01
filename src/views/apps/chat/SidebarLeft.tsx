@@ -427,7 +427,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       if (
         isGroup &&
         lastMessage &&
-        lastMessage.senderId &&
+        // Enter the prefix block when EITHER `senderId` OR `senderName`
+        // is present. The backend's `GET /conversations` endpoint
+        // (issue #8) often returns `senderId: ''` while `senderName`
+        // IS populated via the `enrichLastMessageSenders` thunk — so
+        // requiring `senderId` here would skip the prefix even though
+        // we have the name we need to render it. The inside branches
+        // already fall back to `senderName` when `senderId` is missing.
+        (lastMessage.senderId || lastMessage.senderName) &&
         !lastMessage.isDeletedForEveryone &&
         lastMessage.contentType !== 'system' &&
         // Belt-and-suspenders — `systemOperationType` presence implies
@@ -439,13 +446,22 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         !lastMessage.systemOperationType &&
         !isActorPrefixedSelfMessage
       ) {
-        const senderIdStr = String(lastMessage.senderId)
+        const senderIdStr = String(lastMessage.senderId ?? '')
         const meIdStr = String(store?.userProfile?.id ?? '')
-        if (meIdStr && senderIdStr === meIdStr) {
+        if (meIdStr && senderIdStr && senderIdStr === meIdStr) {
           senderPrefix = 'You: '
         } else if (lastMessage.senderName) {
-          senderPrefix = `${lastMessage.senderName}: `
-        } else {
+          // "You: " when the enriched senderName matches the current
+          // user's full name — handles the case where senderId is the
+          // empty-string from the conv-list endpoint but the enriched
+          // name is ours. Falls back to the name-as-is for other senders.
+          const myName = store?.userProfile?.fullName ?? ''
+          if (myName && lastMessage.senderName === myName) {
+            senderPrefix = 'You: '
+          } else {
+            senderPrefix = `${lastMessage.senderName}: `
+          }
+        } else if (senderIdStr) {
           const sender = store?.contacts?.find(c => String(c.id) === senderIdStr)
           if (sender?.fullName) senderPrefix = `${sender.fullName}: `
         }
@@ -454,12 +470,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       // WhatsApp-style tick in sidebar — only for own messages that are not
       // deleted-for-everyone or system messages. Color follows WhatsApp:
       //   blue double = seen, grey double = delivered, grey single = sent.
+      //
+      // Own-message detection has TWO paths because the backend's
+      // `GET /conversations` endpoint returns `senderId: ''` for groups
+      // (issue #8). Primary: `senderId === currentUserId`. Fallback (only
+      // when senderId is empty): match the enriched `senderName` against
+      // the current user's full name — same name-match pattern used by
+      // the "You: " sender prefix above.
+      const myFullName = store?.userProfile?.fullName ?? ''
       const isOwnLastMessage = Boolean(
         lastMessage &&
           !lastMessage.isDeletedForEveryone &&
           lastMessage.contentType !== 'system' &&
-          currentUserIdForPresence &&
-          String(lastMessage.senderId) === currentUserIdForPresence
+          ((currentUserIdForPresence && String(lastMessage.senderId) === currentUserIdForPresence) ||
+            (!lastMessage.senderId && myFullName && lastMessage.senderName === myFullName))
       )
       const lastMsgTick =
         isOwnLastMessage && lastMessage?.feedback

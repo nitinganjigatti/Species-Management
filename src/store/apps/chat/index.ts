@@ -168,6 +168,12 @@ export const fetchChatsContacts = createAsyncThunk<{
  * repeatedly (every `conversation_updated`, focus, etc.). Failures are
  * silent — the prefix falls back to "no prefix", same as before.
  */
+// REMOVE ONCE BACKEND ships `senderId` + `sender.displayName` +
+// `deliveryStatus` on `lastMessage` in the `GET /conversations` response
+// (api-integration-status.md backend issue #8). At that point both the
+// thunk below and the `feedback` parameter on `patchLastMessageSender`
+// become redundant — the conv-list response would supply everything the
+// sidebar needs to render prefix + tick correctly on cold load.
 const enrichedLastMessageIds = new Set<string>()
 export const enrichLastMessageSenders = createAsyncThunk<void, void>(
   'appChat/enrichLastMessageSenders',
@@ -178,20 +184,91 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
     const state = getState() as { chat?: ChatStoreType }
     const chats = state.chat?.chats ?? []
 
-    // Pick group chats whose lastMessage is missing sender info AND has an id
-    // we haven't already enriched in this session.
-    const targets = chats
-      .filter(c => c.isGroup)
-      .map(c => ({
-        chatId: c.id,
-        messageId: c.chat.lastMessage?.id,
-        senderId: c.chat.lastMessage?.senderId,
-        hasSender: Boolean(c.chat.lastMessage?.senderName),
-        participants: c.participants ?? []
-      }))
-      .filter(t => t.messageId && !t.hasSender && !enrichedLastMessageIds.has(t.messageId))
+    // Pick candidates whose lastMessage needs REST enrichment.
+    //
+    // Backend issue #8: conv-list endpoint returns lastMessage with
+    //   • Groups: empty senderId, missing senderName, missing
+    //     deliveryStatus → need BOTH sender enrichment (for the
+    //     "Saket: …" prefix) AND feedback enrichment (for the tick).
+    //   • DMs: senderId IS populated, senderName usually too — but
+    //     deliveryStatus is STILL missing → need feedback enrichment
+    //     only, so the tick can reflect the real sent/delivered/seen
+    //     state on cold load instead of always showing single check.
+    //
+    // We now include BOTH chat kinds. The `feedbackIncomplete` heuristic
+    // gates the DM path: only fires REST when the message is likely
+    // own AND the adapter's default feedback hasn't been bumped past
+    // the sent-only state yet.
+    const myName = state.chat?.userProfile?.fullName ?? ''
+    const myId = String(state.chat?.userProfile?.id ?? '')
+    const allCandidates = chats.map(c => {
+      const lm = c.chat.lastMessage
+      // "Looks own" — covers both DMs (id match) and groups
+      // (name match because group senderId is empty per issue #8).
+      const looksOwn = Boolean(
+        (lm?.senderId && myId && String(lm.senderId) === myId) ||
+          (myName && lm?.senderName === myName)
+      )
+      const feedbackIncomplete = Boolean(
+        looksOwn && lm?.feedback && !lm.feedback.isDelivered && !lm.feedback.isSeen
+      )
 
-    if (targets.length === 0) return
+      return {
+        chatId: c.id,
+        isGroup: Boolean(c.isGroup),
+        fullName: c.fullName,
+        messageId: lm?.id,
+        senderId: lm?.senderId,
+        senderName: lm?.senderName,
+        // For groups we need senderName for the prefix. For DMs the
+        // prefix is irrelevant, so `hasSender: true` (skip the
+        // sender-missing trigger; only feedback can cause enrichment).
+        hasSender: c.isGroup ? Boolean(lm?.senderName) : true,
+        feedbackIncomplete,
+        participants: c.participants ?? [],
+        lastMessageText: lm?.message?.slice?.(0, 30)
+      }
+    })
+
+    // [chat:enrich-trace] Per-candidate reason enrichment will or won't run.
+    try {
+      console.log(
+        '[chat:enrich-trace] candidates',
+        allCandidates.map(c => ({
+          chatId: String(c.chatId),
+          isGroup: c.isGroup,
+          name: c.fullName,
+          messageId: c.messageId,
+          senderId: c.senderId,
+          senderName: c.senderName,
+          hasSender: c.hasSender,
+          feedbackIncomplete: c.feedbackIncomplete,
+          alreadyEnriched: c.messageId ? enrichedLastMessageIds.has(c.messageId) : false,
+          participantCount: c.participants.length,
+          willEnrich: Boolean(
+            c.messageId &&
+              (!c.hasSender || c.feedbackIncomplete) &&
+              !enrichedLastMessageIds.has(c.messageId)
+          ),
+          lastMessageText: c.lastMessageText
+        }))
+      )
+    } catch (e) {
+      console.warn('[chat:enrich-trace] candidates log failed', e)
+    }
+
+    // Enrich when EITHER sender is missing OR feedback is incomplete on
+    // a (likely) own message. The session-dedupe Set still applies so
+    // we never refetch the same messageId twice.
+    const targets = allCandidates.filter(
+      t => t.messageId && (!t.hasSender || t.feedbackIncomplete) && !enrichedLastMessageIds.has(t.messageId)
+    )
+
+    if (targets.length === 0) {
+      console.log('[chat:enrich-trace] no targets — nothing to enrich')
+
+      return
+    }
 
     // Fast path — for each target, try to resolve the sender's display
     // name from the chat's already-loaded `participants` array (matched
@@ -206,6 +283,13 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
         const senderIdStr = String(t.senderId)
         const found = t.participants.find(p => String(p.userId) === senderIdStr)
         const resolvedName = found?.displayName || found?.username
+        console.log('[chat:enrich-trace] fast-path attempt', {
+          chatId: String(t.chatId),
+          name: t.fullName,
+          senderIdFromList: t.senderId,
+          foundInParticipants: Boolean(found),
+          resolvedName
+        })
         if (resolvedName) {
           enrichedLastMessageIds.add(t.messageId)
           dispatch(
@@ -217,11 +301,25 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
           )
           continue
         }
+      } else {
+        console.log('[chat:enrich-trace] fast-path skipped — empty senderId', {
+          chatId: String(t.chatId),
+          name: t.fullName,
+          senderIdFromList: t.senderId
+        })
       }
       networkFallbackTargets.push(t)
     }
 
-    if (networkFallbackTargets.length === 0) return
+    if (networkFallbackTargets.length === 0) {
+      console.log('[chat:enrich-trace] all resolved on fast path — done')
+
+      return
+    }
+    console.log(
+      '[chat:enrich-trace] slow-path (getMessage REST) needed for',
+      networkFallbackTargets.map(t => ({ chatId: String(t.chatId), name: t.fullName, messageId: t.messageId }))
+    )
 
     // Slow path — only chats whose sender isn't in `participants`
     // (shouldn't be common — happens if the sender has been removed
@@ -236,19 +334,41 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
           const senderName =
             (msg as { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
             (msg as { sender?: { displayName?: string; username?: string } }).sender?.username
-          if (senderId || senderName) {
+          // Extract deliveryStatus so the sidebar tick reflects the
+          // server-authoritative state (sent / delivered / read) on
+          // cold load. Mirrors the same derivation the adapter does in
+          // `sdkMessageToMessage`. Falls back to undefined → patch
+          // omits feedback → no overwrite of any existing value.
+          const deliveryStatus = (msg as { deliveryStatus?: string }).deliveryStatus
+          const status = (msg as { status?: string }).status
+          const feedback = deliveryStatus
+            ? {
+                isSent: status !== 'failed' && deliveryStatus !== 'failed',
+                isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
+                isSeen: deliveryStatus === 'read'
+              }
+            : undefined
+          console.log('[chat:enrich-trace] slow-path REST returned', {
+            chatId: String(t.chatId),
+            name: t.fullName,
+            messageId: t.messageId,
+            senderId,
+            senderName,
+            deliveryStatus,
+            willPatch: Boolean(senderId || senderName || feedback)
+          })
+          if (senderId || senderName || feedback) {
             dispatch(
               patchLastMessageSender({
                 chatId: t.chatId,
                 senderId,
-                senderName
+                senderName,
+                ...(feedback ? { feedback } : {})
               })
             )
           }
         } catch (err) {
-          // Silent — prefix degrades to "no prefix" which is what it was before.
-          // eslint-disable-next-line no-console
-          console.warn('[chat] enrichLastMessageSenders failed for', t.messageId, err)
+          console.warn('[chat:enrich-trace] slow-path REST failed for', t.messageId, err)
         }
       })
     )
@@ -2059,24 +2179,39 @@ export const appChatSlice = createSlice({
         }
       }
     },
-    // Patch a chat's `lastMessage` with sender info that wasn't included
-    // in the conversation-list response. Used by the `enrichLastMessageSenders`
-    // thunk after it fetches full message details via `getMessage(id)` to
-    // resolve the WhatsApp-style "Saket: …" sidebar prefix on cold load.
+    // Patch a chat's `lastMessage` with sender info AND feedback that
+    // weren't included in the conversation-list response. Used by the
+    // `enrichLastMessageSenders` thunk after it fetches full message
+    // details via `getMessage(id)` to resolve both the WhatsApp-style
+    // "Saket: …" sidebar prefix AND the read-receipt tick on cold load.
+    // REMOVE ONCE BACKEND issue #8 ships — the `feedback` field on the
+    // payload becomes unnecessary; the action can revert to sender-only.
     patchLastMessageSender: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; senderId: ChatEntityId; senderName?: string }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        senderId: ChatEntityId
+        senderName?: string
+        feedback?: { isSent: boolean; isDelivered: boolean; isSeen: boolean }
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, senderId, senderName } = action.payload
+      const { chatId, senderId, senderName, feedback } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
       if (idx < 0) return
       const chat = state.chats[idx]
       if (!chat.chat.lastMessage) return
+      // Sender fields: keep what's already there if it's truthy; only
+      // overwrite the empty/missing ones. Feedback: take the freshly-
+      // fetched value when provided — it represents the authoritative
+      // server state from the per-message REST. Falls back to the
+      // existing feedback when not provided so the call site can
+      // selectively patch sender-only or feedback-only.
       chat.chat.lastMessage = {
         ...chat.chat.lastMessage,
         senderId: chat.chat.lastMessage.senderId || senderId,
-        senderName: chat.chat.lastMessage.senderName ?? senderName
+        senderName: chat.chat.lastMessage.senderName ?? senderName,
+        ...(feedback ? { feedback } : {})
       }
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = {
