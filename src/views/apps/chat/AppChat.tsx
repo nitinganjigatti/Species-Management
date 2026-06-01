@@ -947,7 +947,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
           sx={{
             position: 'absolute',
             top: 0,
-            left: hidden ? 0 : sidebarWidth,
+            left: sidebarWidth,
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.45)',

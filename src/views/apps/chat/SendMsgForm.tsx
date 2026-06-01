@@ -615,6 +615,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       }
       dispatch(setEditingMessage(null))
       setMsg('')
+      setEmojiAnchorEl(null)
 
       return
     }
@@ -702,6 +703,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     setPending([])
     setMsg('')
+    setEmojiAnchorEl(null)
     // Sent successfully → drop the draft for this conversation so it
     // doesn't reappear in the sidebar preview or composer on re-entry.
     if (typeof conversationId === 'string') {
