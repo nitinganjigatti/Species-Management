@@ -16,7 +16,8 @@ import {
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
-import ActivityList, { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
+import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
+import { ActivityFormData } from 'src/types/hospital/components/common'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import { updateNotes } from 'src/lib/api/hospital/clinicalAssessment'
 import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
@@ -34,45 +35,13 @@ import { Severity, SymptomStatus } from 'src/types/hospital/models'
 import { ComplaintNotes, SymptomList, SymptomRecords } from 'src/types/hospital/models/symptoms'
 import { DeleteSymptomNotesResponse, GetSymptomRecordResponse, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms'
 import { DurationUnit } from 'src/types/hospital/models'
-import { UpdateSymptomsCardFormData } from 'src/views/pages/hospital/inpatient/SymptomsCard'
+import { UpdateSymptomsCardFormData } from 'src/types/hospital/components/symptoms'
 import { UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
+import { AddEditSymptomDrawerProps } from 'src/types/hospital/components/symptoms'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-interface AddEditSymptomDrawerProps extends BaseDrawerProps {
-  selectedSymptom?: SymptomList | null
-  onSave: (payload: UpdateSymptomsCardFormData) => void
-  severity: Severity
-  setSeverity: (v: Severity) => void
-  durationValue: any
-  setDurationValue: (v: string) => void
-  durationUnit: DurationUnit
-  setDurationUnit: (v: DurationUnit) => void
-  notes: string
-  setNotes: (v: string) => void
-  setNoteId: (v: Id) => void
-  noteId: Id
-  status: SymptomStatus
-  setStatus: (v: SymptomStatus) => void
-  activityListData: SymptomRecords | null
-  activityLoader?: boolean
-  temporarilySelected: SymptomList | null
-  setSymptomNoteModal: (v: boolean) => void
-  symptomNoteModal: boolean
-  fetchNotesForSymptom: (s: SymptomList | null) => Promise<GetSymptomRecordResponse>
-  setIsUpdating: (v: boolean) => void
-  isUpdating: boolean
-  setIsDeleting: (v: boolean) => void
-  isDeleting: boolean
-  isSubmitLoading?: boolean
-  setActivityListData: (v: SymptomRecords | null) => void
-  isChanged?: boolean
-  isResolved?: boolean
-  admittedDate?: any
-  dischargedDate?: any
-  isDischarged?: boolean
-}
 
 const AddEditSymptomDrawer = ({
   open,
