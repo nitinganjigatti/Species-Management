@@ -299,7 +299,7 @@ export type ChatStoreType = {
   // Receipts (delivered/seen) that arrived BEFORE the corresponding message
   // landed in `chats`. Keyed by messageId. Drained in `sendMsg.fulfilled` and
   // `receiveMessage` once the message is appended.
-  pendingFeedback: Record<string, { isDelivered?: boolean; isSeen?: boolean }>
+  pendingFeedback: Record<string, { isDelivered?: boolean; isSeen?: boolean; deliveredUsers?: string[] }>
   // The message currently being replied to. Set by clicking "Reply" on a
   // bubble; cleared by sending or by the composer's cancel button.
   replyingTo: MessageReplyRef | null

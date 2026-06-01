@@ -1373,6 +1373,30 @@ export const forwardMessage = createAsyncThunk<
 })
 
 // ----------------------------------------------------------------------
+// Group tick helper — mirrors mobile's computeGroupTickStatus logic.
+// Returns true only when ALL eligible active participants (excluding the
+// sender) are in `deliveredTo` OR `readBy` (read implies delivered).
+// When participants is empty/unknown, returns false (fail-open: never
+// prematurely flip to double tick).
+// ----------------------------------------------------------------------
+
+function computeGroupDelivered(
+  msg: MessageType,
+  participants: Array<{ userId: string; isActive: boolean }> | undefined
+): boolean {
+  if (!participants?.length) return false
+  const senderId = String(msg.senderId ?? '')
+  const eligible = participants
+    .filter(p => p.isActive !== false && (senderId ? String(p.userId) !== senderId : true))
+    .map(p => String(p.userId))
+    .filter(Boolean)
+  if (eligible.length === 0) return false
+  const deliveredSet = new Set((msg.deliveredTo ?? []).map(d => String(d.userId)))
+  const readSet = new Set((msg.readBy ?? []).map(r => String(r.userId)))
+  return eligible.every(id => deliveredSet.has(id) || readSet.has(id))
+}
+
+// ----------------------------------------------------------------------
 // Slice
 // ----------------------------------------------------------------------
 
@@ -2456,6 +2480,129 @@ export const appChatSlice = createSlice({
         }
       }
     },
+
+    // Per-recipient read receipt (updatedMessageIds path). Updates `readBy` for
+    // each affected message so computeGroupDelivered has complete data — a
+    // reader counts as delivered (mirrors mobile's handleReadReceipt logic).
+    // Does NOT set isSeen; that stays gated on fullyReadMessageIds only.
+    applyReadReceiptEntry: (
+      state,
+      action: PayloadAction<{
+        conversationId: ChatEntityId
+        messageIds: string[]
+        userId: string
+        readAt?: string
+      }>
+    ) => {
+      if (!state.chats) return
+      const { messageIds, userId, readAt } = action.payload
+      const uidStr = String(userId)
+      const readAtStr = readAt ?? new Date().toISOString()
+      const idSet = new Set(messageIds)
+      const touchedChatIds = new Set<ChatEntityId>()
+
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+          const alreadyIn = (m.readBy ?? []).some(r => String(r.userId) === uidStr)
+          if (!alreadyIn) {
+            m.readBy = [...(m.readBy ?? []), { userId: uidStr, readAt: readAtStr }]
+          }
+          // Read implies delivered — recompute for groups.
+          if (chat.isGroup) {
+            const groupDelivered = computeGroupDelivered(m, chat.participants)
+            if (groupDelivered && !m.feedback.isDelivered) {
+              m.feedback.isDelivered = true
+              if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+                chat.chat.lastMessage.feedback.isDelivered = true
+              }
+            }
+          }
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+
+    // Per-recipient delivery receipt. Appends the recipient to each message's
+    // `deliveredTo` array, then recomputes `isDelivered`:
+    //   • DM  → any delivery flips to true (existing behavior).
+    //   • Group → only true when ALL eligible active participants have
+    //     delivered or read (mirrors mobile's computeGroupTickStatus).
+    // Buffered in `pendingFeedback.deliveredUsers` when the message hasn't
+    // landed in state yet (race: delivery arrives before send-ack).
+    applyDeliveryReceipt: (
+      state,
+      action: PayloadAction<{
+        conversationId: ChatEntityId
+        messageIds: string[]
+        userId: string
+        deliveredAt?: string
+      }>
+    ) => {
+      if (!state.chats) return
+      const { messageIds, userId, deliveredAt } = action.payload
+      const uidStr = String(userId)
+      const deliveredAtStr = deliveredAt ?? new Date().toISOString()
+      const idSet = new Set(messageIds)
+      const matchedIds: string[] = []
+      const touchedChatIds = new Set<ChatEntityId>()
+
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+
+          // Append to deliveredTo if this user isn't already there.
+          const alreadyIn = (m.deliveredTo ?? []).some(d => String(d.userId) === uidStr)
+          if (!alreadyIn) {
+            m.deliveredTo = [...(m.deliveredTo ?? []), { userId: uidStr, deliveredAt: deliveredAtStr }]
+          }
+
+          // Recompute isDelivered based on group vs DM semantics.
+          const newDelivered = chat.isGroup ? computeGroupDelivered(m, chat.participants) : true
+          if (newDelivered && !m.feedback.isDelivered) {
+            m.feedback.isDelivered = true
+            if (chat.chat.lastMessage?.id === m.id && chat.chat.lastMessage.feedback) {
+              chat.chat.lastMessage.feedback.isDelivered = true
+            }
+          }
+
+          matchedIds.push(m.id)
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      // Buffer for messages not yet in state (delivery beat send-ack race).
+      const missed = messageIds.filter(id => !matchedIds.includes(id))
+      missed.forEach(id => {
+        const existing = state.pendingFeedback[id] ?? {}
+        const prev = existing.deliveredUsers ?? []
+        if (!prev.includes(uidStr)) {
+          state.pendingFeedback[id] = { ...existing, deliveredUsers: [...prev, uidStr] }
+        }
+      })
+
+      // Mirror into selectedChat so the open panel re-renders.
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+
     // Live-incoming message from the socket. Dispatched by AppChat's
     // `new_message` handler. The same event fires for our own sends (server
     // echo), so we dedupe by id — `sendMsg.fulfilled` will have already
@@ -2498,23 +2645,52 @@ export const appChatSlice = createSlice({
       if (message.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
         if (existingIdx >= 0) {
-          // Dedupe but MERGE feedback — the broadcast echo may carry a
-          // stronger delivery status than the ack we already stored
-          // (e.g. ack returned `sent` but by the time the broadcast
-          // round-tripped, server flipped to `delivered`). isSent/isDelivered/isSeen
-          // are monotonic: once true, they stay true.
+          // Dedupe but MERGE feedback. For groups, isDelivered must be
+          // recomputed from deliveredTo/readBy arrays — the broadcast echo
+          // carries deliveryStatus: 'delivered' even when only some members
+          // have received the message, so OR-ing booleans is wrong for groups.
+          // For DMs, OR remains correct (any delivery = delivered).
           const existing = chatEntry.chat.messages[existingIdx]
+          // Merge deliveredTo/readBy arrays from the broadcast into the stored
+          // message so computeGroupDelivered has complete data.
+          const mergedDeliveredTo = (() => {
+            const base = existing.deliveredTo ?? []
+            const incoming = message.deliveredTo ?? []
+            if (!incoming.length) return base
+            const ids = new Set(base.map(d => String(d.userId)))
+            const toAdd = incoming.filter(d => !ids.has(String(d.userId)))
+            return toAdd.length ? [...base, ...toAdd] : base
+          })()
+          const mergedReadBy = (() => {
+            const base = existing.readBy ?? []
+            const incoming = message.readBy ?? []
+            if (!incoming.length) return base
+            const ids = new Set(base.map(r => String(r.userId)))
+            const toAdd = incoming.filter(r => !ids.has(String(r.userId)))
+            return toAdd.length ? [...base, ...toAdd] : base
+          })()
+          const msgForDeliveryCheck = { ...existing, deliveredTo: mergedDeliveredTo, readBy: mergedReadBy }
+          const mergedIsDelivered = chatEntry.isGroup
+            ? computeGroupDelivered(msgForDeliveryCheck, chatEntry.participants)
+            : existing.feedback.isDelivered || message.feedback.isDelivered
           const mergedFeedback = {
             isSent: existing.feedback.isSent || message.feedback.isSent,
-            isDelivered: existing.feedback.isDelivered || message.feedback.isDelivered,
+            isDelivered: mergedIsDelivered,
             isSeen: existing.feedback.isSeen || message.feedback.isSeen
           }
+          const arraysChanged =
+            mergedDeliveredTo !== (existing.deliveredTo ?? []) ||
+            mergedReadBy !== (existing.readBy ?? [])
           const feedbackChanged =
             mergedFeedback.isSent !== existing.feedback.isSent ||
             mergedFeedback.isDelivered !== existing.feedback.isDelivered ||
             mergedFeedback.isSeen !== existing.feedback.isSeen
-          if (feedbackChanged) {
-            chatEntry.chat.messages[existingIdx] = { ...existing, feedback: mergedFeedback }
+          if (feedbackChanged || arraysChanged) {
+            chatEntry.chat.messages[existingIdx] = {
+              ...existing,
+              feedback: mergedFeedback,
+              ...(arraysChanged ? { deliveredTo: mergedDeliveredTo, readBy: mergedReadBy } : {})
+            }
             console.log('[chat:receipt] R1c.feedback-merge dedupe + upgraded feedback for', message.id, {
               before: existing.feedback,
               after: mergedFeedback
@@ -2537,15 +2713,40 @@ export const appChatSlice = createSlice({
       // our own send. Server's broadcast `senderId` is sometimes the
       // numeric WSO2 user id, which mismatches the chat backend's ObjectId
       // we use as `userProfile.id`.
-      const stored: MessageType = isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
+      const rawStored: MessageType = isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
+      // For group chats, recompute isDelivered from arrays rather than trusting
+      // deliveryStatus from the broadcast — server emits 'delivered' prematurely.
+      const stored: MessageType = chatEntry.isGroup
+        ? (() => {
+            const groupDelivered = computeGroupDelivered(rawStored, chatEntry.participants)
+            return groupDelivered === rawStored.feedback.isDelivered
+              ? rawStored
+              : { ...rawStored, feedback: { ...rawStored.feedback, isDelivered: groupDelivered } }
+          })()
+        : rawStored
 
       // Drain pending feedback if any receipts arrived before this broadcast.
       if (stored.id && state.pendingFeedback[stored.id]) {
         const pf = state.pendingFeedback[stored.id]
         const before = { ...stored.feedback }
+
+        // Apply pending per-user deliveries to deliveredTo, then recompute
+        // isDelivered using group semantics (or true for DMs).
+        if (pf.deliveredUsers?.length) {
+          const existingDelivered = stored.deliveredTo ?? []
+          const existingIds = new Set(existingDelivered.map(d => String(d.userId)))
+          const toAdd = pf.deliveredUsers.filter(uid => !existingIds.has(uid))
+          if (toAdd.length) {
+            stored.deliveredTo = [...existingDelivered, ...toAdd.map(uid => ({ userId: uid, deliveredAt: new Date().toISOString() }))]
+          }
+        }
+        const pendingDelivered = chatEntry.isGroup
+          ? computeGroupDelivered(stored, chatEntry.participants)
+          : Boolean(pf.isDelivered) || Boolean(pf.deliveredUsers?.length) || Boolean(pf.isSeen)
+
         stored.feedback = {
           isSent: stored.feedback.isSent,
-          isDelivered: stored.feedback.isDelivered || Boolean(pf.isDelivered) || Boolean(pf.isSeen),
+          isDelivered: stored.feedback.isDelivered || pendingDelivered,
           isSeen: stored.feedback.isSeen || Boolean(pf.isSeen)
         }
         delete state.pendingFeedback[stored.id]
@@ -2677,7 +2878,18 @@ export const appChatSlice = createSlice({
       const skipMessagesWrite = isKickedGroup && chatEntry.chat.messages.length > 0
 
       if (!skipMessagesWrite) {
-        chatEntry.chat.messages = messages
+        // For group chats, recompute isDelivered from deliveredTo/readBy arrays
+        // rather than trusting deliveryStatus from sdkMessageToMessage — the
+        // server sets deliveryStatus: 'delivered' for groups even when only some
+        // members have received it. Mirrors mobile's computeGroupTickStatus.
+        chatEntry.chat.messages = chatEntry.isGroup
+          ? messages.map(m => {
+              const groupDelivered = computeGroupDelivered(m, chatEntry.participants)
+              return groupDelivered === m.feedback.isDelivered
+                ? m
+                : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+            })
+          : messages
       }
 
       // Kicked-group derivation pass — runs whether we wrote the messages
@@ -2784,7 +2996,16 @@ export const appChatSlice = createSlice({
 
       // Dedupe — in rare races a page boundary message could already exist.
       const existingIds = new Set(chatEntry.chat.messages.map(m => m.id).filter(Boolean) as string[])
-      const incoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+      const rawIncoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+      // Recompute group delivery from arrays (same fix as setChatMessages).
+      const incoming = chatEntry.isGroup
+        ? rawIncoming.map(m => {
+            const groupDelivered = computeGroupDelivered(m, chatEntry.participants)
+            return groupDelivered === m.feedback.isDelivered
+              ? m
+              : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+          })
+        : rawIncoming
 
       chatEntry.chat.messages = [...incoming, ...chatEntry.chat.messages]
       chatEntry.chat.oldestCursor = oldestCursor
@@ -2929,12 +3150,16 @@ export const appChatSlice = createSlice({
       if (newMsg.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === newMsg.id)
         if (existingIdx >= 0) {
-          // Broadcast echo beat our ack into Redux. Merge senderId AND the
-          // stronger feedback flags so we don't lose delivered/seen state.
+          // Broadcast echo beat our ack into Redux. Merge senderId AND feedback.
+          // For groups: recompute isDelivered from arrays (not boolean OR) so
+          // a premature 'delivered' deliveryStatus on the echo doesn't flip the tick.
           const existing = chatEntry.chat.messages[existingIdx]
+          const isDeliveredMerged = chatEntry.isGroup
+            ? computeGroupDelivered(existing, chatEntry.participants)
+            : existing.feedback.isDelivered || newMsg.feedback.isDelivered
           const mergedFeedback = {
             isSent: existing.feedback.isSent || newMsg.feedback.isSent,
-            isDelivered: existing.feedback.isDelivered || newMsg.feedback.isDelivered,
+            isDelivered: isDeliveredMerged,
             isSeen: existing.feedback.isSeen || newMsg.feedback.isSeen
           }
           console.log('[chat:receipt] 7c.feedback-merge ack: dedupe + merged feedback for', newMsg.id, {
@@ -2973,7 +3198,21 @@ export const appChatSlice = createSlice({
       if (newMsg.id && state.pendingFeedback[newMsg.id]) {
         const pf = state.pendingFeedback[newMsg.id]
         const before = { ...newMsg.feedback }
-        if (pf.isDelivered) newMsg.feedback.isDelivered = true
+
+        // Apply pending per-user deliveries before recomputing isDelivered.
+        if (pf.deliveredUsers?.length) {
+          const existingDelivered = newMsg.deliveredTo ?? []
+          const existingIds = new Set(existingDelivered.map(d => String(d.userId)))
+          const toAdd = pf.deliveredUsers.filter(uid => !existingIds.has(uid))
+          if (toAdd.length) {
+            newMsg.deliveredTo = [...existingDelivered, ...toAdd.map(uid => ({ userId: uid, deliveredAt: new Date().toISOString() }))]
+          }
+        }
+        const pendingDelivered = chatEntry.isGroup
+          ? computeGroupDelivered(newMsg, chatEntry.participants)
+          : Boolean(pf.isDelivered) || Boolean(pf.deliveredUsers?.length) || Boolean(pf.isSeen)
+
+        if (pendingDelivered) newMsg.feedback.isDelivered = true
         if (pf.isSeen) {
           newMsg.feedback.isSeen = true
           newMsg.feedback.isDelivered = true
@@ -2993,13 +3232,23 @@ export const appChatSlice = createSlice({
       // and the previous sender's prefix would visibly disappear when we
       // send a new message. Same fix shape as `receiveMessage` does for
       // isOwn echoes.
-      const stampedMsg: MessageType = state.userProfile
+      const rawStampedMsg: MessageType = state.userProfile
         ? {
             ...newMsg,
             senderId: newMsg.senderId || state.userProfile.id,
             senderName: newMsg.senderName ?? state.userProfile.fullName
           }
         : newMsg
+      // For group chats, recompute isDelivered from arrays (ACK may carry
+      // a full Message with deliveryStatus: 'delivered' set by the server).
+      const stampedMsg: MessageType = chatEntry.isGroup
+        ? (() => {
+            const groupDelivered = computeGroupDelivered(rawStampedMsg, chatEntry.participants)
+            return groupDelivered === rawStampedMsg.feedback.isDelivered
+              ? rawStampedMsg
+              : { ...rawStampedMsg, feedback: { ...rawStampedMsg.feedback, isDelivered: groupDelivered } }
+          })()
+        : rawStampedMsg
 
       const newMessages = [...chatEntry.chat.messages, stampedMsg]
       chatEntry.chat.messages = newMessages
@@ -3030,6 +3279,8 @@ export const {
   setLoadingOlder,
   receiveMessage,
   updateMessagesFeedback,
+  applyDeliveryReceipt,
+  applyReadReceiptEntry,
   addOrReplaceChat,
   setChatAvatarOptimistic,
   clearChatAvatar,

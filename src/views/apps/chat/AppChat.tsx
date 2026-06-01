@@ -27,6 +27,8 @@ import {
   applyParticipantLeft,
   applyParticipantJoined,
   updateMessagesFeedback,
+  applyDeliveryReceipt,
+  applyReadReceiptEntry,
   addOrReplaceChat,
   patchConversationFromEvent,
   removeChatFromList,
@@ -529,13 +531,17 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     }
 
     // Single-message delivered (other side received it).
+    // For group chats, `isDelivered` only flips to true once ALL eligible
+    // active participants have received the message — mirrors mobile's
+    // computeGroupTickStatus logic via the applyDeliveryReceipt reducer.
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
       if (!evt) return
       dispatch(
-        updateMessagesFeedback({
+        applyDeliveryReceipt({
           conversationId: evt.conversationId,
           messageIds: [evt.messageId],
-          isDelivered: true
+          userId: evt.deliveredTo.userId,
+          deliveredAt: evt.deliveredTo.deliveredAt ? String(evt.deliveredTo.deliveredAt) : undefined
         })
       )
     }
@@ -545,20 +551,43 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
       if (!evt?.messageIds?.length) return
       dispatch(
-        updateMessagesFeedback({
+        applyDeliveryReceipt({
           conversationId: evt.conversationId,
           messageIds: evt.messageIds,
-          isDelivered: true
+          userId: evt.deliveredTo,
+          deliveredAt: evt.deliveredAt
         })
       )
     }
 
-    // Read receipt — blue tick only for fullyReadMessageIds (read by ALL
-    // participants). Per SDK docs: updatedMessageIds = one user read,
-    // fullyReadMessageIds = everyone read → show blue tick.
+    // Read receipt handler.
+    // updatedMessageIds = messages this ONE user just read → update readBy
+    //   array so computeGroupDelivered can count readers as delivered.
+    // fullyReadMessageIds = messages ALL participants read → blue tick (isSeen).
+    // Mirrors mobile's handleReadReceipt logic in useSocketRoom.ts.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
       if (!evt) return
 
+      // Per-user read: update readBy arrays. A reader counts as delivered,
+      // so this also recomputes isDelivered for group messages.
+      const perUserIds: string[] =
+        Array.isArray(evt.updatedMessageIds) && evt.updatedMessageIds.length
+          ? evt.updatedMessageIds
+          : evt.messageId
+            ? [evt.messageId]
+            : []
+      if (perUserIds.length && evt.userId) {
+        dispatch(
+          applyReadReceiptEntry({
+            conversationId: evt.conversationId,
+            messageIds: perUserIds,
+            userId: evt.userId,
+            readAt: evt.readAt
+          })
+        )
+      }
+
+      // All-read: set isSeen (blue tick).
       const fullyReadIds = evt.fullyReadMessageIds ?? []
       if (!fullyReadIds.length) return
 
