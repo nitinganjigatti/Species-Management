@@ -17,7 +17,7 @@ Single React Context Provider that owns the `@antzsoft/chat-core` SDK lifecycle 
 | Gate on tenant flag | Early-returns when `auth.userData.settings.ENABLE_CHAT_MODULE === false` |
 | Handle auth changes | Effect deps include user_id / id / email — login/logout/user-switch all reconnect correctly |
 | Survive Strict Mode dev double-mount | `cancelled` closure flag blocks the `.then()` body if cleanup ran first |
-| Auto-reconnect | Native Socket.IO behavior + `refreshSocketAuth()` on `connect_error` |
+| Auto-reconnect | Native Socket.IO behavior + `refreshSocketAuth()` on `connect_error` + **client-side recovery layer** for the transit-encryption-on-reconnect bug ([socket-recovery.md](./socket-recovery.md)). Four triggers: transit error pattern, `reconnect_failed`, `visibilitychange → visible`, `window.focus`, cross-tab `storage` token-refresh. Visibility-gated + 10s cooldown. |
 
 ---
 

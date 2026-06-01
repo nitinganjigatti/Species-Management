@@ -467,7 +467,16 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
               const { isSent, isDelivered, isSeen } = lastMessage.feedback
               if (!isSent && !isDelivered && !isSeen) return null
               const icon = isSeen || isDelivered ? 'mdi:check-all' : 'mdi:check'
-              const color = isSeen ? '#53BDEB' : activeCondition ? 'rgba(255,255,255,0.75)' : '#7A8A8E'
+              // Match the chat bubble's seen-check color (success.main —
+              // theme green) so the read-receipt signal reads identically
+              // in the sidebar preview and the bubble itself. Reads well
+              // on both the light idle row background and the dark active
+              // (selected-chat) background.
+              const color = isSeen
+                ? 'success.main'
+                : activeCondition
+                ? 'rgba(255,255,255,0.75)'
+                : '#7A8A8E'
               return (
                 <Box component='span' sx={{ display: 'inline-flex', flexShrink: 0, color, mr: 0.5 }}>
                   <Icon icon={icon} fontSize='0.875rem' />

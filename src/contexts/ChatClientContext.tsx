@@ -218,16 +218,254 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     const onConnect = () => {
       setConnected(true)
       setError(null)
+      // [chat:socket-trace] Connection established — captures the
+      // socket.id + visibility / online state so we can correlate
+      // recovery with whether the user is actively looking at the tab.
+      try {
+        const live = getSocket()
+        console.log('[chat:socket-trace] connect ✓', {
+          socketId: live?.id,
+          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+          at: new Date().toISOString()
+        })
+      } catch {
+        /* swallow */
+      }
     }
+    // ── Stuck-socket recovery (transit-encryption-on-reconnect) ──────────
+    // Verified failure pattern from runtime trace 2026-06-01:
+    //   1. transport close → built-in retry succeeds at WS layer
+    //   2. server immediately rejects handshake with
+    //      "Transit encryption required: missing transitEphemeralPub /
+    //      transitAlgo in handshake auth"
+    //   3. Socket.IO sees this as a fatal connect_error and gives up
+    //      (`active === false`) → socket stays dead until page refresh.
+    //
+    // Root cause: SDK's auto-reconnect reuses the original handshake
+    // auth payload, but transit-encryption ephemeral keys are short-
+    // lived / session-scoped server-side. On reconnect the server expects
+    // fresh keys but receives stale/missing ones.
+    //
+    // Workaround: when we see this specific error AND the user is
+    // actively looking at the tab, tear down the socket and call
+    // `connectSocket()` again — that runs a fresh `fetchServerKeys()`
+    // + `performHandshake()` pair, producing new ephemeral keys the
+    // server will accept. Visibility-gated so we don't burn CPU on
+    // background tabs. 10-second cooldown prevents tight loops if the
+    // recovery itself fails repeatedly.
+    let lastRecoveryAt = 0
+    const RECOVERY_COOLDOWN_MS = 10000
+    const isTransitHandshakeFailure = (msg: string | undefined): boolean => {
+      if (!msg) return false
+
+      return /transit\s*encryption|transitEphemeralPub|transitAlgo/i.test(msg)
+    }
+    const recoverFromStuckSocket = (reason: string) => {
+      // Only when the tab is actively visible — keeps background tabs
+      // quiet, matches user's explicit "fire on visible" requirement.
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        console.log('[chat:socket-trace] recovery skipped — tab not visible', { reason })
+
+        return
+      }
+      const now = Date.now()
+      if (now - lastRecoveryAt < RECOVERY_COOLDOWN_MS) {
+        console.log('[chat:socket-trace] recovery skipped — cooldown active', {
+          reason,
+          msSinceLast: now - lastRecoveryAt
+        })
+
+        return
+      }
+      lastRecoveryAt = now
+      console.warn('[chat:socket-trace] recovery → tear down + fresh connectSocket', {
+        reason,
+        at: new Date().toISOString()
+      })
+      try {
+        // Full teardown. `disconnectSocket()` clears the singleton so
+        // the next `connectSocket()` rebuilds with fresh ephemeral keys
+        // and a new handshake. The .then/.catch surfaces success/failure
+        // under the same trace prefix so we can verify recovery worked.
+        disconnectSocket()
+        connectSocket(resolvedSocketConfig, getAccessToken)
+          .then(() => {
+            console.log('[chat:socket-trace] recovery ✓ — fresh handshake succeeded', {
+              at: new Date().toISOString()
+            })
+          })
+          .catch(e => {
+            console.error('[chat:socket-trace] recovery ✗ — fresh handshake failed', {
+              message: (e as Error)?.message,
+              at: new Date().toISOString()
+            })
+          })
+      } catch (e) {
+        console.error('[chat:socket-trace] recovery threw', e)
+      }
+    }
+
     const onConnectError = (err: Error) => {
       setError(err)
-      refreshSocketAuth()
+      // [chat:socket-trace] Auth or reachability failure. `active`
+      // tells us whether Socket.IO is still trying — if false, it has
+      // exhausted reconnectionAttempts and given up.
+      try {
+        const live = getSocket()
+        console.warn('[chat:socket-trace] connect_error', {
+          message: err?.message,
+          stillTrying: !!(live as { active?: boolean } | null)?.active,
+          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+          at: new Date().toISOString()
+        })
+      } catch {
+        /* swallow */
+      }
+      // Forward-compat guard: `refreshSocketAuth` is an SDK API. A
+      // future major version could remove or rename it. Wrap so a sync
+      // throw doesn't crash the connect_error handler — recovery below
+      // still runs and is the real fallback.
+      try {
+        refreshSocketAuth()
+      } catch (e) {
+        console.warn('[chat:socket-trace] refreshSocketAuth threw', e)
+      }
+      // Targeted recovery: only the verified transit-encryption-on-
+      // reconnect failure triggers a full teardown + fresh handshake.
+      // Every other connect_error keeps the existing behavior unchanged.
+      if (isTransitHandshakeFailure(err?.message)) {
+        // Small delay so refreshSocketAuth() lands first.
+        setTimeout(() => recoverFromStuckSocket('connect_error:transit'), 500)
+      }
     }
     const onDisconnect = (reason: string) => {
       console.log('[chat:socket] disconnected —', reason)
+      // [chat:socket-trace] Captures the disconnect reason + whether
+      // Socket.IO will auto-retry. Per the Socket.IO docs, two reasons
+      // disable auto-retry entirely:
+      //   • 'io server disconnect' — server explicitly disconnected us
+      //   • 'io client disconnect' — we (the client) called disconnect()
+      // For everything else (transport close/error, ping timeout), the
+      // SDK config of reconnectionAttempts:10 will retry; if those 10
+      // attempts fail, we see `reconnect_failed` (logged below).
+      try {
+        const live = getSocket()
+        console.warn('[chat:socket-trace] disconnect ✗', {
+          reason,
+          willAutoReconnect: reason !== 'io server disconnect' && reason !== 'io client disconnect',
+          stillTrying: !!(live as { active?: boolean } | null)?.active,
+          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+          at: new Date().toISOString()
+        })
+      } catch {
+        /* swallow */
+      }
       setConnected(false)
     }
-    const onReconnect = () => setConnected(true)
+    const onReconnect = () => {
+      // [chat:socket-trace] Built-in retry succeeded. Without this we
+      // can't tell whether the auto-reconnect actually got us back —
+      // only that the `connect` event fired (which would fire after a
+      // page refresh too).
+      try {
+        const live = getSocket()
+        console.log('[chat:socket-trace] reconnect ✓ (auto)', {
+          socketId: live?.id,
+          at: new Date().toISOString()
+        })
+      } catch {
+        /* swallow */
+      }
+      setConnected(true)
+    }
+
+    // [chat:socket-trace] Socket.IO manager events — fire on EVERY
+    // retry attempt and when the retry loop gives up.
+    const onIoReconnectAttempt = (attempt: number) => {
+      console.log('[chat:socket-trace] reconnect_attempt', {
+        attempt,
+        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+        at: new Date().toISOString()
+      })
+    }
+    const onIoReconnectError = (err: Error) => {
+      console.warn('[chat:socket-trace] reconnect_error', {
+        message: err?.message,
+        at: new Date().toISOString()
+      })
+    }
+    const onIoReconnectFailed = () => {
+      console.error('[chat:socket-trace] reconnect_failed — Socket.IO gave up. Triggering manual recovery.', {
+        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
+        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
+        at: new Date().toISOString()
+      })
+      // Belt-and-suspenders — if all 10 built-in attempts fail for ANY
+      // reason (not just transit-encryption), try one fresh handshake
+      // when the tab is visible. Same cooldown-guarded path.
+      recoverFromStuckSocket('reconnect_failed')
+    }
+
+    // Shared "tab is now active, check the socket" handler. Fires for
+    // both `visibilitychange` (tab swap inside the same window) and
+    // `window.focus` (alt-tab to a different app on Mac/Linux, returning
+    // from devtools, returning from another browser window). Covers the
+    // edge cases where one event fires but the other doesn't.
+    const checkSocketOnTabActive = (source: 'visibility' | 'focus') => {
+      // Only when truly visible. `focus` can fire while document is
+      // hidden in odd browser states (e.g. opening devtools as a popup).
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+      // Forward-compat guard: `getSocket()` throws synchronously per the
+      // SDK ("Socket not initialized. Call connectSocket first.") in
+      // some lifecycle states. A future SDK version could also rename
+      // `.active` or change the singleton API. Treat any sync throw as
+      // "no live socket to inspect" and fall through silently.
+      let live: ChatSocket | null = null
+      try {
+        live = getSocket()
+      } catch {
+        return
+      }
+      if (!live) return
+      if (live.connected) return
+      const stillTrying = !!(live as { active?: boolean }).active
+      console.log('[chat:socket-trace] tab active', {
+        source,
+        connected: live.connected,
+        stillTrying,
+        at: new Date().toISOString()
+      })
+      // Only recover if the SDK has truly given up. Don't interrupt an
+      // in-flight retry — let Socket.IO finish its backoff window first.
+      if (!stillTrying) {
+        recoverFromStuckSocket(`${source}:active`)
+      }
+    }
+    const onVisibilityChange = () => checkSocketOnTabActive('visibility')
+    const onWindowFocus = () => checkSocketOnTabActive('focus')
+
+    // Cross-tab token refresh. The `storage` event fires in OTHER tabs
+    // when localStorage changes — so if a different tab refreshes the
+    // auth token, this tab notices and rebuilds the socket so future
+    // emits use the new token. Same-tab token refresh is handled
+    // automatically because `getAccessToken` re-reads localStorage every
+    // time `connectSocket` is called (recovery path included).
+    const onStorageChange = (evt: StorageEvent) => {
+      if (evt.key !== authConfig.storageTokenKeyName) return
+      // Empty newValue means logout — let the auth flow handle teardown.
+      if (!evt.newValue) return
+      console.log('[chat:socket-trace] auth token refreshed in another tab → recover', {
+        at: new Date().toISOString()
+      })
+      recoverFromStuckSocket('token-refresh')
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('focus', onWindowFocus)
+    window.addEventListener('storage', onStorageChange)
 
     let s: ChatSocket | null = null
     let detachLifecycleLogs: (() => void) | null = null
@@ -244,20 +482,42 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         s.on('connect_error', onConnectError)
         s.on('disconnect', onDisconnect)
         s.io?.on?.('reconnect', onReconnect)
+        // [chat:socket-trace] Manager-level events go through `s.io`.
+        s.io?.on?.('reconnect_attempt', onIoReconnectAttempt)
+        s.io?.on?.('reconnect_error', onIoReconnectError)
+        s.io?.on?.('reconnect_failed', onIoReconnectFailed)
       })
       .catch(setError)
 
     return () => {
       cancelled = true
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('focus', onWindowFocus)
+      window.removeEventListener('storage', onStorageChange)
       if (s) {
         s.off('connect', onConnect)
         s.off('connect_error', onConnectError)
         s.off('disconnect', onDisconnect)
         s.io?.off?.('reconnect', onReconnect)
+        s.io?.off?.('reconnect_attempt', onIoReconnectAttempt)
+        s.io?.off?.('reconnect_error', onIoReconnectError)
+        s.io?.off?.('reconnect_failed', onIoReconnectFailed)
       }
       detachLifecycleLogs?.()
-      disconnectSocket()
-      disposeChatClient()
+      // Forward-compat guards on the teardown SDK calls. If a future
+      // SDK version removes / renames these, the cleanup still runs to
+      // completion and we still reset the local React state — so a
+      // half-broken SDK update can't strand a stale client/socket ref.
+      try {
+        disconnectSocket()
+      } catch (e) {
+        console.warn('[chat:socket-trace] disconnectSocket threw on cleanup', e)
+      }
+      try {
+        disposeChatClient()
+      } catch (e) {
+        console.warn('[chat:socket-trace] disposeChatClient threw on cleanup', e)
+      }
       setConnected(false)
       setClient(null)
       setSocket(null)
