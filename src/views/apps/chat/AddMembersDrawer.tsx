@@ -282,7 +282,15 @@ const AddMembersDrawer = ({
                               <CustomAvatar
                                 skin='light'
                                 color={c.avatarColor}
-                                sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                                sx={{
+                                  width: 42,
+                                  height: 42,
+                                  fontSize: '0.875rem',
+                                  background: theme =>
+                                    `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                                  color: 'common.white',
+                                  fontWeight: 600
+                                }}
                               >
                                 {getInitials(c.fullName)}
                               </CustomAvatar>

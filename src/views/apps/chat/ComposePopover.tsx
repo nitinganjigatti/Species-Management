@@ -251,7 +251,15 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
                         <CustomAvatar
                           skin='light'
                           color={contact.avatarColor}
-                          sx={{ width: 34, height: 34, fontSize: '0.8rem' }}
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            fontSize: '0.8rem',
+                            background: theme =>
+                              `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                            color: 'common.white',
+                            fontWeight: 600
+                          }}
                         >
                           {getInitials(contact.fullName)}
                         </CustomAvatar>
@@ -305,7 +313,15 @@ export const ComposePanel = ({ contacts, chats, onClose, onNewGroup, onSelectCon
                       <CustomAvatar
                         skin='light'
                         color={contact.avatarColor}
-                        sx={{ width: 34, height: 34, fontSize: '0.8rem' }}
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          fontSize: '0.8rem',
+                          background: theme =>
+                            `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                          color: 'common.white',
+                          fontWeight: 600
+                        }}
                       >
                         {getInitials(contact.fullName)}
                       </CustomAvatar>

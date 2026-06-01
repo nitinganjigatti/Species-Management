@@ -292,7 +292,18 @@ const CreateGroupDrawer = ({ contacts, currentUserId, currentUserName, currentUs
                   {currentUserAvatar ? (
                     <MuiAvatar src={currentUserAvatar} alt='You' sx={{ width: 40, height: 40 }} />
                   ) : (
-                    <CustomAvatar skin='light' sx={{ width: 40, height: 40, fontSize: '0.8rem' }}>
+                    <CustomAvatar
+                      skin='light'
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        fontSize: '0.8rem',
+                        background: theme =>
+                          `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                        color: 'common.white',
+                        fontWeight: 600
+                      }}
+                    >
                       {getInitials(currentUserName ?? 'You').slice(0, 2)}
                     </CustomAvatar>
                   )}
@@ -332,7 +343,15 @@ const CreateGroupDrawer = ({ contacts, currentUserId, currentUserName, currentUs
                       <CustomAvatar
                         skin='light'
                         color={contact.avatarColor}
-                        sx={{ width: 40, height: 40, fontSize: '0.8rem' }}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          fontSize: '0.8rem',
+                          background: theme =>
+                            `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                          color: 'common.white',
+                          fontWeight: 600
+                        }}
                       >
                         {getInitials(contact.fullName)}
                       </CustomAvatar>
@@ -456,7 +475,15 @@ const CreateGroupDrawer = ({ contacts, currentUserId, currentUserName, currentUs
                             <CustomAvatar
                               skin='light'
                               color={contact.avatarColor}
-                              sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                              sx={{
+                                width: 42,
+                                height: 42,
+                                fontSize: '0.875rem',
+                                background: theme =>
+                                  `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                                color: 'common.white',
+                                fontWeight: 600
+                              }}
                             >
                               {getInitials(contact.fullName)}
                             </CustomAvatar>

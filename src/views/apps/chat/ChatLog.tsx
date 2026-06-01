@@ -1092,7 +1092,13 @@ const ChatLog = (props: ChatLogType) => {
                   height: '2rem',
                   fontSize: '0.875rem',
                   ml: isSender ? 4 : undefined,
-                  mr: !isSender ? 4 : undefined
+                  mr: !isSender ? 4 : undefined,
+                  // Unified gradient fallback — only visible when no
+                  // `avatarSrc` is provided (the image overlay hides it).
+                  background: theme =>
+                    `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                  color: 'common.white',
+                  fontWeight: 600
                 }}
                 {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
               >

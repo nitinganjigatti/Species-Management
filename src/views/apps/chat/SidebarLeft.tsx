@@ -535,7 +535,19 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     <CustomAvatar
                       color={chat.avatarColor}
                       skin={activeCondition ? 'light-static' : 'light'}
-                      sx={{ width: 40, height: 40, fontSize: '1rem' }}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        fontSize: '1rem',
+                        // Unified teal-gradient fallback — matches the
+                        // group-avatar pattern + the "New group" button
+                        // so every avatar without an image reads the
+                        // same across the chat module.
+                        background: theme =>
+                          `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                        color: 'common.white',
+                        fontWeight: 600
+                      }}
                     >
                       {getInitials(chat.fullName)}
                     </CustomAvatar>
