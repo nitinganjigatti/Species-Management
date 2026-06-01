@@ -28,7 +28,8 @@ import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionT
 import { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 import { GetClinicalAssessmentListParams, GetClinicalAssessmentListResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt'
 import { Id } from 'src/types/hospital'
-import type { CheckAnimalStatusByType, ClinicalAssessmentList as ClinicalAssessmentListItem, GetSymptomClinicalTabList, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { ClinicalAssessmentList as ClinicalAssessmentListItem } from 'src/types/hospital/models/clinicalAssessment'
+import type { CheckAnimalStatusByType, GetSymptomClinicalTabList, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'

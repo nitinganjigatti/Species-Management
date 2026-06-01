@@ -15,7 +15,9 @@ import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/sh
 import { AuthContext } from 'src/context/AuthContext'
 import Search from 'src/views/utility/Search'
 import MUICheckboxRaw from 'src/views/forms/form-fields/MUICheckbox'
-import type { ClinicalAssessmentList as ClinicalAssessmentListItem, GetSymptomClinicalTabList, Id, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { Id } from 'src/types/hospital/models'
+import type { ClinicalAssessmentList as ClinicalAssessmentListItem } from 'src/types/hospital/models/clinicalAssessment'
+import type { GetSymptomClinicalTabList, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 const MUICheckbox: any = MUICheckboxRaw
 
 interface ClinicalAssessmentListProps {
@@ -193,7 +195,12 @@ export default function ClinicalAssessmentList({
               justifyContent: 'center'
             }}
           >
-            <Box component='img' src='/images/no_data_animal_2.png' alt={t('hospital_module.no_clinical_assessment_alt') as string} sx={{ maxWidth: '250px' }} />
+            <Box
+              component='img'
+              src='/images/no_data_animal_2.png'
+              alt={t('hospital_module.no_clinical_assessment_alt') as string}
+              sx={{ maxWidth: '250px' }}
+            />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_clinical_assessment_to_show')}
             </Typography>
@@ -270,7 +277,10 @@ export default function ClinicalAssessmentList({
             {!hasMore && !isLoading && symptoms?.length > 10 && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant='body2' color='textSecondary'>
-                  All assessments loaded ({symptoms?.length} of {totalCount})
+                  {t('all_assessments_loaded', {
+                    loaded: symptoms?.length,
+                    total: totalCount
+                  })}
                 </Typography>
               </Box>
             )}

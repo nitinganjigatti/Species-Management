@@ -13,7 +13,8 @@ import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
-import type { SymptomsListForAdding, SymptomStatus } from 'src/types/hospital/models'
+import type { SymptomStatus } from 'src/types/hospital/models'
+import { SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 import type { ClinicalAssessmentFormData } from '../inpatient/AddClinicalAssessment'
 
 dayjs.extend(utc)

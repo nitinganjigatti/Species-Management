@@ -31,7 +31,8 @@ import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalA
 import { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
 import { StatusKey } from './Symptoms'
 import { GetClinicalAssessmentCardResponse, GetClinicalAssmntRecordParams, GetClinicalAssmntRecordResponse, UpdateClinicalAssmntParams, UpdateClinicalAssmntResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt'
-import { ClinicalAssessmentCardList, SymptomStatus, ClinicalAsmntType, Prognosis } from 'src/types/hospital/models'
+import { SymptomStatus } from 'src/types/hospital/models'
+import { ClinicalAssessmentCardList, ClinicalAsmntType, Prognosis } from 'src/types/hospital/models/clinicalAssessment'
 import { DeleteNotesPayload, DeleteNotesResponse, UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 import { ApiError } from 'src/types/hospital/api'
 

@@ -8,7 +8,7 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 import { useTranslation } from 'react-i18next'
-import { ClinicalAssessmentCardList } from 'src/types/hospital/models'
+import { ClinicalAssessmentCardList } from 'src/types/hospital/models/clinicalAssessment'
 
 interface ClinicalAssessmentCardProps {
   record: ClinicalAssessmentCardList
