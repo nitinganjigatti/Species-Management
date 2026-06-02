@@ -474,7 +474,10 @@ const ChatLog = (props: ChatLogType) => {
       pendingExternalJumpRef.current = null
       scrollMessageIntoView(el)
       el.classList.add('msg-flash')
-      setTimeout(() => el.classList.remove('msg-flash'), 1200)
+      // Match the CSS animation duration (2200ms in styles/custom.css).
+      // Removing earlier would cut the fade-out mid-way and the highlight
+      // would visibly snap instead of easing back to transparent.
+      setTimeout(() => el.classList.remove('msg-flash'), 2200)
       onScrollToTargetDone?.()
 
       return

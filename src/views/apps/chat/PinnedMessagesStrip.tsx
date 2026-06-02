@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Chat API
 import { unpinMessageOverSocket } from 'src/lib/chat/api'
+import { isForwarded, stripForwardMarker } from 'src/lib/chat/forwardMarker'
 
 // ** Types
 import type { SelectedChatType } from 'src/types/apps/chatTypes'
@@ -130,9 +131,21 @@ const PinnedMessagesStrip = ({ selectedChat, onScrollToMessage }: PinnedMessages
           </Box>
         ) : null}
         <Icon icon='mdi:pin' fontSize='1.125rem' />
-        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-          <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
-            {current.message || (current.attachments?.length ? '📎 Attachment' : '')}
+        <Box sx={{ minWidth: 0, flexGrow: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {/* WhatsApp-style forward indicator: when the pinned message was a
+              forward, show a small share icon BEFORE the preview text and
+              render the body with the [fwd] sentinel stripped — otherwise
+              the user sees the raw "[fwd]" marker in the preview. */}
+          {isForwarded(current.message) ? (
+            <Icon
+              icon='mdi:share'
+              fontSize='0.875rem'
+              color='var(--mui-palette-text-secondary)'
+              style={{ flexShrink: 0 }}
+            />
+          ) : null}
+          <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary', minWidth: 0, flexGrow: 1 }}>
+            {stripForwardMarker(current.message) || (current.attachments?.length ? '📎 Attachment' : '')}
           </Typography>
         </Box>
         <IconButton
