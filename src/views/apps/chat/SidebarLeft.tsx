@@ -256,6 +256,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     }
   }, [selectedChatId])
 
+  // ── unread counts for the filter-tab badges ───────────────────────────────
+  // WhatsApp-style: "Unread" badge shows chats with any unread, "Groups"
+  // badge shows GROUP chats with any unread. Both are derived from
+  // `state.chats[*].chat.unseenMsgs` which is socket-driven: a
+  // `conversation_updated` broadcast updates `unseenMsgs` via
+  // `patchConversationFromEvent`, and opening a chat triggers
+  // `markReadOverSocket` which lands a follow-up `conversation_updated`
+  // with `unreadCount: 0`. No polling, no REST — recomputes per render
+  // off Redux state, so the badges blink up/down live.
+  const unreadChatCount = (store?.chats ?? []).filter(c => (c.chat?.unseenMsgs ?? 0) > 0).length
+  const unreadGroupCount = (store?.chats ?? []).filter(
+    c => c.isGroup === true && (c.chat?.unseenMsgs ?? 0) > 0
+  ).length
+
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
     if (!store?.chats) return []
@@ -1057,14 +1071,28 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {FILTER_TABS.map(tab => (
-                  <FilterChip
-                    key={tab.value}
-                    label={tab.label}
-                    active={activeFilter === tab.value}
-                    onClick={() => handleFilterChange(tab.value)}
-                  />
-                ))}
+                {FILTER_TABS.map(tab => {
+                  // WhatsApp-style count badge — only Unread and Groups
+                  // get one. "All" stays bare. Counts are Redux-derived,
+                  // so live socket updates (conversation_updated →
+                  // unseenMsgs) propagate to the badge automatically.
+                  const count =
+                    tab.value === 'unread'
+                      ? unreadChatCount
+                      : tab.value === 'groups'
+                      ? unreadGroupCount
+                      : undefined
+
+                  return (
+                    <FilterChip
+                      key={tab.value}
+                      label={tab.label}
+                      active={activeFilter === tab.value}
+                      onClick={() => handleFilterChange(tab.value)}
+                      count={count}
+                    />
+                  )
+                })}
               </Box>
             </Box>
 
