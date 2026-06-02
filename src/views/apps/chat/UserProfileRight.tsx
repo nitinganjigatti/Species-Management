@@ -1371,7 +1371,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            Group admin
+                            Admin
                           </Box>
                         )}
                         {isCurrentUserAdmin && !m.isYou && (

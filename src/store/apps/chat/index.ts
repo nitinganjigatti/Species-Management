@@ -1320,18 +1320,15 @@ export const forwardMessage = createAsyncThunk<
     sourceMessageId: string
     sourceText?: string
     sourceAttachments?: ChatAttachmentType[]
-    targetChatId: ChatEntityId
-    openTargetAfter?: boolean
+    targetChatIds: ChatEntityId[]
     isOwnMessage?: boolean
   }
 >('appChat/forwardMessage', async (params, { dispatch }) => {
-  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true, isOwnMessage } = params
+  const { sourceText, sourceAttachments, targetChatIds, isOwnMessage } = params
   const client = getChatClientOrNull()
-  if (!client || typeof targetChatId !== 'string') {
-    throw new Error('[chat] forwardMessage requires an initialized SDK and a real target chat id')
+  if (!client || !targetChatIds.length) {
+    throw new Error('[chat] forwardMessage requires an initialized SDK and at least one target chat id')
   }
-
-  const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
   // Map ChatAttachmentType → SendMessageAttachment. Same shape as sendMsg.
   const attachments = sourceAttachments?.length
@@ -1353,13 +1350,18 @@ export const forwardMessage = createAsyncThunk<
   const text =
     isOwnMessage && !isForwarded(sourceText) ? stripForwardMarker(sourceText) : composeForwardedText(sourceText)
 
+  // Send to all targets in parallel — mirrors mobile's Promise.all approach.
   try {
-    await sendMessageOverSocket({
-      conversationId: targetChatId,
-      text,
-      tempId,
-      ...(attachments ? { attachments } : {})
-    })
+    await Promise.all(
+      targetChatIds.map(conversationId =>
+        sendMessageOverSocket({
+          conversationId: String(conversationId),
+          text,
+          tempId: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          ...(attachments ? { attachments } : {})
+        })
+      )
+    )
   } catch (err) {
     console.error('[chat] forwardMessage send failed:', err)
     throw err
@@ -1367,8 +1369,9 @@ export const forwardMessage = createAsyncThunk<
 
   dispatch(setForwardingMessage(null))
 
-  if (openTargetAfter) {
-    dispatch(selectChat(targetChatId))
+  // Navigate into the chat only when a single target was chosen.
+  if (targetChatIds.length === 1) {
+    dispatch(selectChat(targetChatIds[0]))
   }
 })
 
