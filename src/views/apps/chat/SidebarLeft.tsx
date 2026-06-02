@@ -517,10 +517,32 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           ((currentUserIdForPresence && String(lastMessage.senderId) === currentUserIdForPresence) ||
             (!lastMessage.senderId && myFullName && lastMessage.senderName === myFullName))
       )
+      // Tick source — merge the cached `lastMessage.feedback` with the LIVE
+      // thread message of the same id (when that chat's messages are loaded,
+      // e.g. the currently-open chat). A `message_delivered`/`read_receipt`
+      // always mutates the live message in `messages[]`, but only syncs the
+      // cached `lastMessage.feedback` when their ids match — which can miss
+      // (the two drift to different ids), leaving the sidebar stuck at ✓ while
+      // the bubble shows ✓✓. OR-merging both sources is render-only and
+      // monotonic (sent → delivered → seen), so it can NEVER show fewer ticks
+      // than the cached value alone, only recover ticks the live message
+      // already earned. Falls back to the cached value for chats whose
+      // messages aren't loaded.
+      const liveTwinFeedback = lastMessage?.id
+        ? chat.chat.messages?.find(m => m.id === lastMessage.id)?.feedback
+        : undefined
+      const tickFeedback =
+        lastMessage?.feedback || liveTwinFeedback
+          ? {
+              isSent: Boolean(lastMessage?.feedback?.isSent || liveTwinFeedback?.isSent),
+              isDelivered: Boolean(lastMessage?.feedback?.isDelivered || liveTwinFeedback?.isDelivered),
+              isSeen: Boolean(lastMessage?.feedback?.isSeen || liveTwinFeedback?.isSeen)
+            }
+          : undefined
       const lastMsgTick =
-        isOwnLastMessage && lastMessage?.feedback
+        isOwnLastMessage && tickFeedback
           ? (() => {
-              const { isSent, isDelivered, isSeen } = lastMessage.feedback
+              const { isSent, isDelivered, isSeen } = tickFeedback
               if (!isSent && !isDelivered && !isSeen) return null
               const icon = isSeen || isDelivered ? 'mdi:check-all' : 'mdi:check'
               // Match the chat bubble's seen-check color (success.main —

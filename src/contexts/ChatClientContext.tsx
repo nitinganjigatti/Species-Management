@@ -1,19 +1,19 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 
 import { useDispatch } from 'react-redux'
 
 import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth } from '@antzsoft/chat-core'
 
 import { useAuth } from 'src/hooks/useAuth'
-import { getChatClient, disposeChatClient } from 'src/lib/chat/client'
+import { getChatClient, getChatClientOrNull, disposeChatClient } from 'src/lib/chat/client'
 import authConfig from 'src/configs/auth'
 import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
 import type { AntzChatClient, ChatSocket } from 'src/lib/chat/api'
 import { updateChatProfile, syncAvatar } from 'src/lib/chat/api'
 import { attachSocketLifecycleLogs } from 'src/lib/chat/socketLogger'
-import { flushPendingOutbox } from 'src/store/apps/chat'
+import { flushPendingOutbox, fetchChatsContacts } from 'src/store/apps/chat'
 import type { AppDispatch } from 'src/store'
 
 /**
@@ -66,6 +66,51 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const [connected, setConnected] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
+  // ── Self-heal (Phase #3) ──────────────────────────────────────────────────
+  // When the tab is hidden long enough (laptop sleep, system idle, etc.) the
+  // chat SDK can end up in a stuck state: the socket reconnect path may have
+  // succeeded but the SDK singleton can be null OR the server-side session
+  // can be stale. The next chat REST call then explodes with
+  // "[chat-api] X: SDK not initialized" (Phase #2 made these gracefully
+  // reject instead of crashing; this phase makes them not happen at all).
+  //
+  // Mechanism — when the tab becomes visible after >5 min hidden AND the
+  // SDK client is null, bump `reinitCounter` to re-fire the main init
+  // useEffect (which idempotently rebuilds the client + socket). Same-tab
+  // token refresh is already handled by the existing `getAccessToken`
+  // closure that re-reads localStorage on every connectSocket call.
+  //
+  // What this DOESN'T fix: long sleeps where the access token itself has
+  // expired. AuthContext doesn't auto-refresh; only app init + explicit
+  // login refresh it. If the token is expired, the re-init will fail with
+  // a 401/403 and `error` will surface — the existing global axios
+  // interceptor will dispatch `session-expired` → logout flow takes over.
+  // That's the safe fallback; no chat-specific 401 handler needed.
+  const lastHiddenAtRef = useRef<number | null>(null)
+  const reinitInFlightRef = useRef(false)
+  const reinitAttemptsRef = useRef(0)
+  const reinitBackoffTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [reinitCounter, setReinitCounter] = useState(0)
+  /** Cooldown tracker for the receipt-sync-on-focus workaround. */
+  const lastReceiptSyncAtRef = useRef<number | null>(null)
+
+  /** Long-sleep threshold: shorter returns are noise; longer matches real sleep / laptop-close. */
+  const LONG_SLEEP_THRESHOLD_MS = 5 * 60 * 1000
+  /** Backoff schedule for failed re-init attempts (silent retry). */
+  const REINIT_BACKOFF_MS = [5_000, 10_000, 20_000]
+  const MAX_REINIT_ATTEMPTS = REINIT_BACKOFF_MS.length
+  /**
+   * Receipt-sync workaround thresholds. The backend doesn't reliably emit
+   * read_receipt / message_delivered / conversation_updated socket events
+   * to the sender when the recipient reads a DM, so when the user returns
+   * focus to the chat tab we silently re-fetch the conversation list to
+   * pull in missed feedback. Threshold filters out quick alt-tabs; cooldown
+   * prevents spam during rapid focus changes.
+   * REMOVE ONCE BACKEND emits those events reliably.
+   */
+  const RECEIPT_SYNC_THRESHOLD_MS = 5_000
+  const RECEIPT_SYNC_COOLDOWN_MS = 30_000
+
   // Tenant gate — short-circuit to a passthrough when either
   // `ENABLE_CHAT_MODULE` or `ENABLE_CHAT_MODULE_IN_WEB` is off so we don't
   // fetch profile / open a socket / register listeners for tenants that
@@ -73,6 +118,98 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const enableChatModule = Boolean(
     auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
   )
+
+  // Self-heal listener — separate from the existing socket-recovery
+  // visibility handler (which only triggers when the SOCKET is stuck).
+  // This one fires when the tab returns after a long hidden interval
+  // AND the SDK CLIENT itself is null (e.g., disposed during a prior
+  // cleanup and never re-initialized because nothing forced the main
+  // useEffect to re-run).
+  //
+  // Bump `reinitCounter` to trigger the main init effect again — its dep
+  // list includes `reinitCounter`, so a bump runs cleanup (no-op when
+  // client is already null) then runs init (rebuilds client + socket).
+  useEffect(() => {
+    if (!enableChatModule) return
+    if (typeof document === 'undefined') return
+
+    const onSelfHealVisibility = () => {
+      const visible = document.visibilityState === 'visible'
+      if (!visible) {
+        lastHiddenAtRef.current = Date.now()
+
+        return
+      }
+      const hiddenAt = lastHiddenAtRef.current
+      lastHiddenAtRef.current = null
+      if (hiddenAt == null) return
+      const hiddenDuration = Date.now() - hiddenAt
+
+      // SHORT-sleep return (>RECEIPT_SYNC_THRESHOLD_MS): backend doesn't
+      // always emit read_receipt / message_delivered / conversation_updated
+      // socket events to the sender when the recipient reads a DM (verified
+      // missing in test). The backend DOES record the read state — visible
+      // because a page refresh shows the correct tick. Workaround: when
+      // the user returns attention to the tab after being away >5s, silently
+      // refresh the conversation list so the sidebar picks up any missed
+      // receipts/feedback without a page reload.
+      //
+      // Cooldown via `lastReceiptSyncAtRef` prevents spam if the user is
+      // rapidly switching tabs. Independent from the long-sleep SDK re-init
+      // path below — receipt sync fires for short returns, re-init fires
+      // for long returns + dead SDK.
+      //
+      // REMOVE ONCE BACKEND emits read_receipt / message_delivered /
+      // conversation_updated reliably for DM reads.
+      if (hiddenDuration >= RECEIPT_SYNC_THRESHOLD_MS && getChatClientOrNull()) {
+        const now = Date.now()
+        const sinceLastSync = now - (lastReceiptSyncAtRef.current ?? 0)
+        if (sinceLastSync >= RECEIPT_SYNC_COOLDOWN_MS) {
+          lastReceiptSyncAtRef.current = now
+          console.log('[chat:receipt-sync] focus return → refreshing conversation list', {
+            hiddenSec: Math.round(hiddenDuration / 1000)
+          })
+          dispatch(fetchChatsContacts())
+            .unwrap()
+            .catch(e => console.warn('[chat:receipt-sync] refresh failed (non-fatal)', e))
+        }
+      }
+
+      if (hiddenDuration < LONG_SLEEP_THRESHOLD_MS) return
+      // Long-sleep return. Healthy SDK → no-op (receipt sync above already
+      // covered the missed-event case).
+      if (getChatClientOrNull()) {
+        console.log('[chat:selfheal] long-sleep return, SDK alive — no re-init needed', {
+          hiddenSec: Math.round(hiddenDuration / 1000)
+        })
+
+        return
+      }
+      // SDK is dead → force a re-init cycle.
+      if (reinitInFlightRef.current) {
+        console.log('[chat:selfheal] re-init already in flight — skipping bump')
+
+        return
+      }
+      console.warn('[chat:selfheal] long-sleep return + SDK dead → bumping reinitCounter', {
+        hiddenSec: Math.round(hiddenDuration / 1000)
+      })
+      reinitInFlightRef.current = true
+      reinitAttemptsRef.current = 0
+      setReinitCounter(c => c + 1)
+    }
+
+    document.addEventListener('visibilitychange', onSelfHealVisibility)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onSelfHealVisibility)
+      if (reinitBackoffTimeoutRef.current) {
+        clearTimeout(reinitBackoffTimeoutRef.current)
+        reinitBackoffTimeoutRef.current = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableChatModule])
 
   useEffect(() => {
     if (!enableChatModule) return
@@ -535,8 +672,76 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         s.io?.on?.('reconnect_attempt', onIoReconnectAttempt)
         s.io?.on?.('reconnect_error', onIoReconnectError)
         s.io?.on?.('reconnect_failed', onIoReconnectFailed)
+
+        // Self-heal: if this init was triggered by a reinitCounter bump
+        // (long-sleep return + dead SDK), reset the in-flight flag + the
+        // attempts counter so future bumps are accepted, then replay the
+        // conversation list so the sidebar reflects any messages that
+        // arrived while the SDK was down. The first init of the session
+        // also lands here harmlessly — counter is already 0 and the flag
+        // was already false, so we skip the replay then (the initial
+        // mount fetch is owned by ChatLauncher / AppChat, not this).
+        if (reinitInFlightRef.current) {
+          console.log('[chat:selfheal] re-init ✓ — SDK + socket restored', {
+            attempts: reinitAttemptsRef.current + 1
+          })
+          // Replay: refresh conversation list. Sidebar will reflect any
+          // chats that received messages during the dead-SDK window.
+          // Active-chat data (messages, presence, lastSeen) refreshes
+          // lazily via per-component useEffects on next interaction —
+          // anything urgent will also push via socket since the new
+          // connectSocket above already wired the event listeners.
+          dispatch(fetchChatsContacts())
+            .unwrap()
+            .then(r => {
+              console.log('[chat:selfheal] replay ✓ — refreshed conversation list', {
+                chats: r.chatsContacts?.length ?? 0
+              })
+            })
+            .catch(e => {
+              console.warn('[chat:selfheal] replay failed (non-fatal)', e)
+            })
+        }
+        reinitInFlightRef.current = false
+        reinitAttemptsRef.current = 0
+        if (reinitBackoffTimeoutRef.current) {
+          clearTimeout(reinitBackoffTimeoutRef.current)
+          reinitBackoffTimeoutRef.current = null
+        }
       })
-      .catch(setError)
+      .catch(err => {
+        setError(err)
+        if (cancelled) return
+        // Self-heal failure path — only triggers backoff when this init
+        // was driven by a self-heal bump (not the first init of the
+        // session, where a failure should surface to the user via the
+        // existing `error` state without a silent retry loop).
+        if (!reinitInFlightRef.current) return
+        const attempt = reinitAttemptsRef.current
+        if (attempt >= MAX_REINIT_ATTEMPTS) {
+          console.error('[chat:selfheal] re-init failed after max attempts — giving up', {
+            attempts: attempt,
+            message: (err as Error)?.message
+          })
+          reinitInFlightRef.current = false
+
+          return
+        }
+        const backoffMs = REINIT_BACKOFF_MS[attempt]
+        reinitAttemptsRef.current = attempt + 1
+        console.warn('[chat:selfheal] re-init failed — backoff before retry', {
+          attempt: attempt + 1,
+          backoffMs,
+          message: (err as Error)?.message
+        })
+        if (reinitBackoffTimeoutRef.current) clearTimeout(reinitBackoffTimeoutRef.current)
+        reinitBackoffTimeoutRef.current = setTimeout(() => {
+          reinitBackoffTimeoutRef.current = null
+          // Bump again to retry. `reinitInFlightRef` stays true so
+          // concurrent visibility events don't fire a parallel cycle.
+          setReinitCounter(c => c + 1)
+        }, backoffMs)
+      })
 
     return () => {
       cancelled = true
@@ -572,7 +777,13 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       setSocket(null)
     }
     // Watch BOTH paths — whichever populates first triggers init.
-  }, [enableChatModule, auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email])
+    // `reinitCounter` is bumped by the self-heal visibility listener
+    // above when the tab returns from long sleep with a dead SDK. Adding
+    // it to the dep list makes the bump re-run this whole init effect
+    // (cleanup → fresh init). Other deps remain the canonical triggers
+    // (enable flag + auth identity).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableChatModule, auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email, reinitCounter])
 
   return (
     <ChatClientContext.Provider value={{ client, socket, connected, error }}>{children}</ChatClientContext.Provider>

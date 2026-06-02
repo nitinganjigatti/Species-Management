@@ -127,6 +127,25 @@ export type {
 
 // ── Internal ─────────────────────────────────────────────────────────────────
 
+/**
+ * Return the live chat SDK client, throwing if it hasn't been initialized
+ * yet. Used as the gate at the top of every REST/socket export.
+ *
+ * IMPORTANT — calling-contract for Promise-returning callers:
+ * The throw is SYNCHRONOUS. If your function's signature is
+ * `Promise<X>` and you call `requireClient(...)` then return its method
+ * call, you MUST declare the function as `async`. Otherwise a sync throw
+ * escapes the caller's `.then().catch()` chain and surfaces as an
+ * "Uncaught Error" runtime overlay (e.g. after a long sleep when the
+ * SDK gets disposed before re-init completes).
+ *
+ *   ✗ export function getX(): Promise<X> { return requireClient('getX').x() }
+ *   ✓ export async function getX(): Promise<X> { return requireClient('getX').x() }
+ *
+ * Sync void/boolean returners (`joinChatRoom`, `refreshChatSocketAuth`,
+ * etc.) DON'T need this — their callers already expect synchronous
+ * exceptions and either try/catch or accept the crash as a hard error.
+ */
 function requireClient(method: string) {
   const c = getChatClientOrNull()
   if (!c) throw new Error(`[chat-api] ${method}: SDK not initialized`)
@@ -241,7 +260,7 @@ export function markReadOverSocket(conversationId: string, messageId?: string): 
   sdkSocketEmit.markRead(conversationId, messageId)
 }
 
-export function updateMessageOverSocket(messageId: string, text: string): Promise<unknown> {
+export async function updateMessageOverSocket(messageId: string, text: string): Promise<unknown> {
   return sdkSocketEmit.updateMessage(messageId, text)
 }
 
@@ -253,7 +272,7 @@ export function updateMessageOverSocket(messageId: string, text: string): Promis
 // though the deletion succeeded, producing a false "Delete failed" toast.
 // State for both sender and receivers lands via the `message_deleted`
 // broadcast handler in AppChat → `applyMessageDelete` reducer.
-export function deleteMessageOverSocket(messageId: string): Promise<unknown> {
+export async function deleteMessageOverSocket(messageId: string): Promise<unknown> {
   const socket = getChatSocket()
   if (!socket) return Promise.reject(new Error('[chat-api] deleteMessageOverSocket: socket not connected'))
   socket.emit('delete_message', { messageId })
@@ -261,27 +280,27 @@ export function deleteMessageOverSocket(messageId: string): Promise<unknown> {
   return Promise.resolve()
 }
 
-export function deleteMessageForMeOverSocket(messageId: string): Promise<unknown> {
+export async function deleteMessageForMeOverSocket(messageId: string): Promise<unknown> {
   return sdkSocketEmit.deleteMessageForMe(messageId)
 }
 
-export function addReactionOverSocket(messageId: string, emoji: string): Promise<unknown> {
+export async function addReactionOverSocket(messageId: string, emoji: string): Promise<unknown> {
   return sdkSocketEmit.addReaction(messageId, emoji)
 }
 
-export function removeReactionOverSocket(messageId: string, emoji: string): Promise<unknown> {
+export async function removeReactionOverSocket(messageId: string, emoji: string): Promise<unknown> {
   return sdkSocketEmit.removeReaction(messageId, emoji)
 }
 
-export function pinMessageOverSocket(messageId: string): Promise<unknown> {
+export async function pinMessageOverSocket(messageId: string): Promise<unknown> {
   return sdkSocketEmit.pinMessage(messageId)
 }
 
-export function unpinMessageOverSocket(messageId: string): Promise<unknown> {
+export async function unpinMessageOverSocket(messageId: string): Promise<unknown> {
   return sdkSocketEmit.unpinMessage(messageId)
 }
 
-export function getOnlineUsersOverSocket(userIds: string[]): Promise<string[]> {
+export async function getOnlineUsersOverSocket(userIds: string[]): Promise<string[]> {
   return sdkSocketEmit.getOnlineUsers(userIds)
 }
 
@@ -289,7 +308,7 @@ export function getOnlineUsersOverSocket(userIds: string[]): Promise<string[]> {
 // REST — auth
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function getMe(): Promise<User> {
+export async function getMe(): Promise<User> {
   return requireClient('getMe').auth.getMe()
 }
 
@@ -298,7 +317,7 @@ export function getMe(): Promise<User> {
 // participants see it in their `listConversations` response. The socket
 // handshake also carries `avatarUrl`, but this REST call is the deterministic
 // way to confirm the backend has it.
-export function syncAvatar(source: { url?: string; base64?: string }): Promise<{ avatarUrl: string }> {
+export async function syncAvatar(source: { url?: string; base64?: string }): Promise<{ avatarUrl: string }> {
   return requireClient('syncAvatar').auth.syncAvatar(source)
 }
 
@@ -310,7 +329,7 @@ export function syncAvatar(source: { url?: string; base64?: string }): Promise<{
  * is what other participants see (drives `sdkUserToProfile.fullName`).
  * REST-only — the SDK has no socket path for profile updates.
  */
-export function updateChatProfile(payload: UpdateProfilePayload): Promise<User> {
+export async function updateChatProfile(payload: UpdateProfilePayload): Promise<User> {
   return requireClient('updateChatProfile').users.updateProfile(payload)
 }
 
@@ -333,7 +352,7 @@ export async function getAppConfig(): Promise<AppConfig> {
 
 // Builtin auth mode only — uploads a binary avatar file. We use external SSO
 // so this is unused today, but exposed for completeness.
-export function uploadAvatar(file: File | Blob, mimeType?: string): Promise<{ avatarUrl: string }> {
+export async function uploadAvatar(file: File | Blob, mimeType?: string): Promise<{ avatarUrl: string }> {
   return requireClient('uploadAvatar').auth.uploadAvatar(file, mimeType)
 }
 
@@ -341,31 +360,31 @@ export function uploadAvatar(file: File | Blob, mimeType?: string): Promise<{ av
 // REST — conversations
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function listConversations(params?: ConversationListParams): Promise<PaginatedResponse<Conversation>> {
+export async function listConversations(params?: ConversationListParams): Promise<PaginatedResponse<Conversation>> {
   return requireClient('listConversations').conversations.list(params)
 }
 
-export function getConversation(conversationId: string): Promise<Conversation> {
+export async function getConversation(conversationId: string): Promise<Conversation> {
   return requireClient('getConversation').conversations.get(conversationId)
 }
 
-export function createGroupConversation(data: CreateGroupData): Promise<Conversation> {
+export async function createGroupConversation(data: CreateGroupData): Promise<Conversation> {
   return requireClient('createGroupConversation').conversations.createGroup(data)
 }
 
-export function createDirectConversation(data: CreateDirectData): Promise<Conversation> {
+export async function createDirectConversation(data: CreateDirectData): Promise<Conversation> {
   return requireClient('createDirectConversation').conversations.createDirect(data)
 }
 
-export function updateConversation(conversationId: string, data: UpdateConversationData): Promise<Conversation> {
+export async function updateConversation(conversationId: string, data: UpdateConversationData): Promise<Conversation> {
   return requireClient('updateConversation').conversations.update(conversationId, data)
 }
 
-export function deleteConversation(conversationId: string): Promise<void> {
+export async function deleteConversation(conversationId: string): Promise<void> {
   return requireClient('deleteConversation').conversations.delete(conversationId)
 }
 
-export function addParticipants(
+export async function addParticipants(
   conversationId: string,
   userIds: string[],
   role?: ParticipantRole
@@ -380,11 +399,11 @@ export function addParticipants(
   )
 }
 
-export function removeParticipant(conversationId: string, userId: string): Promise<Conversation> {
+export async function removeParticipant(conversationId: string, userId: string): Promise<Conversation> {
   return requireClient('removeParticipant').conversations.removeParticipant(conversationId, userId)
 }
 
-export function updateParticipantRole(
+export async function updateParticipantRole(
   conversationId: string,
   userId: string,
   role: ParticipantRole
@@ -392,23 +411,23 @@ export function updateParticipantRole(
   return requireClient('updateParticipantRole').conversations.updateParticipantRole(conversationId, userId, role)
 }
 
-export function muteConversation(conversationId: string, mutedUntil?: string): Promise<void> {
+export async function muteConversation(conversationId: string, mutedUntil?: string): Promise<void> {
   return requireClient('muteConversation').conversations.mute(conversationId, mutedUntil)
 }
 
-export function unmuteConversation(conversationId: string): Promise<void> {
+export async function unmuteConversation(conversationId: string): Promise<void> {
   return requireClient('unmuteConversation').conversations.unmute(conversationId)
 }
 
-export function pinConversation(conversationId: string): Promise<void> {
+export async function pinConversation(conversationId: string): Promise<void> {
   return requireClient('pinConversation').conversations.pin(conversationId)
 }
 
-export function unpinConversation(conversationId: string): Promise<void> {
+export async function unpinConversation(conversationId: string): Promise<void> {
   return requireClient('unpinConversation').conversations.unpin(conversationId)
 }
 
-export function leaveConversation(conversationId: string): Promise<void> {
+export async function leaveConversation(conversationId: string): Promise<void> {
   return requireClient('leaveConversation').conversations.leave(conversationId)
 }
 
@@ -419,29 +438,29 @@ export function leaveConversation(conversationId: string): Promise<void> {
 // accepts an optional second boolean for this atomic path; passing `true`
 // opts in. Other callers of `leaveConversation` stay on the single-arg
 // path untouched.
-export function leaveAndDeleteConversation(conversationId: string): Promise<void> {
+export async function leaveAndDeleteConversation(conversationId: string): Promise<void> {
   return requireClient('leaveAndDeleteConversation').conversations.leave(conversationId, true)
 }
 
-export function getConversationMembers(conversationId: string): Promise<Participant[]> {
+export async function getConversationMembers(conversationId: string): Promise<Participant[]> {
   return requireClient('getConversationMembers').conversations.getMembers(conversationId)
 }
 
 // Single-conversation unread count. Use after app foreground or socket
 // reconnect to refresh one row's badge without fetching the whole list.
-export function getConversationUnreadCount(conversationId: string): Promise<ConversationUnreadCount> {
+export async function getConversationUnreadCount(conversationId: string): Promise<ConversationUnreadCount> {
   return requireClient('getConversationUnreadCount').conversations.getUnreadCount(conversationId)
 }
 
 // Total + per-conversation unread breakdown. Source of truth on cold start /
 // foreground resume / post-reconnect — the socket keeps counts live otherwise.
-export function getUnreadSummary(): Promise<UnreadSummary> {
+export async function getUnreadSummary(): Promise<UnreadSummary> {
   return requireClient('getUnreadSummary').conversations.getUnreadSummary()
 }
 
 // Set the group icon from an already-uploaded file (admin only). The `fileId`
 // comes from `uploadChatFiles()` — same pipeline as message attachments.
-export function uploadConversationIcon(conversationId: string, fileId: string): Promise<Conversation> {
+export async function uploadConversationIcon(conversationId: string, fileId: string): Promise<Conversation> {
   return requireClient('uploadConversationIcon').conversations.uploadIcon(conversationId, fileId)
 }
 
@@ -449,7 +468,7 @@ export function uploadConversationIcon(conversationId: string, fileId: string): 
 // clears `iconMeta`; the returned Conversation has `iconUrl: undefined`,
 // which the adapter maps onto `chat.avatar = undefined` so the sidebar /
 // header / profile drawer fall back to the initials avatar.
-export function removeConversationIcon(conversationId: string): Promise<Conversation> {
+export async function removeConversationIcon(conversationId: string): Promise<Conversation> {
   return requireClient('removeConversationIcon').conversations.removeIcon(conversationId)
 }
 
@@ -457,14 +476,14 @@ export function removeConversationIcon(conversationId: string): Promise<Conversa
 // REST — messages
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function listMessages(
+export async function listMessages(
   conversationId: string,
   params?: ListMessagesParams
 ): Promise<CursorPaginatedResponse<Message>> {
   return requireClient('listMessages').messages.list(conversationId, params)
 }
 
-export function getMessage(messageId: string): Promise<Message> {
+export async function getMessage(messageId: string): Promise<Message> {
   return requireClient('getMessage').messages.get(messageId)
 }
 
@@ -474,39 +493,39 @@ export function getMessage(messageId: string): Promise<Message> {
  * Message Info screen — no secondary user lookup needed. Added in
  * chat-core 1.2.3.
  */
-export function getMessageReceipts(messageId: string): Promise<MessageReceiptsResponse> {
+export async function getMessageReceipts(messageId: string): Promise<MessageReceiptsResponse> {
   return requireClient('getMessageReceipts').messages.getReceipts(messageId)
 }
 
-export function updateMessage(messageId: string, text: string): Promise<Message> {
+export async function updateMessage(messageId: string, text: string): Promise<Message> {
   return requireClient('updateMessage').messages.update(messageId, text)
 }
 
-export function deleteMessage(messageId: string): Promise<void> {
+export async function deleteMessage(messageId: string): Promise<void> {
   return requireClient('deleteMessage').messages.delete(messageId)
 }
 
-export function deleteMessageForMe(messageId: string): Promise<void> {
+export async function deleteMessageForMe(messageId: string): Promise<void> {
   return requireClient('deleteMessageForMe').messages.deleteForMe(messageId)
 }
 
-export function addMessageReaction(messageId: string, emoji: string): Promise<Message> {
+export async function addMessageReaction(messageId: string, emoji: string): Promise<Message> {
   return requireClient('addMessageReaction').messages.addReaction(messageId, emoji)
 }
 
-export function removeMessageReaction(messageId: string, emoji: string): Promise<Message> {
+export async function removeMessageReaction(messageId: string, emoji: string): Promise<Message> {
   return requireClient('removeMessageReaction').messages.removeReaction(messageId, emoji)
 }
 
-export function starMessage(messageId: string): Promise<void> {
+export async function starMessage(messageId: string): Promise<void> {
   return requireClient('starMessage').messages.star(messageId)
 }
 
-export function unstarMessage(messageId: string): Promise<void> {
+export async function unstarMessage(messageId: string): Promise<void> {
   return requireClient('unstarMessage').messages.unstar(messageId)
 }
 
-export function listStarredMessages(params?: {
+export async function listStarredMessages(params?: {
   page?: number
   limit?: number
   conversationId?: string
@@ -514,32 +533,32 @@ export function listStarredMessages(params?: {
   return requireClient('listStarredMessages').messages.getStarred(params)
 }
 
-export function searchMessages(params: SearchParams): Promise<PaginatedResponse<Message>> {
+export async function searchMessages(params: SearchParams): Promise<PaginatedResponse<Message>> {
   return requireClient('searchMessages').messages.search(params)
 }
 
 // Returns the user's last-read pointer for a conversation. Use this with
 // `listMessages({ cursor: lastReadMessageId, direction: 'after' })` to power
 // "jump to first unread" + the unread divider.
-export function getLastRead(
+export async function getLastRead(
   conversationId: string
 ): Promise<{ lastReadMessageId: string | null; lastReadAt: string | null }> {
   return requireClient('getLastRead').messages.getLastRead(conversationId)
 }
 
-export function markConversationRead(conversationId: string, messageId?: string): Promise<void> {
+export async function markConversationRead(conversationId: string, messageId?: string): Promise<void> {
   return requireClient('markConversationRead').messages.markAsRead(conversationId, messageId)
 }
 
-export function pinMessage(messageId: string): Promise<Message> {
+export async function pinMessage(messageId: string): Promise<Message> {
   return requireClient('pinMessage').messages.pin(messageId)
 }
 
-export function unpinMessage(messageId: string): Promise<Message> {
+export async function unpinMessage(messageId: string): Promise<Message> {
   return requireClient('unpinMessage').messages.unpin(messageId)
 }
 
-export function listPinnedMessages(conversationId: string): Promise<Message[]> {
+export async function listPinnedMessages(conversationId: string): Promise<Message[]> {
   return requireClient('listPinnedMessages').messages.getPinned(conversationId)
 }
 
@@ -547,7 +566,7 @@ export function listPinnedMessages(conversationId: string): Promise<Message[]> {
 // REST — users
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function listUsers(params?: {
+export async function listUsers(params?: {
   query?: string
   page?: number
   limit?: number
@@ -563,19 +582,19 @@ export async function searchUsers(query: string): Promise<User[]> {
   return data
 }
 
-export function getUserById(userId: string): Promise<User> {
+export async function getUserById(userId: string): Promise<User> {
   return requireClient('getUserById').users.getById(userId)
 }
 
-export function getUserLastSeen(userId: string): Promise<{ lastSeenAt: string | null }> {
+export async function getUserLastSeen(userId: string): Promise<{ lastSeenAt: string | null }> {
   return requireClient('getUserLastSeen').users.getLastSeen(userId)
 }
 
-export function getUserPreferences(): Promise<UserPreferences | null> {
+export async function getUserPreferences(): Promise<UserPreferences | null> {
   return requireClient('getUserPreferences').users.getPreferences()
 }
 
-export function updateUserPreferences(prefs: UserPreferences): Promise<User> {
+export async function updateUserPreferences(prefs: UserPreferences): Promise<User> {
   return requireClient('updateUserPreferences').users.updatePreferences(prefs)
 }
 
@@ -583,13 +602,13 @@ export function updateUserPreferences(prefs: UserPreferences): Promise<User> {
 // REST — devices (push notifications)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function registerDevice(payload: RegisterDeviceTokenPayload): Promise<void> {
+export async function registerDevice(payload: RegisterDeviceTokenPayload): Promise<void> {
   requireClient('registerDevice')
 
   return sdkDevicesApi.register(payload)
 }
 
-export function removeDevice(deviceId: string): Promise<void> {
+export async function removeDevice(deviceId: string): Promise<void> {
   requireClient('removeDevice')
 
   return sdkDevicesApi.remove(deviceId)

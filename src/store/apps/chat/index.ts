@@ -231,33 +231,6 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
       }
     })
 
-    // [chat:enrich-trace] Per-candidate reason enrichment will or won't run.
-    try {
-      console.log(
-        '[chat:enrich-trace] candidates',
-        allCandidates.map(c => ({
-          chatId: String(c.chatId),
-          isGroup: c.isGroup,
-          name: c.fullName,
-          messageId: c.messageId,
-          senderId: c.senderId,
-          senderName: c.senderName,
-          hasSender: c.hasSender,
-          feedbackIncomplete: c.feedbackIncomplete,
-          alreadyEnriched: c.messageId ? enrichedLastMessageIds.has(c.messageId) : false,
-          participantCount: c.participants.length,
-          willEnrich: Boolean(
-            c.messageId &&
-              (!c.hasSender || c.feedbackIncomplete) &&
-              !enrichedLastMessageIds.has(c.messageId)
-          ),
-          lastMessageText: c.lastMessageText
-        }))
-      )
-    } catch (e) {
-      console.warn('[chat:enrich-trace] candidates log failed', e)
-    }
-
     // Enrich when EITHER sender is missing OR feedback is incomplete on
     // a (likely) own message. The session-dedupe Set still applies so
     // we never refetch the same messageId twice.
@@ -266,8 +239,6 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
     )
 
     if (targets.length === 0) {
-      console.log('[chat:enrich-trace] no targets — nothing to enrich')
-
       return
     }
 
@@ -284,13 +255,6 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
         const senderIdStr = String(t.senderId)
         const found = t.participants.find(p => String(p.userId) === senderIdStr)
         const resolvedName = found?.displayName || found?.username
-        console.log('[chat:enrich-trace] fast-path attempt', {
-          chatId: String(t.chatId),
-          name: t.fullName,
-          senderIdFromList: t.senderId,
-          foundInParticipants: Boolean(found),
-          resolvedName
-        })
         if (resolvedName) {
           enrichedLastMessageIds.add(t.messageId)
           dispatch(
@@ -302,25 +266,13 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
           )
           continue
         }
-      } else {
-        console.log('[chat:enrich-trace] fast-path skipped — empty senderId', {
-          chatId: String(t.chatId),
-          name: t.fullName,
-          senderIdFromList: t.senderId
-        })
       }
       networkFallbackTargets.push(t)
     }
 
     if (networkFallbackTargets.length === 0) {
-      console.log('[chat:enrich-trace] all resolved on fast path — done')
-
       return
     }
-    console.log(
-      '[chat:enrich-trace] slow-path (getMessage REST) needed for',
-      networkFallbackTargets.map(t => ({ chatId: String(t.chatId), name: t.fullName, messageId: t.messageId }))
-    )
 
     // Slow path — only chats whose sender isn't in `participants`
     // (shouldn't be common — happens if the sender has been removed
@@ -349,15 +301,6 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
                 isSeen: deliveryStatus === 'read'
               }
             : undefined
-          console.log('[chat:enrich-trace] slow-path REST returned', {
-            chatId: String(t.chatId),
-            name: t.fullName,
-            messageId: t.messageId,
-            senderId,
-            senderName,
-            deliveryStatus,
-            willPatch: Boolean(senderId || senderName || feedback)
-          })
           if (senderId || senderName || feedback) {
             dispatch(
               patchLastMessageSender({
@@ -368,8 +311,9 @@ export const enrichLastMessageSenders = createAsyncThunk<void, void>(
               })
             )
           }
-        } catch (err) {
-          console.warn('[chat:enrich-trace] slow-path REST failed for', t.messageId, err)
+        } catch {
+          // Enrichment is best-effort — a failed getMessage just leaves the
+          // sidebar prefix/tick at its pre-enrichment fallback.
         }
       })
     )
@@ -1209,7 +1153,13 @@ export const materializeDraftIfNeeded = createAsyncThunk<string, ChatsArrType>(
 
 export const sendMsg = createAsyncThunk(
   'appChat/sendMsg',
-  async (obj: SendMsgParamsType & { contact?: ChatsArrType }, { dispatch, getState }) => {
+  // `__fromOutbox` is an internal marker set ONLY by `flushPendingOutbox`
+  // when it re-dispatches a previously-queued send. The `sendMsg.rejected`
+  // case checks this and SKIPS re-queueing if true — otherwise a failed
+  // outbox retry would queue the same payload AGAIN as a fresh entry, and
+  // the next successful flush would send the same message multiple times.
+  // External callers (SendMsgForm, etc.) don't set this flag.
+  async (obj: SendMsgParamsType & { contact?: ChatsArrType; __fromOutbox?: boolean }, { dispatch, getState }) => {
     let conversationId = obj.contact?.id ?? obj.chat?.id
     const client = getChatClientOrNull()
 
@@ -1288,12 +1238,6 @@ export const sendMsg = createAsyncThunk(
 
     // Anchor for the receipt flow: this id is what we expect to see come
     // back in a future read_receipt event when the other user opens the chat.
-    console.log('[chat:receipt] A0 sent message anchor:', {
-      id: newMsg.id,
-      conversationId,
-      initialFeedback: newMsg.feedback,
-      text: newMsg.message?.slice(0, 40)
-    })
 
     return { newMsg, contactId: conversationId }
   }
@@ -1345,7 +1289,15 @@ export const flushPendingOutbox = createAsyncThunk<{ succeeded: number; total: n
           sendMsg({
             chat: { id: entry.conversationId, unseenMsgs: 0, messages: [] },
             message: entry.text,
-            ...(entry.attachments?.length ? { attachments: entry.attachments } : {})
+            ...(entry.attachments?.length ? { attachments: entry.attachments } : {}),
+            // Dedupe marker: if this retry fails, `sendMsg.rejected` will
+            // skip re-queueing (this entry is still in `pendingOutbox` and
+            // will be retried on the next recovery). Without this flag, a
+            // transient failure during flush (e.g., auto-reconnect ✓ but
+            // transit-encryption handshake hasn't completed yet) would queue
+            // a duplicate, then the recovery-path flush would send the same
+            // message twice — exactly the bug the user reported.
+            __fromOutbox: true
           })
         ).unwrap()
         dispatch(removeFromOutbox(entry.id))
@@ -1699,13 +1651,61 @@ export const appChatSlice = createSlice({
         //      this preservation is a brief, safe placeholder.
         const preserveSystemMeta = sameMessage || Boolean(existing?.contentType === 'system')
 
+        // Feedback resolution — preference order:
+        //   1. Live message in `messages[]` matching this id. If a
+        //      `read_receipt` / `message_delivered` already landed before
+        //      this `conversation_updated`, the receipt reducer mutated
+        //      `messages[i].feedback` (isSeen / isDelivered = true) but
+        //      may have MISSED `lastMessage.feedback` if `lastMessage.id`
+        //      didn't match at that moment (the new id only lands here).
+        //      Reading from `messages[]` reflects that fresh receipt.
+        //   2. `existing.feedback` — old lastMessage's feedback. Used when
+        //      the new id isn't in the local messages array (e.g., we
+        //      haven't seen the `new_message` for it yet — only the
+        //      conversation_updated slim notification).
+        //   3. Default `{isSent:true, isDelivered:false, isSeen:false}`.
+        //      First-time lastMessage assignment for this chat.
+        //
+        // Without this lookup the sidebar tick would stay single (✓) even
+        // after the bubble showed double (✓✓), because the receipt update
+        // beat the conversation_updated event and the rebuild reset the
+        // feedback to the old/default state. A page refresh hid the bug
+        // because the backend's `GET /conversations` returns lastMessage
+        // with current receipt state.
+        const liveMsg = chatEntry.chat.messages.find(m => m.id === lastMessage.messageId)
+        const pending = state.pendingFeedback[lastMessage.messageId]
+
+        // `baseFeedback` reproduces the OLD resolution EXACTLY, so the path
+        // where the live lookup misses is unchanged. The monotonic guard below
+        // then only ever OR-s additional truthy flags on top — the result is
+        // always >= the old value, so this can never show FEWER ticks anywhere;
+        // it only stops the rebuild from DOWNGRADING the sidebar tick (✓✓ → ✓)
+        // when a delivery/read receipt already moved it forward in the thread.
+        // Ticks are monotonic (sent → delivered → seen), so OR-merging is safe.
+        // Group-delivered is recomputed at drain time, so the per-user pending
+        // buffer is trusted only for DMs — mirrors the sendMsg.fulfilled drain.
+        const baseFeedback = liveMsg?.feedback ??
+          existing?.feedback ?? { isSent: true, isDelivered: false, isSeen: false }
+        const resolvedFeedback = {
+          isSent: true,
+          isDelivered: Boolean(
+            baseFeedback.isDelivered ||
+              liveMsg?.feedback.isDelivered ||
+              (sameMessage && existing?.feedback?.isDelivered) ||
+              (!chatEntry.isGroup && (pending?.isDelivered || pending?.deliveredUsers?.length || pending?.isSeen))
+          ),
+          isSeen: Boolean(
+            baseFeedback.isSeen || liveMsg?.feedback.isSeen || (sameMessage && existing?.feedback?.isSeen) || pending?.isSeen
+          )
+        }
+
         chatEntry.chat.lastMessage = {
           id: lastMessage.messageId,
           time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
           message: lastMessage.contentPreview ?? '',
           senderId: resolvedSenderId,
           senderName: lastMessage.senderName ?? existing?.senderName,
-          feedback: existing?.feedback ?? { isSent: true, isDelivered: false, isSeen: false },
+          feedback: resolvedFeedback,
           attachments: sameMessage
             ? existing?.attachments
             : lastMessage.hasAttachments
@@ -2516,17 +2516,9 @@ export const appChatSlice = createSlice({
       }>
     ) => {
       if (!state.chats) {
-        console.warn('[chat:receipt] R0 reducer skipped — state.chats is null')
-
         return
       }
       const { conversationId, messageIds, isDelivered, isSeen } = action.payload
-      console.log('[chat:receipt] R0 updateMessagesFeedback ← payload:', {
-        conversationId,
-        messageIds,
-        isDelivered,
-        isSeen
-      })
 
       // Search ALL chats for matching message ids — don't trust the event's
       // `conversationId` because the backend sometimes emits a `read_receipt`
@@ -2558,12 +2550,6 @@ export const appChatSlice = createSlice({
       })
 
       const missed = messageIds.filter(id => !matchedIds.includes(id))
-      console.log(`[chat:receipt] R2 reducer: matched ${matchedIds.length}/${messageIds.length} messages`, {
-        matchedIds,
-        missedIds: missed,
-        touchedChats: Array.from(touchedChatIds),
-        eventConversationId: conversationId
-      })
       if (missed.length) {
         // Buffer pending feedback for messages we haven't appended yet.
         // Drained by sendMsg.fulfilled / receiveMessage. This handles the
@@ -2577,12 +2563,6 @@ export const appChatSlice = createSlice({
             isSeen: existing.isSeen || isSeen === true
           }
         })
-        console.warn(
-          '[chat:receipt] R2a missed ids — buffered into pendingFeedback:',
-          missed,
-          'current buffer:',
-          state.pendingFeedback
-        )
       }
 
       // Mirror into selectedChat if any of the matched messages live in the
@@ -2594,7 +2574,6 @@ export const appChatSlice = createSlice({
             chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
             contact: openChat
           }
-          console.log('[chat:receipt] R3 mirrored into selectedChat (panel will re-render)')
         }
       }
     },
@@ -2809,10 +2788,6 @@ export const appChatSlice = createSlice({
               feedback: mergedFeedback,
               ...(arraysChanged ? { deliveredTo: mergedDeliveredTo, readBy: mergedReadBy } : {})
             }
-            console.log('[chat:receipt] R1c.feedback-merge dedupe + upgraded feedback for', message.id, {
-              before: existing.feedback,
-              after: mergedFeedback
-            })
             // Touch selectedChat so the bubble re-renders
             if (state.selectedChat?.contact.id === conversationId) {
               state.selectedChat = {
@@ -2820,7 +2795,6 @@ export const appChatSlice = createSlice({
                 contact: chatEntry
               }
             }
-          } else {
           }
 
           return
@@ -2868,11 +2842,6 @@ export const appChatSlice = createSlice({
           isSeen: stored.feedback.isSeen || Boolean(pf.isSeen)
         }
         delete state.pendingFeedback[stored.id]
-        console.log('[chat:receipt] R1.drain applied pendingFeedback to', stored.id, {
-          before,
-          pending: pf,
-          after: stored.feedback
-        })
       }
 
       const newMessages = [...chatEntry.chat.messages, stored]
@@ -2995,19 +2964,47 @@ export const appChatSlice = createSlice({
       const isKickedGroup = chatEntry.isGroup && chatEntry.isCurrentUserActive === false
       const skipMessagesWrite = isKickedGroup && chatEntry.chat.messages.length > 0
 
+      // Live socket receipts (`message_delivered` / `read_receipt`) are
+      // authoritative for FORWARD tick progress. The REST `messages.list()`
+      // derives ticks from `msg.deliveryStatus` (see sdkMessageToMessage),
+      // which the server persists AFTER it emits the live receipt — so a
+      // switch/refetch can return `deliveryStatus: 'sent'` for a message the
+      // socket already advanced to delivered/seen. Snapshot what we already
+      // hold per message id, then OR-merge it into the REST data so the
+      // refetch can only ADVANCE a tick, never downgrade it (ticks are
+      // monotonic: sent → delivered → seen). On a true first open the cache
+      // is empty, so REST is trusted as-is.
+      const priorFeedback = new Map<string, MessageType['feedback']>()
+      chatEntry.chat.messages.forEach(m => {
+        if (m.id) priorFeedback.set(m.id, m.feedback)
+      })
+      const mergeForwardFeedback = (m: MessageType): MessageType => {
+        const prior = m.id ? priorFeedback.get(m.id) : undefined
+        if (!prior) return m
+        const isDelivered = Boolean(m.feedback.isDelivered || prior.isDelivered)
+        const isSeen = Boolean(m.feedback.isSeen || prior.isSeen)
+        if (isDelivered === m.feedback.isDelivered && isSeen === m.feedback.isSeen) return m
+
+        return { ...m, feedback: { ...m.feedback, isDelivered, isSeen } }
+      }
+
       if (!skipMessagesWrite) {
         // For group chats, recompute isDelivered from deliveredTo/readBy arrays
         // rather than trusting deliveryStatus from sdkMessageToMessage — the
         // server sets deliveryStatus: 'delivered' for groups even when only some
         // members have received it. Mirrors mobile's computeGroupTickStatus.
+        // Then mergeForwardFeedback guards against the REST-downgrade race.
         chatEntry.chat.messages = chatEntry.isGroup
           ? messages.map(m => {
               const groupDelivered = computeGroupDelivered(m, chatEntry.participants)
-              return groupDelivered === m.feedback.isDelivered
-                ? m
-                : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+              const recomputed =
+                groupDelivered === m.feedback.isDelivered
+                  ? m
+                  : { ...m, feedback: { ...m.feedback, isDelivered: groupDelivered } }
+
+              return mergeForwardFeedback(recomputed)
             })
-          : messages
+          : messages.map(mergeForwardFeedback)
       }
 
       // Kicked-group derivation pass — runs whether we wrote the messages
@@ -3076,7 +3073,15 @@ export const appChatSlice = createSlice({
           }
         }
       } else {
-        chatEntry.chat.lastMessage = messages[messages.length - 1]
+        // Read the sidebar preview off the freshly-written array (already
+        // group-recomputed + merged-forward) rather than the raw REST
+        // `messages[]`, so the sidebar tick can't be downgraded below the
+        // socket-driven state the thread shows. Falls back to the raw last
+        // message if the array wasn't written (skipMessagesWrite).
+        const writtenMessages = chatEntry.chat.messages
+        chatEntry.chat.lastMessage = writtenMessages.length
+          ? writtenMessages[writtenMessages.length - 1]
+          : messages[messages.length - 1]
       }
       if (oldestCursor !== undefined) chatEntry.chat.oldestCursor = oldestCursor
       if (hasMoreOlder !== undefined) chatEntry.chat.hasMoreOlder = hasMoreOlder
@@ -3280,11 +3285,6 @@ export const appChatSlice = createSlice({
             isDelivered: isDeliveredMerged,
             isSeen: existing.feedback.isSeen || newMsg.feedback.isSeen
           }
-          console.log('[chat:receipt] 7c.feedback-merge ack: dedupe + merged feedback for', newMsg.id, {
-            existing: existing.feedback,
-            ackProvided: newMsg.feedback,
-            merged: mergedFeedback
-          })
           // The broadcast echo landed before the ack, so `receiveMessage` already
           // added the row. Merge back any fields the thunk stamped locally that the
           // server's broadcast payload may have omitted — most critically `replyTo`
@@ -3336,11 +3336,6 @@ export const appChatSlice = createSlice({
           newMsg.feedback.isDelivered = true
         }
         delete state.pendingFeedback[newMsg.id]
-        console.log('[chat:receipt] 7d.drain applied pendingFeedback to', newMsg.id, {
-          before,
-          pending: pf,
-          after: newMsg.feedback
-        })
       }
       // Stamp the current user's id + display name on the synthesized
       // message before it lands in state. `sendMessageOverSocket` returns
@@ -3400,8 +3395,21 @@ export const appChatSlice = createSlice({
     //    materializeDraftIfNeeded which itself needs network; user is
     //    better off manually re-sending after recovery so the draft is
     //    materialized in a clean, foreground flow.
+    //  - retries that ORIGINATED from `flushPendingOutbox` itself
+    //    (`__fromOutbox: true` marker). The original entry is still in
+    //    `pendingOutbox` and will be retried on the next recovery cycle.
+    //    Without this skip we'd queue a duplicate every time a flush
+    //    failed on a transient connection bump — the next successful
+    //    flush would then send the same message N+1 times.
     builder.addCase(sendMsg.rejected, (state, action) => {
-      const arg = action.meta.arg
+      const arg = action.meta.arg as SendMsgParamsType & { contact?: ChatsArrType; __fromOutbox?: boolean }
+      if (arg.__fromOutbox) {
+        console.log('[chat:outbox] retry failed — skip re-queue (original entry stays in outbox)', {
+          text: arg.message?.slice(0, 40)
+        })
+
+        return
+      }
       const conversationId = (arg.chat?.id ?? arg.contact?.id) as string | undefined
       if (typeof conversationId !== 'string' || !conversationId) {
         console.warn('[chat:outbox] failed send dropped — no conversationId on arg', arg)

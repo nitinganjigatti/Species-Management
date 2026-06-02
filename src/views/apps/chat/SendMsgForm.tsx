@@ -28,8 +28,10 @@ import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
+import { useSelector } from 'react-redux'
+
 import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded, sendMsg as sendMsgThunk } from 'src/store/apps/chat'
-import type { AppDispatch } from 'src/store'
+import type { AppDispatch, RootState } from 'src/store'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -161,6 +163,44 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const textInputRef = useRef<HTMLInputElement | null>(null)
   const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLButtonElement | null>(null)
   const emojiOpen = Boolean(emojiAnchorEl)
+
+  // Subscribe to the outbox so we can auto-clear the composer when a send
+  // we previously queued (because the socket was dead) gets successfully
+  // retried by `flushPendingOutbox`. Without this, the composer keeps the
+  // restored text after recovery completes — the user often re-sends
+  // manually because the text "looks unsent", producing a duplicate
+  // message. `queuedRef` remembers what we last queued so we only clear
+  // when our entry leaves the outbox (not when an unrelated entry does).
+  const pendingOutbox = useSelector((s: RootState) => s.chat.pendingOutbox)
+  const queuedRef = useRef<{ conversationId: string; text: string; attachmentsKey: string } | null>(null)
+
+  useEffect(() => {
+    const queued = queuedRef.current
+    if (!queued) return
+    // Did our queued entry leave the outbox (i.e., successfully sent)?
+    const stillQueued = pendingOutbox.some(
+      e => e.conversationId === queued.conversationId && e.text === queued.text
+    )
+    if (stillQueued) return
+    // Our entry is gone. If the composer still shows exactly what we
+    // queued AND we're still on the same conversation, clear it so the
+    // user doesn't re-send. If they've typed something else in the
+    // meantime, leave their newer input alone.
+    const currentConversationId =
+      typeof store?.selectedChat?.contact?.id === 'string' ? store.selectedChat.contact.id : null
+    if (currentConversationId === queued.conversationId && msg === queued.text) {
+      setMsg('')
+      setPending(prev => {
+        prev.forEach(p => URL.revokeObjectURL(p.previewUrl))
+
+        return []
+      })
+      if (queued.conversationId) {
+        dispatch(setDraft({ conversationId: queued.conversationId, text: '' }))
+      }
+    }
+    queuedRef.current = null
+  }, [pendingOutbox, msg, store?.selectedChat?.contact?.id, dispatch])
 
   const handleEmojiSelect = (emoji: { native: string }) => {
     const input = textInputRef.current
@@ -692,10 +732,27 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       setUploading(false)
     }
 
+    // Clear composer IMMEDIATELY (before the await) so a double-tap on
+    // Enter / fast double-click on Send doesn't fire `handleSendMsg`
+    // again with the SAME text still in `msg` and dispatch a duplicate
+    // sendMsg. The previous shape (`await dispatch(...)` then `setMsg('')`)
+    // left a window of ~100s of ms where `msg` still held the original
+    // text, and a second Enter would happily fire another send — the
+    // server then assigned two distinct ids, so the user saw two bubbles.
+    //
+    // Capture the to-be-cleared state into locals first so we can RESTORE
+    // it on failure (keeps the "preserve text + previews on offline send"
+    // contract intact).
+    const restoreText = msg
+    const restorePending = pending
+    setPending([])
+    setMsg('')
+    setEmojiAnchorEl(null)
+
     // Await the send so we can branch on failure. The `sendMsg` prop is the
     // same action creator as the imported `sendMsgThunk`; we dispatch the
     // thunk directly here so we can `.unwrap()` and surface a toast +
-    // preserve the composer text when the socket is dead. On rejection,
+    // restore the composer text when the socket is dead. On rejection,
     // `sendMsg.rejected` in the slice has already queued the attempt into
     // `state.pendingOutbox`, which the recovery layer in ChatClientContext
     // will replay via `flushPendingOutbox` once the socket comes back.
@@ -708,24 +765,36 @@ const SendMsgForm = (props: SendMsgComponentType) => {
         })
       ).unwrap()
     } catch (err) {
-      console.error('[chat] sendMsg failed — kept in composer, queued for retry:', err)
+      console.error('[chat] sendMsg failed — restored composer, queued for retry:', err)
       toast.error('Can’t send right now — we’ll retry when you’re back online.')
 
-      // Keep composer state intact: text in `msg`, attachment previews in
-      // `pending`, replyTo in Redux. User sees their intent preserved.
-      // The outbox holds the canonical retry payload (with the already-
-      // uploaded `attachments` shape, not the local preview URLs), so the
-      // auto-retry on recovery sends the right thing regardless of what
-      // the user does in the composer in the meantime.
+      // Restore the captured composer state so the user sees their intent
+      // preserved. The outbox holds the canonical retry payload (with the
+      // already-uploaded `attachments` shape, not the local preview URLs),
+      // so the auto-retry on recovery sends the right thing regardless of
+      // what the user does in the composer in the meantime.
+      setMsg(restoreText)
+      setPending(restorePending)
+
+      // Remember what we queued so the outbox-watching useEffect above can
+      // clear the composer once `flushPendingOutbox` successfully retries
+      // it. Without this, the restored text would linger in the composer
+      // after recovery and the user typically re-hits Send (thinking it
+      // failed), producing a duplicate message.
+      if (typeof conversationId === 'string') {
+        queuedRef.current = {
+          conversationId,
+          text: restoreText,
+          attachmentsKey: (uploaded ?? []).map(a => a.id).join(',')
+        }
+      }
+
       stopTyping()
 
       return
     }
 
-    pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
-    setPending([])
-    setMsg('')
-    setEmojiAnchorEl(null)
+    restorePending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     // Sent successfully → drop the draft for this conversation so it
     // doesn't reappear in the sidebar preview or composer on re-entry.
     if (typeof conversationId === 'string') {
