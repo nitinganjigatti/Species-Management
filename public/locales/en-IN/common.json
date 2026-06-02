@@ -266,6 +266,9 @@
   "added": "Added",
   "deleting": "Deleting...",
   "notes_label": "Notes:",
+  "admit": "Admit",
+  "reject": "Reject",
+  "submit_upper": "SUBMIT",
   "languages": {
     "en-IN": "English",
     "fr": "French",
@@ -1779,7 +1782,13 @@
     "your_templates": "Your templates",
     "update_template_name_and_items": "Update template name and items",
     "template_items_count": "Template items ({{count}})",
-    "search_template": "Search {{type}}"
+    "search_template": "Search {{type}}",
+    "select_treatment_type": "Select treatment type",
+    "admitting_date_and_time": "Admitting date and Time",
+    "enter_rejection_reason_required": "Enter Rejection Reason*",
+    "no_permission_to_admit_to_this_hospital": "You don't have permission to admit to this hospital.",
+    "contact_administrator_to_proceed": "Please contact your administrator or request access to proceed.",
+    "this_enclosure_is_occupied": "This enclosure is occupied"
   },
   "lab_module": {
     "labs": "Labs",

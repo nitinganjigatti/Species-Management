@@ -320,6 +320,21 @@ export interface CoAttendDoctor {
   profile?: string | null
 }
 
+export interface PatientEntityDetail {
+  animal_id?: Id
+  default_icon?: string
+  sex?: string
+  type?: string
+  local_identifier_name?: string
+  local_identifier_value?: string
+  common_name?: string
+  scientific_name?: string
+  age_formatted?: string
+  site_name?: string
+  section_name?: string
+  user_enclosure_name?: string
+}
+
 export interface PatientDetailsData {
   hospital_case_id?: Id
   hospital_id?: Id
@@ -380,6 +395,16 @@ export interface PatientDetailsData {
     sex?: string
     image_url?: string
   }
+  transfer_details?: {
+    created_at?: string
+    transfer_reference_code?: string
+    visit_type?: VisitTypeReason
+    reason_for_transfer?: string
+    user_first_name?: string
+    user_last_name?: string
+    user_profile_image?: string
+  }
+  entity_details?: PatientEntityDetail[]
   additional_info?: Record<string, string>
 }
 
@@ -424,23 +449,6 @@ export interface PatientData {
   transfer_id?: Id | null
 }
 
-// export interface PatientOverview {
-//   active_complaints_count: string
-//   active_diagnosis_count: string
-//   active_prescriptions_count: string
-//   treatment_monitoring: string
-//   purpose_of_visit: string
-//   created_by_full_name: string
-//   created_by_profile_pic: string
-//   created_at: string
-//   reason_for_admission: string | null
-//   status: PatientAdmissionStatus
-//   transfer_by_full_name: string
-//   transfer_by_profile_pic: string
-//   transfer_created_at: string
-//   category?: string
-// }
-
 export interface VisitHistory {
   hospital_id: Id
   animal_id: Id | null
@@ -456,6 +464,19 @@ export interface VisitHistory {
   discharge_at: string
   doctor_name: string
   days_admitted: string
+}
+
+export interface HospitalAnalyticsDetail {
+  id: Id
+  name: string
+  zoo_id: Id
+  description: string
+  site_id: Id
+  site_name: string
+  entity_type: string
+  is_active: number | string
+  created_by: string
+  has_permission: number | string
 }
 
 
@@ -492,6 +513,7 @@ export interface HospitalStaff{
   user_id: Id
   user_profile_pic?: UserAvatarInfo
   role_name?: string
+  is_hospital_chief_doctor?: string
 }
 
 

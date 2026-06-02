@@ -36,6 +36,7 @@ import { DeleteApiResponse } from 'src/types/hospital/api';
 import { DownloadResponse } from 'src/types/hospital/api/Download/export';
 import { DownloadDischargeParams } from 'src/types/hospital/api/Discharge/discharge';
 import { ZooWiseSiteListParams, ZooWiseSiteListResponse } from 'src/types/hospital/api/ZooWiseSitelists/siteLists';
+import { AddPateintResponse, AddPatientParams } from 'src/types/hospital/api/Inpatient/inpatient';
 
 export const updateAnimalHealthStatus = async (
   payload: FormData | Record<string, unknown>
@@ -46,8 +47,8 @@ export const updateAnimalHealthStatus = async (
 }
 
 export const addHospitalPatient = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddPatientParams
+): Promise<AddPateintResponse> => {
   const response = await axiosFormPost({ url: `${ADD_HOSPITAL_PATIENT}`, body: payload })
 
   return response?.data

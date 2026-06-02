@@ -4,6 +4,7 @@ import { axiosGet as _axiosGet } from '../utility'
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse, HospitalAnalyticsResponse, HospitalListResponse } from 'src/types/hospital'
+import { GetHospitalDetailAnalyticsResponse } from 'src/types/hospital/api/Analytics/hospital';
 
 export async function getHospitalListing(
   params: Record<string, unknown>,
@@ -42,7 +43,7 @@ export async function getHospitalBedStats(
 export async function getHospitalDetail(
   id: string | number,
   params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+): Promise<GetHospitalDetailAnalyticsResponse> {
   try {
     const url = `${HOSPITAL_DETAIL}${id}`
     const response = await axiosGet({ url, params })
