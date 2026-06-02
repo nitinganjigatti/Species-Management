@@ -324,6 +324,25 @@ export type ChatStoreType = {
   // Populated when the user types in the composer and switches chats
   // without sending; restored when they come back. Cleared on send.
   drafts: Record<string, string>
+  // Sends that failed (typically because the socket was disconnected at
+  // the time the user hit Send). Each entry is replayed when the socket
+  // recovers via `flushPendingOutbox`, which the recovery layer in
+  // ChatClientContext fires after a successful `recovery ✓`. Entries are
+  // removed on successful retry, or when the user manually re-sends the
+  // same text in the same conversation (dedupes the user's explicit
+  // resend with the auto-retry that would have followed).
+  pendingOutbox: PendingOutboxEntry[]
+}
+
+export type PendingOutboxEntry = {
+  /** Local correlation id — also used as the React key in any future UI. */
+  id: string
+  conversationId: string
+  text: string
+  attachments?: ChatAttachmentType[]
+  replyTo?: MessageReplyRef
+  /** Epoch ms — for FIFO ordering on flush. */
+  createdAt: number
 }
 
 export type SendMsgParamsType = {

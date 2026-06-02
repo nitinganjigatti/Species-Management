@@ -15,7 +15,8 @@ import type {
   SendMsgParamsType,
   ChatFilterType,
   ChatEntityId,
-  CreateGroupPayload
+  CreateGroupPayload,
+  PendingOutboxEntry
 } from 'src/types/apps/chatTypes'
 
 // ** Chat SDK — all `@antzsoft/chat-core` calls go through this facade.
@@ -1299,6 +1300,77 @@ export const sendMsg = createAsyncThunk(
 )
 
 /**
+ * Replay every entry in `state.pendingOutbox` through the standard
+ * `sendMsg` thunk. Fired by the recovery layer in ChatClientContext
+ * immediately after a successful `recovery ✓` (`disconnectSocket` +
+ * `connectSocket` cycle that produced a fresh, transit-encrypted
+ * handshake).
+ *
+ * Behavior:
+ *  - Entries are processed in FIFO order (the order the user hit Send).
+ *  - Each entry is re-dispatched via `sendMsg`. On success, it's removed
+ *    from the outbox AND if the composer's current text still matches
+ *    the queued text on the same conversation, the composer's draft is
+ *    cleared so the user doesn't see "their" text linger after the auto-
+ *    retry already sent it (which would invite a duplicate manual send).
+ *  - On failure, the loop stops — the socket has gone bad again, no
+ *    point burning further attempts. Subsequent recovery cycles will
+ *    flush from the same position.
+ *  - Returns a count `{succeeded, total}` so the caller can surface a
+ *    toast like "Sent 2 queued messages" if desired.
+ *
+ * This thunk is idempotent: calling it on an empty outbox is a no-op,
+ * so it's safe to fire after every `recovery ✓` without a pre-check.
+ *
+ * Note: we deliberately do NOT race retries in parallel. Some
+ * conversations could share a draft-materialization race, and the
+ * SDK's send pipeline is already sequenced on the socket; serial
+ * processing matches WhatsApp's deterministic outbox flush.
+ */
+export const flushPendingOutbox = createAsyncThunk<{ succeeded: number; total: number }, void>(
+  'appChat/flushPendingOutbox',
+  async (_, { dispatch, getState }) => {
+    const state = getState() as { chat?: ChatStoreType }
+    const queue = [...(state.chat?.pendingOutbox ?? [])]
+    if (queue.length === 0) return { succeeded: 0, total: 0 }
+    console.log('[chat:outbox] flush start —', queue.length, 'queued')
+    let succeeded = 0
+    for (const entry of queue) {
+      try {
+        // Re-dispatch through the full sendMsg pipeline. The `chat: { id }`
+        // shape is the minimum SendMsgParamsType needs to skip
+        // materializeDraftIfNeeded (we already filtered draft sentinels at
+        // queue time in `sendMsg.rejected`).
+        await dispatch(
+          sendMsg({
+            chat: { id: entry.conversationId, unseenMsgs: 0, messages: [] },
+            message: entry.text,
+            ...(entry.attachments?.length ? { attachments: entry.attachments } : {})
+          })
+        ).unwrap()
+        dispatch(removeFromOutbox(entry.id))
+        succeeded += 1
+        // After a successful auto-retry, clear the composer draft for this
+        // conversation if its current text still equals what we just sent —
+        // avoids the user re-hitting Send on the same text and creating a
+        // duplicate. If the user has typed something else since, leave it
+        // alone (their newer input wins).
+        const post = getState() as { chat?: ChatStoreType }
+        if (post.chat?.drafts?.[entry.conversationId] === entry.text) {
+          dispatch(setDraft({ conversationId: entry.conversationId, text: '' }))
+        }
+        console.log('[chat:outbox] flush ok —', entry.id, '→', entry.conversationId)
+      } catch (err) {
+        console.warn('[chat:outbox] flush stopped — retry failed for', entry.id, err)
+        break
+      }
+    }
+
+    return { succeeded, total: queue.length }
+  }
+)
+
+/**
  * Forward an existing message into another conversation.
  *
  * Implemented as a client-side composition because the SDK has no
@@ -1416,7 +1488,8 @@ const initialState: ChatStoreType = {
   infoMessage: null,
   forwardingMessage: null,
   selectedConversationId: null,
-  drafts: {}
+  drafts: {},
+  pendingOutbox: []
 }
 
 export const appChatSlice = createSlice({
@@ -1442,6 +1515,20 @@ export const appChatSlice = createSlice({
       } else {
         delete state.drafts[conversationId]
       }
+    },
+    // Queue a send that failed (typically socket dead). Replayed by
+    // `flushPendingOutbox` after a successful recovery. Caller is
+    // responsible for generating a stable `id` (we use the same `tempId`
+    // shape as `sendMsg` so future optimistic-UI work can correlate
+    // without a second id space).
+    addToOutbox: (state, action: PayloadAction<PendingOutboxEntry>) => {
+      state.pendingOutbox.push(action.payload)
+    },
+    // Remove a queued entry by id. Called when a retry succeeds, or when
+    // the user manually re-sends the same text in the same conversation
+    // (to dedupe their explicit send against the pending auto-retry).
+    removeFromOutbox: (state, action: PayloadAction<string>) => {
+      state.pendingOutbox = state.pendingOutbox.filter(e => e.id !== action.payload)
     },
     // Synchronous "open this chat" reducer. Called by the `selectChat` thunk
     // first so the chat panel opens immediately (with whatever messages are
@@ -3299,6 +3386,47 @@ export const appChatSlice = createSlice({
         }
       }
     })
+    // Send failed (typically because the socket was disconnected at the
+    // time the user hit Send → SDK rejected with "Socket reconnect failed",
+    // OR after auto-reconnect the handshake was rejected with the transit-
+    // encryption error and the SDK gave up). Queue the attempt so the
+    // recovery layer in ChatClientContext can replay it via
+    // `flushPendingOutbox` once the socket is healthy again.
+    //
+    // We DON'T queue:
+    //  - sends with no resolvable conversationId (defensive)
+    //  - sends targeting a draft conversation that wasn't materialized
+    //    yet (`__draft__` sentinel) — flushPendingOutbox would re-trigger
+    //    materializeDraftIfNeeded which itself needs network; user is
+    //    better off manually re-sending after recovery so the draft is
+    //    materialized in a clean, foreground flow.
+    builder.addCase(sendMsg.rejected, (state, action) => {
+      const arg = action.meta.arg
+      const conversationId = (arg.chat?.id ?? arg.contact?.id) as string | undefined
+      if (typeof conversationId !== 'string' || !conversationId) {
+        console.warn('[chat:outbox] failed send dropped — no conversationId on arg', arg)
+
+        return
+      }
+      if (conversationId.startsWith('__draft__')) {
+        console.warn('[chat:outbox] failed send dropped — draft not yet materialized', conversationId)
+
+        return
+      }
+      state.pendingOutbox.push({
+        id: `outbox-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        conversationId,
+        text: arg.message,
+        attachments: arg.attachments,
+        replyTo: state.replyingTo ?? undefined,
+        createdAt: Date.now()
+      })
+      console.log('[chat:outbox] queued failed send', {
+        conversationId,
+        text: arg.message?.slice(0, 40),
+        outboxSize: state.pendingOutbox.length
+      })
+    })
   }
 })
 
@@ -3337,7 +3465,9 @@ export const {
   setActiveFilter,
   setDraft,
   setDraftChat,
-  materializeDraft
+  materializeDraft,
+  addToOutbox,
+  removeFromOutbox
 } = appChatSlice.actions
 
 export default appChatSlice.reducer

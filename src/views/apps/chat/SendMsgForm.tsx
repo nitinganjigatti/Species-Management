@@ -28,7 +28,7 @@ import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
-import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setDraft, materializeDraftIfNeeded, sendMsg as sendMsgThunk } from 'src/store/apps/chat'
 import type { AppDispatch } from 'src/store'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
@@ -692,13 +692,35 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       setUploading(false)
     }
 
-    dispatch(
-      sendMsg({
-        ...store.selectedChat,
-        message: trimmed,
-        ...(uploaded ? { attachments: uploaded } : {})
-      })
-    )
+    // Await the send so we can branch on failure. The `sendMsg` prop is the
+    // same action creator as the imported `sendMsgThunk`; we dispatch the
+    // thunk directly here so we can `.unwrap()` and surface a toast +
+    // preserve the composer text when the socket is dead. On rejection,
+    // `sendMsg.rejected` in the slice has already queued the attempt into
+    // `state.pendingOutbox`, which the recovery layer in ChatClientContext
+    // will replay via `flushPendingOutbox` once the socket comes back.
+    try {
+      await (dispatch as AppDispatch)(
+        sendMsgThunk({
+          ...store.selectedChat,
+          message: trimmed,
+          ...(uploaded ? { attachments: uploaded } : {})
+        })
+      ).unwrap()
+    } catch (err) {
+      console.error('[chat] sendMsg failed — kept in composer, queued for retry:', err)
+      toast.error('Can’t send right now — we’ll retry when you’re back online.')
+
+      // Keep composer state intact: text in `msg`, attachment previews in
+      // `pending`, replyTo in Redux. User sees their intent preserved.
+      // The outbox holds the canonical retry payload (with the already-
+      // uploaded `attachments` shape, not the local preview URLs), so the
+      // auto-retry on recovery sends the right thing regardless of what
+      // the user does in the composer in the meantime.
+      stopTyping()
+
+      return
+    }
 
     pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     setPending([])

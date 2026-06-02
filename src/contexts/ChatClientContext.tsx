@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
+import { useDispatch } from 'react-redux'
+
 import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth } from '@antzsoft/chat-core'
 
 import { useAuth } from 'src/hooks/useAuth'
@@ -11,6 +13,8 @@ import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
 import type { AntzChatClient, ChatSocket } from 'src/lib/chat/api'
 import { updateChatProfile, syncAvatar } from 'src/lib/chat/api'
 import { attachSocketLifecycleLogs } from 'src/lib/chat/socketLogger'
+import { flushPendingOutbox } from 'src/store/apps/chat'
+import type { AppDispatch } from 'src/store'
 
 /**
  * Single-mount React Context for the `@antzsoft/chat-core` SDK lifecycle.
@@ -56,6 +60,7 @@ interface ChatClientProviderProps {
 
 export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const auth = useAuth() as any
+  const dispatch = useDispatch<AppDispatch>()
   const [client, setClient] = useState<AntzChatClient | null>(null)
   const [socket, setSocket] = useState<ChatSocket | null>(null)
   const [connected, setConnected] = useState<boolean>(false)
@@ -294,6 +299,21 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
             console.log('[chat:socket-trace] recovery ✓ — fresh handshake succeeded', {
               at: new Date().toISOString()
             })
+            // Replay any sends queued by `sendMsg.rejected` while the
+            // socket was dead. `flushPendingOutbox` is a no-op when the
+            // outbox is empty, so it's safe to fire after every recovery
+            // without a pre-check. Returns `{succeeded, total}` for any
+            // future toast UX; currently we just log it.
+            dispatch(flushPendingOutbox())
+              .unwrap()
+              .then(result => {
+                if (result.total > 0) {
+                  console.log('[chat:outbox] flush after recovery —', result.succeeded, 'of', result.total)
+                }
+              })
+              .catch(e => {
+                console.warn('[chat:outbox] flush after recovery failed', e)
+              })
           })
           .catch(e => {
             console.error('[chat:socket-trace] recovery ✗ — fresh handshake failed', {
@@ -380,6 +400,35 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         /* swallow */
       }
       setConnected(true)
+      // Belt-and-suspenders: drain the pendingOutbox even when the
+      // socket recovered WITHOUT going through our `recoverFromStuckSocket`
+      // path (i.e., Socket.IO auto-reconnected cleanly and the handshake
+      // succeeded without the transit-encryption bug). The recovery path
+      // already calls `flushPendingOutbox` directly in its .then() — this
+      // is the fallback for the clean-reconnect case so queued sends
+      // don't get stuck waiting for a bug-triggered recovery.
+      //
+      // Timing note: `reconnect ✓ (auto)` fires the instant the TCP/WS
+      // hand is back; the server's handshake-level transit-encryption
+      // check (which sometimes rejects with stillTrying:false) arrives a
+      // beat later as a `connect_error`. If we flush before that error
+      // lands, the flush's first `sendMessageOverSocket` will throw and
+      // re-queue itself via `sendMsg.rejected` — the loop stops on first
+      // failure, and the subsequent `recoverFromStuckSocket` will flush
+      // again successfully. So firing here is safe even when the
+      // handshake is about to fail; worst case is a harmless extra log.
+      //
+      // Idempotent: empty outbox → no-op.
+      dispatch(flushPendingOutbox())
+        .unwrap()
+        .then(result => {
+          if (result.total > 0) {
+            console.log('[chat:outbox] flush after auto-reconnect —', result.succeeded, 'of', result.total)
+          }
+        })
+        .catch(e => {
+          console.warn('[chat:outbox] flush after auto-reconnect failed', e)
+        })
     }
 
     // [chat:socket-trace] Socket.IO manager events — fire on EVERY
