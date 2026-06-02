@@ -118,6 +118,18 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const RECEIPT_SYNC_COOLDOWN_MS = 30_000
   /** Retry delay for a failed receipt-sync fetch (system-wake → backend not warm yet). */
   const RECEIPT_SYNC_RETRY_DELAY_MS = 3_000
+  /**
+   * Delay before the INITIAL receipt-sync fetch fires after a focus return.
+   * Gives the transit ECDH session time to (re)establish post-reconnect
+   * BEFORE we hit chat REST endpoints — backend's `@PreTransit()` coverage
+   * is incomplete (only `/users/me`, `/users/me/devices`, and
+   * `/storage/files/upload` are marked as of SDK 1.2.5), so REST calls
+   * fired during the transit-setup window return `403 Transit session
+   * required` on every other endpoint. A short upfront wait dodges that
+   * race in practice.
+   * REMOVE ONCE BACKEND extends @PreTransit() to all chat REST endpoints.
+   */
+  const RECEIPT_SYNC_INITIAL_DELAY_MS = 2_000
 
   // Tenant gate — short-circuit to a passthrough when either
   // `ENABLE_CHAT_MODULE` or `ENABLE_CHAT_MODULE_IN_WEB` is off so we don't
@@ -174,28 +186,39 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         const sinceLastSync = now - (lastReceiptSyncAtRef.current ?? 0)
         if (sinceLastSync >= RECEIPT_SYNC_COOLDOWN_MS) {
           lastReceiptSyncAtRef.current = now
-          dispatch(fetchChatsContacts())
-            .unwrap()
-            .catch(e => {
-              // First attempt failed — typically a transient backend hiccup
-              // right after system-wake (502 / Network Error when the chat
-              // service hasn't warmed back up yet). Retry once after a
-              // short delay; if that also fails, log + move on (next focus
-              // return after cooldown will try again).
-              console.warn('[chat:receipt-sync] refresh failed, retrying in 3s', e)
-              if (receiptSyncRetryTimeoutRef.current) {
-                clearTimeout(receiptSyncRetryTimeoutRef.current)
-              }
-              receiptSyncRetryTimeoutRef.current = setTimeout(() => {
-                receiptSyncRetryTimeoutRef.current = null
-                // Guard the retry the same way as the initial fire: only run
-                // if the SDK is still alive (user might have closed the tab).
-                if (!getChatClientOrNull()) return
-                dispatch(fetchChatsContacts())
-                  .unwrap()
-                  .catch(e2 => console.warn('[chat:receipt-sync] retry also failed (non-fatal)', e2))
-              }, RECEIPT_SYNC_RETRY_DELAY_MS)
-            })
+          // Defer the initial fetch so the transit ECDH session has time
+          // to (re)establish after socket reconnect. See the constant's
+          // docstring for the @PreTransit() backend gap this works around.
+          if (receiptSyncRetryTimeoutRef.current) {
+            clearTimeout(receiptSyncRetryTimeoutRef.current)
+          }
+          receiptSyncRetryTimeoutRef.current = setTimeout(() => {
+            receiptSyncRetryTimeoutRef.current = null
+            // Guard: the user might have closed the tab during the 2s window.
+            if (!getChatClientOrNull()) return
+            dispatch(fetchChatsContacts())
+              .unwrap()
+              .catch(e => {
+                // Initial (delayed) attempt failed — most often a transient
+                // backend hiccup after system-wake (502 / Network Error
+                // when the chat service is still warming up, OR the
+                // transit-setup race the 2s delay didn't fully dodge).
+                // Retry once after a short delay; if that also fails, log
+                // + move on (next focus return after cooldown will try
+                // again).
+                console.warn('[chat:receipt-sync] refresh failed, retrying in 3s', e)
+                if (receiptSyncRetryTimeoutRef.current) {
+                  clearTimeout(receiptSyncRetryTimeoutRef.current)
+                }
+                receiptSyncRetryTimeoutRef.current = setTimeout(() => {
+                  receiptSyncRetryTimeoutRef.current = null
+                  if (!getChatClientOrNull()) return
+                  dispatch(fetchChatsContacts())
+                    .unwrap()
+                    .catch(e2 => console.warn('[chat:receipt-sync] retry also failed (non-fatal)', e2))
+                }, RECEIPT_SYNC_RETRY_DELAY_MS)
+              })
+          }, RECEIPT_SYNC_INITIAL_DELAY_MS)
         }
       }
 
@@ -405,7 +428,14 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     const isTransitHandshakeFailure = (msg: string | undefined): boolean => {
       if (!msg) return false
 
-      return /transit\s*encryption|transitEphemeralPub|transitAlgo/i.test(msg)
+      // Catches all known server-side transit-related handshake rejections
+      // that indicate the ephemeral session is stale and a tear-down +
+      // fresh connectSocket is required. Variants seen in the wild:
+      //   • "Transit encryption required: missing transitEphemeralPub/transitAlgo in handshake auth"
+      //   • "Transit session not found or expired — reconnect to create a new session"
+      // Add new variants here as the backend introduces them — the
+      // recovery action is the same for all.
+      return /transit\s*encryption|transitEphemeralPub|transitAlgo|transit\s+session/i.test(msg)
     }
     const recoverFromStuckSocket = (reason: string) => {
       // Only when the tab is actively visible — keeps background tabs
