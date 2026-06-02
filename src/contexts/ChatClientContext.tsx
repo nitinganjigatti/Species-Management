@@ -93,6 +93,12 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const [reinitCounter, setReinitCounter] = useState(0)
   /** Cooldown tracker for the receipt-sync-on-focus workaround. */
   const lastReceiptSyncAtRef = useRef<number | null>(null)
+  /**
+   * Pending retry timeout for the receipt-sync fetch. Used when the first
+   * attempt fails with a network/5xx error — common right after a system
+   * wake when the backend isn't fully warmed up yet. Cleared on unmount.
+   */
+  const receiptSyncRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /** Long-sleep threshold: shorter returns are noise; longer matches real sleep / laptop-close. */
   const LONG_SLEEP_THRESHOLD_MS = 5 * 60 * 1000
@@ -110,6 +116,8 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
    */
   const RECEIPT_SYNC_THRESHOLD_MS = 5_000
   const RECEIPT_SYNC_COOLDOWN_MS = 30_000
+  /** Retry delay for a failed receipt-sync fetch (system-wake → backend not warm yet). */
+  const RECEIPT_SYNC_RETRY_DELAY_MS = 3_000
 
   // Tenant gate — short-circuit to a passthrough when either
   // `ENABLE_CHAT_MODULE` or `ENABLE_CHAT_MODULE_IN_WEB` is off so we don't
@@ -166,31 +174,37 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         const sinceLastSync = now - (lastReceiptSyncAtRef.current ?? 0)
         if (sinceLastSync >= RECEIPT_SYNC_COOLDOWN_MS) {
           lastReceiptSyncAtRef.current = now
-          console.log('[chat:receipt-sync] focus return → refreshing conversation list', {
-            hiddenSec: Math.round(hiddenDuration / 1000)
-          })
           dispatch(fetchChatsContacts())
             .unwrap()
-            .catch(e => console.warn('[chat:receipt-sync] refresh failed (non-fatal)', e))
+            .catch(e => {
+              // First attempt failed — typically a transient backend hiccup
+              // right after system-wake (502 / Network Error when the chat
+              // service hasn't warmed back up yet). Retry once after a
+              // short delay; if that also fails, log + move on (next focus
+              // return after cooldown will try again).
+              console.warn('[chat:receipt-sync] refresh failed, retrying in 3s', e)
+              if (receiptSyncRetryTimeoutRef.current) {
+                clearTimeout(receiptSyncRetryTimeoutRef.current)
+              }
+              receiptSyncRetryTimeoutRef.current = setTimeout(() => {
+                receiptSyncRetryTimeoutRef.current = null
+                // Guard the retry the same way as the initial fire: only run
+                // if the SDK is still alive (user might have closed the tab).
+                if (!getChatClientOrNull()) return
+                dispatch(fetchChatsContacts())
+                  .unwrap()
+                  .catch(e2 => console.warn('[chat:receipt-sync] retry also failed (non-fatal)', e2))
+              }, RECEIPT_SYNC_RETRY_DELAY_MS)
+            })
         }
       }
 
       if (hiddenDuration < LONG_SLEEP_THRESHOLD_MS) return
       // Long-sleep return. Healthy SDK → no-op (receipt sync above already
       // covered the missed-event case).
-      if (getChatClientOrNull()) {
-        console.log('[chat:selfheal] long-sleep return, SDK alive — no re-init needed', {
-          hiddenSec: Math.round(hiddenDuration / 1000)
-        })
-
-        return
-      }
+      if (getChatClientOrNull()) return
       // SDK is dead → force a re-init cycle.
-      if (reinitInFlightRef.current) {
-        console.log('[chat:selfheal] re-init already in flight — skipping bump')
-
-        return
-      }
+      if (reinitInFlightRef.current) return
       console.warn('[chat:selfheal] long-sleep return + SDK dead → bumping reinitCounter', {
         hiddenSec: Math.round(hiddenDuration / 1000)
       })
@@ -206,6 +220,10 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       if (reinitBackoffTimeoutRef.current) {
         clearTimeout(reinitBackoffTimeoutRef.current)
         reinitBackoffTimeoutRef.current = null
+      }
+      if (receiptSyncRetryTimeoutRef.current) {
+        clearTimeout(receiptSyncRetryTimeoutRef.current)
+        receiptSyncRetryTimeoutRef.current = null
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -360,20 +378,6 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     const onConnect = () => {
       setConnected(true)
       setError(null)
-      // [chat:socket-trace] Connection established — captures the
-      // socket.id + visibility / online state so we can correlate
-      // recovery with whether the user is actively looking at the tab.
-      try {
-        const live = getSocket()
-        console.log('[chat:socket-trace] connect ✓', {
-          socketId: live?.id,
-          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-          at: new Date().toISOString()
-        })
-      } catch {
-        /* swallow */
-      }
     }
     // ── Stuck-socket recovery (transit-encryption-on-reconnect) ──────────
     // Verified failure pattern from runtime trace 2026-06-01:
@@ -406,25 +410,11 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     const recoverFromStuckSocket = (reason: string) => {
       // Only when the tab is actively visible — keeps background tabs
       // quiet, matches user's explicit "fire on visible" requirement.
-      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
-        console.log('[chat:socket-trace] recovery skipped — tab not visible', { reason })
-
-        return
-      }
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
       const now = Date.now()
-      if (now - lastRecoveryAt < RECOVERY_COOLDOWN_MS) {
-        console.log('[chat:socket-trace] recovery skipped — cooldown active', {
-          reason,
-          msSinceLast: now - lastRecoveryAt
-        })
-
-        return
-      }
+      if (now - lastRecoveryAt < RECOVERY_COOLDOWN_MS) return
       lastRecoveryAt = now
-      console.warn('[chat:socket-trace] recovery → tear down + fresh connectSocket', {
-        reason,
-        at: new Date().toISOString()
-      })
+      console.warn('[chat:socket] recovery → tear down + fresh connectSocket', { reason })
       try {
         // Full teardown. `disconnectSocket()` clears the singleton so
         // the next `connectSocket()` rebuilds with fresh ephemeral keys
@@ -433,53 +423,26 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         disconnectSocket()
         connectSocket(resolvedSocketConfig, getAccessToken)
           .then(() => {
-            console.log('[chat:socket-trace] recovery ✓ — fresh handshake succeeded', {
-              at: new Date().toISOString()
-            })
             // Replay any sends queued by `sendMsg.rejected` while the
             // socket was dead. `flushPendingOutbox` is a no-op when the
             // outbox is empty, so it's safe to fire after every recovery
-            // without a pre-check. Returns `{succeeded, total}` for any
-            // future toast UX; currently we just log it.
+            // without a pre-check.
             dispatch(flushPendingOutbox())
               .unwrap()
-              .then(result => {
-                if (result.total > 0) {
-                  console.log('[chat:outbox] flush after recovery —', result.succeeded, 'of', result.total)
-                }
-              })
               .catch(e => {
                 console.warn('[chat:outbox] flush after recovery failed', e)
               })
           })
           .catch(e => {
-            console.error('[chat:socket-trace] recovery ✗ — fresh handshake failed', {
-              message: (e as Error)?.message,
-              at: new Date().toISOString()
-            })
+            console.error('[chat:socket] recovery failed', (e as Error)?.message)
           })
       } catch (e) {
-        console.error('[chat:socket-trace] recovery threw', e)
+        console.error('[chat:socket] recovery threw', e)
       }
     }
 
     const onConnectError = (err: Error) => {
       setError(err)
-      // [chat:socket-trace] Auth or reachability failure. `active`
-      // tells us whether Socket.IO is still trying — if false, it has
-      // exhausted reconnectionAttempts and given up.
-      try {
-        const live = getSocket()
-        console.warn('[chat:socket-trace] connect_error', {
-          message: err?.message,
-          stillTrying: !!(live as { active?: boolean } | null)?.active,
-          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-          at: new Date().toISOString()
-        })
-      } catch {
-        /* swallow */
-      }
       // Forward-compat guard: `refreshSocketAuth` is an SDK API. A
       // future major version could remove or rename it. Wrap so a sync
       // throw doesn't crash the connect_error handler — recovery below
@@ -487,7 +450,7 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       try {
         refreshSocketAuth()
       } catch (e) {
-        console.warn('[chat:socket-trace] refreshSocketAuth threw', e)
+        console.warn('[chat:socket] refreshSocketAuth threw', e)
       }
       // Targeted recovery: only the verified transit-encryption-on-
       // reconnect failure triggers a full teardown + fresh handshake.
@@ -497,45 +460,10 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         setTimeout(() => recoverFromStuckSocket('connect_error:transit'), 500)
       }
     }
-    const onDisconnect = (reason: string) => {
-      console.log('[chat:socket] disconnected —', reason)
-      // [chat:socket-trace] Captures the disconnect reason + whether
-      // Socket.IO will auto-retry. Per the Socket.IO docs, two reasons
-      // disable auto-retry entirely:
-      //   • 'io server disconnect' — server explicitly disconnected us
-      //   • 'io client disconnect' — we (the client) called disconnect()
-      // For everything else (transport close/error, ping timeout), the
-      // SDK config of reconnectionAttempts:10 will retry; if those 10
-      // attempts fail, we see `reconnect_failed` (logged below).
-      try {
-        const live = getSocket()
-        console.warn('[chat:socket-trace] disconnect ✗', {
-          reason,
-          willAutoReconnect: reason !== 'io server disconnect' && reason !== 'io client disconnect',
-          stillTrying: !!(live as { active?: boolean } | null)?.active,
-          visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-          online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-          at: new Date().toISOString()
-        })
-      } catch {
-        /* swallow */
-      }
+    const onDisconnect = (_reason: string) => {
       setConnected(false)
     }
     const onReconnect = () => {
-      // [chat:socket-trace] Built-in retry succeeded. Without this we
-      // can't tell whether the auto-reconnect actually got us back —
-      // only that the `connect` event fired (which would fire after a
-      // page refresh too).
-      try {
-        const live = getSocket()
-        console.log('[chat:socket-trace] reconnect ✓ (auto)', {
-          socketId: live?.id,
-          at: new Date().toISOString()
-        })
-      } catch {
-        /* swallow */
-      }
       setConnected(true)
       // Belt-and-suspenders: drain the pendingOutbox even when the
       // socket recovered WITHOUT going through our `recoverFromStuckSocket`
@@ -568,27 +496,19 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         })
     }
 
-    // [chat:socket-trace] Socket.IO manager events — fire on EVERY
-    // retry attempt and when the retry loop gives up.
-    const onIoReconnectAttempt = (attempt: number) => {
-      console.log('[chat:socket-trace] reconnect_attempt', {
-        attempt,
-        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-        at: new Date().toISOString()
-      })
+    // Socket.IO manager events — no-op handlers kept for API parity with
+    // the on()/off() lifecycle (would have logged each retry / error
+    // during diagnostic phase; trimmed now to keep production console
+    // clean — reconnect_failed below is the only one that survives
+    // because it ALSO triggers our recoverFromStuckSocket fallback).
+    const onIoReconnectAttempt = (_attempt: number) => {
+      /* no-op */
     }
-    const onIoReconnectError = (err: Error) => {
-      console.warn('[chat:socket-trace] reconnect_error', {
-        message: err?.message,
-        at: new Date().toISOString()
-      })
+    const onIoReconnectError = (_err: Error) => {
+      /* no-op */
     }
     const onIoReconnectFailed = () => {
-      console.error('[chat:socket-trace] reconnect_failed — Socket.IO gave up. Triggering manual recovery.', {
-        visibility: typeof document !== 'undefined' ? document.visibilityState : 'n/a',
-        online: typeof navigator !== 'undefined' ? navigator.onLine : 'n/a',
-        at: new Date().toISOString()
-      })
+      console.error('[chat:socket] reconnect_failed — Socket.IO gave up. Triggering manual recovery.')
       // Belt-and-suspenders — if all 10 built-in attempts fail for ANY
       // reason (not just transit-encryption), try one fresh handshake
       // when the tab is visible. Same cooldown-guarded path.
@@ -618,12 +538,6 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       if (!live) return
       if (live.connected) return
       const stillTrying = !!(live as { active?: boolean }).active
-      console.log('[chat:socket-trace] tab active', {
-        source,
-        connected: live.connected,
-        stillTrying,
-        at: new Date().toISOString()
-      })
       // Only recover if the SDK has truly given up. Don't interrupt an
       // in-flight retry — let Socket.IO finish its backoff window first.
       if (!stillTrying) {
@@ -643,9 +557,6 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       if (evt.key !== authConfig.storageTokenKeyName) return
       // Empty newValue means logout — let the auth flow handle teardown.
       if (!evt.newValue) return
-      console.log('[chat:socket-trace] auth token refreshed in another tab → recover', {
-        at: new Date().toISOString()
-      })
       recoverFromStuckSocket('token-refresh')
     }
 
@@ -668,7 +579,7 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         s.on('connect_error', onConnectError)
         s.on('disconnect', onDisconnect)
         s.io?.on?.('reconnect', onReconnect)
-        // [chat:socket-trace] Manager-level events go through `s.io`.
+        // [chat:socket] Manager-level events go through `s.io`.
         s.io?.on?.('reconnect_attempt', onIoReconnectAttempt)
         s.io?.on?.('reconnect_error', onIoReconnectError)
         s.io?.on?.('reconnect_failed', onIoReconnectFailed)
@@ -693,11 +604,6 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
           // connectSocket above already wired the event listeners.
           dispatch(fetchChatsContacts())
             .unwrap()
-            .then(r => {
-              console.log('[chat:selfheal] replay ✓ — refreshed conversation list', {
-                chats: r.chatsContacts?.length ?? 0
-              })
-            })
             .catch(e => {
               console.warn('[chat:selfheal] replay failed (non-fatal)', e)
             })
@@ -765,12 +671,12 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       try {
         disconnectSocket()
       } catch (e) {
-        console.warn('[chat:socket-trace] disconnectSocket threw on cleanup', e)
+        console.warn('[chat:socket] disconnectSocket threw on cleanup', e)
       }
       try {
         disposeChatClient()
       } catch (e) {
-        console.warn('[chat:socket-trace] disposeChatClient threw on cleanup', e)
+        console.warn('[chat:socket] disposeChatClient threw on cleanup', e)
       }
       setConnected(false)
       setClient(null)
