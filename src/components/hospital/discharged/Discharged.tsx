@@ -47,6 +47,10 @@ import { GridCellParams, GridColDef, GridPaginationModel, GridRenderCellParams, 
 import { GetInpatientListFilters, GetPatientListResponse } from 'src/types/hospital/api/Inpatient/inpatient'
 import { MenuData } from '../inpatient/Inpatient'
 import { IndexedRows } from '../DoctorsAndStaffs/DoctorsList'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const HospitalDischarged = () => {
   const theme: any = useTheme()
@@ -398,7 +402,7 @@ const HospitalDischarged = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: GridRenderCellParams) => {
-        const totalDuration = Number(params.row.duration_days) + 1
+        const totalDuration = dayjs(params.row.discharge_at).utc().diff(dayjs(params.row.admitted_at).utc(), 'day') + 1   
 
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
