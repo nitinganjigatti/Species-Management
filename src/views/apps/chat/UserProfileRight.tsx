@@ -19,7 +19,8 @@ import {
   selectChat,
   removeChatFromList,
   addOrReplaceChat,
-  fetchChatsContacts
+  fetchChatsContacts,
+  clearChatHistory
 } from 'src/store/apps/chat'
 import toast from 'react-hot-toast'
 import type { Theme } from '@mui/material/styles'
@@ -38,6 +39,7 @@ import {
   getUserLastSeen
 } from 'src/lib/chat/api'
 import { formatLastSeen } from 'src/lib/chat/formatLastSeen'
+import { chatErrorMessage } from 'src/lib/chat/errors'
 
 // ** SDK presence store — auto-updates from `user_online` / `user_offline`.
 import { useChatStore } from '@antzsoft/chat-core'
@@ -90,6 +92,19 @@ const getAvatarInitials = (name: string): string => {
   return (first + last).toUpperCase()
 }
 
+// Defined at MODULE LEVEL (not inside the component) on purpose: a component
+// declared inside another component's body is a brand-new type on every render,
+// so React unmounts/remounts it — here that remounted PerfectScrollbar, resetting
+// scrollTop to 0 and causing the drawer to jump back to the top on any re-render
+// (presence / "last seen" / socket updates). Keeping it stable preserves scroll.
+const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: boolean }) => {
+  if (hidden) {
+    return <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>{children}</Box>
+  }
+
+  return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
+}
+
 const UserProfileRight = (props: UserProfileRightType) => {
   const {
     store,
@@ -102,14 +117,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
     onScrollToMessage,
     onOpenSearch
   } = props
-
-  const ScrollWrapper = ({ children }: { children: ReactNode }) => {
-    if (hidden) {
-      return <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>{children}</Box>
-    } else {
-      return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
-    }
-  }
 
   // Mute / pin state mirrors the backend's `Conversation.isMuted` / `isPinned`
   // (surfaced by the adapter onto `ChatsArrType`). Toggling dispatches the
@@ -317,6 +324,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
         ...(addAsAdmin ? { role: 'admin' as const } : {})
       })
     )
+      .unwrap()
+      .catch(err => toast.error(chatErrorMessage(err, 'Couldn’t add members')))
     cancelAddMembers()
   }
 
@@ -329,6 +338,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
     | { type: 'exitAndDelete' }
     | { type: 'delete' }
     | { type: 'deleteChat' }
+    | { type: 'clearChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
     // Sole-admin warning — shown when the user is the only admin AND
     // other active members remain. The confirm-button label tracks
@@ -472,6 +482,18 @@ const UserProfileRight = (props: UserProfileRightType) => {
       // handled by the existing `conversation_created` listener.
       dispatch(deleteConversation(chatId))
       handleUserProfileRightSidebarToggle()
+    } else if (confirmAction.type === 'clearChat') {
+      // v1.2.6 — clears messages for THIS user only (server-side); the
+      // conversation stays in the list. The thunk mirrors the clear locally
+      // on success and re-throws on failure so we can toast. No success toast
+      // (the emptied thread is feedback enough); only surface failures.
+      if (typeof chatId === 'string') {
+        dispatch(clearChatHistory(chatId))
+          .unwrap()
+          .catch(err => toast.error(chatErrorMessage(err, 'Couldn’t clear chat')))
+      }
+      // Close the info drawer so the user lands back on the now-empty thread.
+      handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
       if (currentGroupId === null) return
       dispatch(removeParticipantFromGroup({ groupId: currentGroupId, userId: confirmAction.userId }))
@@ -540,6 +562,18 @@ const UserProfileRight = (props: UserProfileRightType) => {
             'This removes the chat from your list. The other person is not affected. If they message you again, the chat will reappear.',
           confirmText: 'Delete',
           icon: 'mdi:delete',
+          iconColor: '#ff3838'
+        }
+      case 'clearChat':
+        // v1.2.6 — local-only message wipe. Other participants keep their
+        // history; the conversation stays in the list. New messages after
+        // this point appear normally.
+        return {
+          title: 'Clear chat?',
+          description:
+            'This clears all messages in this chat for you only. Other participants are not affected. New messages will still appear.',
+          confirmText: 'Clear',
+          icon: 'mdi:broom',
           iconColor: '#ff3838'
         }
       case 'removeMember':
@@ -675,6 +709,12 @@ const UserProfileRight = (props: UserProfileRightType) => {
       }
     })
   })()
+
+  // Server-authoritative member count for DISPLAY (SDK v1.2.6 frozen-state
+  // guidance). Falls back to the rendered list length when absent — identical
+  // today, but stays correct if the server ever returns a partial participants
+  // array for large groups.
+  const memberCount = store?.selectedChat?.contact?.participantCount ?? groupMembers.length
 
   return (
     <Sidebar
@@ -1104,7 +1144,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </Box>
                   {/* Group chip + member count below description */}
                   <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
-                    Group · {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+                    Group · {memberCount} {memberCount === 1 ? 'member' : 'members'}
                   </Typography>
                 </>
               )}
@@ -1262,7 +1302,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
             {/* ── Members ── */}
             <Box sx={{ px: 5, pt: 2.5, pb: 1 }}>
               <Typography variant='body2' sx={{ fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}>
-                {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+                {memberCount} {memberCount === 1 ? 'member' : 'members'}
               </Typography>
             </Box>
 
@@ -1415,6 +1455,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 longer wired into the UI but kept in code so any external
                 callers continue to work unchanged. */}
             <List dense sx={{ p: 0, mb: 2 }}>
+              {/* v1.2.6 Clear chat — local-only message wipe; group membership
+                  and other members are unaffected. Active members only. */}
+              {isCurrentUserActive && (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }}
+                    onClick={() => setConfirmAction({ type: 'clearChat' })}
+                  >
+                    <Icon icon='mdi:broom' fontSize='1.25rem' />
+                    <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
+                      Clear chat
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
               {isCurrentUserActive && (
                 <ListItem disablePadding>
                   <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleExitGroup}>
@@ -1549,7 +1604,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
 
           {/* ── Scrollable body ───────────────────────────────────────── */}
           <Box sx={{ flex: 1, overflow: 'hidden' }}>
-            <ScrollWrapper>
+            <ScrollWrapper hidden={hidden}>
               <Box sx={{ pb: 6 }}>
                 {/* Contact info */}
                 {contactUser?.email || contactUser?.phone ? (
@@ -1743,15 +1798,39 @@ const UserProfileRight = (props: UserProfileRightType) => {
                               {group.fullName}
                             </Typography>
                             <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
-                              {group.participantIds?.length ?? 0} members
+                              {group.participantCount ?? group.participantIds?.length ?? 0} members
                             </Typography>
                           </Box>
                         </Box>
                       </Box>
                     ))}
-                    {/* <Divider sx={{ mx: '5%' }} /> */}
                   </>
                 ) : null}
+
+                {/* Separator above the destructive actions — always shown,
+                    independent of whether there are groups in common. */}
+                <Divider sx={{ mx: '5%' }} />
+
+                {/* Clear chat — DM. v1.2.6 local-only message wipe; the chat
+                    stays in the list, the other person is unaffected. */}
+                <Box
+                  onClick={() => setConfirmAction({ type: 'clearChat' })}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    px: 5,
+                    py: 4,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'customColors.BgTeritary' },
+                    transition: 'background-color 150ms'
+                  }}
+                >
+                  <Icon icon='mdi:broom' fontSize='1.25rem' color='customColors.Tertiary' />
+                  <Typography variant='body2' sx={{ color: 'customColors.Tertiary', fontWeight: 500 }}>
+                    Clear chat
+                  </Typography>
+                </Box>
 
                 {/* Delete chat — DM only. v1.1.3 semantics: local-only
                     hide. Server marks the conversation hidden for the

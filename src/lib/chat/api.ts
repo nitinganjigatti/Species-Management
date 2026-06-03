@@ -77,7 +77,7 @@ import {
 // NOT forward `platformUploadPartFn` to its internal uploadBatch — so we
 // bypass it and call `uploadBatch` directly with BOTH fns to get chunked
 // multipart uploads for large files (≥ 10 MB).
-import { platformUploadFn, platformUploadPartFn } from './client'
+import { platformUploadFn, platformUploadPartFn, platformCompressFn } from './client'
 
 import { getChatClientOrNull } from './client'
 
@@ -487,6 +487,17 @@ export async function getMessage(messageId: string): Promise<Message> {
   return requireClient('getMessage').messages.get(messageId)
 }
 
+// v1.2.6 — Clear Chat: removes all messages in a conversation for the CALLING
+// user only. Other participants are unaffected. After this resolves, the
+// server suppresses `lastMessage` in the conversation list for this user until
+// a new message arrives. We mirror that locally (see `clearChatHistory` thunk).
+export async function clearConversationHistory(conversationId: string): Promise<void> {
+  // NOTE: despite the v1.2.6 release note showing `messagesApi.clearChat`, the
+  // method actually lives on `conversations` (verified against the SDK types) —
+  // same accessor as leave/mute/pin.
+  await requireClient('clearConversationHistory').conversations.clearChat(conversationId)
+}
+
 /**
  * Fetch read/delivered receipts for a message with sender profiles
  * (displayName + avatarUrl) already resolved server-side. Use for the
@@ -639,8 +650,11 @@ export async function uploadChatFiles(files: UploadableFile[], conversationId: s
     platformUploadFn,
     conversationId,
     undefined, // onProgress — not surfaced here
-    undefined, // platformCompressFn — compression not configured
-    undefined, // compressionConfig
+    platformCompressFn, // gzips text-based DOCUMENTS only; images already compressed upstream
+    // Document-only compression: gzip text docs, leave images to the existing
+    // upstream `maybeCompressImage` pass. imageQuality/imageMaxDimension are
+    // unused here because `platformCompressFn` never touches images.
+    { enabled: true, compressDocuments: true, imageQuality: 0.85, imageMaxDimension: 1920 },
     platformUploadPartFn // ← the arg client.uploadFiles drops; enables chunked multipart
   )
 
@@ -827,8 +841,18 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   const systemMeta = (
     msg as typeof msg & {
       metadata?: {
+        // Canonical actor (SDK 1.2.5+ — drives viewer-aware text resolution
+        // server-side). Read-only here for now; downstream consumers can
+        // fall back to this when `msg.senderId` is empty. Wiring into the
+        // returned object is intentionally NOT done in this step — see the
+        // 2-step plan in the api-integration-status changelog.
+        actorUserId?: string
+        actorUserName?: string
+        // Canonical target
         targetUserId?: string
         targetUserName?: string
+        // Legacy/per-event-type target field names — kept for backwards
+        // compatibility if the server hasn't fully migrated yet.
         removedUserId?: string
         removedUserName?: string
         addedUserId?: string
@@ -850,14 +874,31 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     systemMeta?.addedUserName ??
     systemMeta?.affectedUserName
 
+  // Step 2 — actor fallback to metadata.
+  // Most messages have `msg.senderId` populated by the server. For SOME
+  // system events (per SDK 1.2.5 docs) the backend ships the actor as
+  // `metadata.actorUserId` instead, with `senderId` blank. Without this
+  // fallback the perspective-rewrite path (`resolveSystemMessageText`)
+  // would classify the viewer as 'bystander' for events where they're
+  // really the 'actor' or the actor's name is needed, producing copy
+  // like "Anil Rathod added you" missing OR raw "Anil Rathod added Ajay
+  // Antony" instead of the resolved viewer-aware text.
+  //
+  // Non-system messages: `senderId` is always populated by the server,
+  // so the `??` keeps the same value (no behaviour change). The
+  // `actorUserId` field only exists in `metadata` for system events.
+  const effectiveSenderId =
+    msg.senderId && msg.senderId !== '' ? msg.senderId : systemMeta?.actorUserId ?? msg.senderId
+  const effectiveSenderName = senderName ?? systemMeta?.actorUserName
+
   return {
     id: msg.id,
     // Blank the body on tombstones so the rendered bubble matches what the
     // live-broadcast path produces (applyMessageDelete also blanks `m.message`).
     message: isDeletedForEveryone ? '' : msg.content?.text ?? '',
     time,
-    senderId: msg.senderId,
-    ...(senderName ? { senderName } : {}),
+    senderId: effectiveSenderId,
+    ...(effectiveSenderName ? { senderName: effectiveSenderName } : {}),
     feedback: {
       isSent: msg.status !== 'failed' && deliveryStatus !== 'failed',
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
@@ -1229,6 +1270,12 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     isGroup,
     description: conv.description,
     participantIds: activeParticipants.map(p => p.userId),
+    // Server-authoritative count; falls back to the active list length when the
+    // server omits it. Preferred for member-count display (see ChatsArrType).
+    participantCount:
+      typeof (conv as { participantCount?: number }).participantCount === 'number'
+        ? (conv as { participantCount?: number }).participantCount
+        : activeParticipants.length,
     adminIds: activeParticipants.filter(p => p.role === 'admin').map(p => p.userId),
     participants,
     isCurrentUserActive,

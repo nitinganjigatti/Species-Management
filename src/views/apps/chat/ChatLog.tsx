@@ -935,7 +935,7 @@ const ChatLog = (props: ChatLogType) => {
     // appears once — right after the first system message in history.
     let groupCardInjected = false
 
-    return formattedChatData().map((item: FormattedChatsType, index: number) => {
+    const rendered = formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
       const isUnreadGroup = item.senderId === 'unread'
@@ -1575,6 +1575,19 @@ const ChatLog = (props: ChatLogType) => {
         </Box>
       )
     })
+
+    // Fallback: when the "X created group" system message isn't in the
+    // rendered list (e.g. after Clear chat wiped messages, or for a member
+    // whose loaded history doesn't include it) but we're at the true
+    // beginning of the thread, still show the group-created card at the top —
+    // WhatsApp keeps this notice permanently. Gated on `!hasMoreOlder` so it
+    // never appears prematurely while older pages (which may contain the real
+    // system message) are still unloaded.
+    if (!groupCardInjected && groupCreatedCard !== null && !hasMoreOlder) {
+      return [<Fragment key='grp-card-top'>{groupCreatedCard}</Fragment>, ...rendered]
+    }
+
+    return rendered
   }
 
   // Native-overflow (mobile fallback) scroll handler. Triggers a load only on

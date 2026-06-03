@@ -32,6 +32,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Forward marker
 import { stripForwardMarker } from 'src/lib/chat/forwardMarker'
+import { chatErrorMessage } from 'src/lib/chat/errors'
 
 // ** Types
 import type { ChatEntityId, ChatsArrType } from 'src/types/apps/chatTypes'
@@ -110,7 +111,7 @@ const ForwardMessageDialog = () => {
       setSelectedIds(new Set())
     } catch (err) {
       console.error('[chat] forward failed:', err)
-      toast.error('Forward failed')
+      toast.error(chatErrorMessage(err, 'Forward failed'))
     } finally {
       setSubmitting(false)
     }

@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 
 import { useDispatch } from 'react-redux'
 
-import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth } from '@antzsoft/chat-core'
+import { connectSocket, disconnectSocket, getSocket, refreshSocketAuth, getAuthStore } from '@antzsoft/chat-core'
 
 import { useAuth } from 'src/hooks/useAuth'
 import { getChatClient, getChatClientOrNull, disposeChatClient } from 'src/lib/chat/client'
@@ -138,6 +138,59 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
   const enableChatModule = Boolean(
     auth?.userData?.settings?.ENABLE_CHAT_MODULE && auth?.userData?.settings?.ENABLE_CHAT_MODULE_IN_WEB
   )
+
+  // ── Account-deactivation auto-logout (SDK Step 6b, external-auth path) ──────
+  // When the current user is deactivated server-side, the chat server revokes
+  // tokens and the SDK's axios interceptor clears them → its auth store flips
+  // `isAuthenticated` to false. The app's own 401 interceptor already covers
+  // the common case (any main-app API call triggers `session-expired`), but a
+  // user sitting IDLE on a chat surface (no main-app calls) would otherwise
+  // never be logged out. This bridges that gap by reusing the SAME
+  // `session-expired` event the app already handles — NOT a new logout path.
+  //
+  // Safety guards against spurious full-app logout on transient flips:
+  //   • Only fire on a real true→false TRANSITION (must have observed `true`
+  //     at least once first — ignores the initial/hydration false).
+  //   • Skip on the login page.
+  //   • `session-expired` is itself idempotent (AuthContext guards re-entry).
+  const sawAuthenticatedRef = useRef(false)
+  useEffect(() => {
+    if (!enableChatModule) return
+    if (typeof window === 'undefined') return
+
+    let store: ReturnType<typeof getAuthStore> | null = null
+    try {
+      store = getAuthStore()
+    } catch (e) {
+      // Forward-compat: if the SDK ever changes/removes getAuthStore, the
+      // app's own 401 interceptor remains the fallback — no crash here.
+      console.warn('[chat:auth] getAuthStore unavailable — skipping deactivation bridge', e)
+
+      return
+    }
+
+    const evaluate = (isAuthenticated: boolean) => {
+      if (isAuthenticated) {
+        sawAuthenticatedRef.current = true
+
+        return
+      }
+      // false: only act if we had previously seen an authenticated session
+      // (true→false transition), and we're not already on the login page.
+      if (!sawAuthenticatedRef.current) return
+      const path = window.location.pathname
+      if (path === '/login' || path === '/login/') return
+      sawAuthenticatedRef.current = false
+      console.warn('[chat:auth] chat session invalidated (likely deactivation) — triggering session-expired')
+      window.dispatchEvent(new Event('session-expired'))
+    }
+
+    // Seed from the current value, then subscribe to future changes.
+    evaluate(store.useAuthStore.getState().isAuthenticated)
+    const unsubscribe = store.useAuthStore.subscribe(state => evaluate(state.isAuthenticated))
+
+    return () => unsubscribe()
+  }, [enableChatModule])
 
   // Self-heal listener — separate from the existing socket-recovery
   // visibility handler (which only triggers when the SOCKET is stuck).

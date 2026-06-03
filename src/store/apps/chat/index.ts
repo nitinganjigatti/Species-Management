@@ -44,6 +44,7 @@ import {
   getLastRead,
   getMessage,
   listMessages,
+  clearConversationHistory,
   markReadOverSocket,
   sendMessageOverSocket,
   sdkUserToProfile,
@@ -523,6 +524,11 @@ export const addParticipantsToGroup = createAsyncThunk<
     dispatch(addOrReplaceChat(chat))
   } catch (err) {
     console.error('[chat] addParticipantsToGroup failed:', err)
+    // Re-throw so a `.unwrap()` caller (AddMembersDrawer / UserProfileRight)
+    // can surface a toast — e.g. a 403 when a non-admin tries to add members.
+    // Callers that DON'T unwrap are unaffected (the rejected action is a
+    // no-op; no extraReducer reacts to it).
+    throw err
   }
 })
 
@@ -584,6 +590,39 @@ export const deleteConversation = createAsyncThunk<void, ChatEntityId>(
       dispatch(removeChatFromList(chatId))
     } catch (err) {
       console.error('[chat] deleteConversation failed:', err)
+    }
+  }
+)
+
+/**
+ * v1.2.6 Clear Chat — clears all messages in a conversation for the CALLING
+ * user only (server-side). The conversation stays in the list; other
+ * participants are unaffected. On success we mirror the server by wiping the
+ * local message cache + suppressing `lastMessage` via `clearChatLocal`.
+ *
+ * Re-throws on failure so the UI can surface a toast (e.g. a network error).
+ */
+export const clearChatHistory = createAsyncThunk<void, ChatEntityId>(
+  'appChat/clearChatHistory',
+  async (chatId, { dispatch }) => {
+    const client = getChatClientOrNull()
+    if (!client) {
+      console.warn('[chat] clearChatHistory: SDK not ready')
+
+      return
+    }
+    if (typeof chatId !== 'string') {
+      console.warn('[chat] clearChatHistory: chatId must be a real conversation id')
+
+      return
+    }
+
+    try {
+      await clearConversationHistory(chatId)
+      dispatch(clearChatLocal({ chatId }))
+    } catch (err) {
+      console.error('[chat] clearChatHistory failed:', err)
+      throw err
     }
   }
 )
@@ -1741,6 +1780,26 @@ export const appChatSlice = createSlice({
         }
       }
 
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = { chat: chatEntry.chat, contact: chatEntry }
+      }
+    },
+    // Dedicated handler for the `unread_count_changed` socket event (SDK
+    // Step 10) — the server pushes the authoritative unread count to ALL of
+    // the user's devices simultaneously. This ONLY touches `unseenMsgs`; it
+    // deliberately shares nothing with `patchConversationFromEvent` (no
+    // lastMessage write, no reorder, no feedback recompute) so it cannot
+    // affect any other flow. Same two guards as the unreadCount branch above:
+    // keep 0 while the chat is open, and ignore for groups we've been kicked
+    // from.
+    setUnseenCount: (state, action: PayloadAction<{ chatId: ChatEntityId; count: number }>) => {
+      if (!state.chats) return
+      const { chatId, count } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      if (chatEntry.isGroup && chatEntry.isCurrentUserActive === false) return
+      const isCurrentlyOpen = state.selectedChat?.contact.id === chatId
+      chatEntry.chat.unseenMsgs = isCurrentlyOpen ? 0 : count
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat = { chat: chatEntry.chat, contact: chatEntry }
       }
@@ -2919,6 +2978,25 @@ export const appChatSlice = createSlice({
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
     // thunk after `messages.list()` resolves. Also carries the cursor
     // pagination meta so the next "load older" call has somewhere to start.
+    // v1.2.6 Clear Chat — wipe local message history + suppress `lastMessage`
+    // for THIS user after the server-side clear succeeds. Mirrors the server
+    // contract: the conversation stays in the list but shows no preview until
+    // a new message arrives. Other participants are unaffected (server-side).
+    // Idempotent — safe to dispatch for an unknown / already-empty chat.
+    clearChatLocal: (state, action: PayloadAction<{ chatId: ChatEntityId }>) => {
+      if (!state.chats) return
+      const { chatId } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      chatEntry.chat.messages = []
+      chatEntry.chat.lastMessage = undefined
+      chatEntry.chat.unseenMsgs = 0
+      chatEntry.chat.oldestCursor = null
+      chatEntry.chat.hasMoreOlder = false
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = { chat: chatEntry.chat, contact: chatEntry }
+      }
+    },
     setChatMessages: (
       state,
       action: PayloadAction<{
@@ -3459,6 +3537,8 @@ export const {
   setForwardingMessage,
   updateChatFlags,
   patchConversationFromEvent,
+  setUnseenCount,
+  clearChatLocal,
   setReplyingTo,
   setEditingMessage,
   applyMessageUpdate,

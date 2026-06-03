@@ -185,6 +185,13 @@ export type ChatsArrType = {
   description?: string
   icon?: string
   participantIds?: ChatEntityId[]
+  /**
+   * Server-authoritative active-member count (`conversation.participantCount`).
+   * Preferred over `participantIds.length` for count DISPLAY — the server keeps
+   * it accurate even if the participants array is ever returned partially
+   * (large groups). Falls back to the active-participant count when absent.
+   */
+  participantCount?: number
   /** Subset of participantIds that have the `admin` role server-side. */
   adminIds?: ChatEntityId[]
   /**

@@ -31,6 +31,7 @@ import {
   applyReadReceiptEntry,
   addOrReplaceChat,
   patchConversationFromEvent,
+  setUnseenCount,
   removeChatFromList,
   updateChatFlags
 } from 'src/store/apps/chat'
@@ -553,7 +554,12 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // active participants have received the message — mirrors mobile's
     // computeGroupTickStatus logic via the applyDeliveryReceipt reducer.
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
-      if (!evt) return
+      // Bail on malformed / undecrypted-transit-envelope events. A real
+      // MessageDeliveredEvent always carries conversationId + messageId +
+      // deliveredTo.userId; without this guard an encrypted envelope
+      // ({ v, iv, tag, ct }) slipping through threw an uncaught TypeError
+      // at `evt.deliveredTo.userId`. Legit events have all three → unaffected.
+      if (!evt?.conversationId || !evt.messageId || !evt.deliveredTo?.userId) return
       dispatch(
         applyDeliveryReceipt({
           conversationId: evt.conversationId,
@@ -567,7 +573,11 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // Batch delivered — used when a user comes back online and the server
     // catches them up on multiple acknowledgements at once.
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
-      if (!evt?.messageIds?.length) return
+      // `messageIds.length` already filters out undecrypted envelopes (no such
+      // field); also require conversationId + deliveredTo so a malformed event
+      // can't dispatch a receipt with undefined targets. Legit batch events
+      // carry all three → unaffected.
+      if (!evt?.messageIds?.length || !evt.conversationId || !evt.deliveredTo) return
       dispatch(
         applyDeliveryReceipt({
           conversationId: evt.conversationId,
@@ -584,7 +594,11 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // fullyReadMessageIds = messages ALL participants read → blue tick (isSeen).
     // Mirrors mobile's handleReadReceipt logic in useSocketRoom.ts.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
-      if (!evt) return
+      // Require conversationId so an undecrypted-transit envelope / malformed
+      // event is skipped before any field access. Legit read receipts always
+      // carry conversationId → unaffected. (The body already tolerates missing
+      // updatedMessageIds/fullyReadMessageIds, so this only hardens the entry.)
+      if (!evt?.conversationId) return
 
       // Per-user read: update readBy arrays. A reader counts as delivered,
       // so this also recomputes isDelivered for group messages.
@@ -651,6 +665,19 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
           unreadCount: typeof evt?.unreadCount === 'number' ? evt.unreadCount : undefined
         })
       )
+    }
+
+    // `unread_count_changed` (SDK Step 10) — server pushes the authoritative
+    // unread count to ALL of the user's devices simultaneously. Covers the one
+    // case `conversation_updated` / `new_message` do NOT: reading a chat on
+    // ANOTHER device must clear the badge here without a new message arriving.
+    // Dispatches the dedicated `setUnseenCount` reducer (unseenMsgs only — no
+    // lastMessage / reorder side effects). Field names read defensively.
+    const onUnreadCountChanged = (evt: any) => {
+      const convId = evt?.conversationId ?? evt?.id
+      const count = evt?.unreadCount ?? evt?.count ?? evt?.unread
+      if (!convId || typeof count !== 'number') return
+      dispatch(setUnseenCount({ chatId: convId, count }))
     }
 
     // Fires when a new conversation is created OR when the current user is
@@ -971,6 +998,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     chatSocket.on('messages_delivered', onMessagesDelivered)
     chatSocket.on('read_receipt', onReadReceipt)
     chatSocket.on('conversation_updated', onConversationUpdated)
+    chatSocket.on('unread_count_changed', onUnreadCountChanged)
     chatSocket.on('conversation_created', onConversationCreated)
     chatSocket.on('conversation_deleted', onConversationDeleted)
     chatSocket.on('reaction_updated', onReactionUpdated)
@@ -988,6 +1016,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       chatSocket.off('messages_delivered', onMessagesDelivered)
       chatSocket.off('read_receipt', onReadReceipt)
       chatSocket.off('conversation_updated', onConversationUpdated)
+      chatSocket.off('unread_count_changed', onUnreadCountChanged)
       chatSocket.off('conversation_created', onConversationCreated)
       chatSocket.off('conversation_deleted', onConversationDeleted)
       chatSocket.off('reaction_updated', onReactionUpdated)

@@ -35,6 +35,7 @@ import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog
 
 // ** Chat API
 import { removeConversationIcon, getConversation, sdkConversationToChat } from 'src/lib/chat/api'
+import { chatErrorMessage } from 'src/lib/chat/errors'
 
 // ** Image compression
 import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
@@ -110,7 +111,7 @@ const GroupIconEditor = ({
       await dispatch(uploadGroupIcon({ chatId, file: uploadable })).unwrap()
     } catch (err) {
       console.error('[GroupIconEditor] upload failed:', err)
-      toast.error('Failed to update group icon')
+      toast.error(chatErrorMessage(err, 'Failed to update group icon'))
     } finally {
       setUploading(false)
       if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -126,7 +127,7 @@ const GroupIconEditor = ({
       })
       .catch(err => {
         console.error('[GroupIconEditor] remove failed:', err)
-        toast.error('Failed to remove group icon')
+        toast.error(chatErrorMessage(err, 'Failed to remove group icon'))
         // Rollback — if the server still has the icon, refetch so the
         // UI re-renders with the avatar restored.
         getConversation(chatId)
