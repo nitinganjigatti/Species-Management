@@ -453,15 +453,33 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   // and possible on socket reconnects).
   const syntheticKickFiredRef = useRef<Set<string>>(new Set())
 
+  // Mirror guard for the "added-back-to-group" path. Backend (verified on
+  // 1.2.5) does NOT reliably deliver a `new_message` with
+  // `systemOperationType: 'user_added'` to the joiner, so the in-chat pill
+  // never appeared until the user refreshed. We synthesize one client-side
+  // via `receiveMessage` on `participant_joined` when the joiner is us.
+  // The ref is cleared on `participant_left` (kick) so a future kick → re-
+  // add cycle can synthesize a fresh pill.
+  const syntheticAddFiredRef = useRef<Set<string>>(new Set())
+
   // Stable ref of the chat id set. Used inside the new_message handler so we
   // can detect events for conversations we don't yet have (e.g. someone just
   // created a DM with us) and pull a fresh list via `fetchChatsContacts`.
   const knownChatIdsRef = useRef<Set<string | number>>(new Set())
   const chatsRef = useRef(store?.chats ?? null)
+  // Deduped contacts list across all conversations — used as a fallback
+  // actor-name source when a `participant_joined` event arrives for a
+  // conversation whose participants array doesn't (yet) include the
+  // admin who added us. After a kick the chat's participants cache
+  // typically drops to just the kicked user, so the re-add event can't
+  // resolve `addedByName` from the chat itself — but the admin's likely
+  // a contact via another chat. Belt-and-suspenders for the synthesis.
+  const contactsRef = useRef(store?.contacts ?? null)
   useEffect(() => {
     knownChatIdsRef.current = new Set(store?.chats?.map(c => c.id) ?? [])
     chatsRef.current = store?.chats ?? null
-  }, [store?.chats])
+    contactsRef.current = store?.contacts ?? null
+  }, [store?.chats, store?.contacts])
 
   useEffect(() => {
     if (chatError) return
@@ -756,8 +774,77 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       // future re-kick can synthesize a fresh pill (otherwise the ref
       // would block synthesis on the second kick).
       const meId = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
-      if (meId && String(userId) === meId) {
+      const joinerIsMe = meId !== '' && String(userId) === meId
+      if (joinerIsMe) {
         syntheticKickFiredRef.current.delete(String(conversationId))
+      }
+
+      // Synthesize "<Actor> added you" pill when I'm the joiner — backend
+      // doesn't reliably deliver a `new_message` system event with
+      // `user_added` to the re-added user, so the in-chat pill never
+      // appears until the next page refresh. Mirrors the kick synthesis
+      // at the bottom of `onParticipantLeft` for the exit path.
+      //
+      // Actor name resolution (in order):
+      //   1. event.addedBy / event.invitedBy / event.actor (whatever the
+      //      backend uses — we accept the common variants)
+      //   2. event.addedByName / event.actorName / event.user.addedByName
+      //   3. fallback: generic "You were added" copy
+      //
+      // Deterministic id (`synthetic-add-<conversationId>`) + the
+      // `syntheticAddFiredRef` guard make this idempotent so a
+      // double-fire of `participant_joined` (StrictMode dev double-mount,
+      // socket re-delivery) doesn't produce duplicate pills.
+      if (joinerIsMe) {
+        const convKey = String(conversationId)
+        if (!syntheticAddFiredRef.current.has(convKey)) {
+          syntheticAddFiredRef.current.add(convKey)
+          const addedBy: string | number | undefined =
+            evt?.addedBy ?? evt?.invitedBy ?? evt?.actor ?? evt?.actorId
+          let addedByName: string | undefined =
+            evt?.addedByName ?? evt?.addedByDisplayName ?? evt?.actorName ?? evt?.actor?.displayName
+          // Backend (verified on 1.2.5) emits `addedBy` as an id but
+          // OMITS the actor's display name from `participant_joined`.
+          // Resolve it from our cached participants array — same pattern
+          // the kick handler uses for `removedByName` lookup. The actor
+          // is still a group admin, so they're in the participants list.
+          if (!addedByName && addedBy) {
+            const cachedChat = chatsRef.current?.find(c => String(c.id) === String(conversationId))
+            const actor = cachedChat?.participants?.find(p => String(p.userId) === String(addedBy))
+            addedByName = actor?.displayName ?? actor?.username
+          }
+          // Fallback: after a kick, the affected chat's participants
+          // cache typically drops the admin (only the kicked user
+          // remains). The admin is almost always reachable via another
+          // chat in `store.contacts` (deduped across all conversations).
+          // Pure client-side lookup — no extra network call needed.
+          if (!addedByName && addedBy) {
+            const contactActor = contactsRef.current?.find(c => String(c.id) === String(addedBy))
+            addedByName = contactActor?.fullName
+          }
+          const myName = userProfileNameRef.current
+          const myId = userProfileIdRef.current
+          const now = new Date()
+          const syntheticMessage = {
+            id: `synthetic-add-${convKey}-${now.getTime()}`,
+            message: addedByName ? `${addedByName} added you` : 'You were added to this group',
+            time: now.toISOString(),
+            senderId: addedBy != null ? String(addedBy) : '',
+            ...(addedByName ? { senderName: addedByName } : {}),
+            feedback: { isSent: true, isDelivered: true, isSeen: true },
+            contentType: 'system' as const,
+            systemOperationType: 'user_added',
+            targetUserId: myId != null ? String(myId) : String(userId),
+            ...(myName ? { targetUserName: myName } : {})
+          }
+          dispatch(
+            receiveMessage({
+              conversationId,
+              message: syntheticMessage as any,
+              isOwn: false
+            })
+          )
+        }
       }
     }
 
