@@ -766,7 +766,29 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       ).unwrap()
     } catch (err) {
       console.error('[chat] sendMsg failed — restored composer, queued for retry:', err)
-      toast.error('Can’t send right now — we’ll retry when you’re back online.')
+
+      // Pick the toast copy by failure mode — the message that bubbles up
+      // from the SDK distinguishes "socket is dead" from "socket is alive
+      // but the server didn't ack in time". Both queue for retry the
+      // same way, but the user-facing text shouldn't claim "you're
+      // offline" when the socket is in fact connected.
+      //
+      // Toast id `chat-send-failed` makes it a singleton — rapid
+      // successive failures (e.g. user typing 9 quick messages while
+      // the server is acking slowly) update ONE toast instead of
+      // stacking 9 on top of each other. Switches copy if the failure
+      // type changes between sends.
+      const errMsg = (err as Error)?.message ?? ''
+      const isAckTimeout = /socket ack timeout/i.test(errMsg)
+      const isReconnectFailure = /reconnect\s+failed|socket\s+(?:disconnected|not\s+connected)/i.test(errMsg)
+      const toastOpts = { id: 'chat-send-failed' }
+      if (isAckTimeout) {
+        toast.error('Server is slow to respond — we’ll retry shortly.', toastOpts)
+      } else if (isReconnectFailure) {
+        toast.error('Can’t send right now — we’ll retry when you’re back online.', toastOpts)
+      } else {
+        toast.error('Couldn’t send — we’ll retry automatically.', toastOpts)
+      }
 
       // Restore the captured composer state so the user sees their intent
       // preserved. The outbox holds the canonical retry payload (with the
