@@ -911,65 +911,34 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
       const leaverIsMe = me !== '' && String(userId) === me
 
-      // Backend (v1.2.1) does NOT deliver the `user_removed` system
-      // `new_message` event to the kicked socket — only `participant_left`
-      // reaches us. So the in-chat removal pill never appears unless we
-      // synthesize it client-side. Build a system message that mirrors the
-      // shape the sender's UI receives (senderId/senderName = actor,
-      // targetUserId/targetUserName = me) and route it through
-      // `receiveMessage` so:
-      //   1. The pill appears at the bottom of ChatLog ("<Actor> removed you")
-      //   2. The kick-derivation logic in `receiveMessage` writes
-      //      sidebar.lastMessage + removedBy/removedByName in one pass.
-      // Deterministic id (`synthetic-kick-<conversationId>`) makes
-      // re-dispatch idempotent — second call is dropped by the id-dedupe
-      // branch in `receiveMessage`. Also harmless on later refresh: the
-      // real server message replaces it via `setChatMessages`.
+      // Admin-kick (`user_removed`) in-chat pill is rendered DECLARATIVELY by
+      // ChatLog from `contact.removedByName` (set here via `applyParticipantLeft`
+      // live, and by the adapter from the kick-actor cache on refresh) — so we
+      // do NOT synthesize a fake `user_removed` message for it.
+      //
+      // Self-exit (`user_left`) still needs client synthesis: there's no
+      // `removedByName` to drive the declarative pill, and the server doesn't
+      // deliver a `user_left` system message to the leaver.
       if (leaverIsMe) {
         const convKey = String(conversationId)
-        if (!syntheticKickFiredRef.current.has(convKey)) {
+        const isAdminKick = removedBy !== undefined && removedBy !== null
+        if (!isAdminKick && !syntheticKickFiredRef.current.has(convKey)) {
           syntheticKickFiredRef.current.add(convKey)
           const myName = userProfileNameRef.current
           const myId = userProfileIdRef.current
           const now = new Date()
-          const isAdminKick = removedBy !== undefined && removedBy !== null
-          // Use ISO timestamp — ChatLog's `toDateKey` / `formatDateLabel`
-          // do `new Date(msg.time)` and expect a parseable value, NOT a
-          // short HH:MM display string. Real messages from the adapter
-          // use `msg.sentAt ?? msg.createdAt ?? new Date().toISOString()`,
-          // so we match that exactly to keep the date-divider logic happy.
-          //
-          // Two synthesis shapes, picked by the kick-vs-leave discriminator:
-          //   • Admin kick   → sender = actor, target = me, op = user_removed
-          //   • Self-exit    → sender = me,    target = me, op = user_left
-          // ChatLog + SidebarLeft rewrite each into the correct
-          // perspective-specific copy ("Anil Rathod removed you" vs
-          // "You left the group").
-          const syntheticMessage = isAdminKick
-            ? {
-                id: `synthetic-kick-${convKey}-${now.getTime()}`,
-                message: removedByName ? `${removedByName} removed you` : 'You were removed',
-                time: now.toISOString(),
-                senderId: String(removedBy),
-                ...(removedByName ? { senderName: removedByName } : {}),
-                feedback: { isSent: true, isDelivered: true, isSeen: true },
-                contentType: 'system' as const,
-                systemOperationType: 'user_removed',
-                targetUserId: String(userId),
-                ...(myName ? { targetUserName: myName } : {})
-              }
-            : {
-                id: `synthetic-leave-${convKey}-${now.getTime()}`,
-                message: 'You left the group',
-                time: now.toISOString(),
-                senderId: myId != null ? String(myId) : String(userId),
-                ...(myName ? { senderName: myName } : {}),
-                feedback: { isSent: true, isDelivered: true, isSeen: true },
-                contentType: 'system' as const,
-                systemOperationType: 'user_left',
-                targetUserId: String(userId),
-                ...(myName ? { targetUserName: myName } : {})
-              }
+          const syntheticMessage = {
+            id: `synthetic-leave-${convKey}-${now.getTime()}`,
+            message: 'You left the group',
+            time: now.toISOString(),
+            senderId: myId != null ? String(myId) : String(userId),
+            ...(myName ? { senderName: myName } : {}),
+            feedback: { isSent: true, isDelivered: true, isSeen: true },
+            contentType: 'system' as const,
+            systemOperationType: 'user_left',
+            targetUserId: String(userId),
+            ...(myName ? { targetUserName: myName } : {})
+          }
           dispatch(
             receiveMessage({
               conversationId,

@@ -1576,6 +1576,48 @@ const ChatLog = (props: ChatLogType) => {
       )
     })
 
+    // Removal pill (bottom). The server returns NO messages to a removed user
+    // (messages.list → empty), so the "<Actor> removed you" pill can't come
+    // from the thread data. Render it declaratively from the removal info the
+    // adapter hydrates onto the contact (`removedByName`, sourced from the
+    // kick-actor cache / live `participant_left`) — same source the sidebar +
+    // banner use. Only for the removed user themselves (isCurrentUserActive
+    // === false); active members see the real "X removed Y" message instead.
+    // Skipped if a real kick-about-me message already exists in the thread, so
+    // it never double-renders alongside server data.
+    const removalPill = (() => {
+      const meId = String(data.userContact.id ?? '')
+      const alreadyHasKick = data.chat.messages.some(
+        m =>
+          (m.systemOperationType === 'user_removed' || m.systemOperationType === 'participant_removed') &&
+          m.targetUserId !== undefined &&
+          String(m.targetUserId) === meId
+      )
+      if (!isGroupChat || data.contact.isCurrentUserActive !== false) return null
+      const actor = data.contact.removedByName
+      if (!actor) return null
+      if (alreadyHasKick) return null
+
+      return (
+        <Box key='removed-pill' sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              backgroundColor: theme => theme.palette.action.hover,
+              color: 'text.secondary',
+              maxWidth: '75%',
+              textAlign: 'center'
+            }}
+          >
+            {`${actor} removed you`}
+          </Typography>
+        </Box>
+      )
+    })()
+
     // Fallback: when the "X created group" system message isn't in the
     // rendered list (e.g. after Clear chat wiped messages, or for a member
     // whose loaded history doesn't include it) but we're at the true
@@ -1583,11 +1625,13 @@ const ChatLog = (props: ChatLogType) => {
     // WhatsApp keeps this notice permanently. Gated on `!hasMoreOlder` so it
     // never appears prematurely while older pages (which may contain the real
     // system message) are still unloaded.
-    if (!groupCardInjected && groupCreatedCard !== null && !hasMoreOlder) {
-      return [<Fragment key='grp-card-top'>{groupCreatedCard}</Fragment>, ...rendered]
-    }
+    const head =
+      !groupCardInjected && groupCreatedCard !== null && !hasMoreOlder
+        ? [<Fragment key='grp-card-top'>{groupCreatedCard}</Fragment>]
+        : []
+    const tail = removalPill ? [removalPill] : []
 
-    return rendered
+    return [...head, ...rendered, ...tail]
   }
 
   // Native-overflow (mobile fallback) scroll handler. Triggers a load only on
