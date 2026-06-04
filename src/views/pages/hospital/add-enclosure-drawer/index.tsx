@@ -18,24 +18,25 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import { AuthContext } from 'src/context/AuthContext'
 import { useHospital } from 'src/context/HospitalContext'
 
-const schema = yup.object().shape({
-  site_id: yup
-    .object()
-    .shape({
-      site_id: yup.string().required('Site Id is required'),
-      site_name: yup.string().required('Site Name is required')
-    })
-    .required('Site Name is required'),
-  bed_name: yup.string().trim().required('Enclosure name is required'),
-  prefix: yup.string().trim().required('Bed code is required'),
-  no_of_bed: yup
-    .number()
-    .typeError('Number of Enclosures must be a number')
-    .required('Number of Enclosures is required')
-    .positive('Number of Enclosures must be greater than zero')
-    .integer('Number of Enclosures must be an integer')
-    .required('Number of Enclosures required')
-})
+const createSchema = (t: (key: string) => string) =>
+  yup.object().shape({
+    site_id: yup
+      .object()
+      .shape({
+        site_id: yup.string().required(t('hospital_module.site_id_required')),
+        site_name: yup.string().required(t('hospital_module.site_name_required'))
+      })
+      .required(t('hospital_module.site_name_required')),
+    bed_name: yup.string().trim().required(t('hospital_module.enclosure_name_required')),
+    prefix: yup.string().trim().required(t('hospital_module.bed_code_required')),
+    no_of_bed: yup
+      .number()
+      .typeError(t('hospital_module.number_of_enclosures_must_be_a_number'))
+      .required(t('hospital_module.number_of_enclosures_required'))
+      .positive(t('hospital_module.number_of_enclosures_must_be_greater_than_zero'))
+      .integer(t('hospital_module.number_of_enclosures_must_be_an_integer'))
+      .required(t('hospital_module.number_of_enclosures_required'))
+  })
 
 const defaultValues: any = {
   site_id: null,
@@ -63,6 +64,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
   const sitesList: any[] = useMemo(() => {
     return authData?.userData?.user?.zoos?.[0]?.sites || []
   }, [authData])
+
+  const schema = useMemo(() => createSchema(t as (key: string) => string), [t])
 
   const {
     reset,
@@ -127,7 +130,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} alt='Filter Icon'
+          />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {editParams?.id !== null ? t('hospital_module.edit_enclosure') : t('hospital_module.add_new_enclosure')}
           </Typography>
@@ -160,7 +164,7 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   control={control}
                   name={'site_id'}
                   errors={errors}
-                  label={(t('hospital_module.site_name') as string)}
+                  label={t('hospital_module.site_name') as string}
                   options={sitesList}
                   getOptionLabel={(option: any) => option?.site_name || ''}
                   isOptionEqualToValue={(option: any, value: any) => option?.site_id === value?.site_id}
@@ -171,8 +175,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'bed_name'}
                   control={control}
                   errors={errors}
-                  label={(t('hospital_module.enclosure_name') as string)}
-                  placeholder={(t('hospital_module.enter_enclosure_name') as string)}
+                  label={t('hospital_module.enclosure_name') as string}
+                  placeholder={t('hospital_module.enter_enclosure_name') as string}
                   fullWidth
                 />
               </Grid>
@@ -181,8 +185,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'prefix'}
                   control={control}
                   errors={errors}
-                  label={(t('hospital_module.bed_code') as string)}
-                  placeholder={(t('hospital_module.enter_bed_code') as string)}
+                  label={t('hospital_module.bed_code') as string}
+                  placeholder={t('hospital_module.enter_bed_code') as string}
                   fullWidth
                 />
               </Grid>
@@ -191,8 +195,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'no_of_bed'}
                   control={control}
                   errors={errors}
-                  label={(t('hospital_module.number_of_enclosures') as string)}
-                  placeholder={(t('hospital_module.enter_number_of_enclosures') as string)}
+                  label={t('hospital_module.number_of_enclosures') as string}
+                  placeholder={t('hospital_module.enter_number_of_enclosures') as string}
                   fullWidth
                 />
               </Grid>

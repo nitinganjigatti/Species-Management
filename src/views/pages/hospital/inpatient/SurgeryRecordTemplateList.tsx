@@ -13,7 +13,7 @@ import Toaster from 'src/components/Toaster'
 import { deleteTemplate, updateTemplate } from 'src/lib/api/hospital/surgeryMaster'
 import { Theme } from '@mui/material/styles'
 import { Id } from 'src/types/hospital'
-import { TemplateList } from 'src/types/hospital/models'
+import { TemplateList } from 'src/types/hospital/models/templates'
 
 export interface SurgeryTemplate extends TemplateList {
   title?: string

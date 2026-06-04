@@ -474,7 +474,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Attending Veterinarian
+             {t('hospital_module.attending_veterinarian')}
             </Typography>
             <Controller
               name='attendingVeterinarians'
@@ -503,7 +503,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
                     }
                   }}
                   renderInput={params => (
-                    <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                    <TextField {...params} label={t('hospital_module.attending_veterinarian')} placeholder={t('hospital_module.search_and_select')} />
                   )}
                 />
               )}

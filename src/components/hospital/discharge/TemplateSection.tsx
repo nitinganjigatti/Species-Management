@@ -19,7 +19,8 @@ import { SaveTemplateButton } from 'src/views/utility/render-snippets'
 import { CreateTemplateParams, GetTemplatesResponse } from 'src/types/hospital/api/Template/template'
 import { FieldError } from 'react-hook-form'
 import { Id } from 'src/types/hospital'
-import { Template } from 'src/types/hospital/models'
+import { Template } from 'src/types/hospital/models/templates'
+import { t } from 'i18next'
 
 export interface RichTextNote {
   html?: string
@@ -241,7 +242,7 @@ const SaveTemplateBar = ({ onClose, onSave, loading = false, richNote }: SaveTem
             }
           }}
         >
-          Save
+          {t('save')}
         </LoadingButton>
         {!loading && (
           <Avatar
@@ -529,14 +530,14 @@ const TemplateSection = ({
           templateLabels?.length > 0 && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <StyledTypography fontWeight={400}>Select from templates</StyledTypography>
+                <StyledTypography fontWeight={400}>{t('hospital_module.select_from_templates')}</StyledTypography>
 
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                   onClick={() => setOpenDrawer(true)}
                 >
                   <StyledTypography fontWeight={600} color={theme.palette.customColors.OnSurface}>
-                    See all
+                    {t('hospital_module.see_all')}
                   </StyledTypography>
                   <Icon icon='mingcute:right-fill' color={theme.palette.customColors.OnSurface} fontSize={24} />
                 </Box>

@@ -122,7 +122,7 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             color: theme.palette.customColors.onSurfaceVariant
           }}
         >
-          Edit Template
+          {t('hospital_module.edit_template')}
         </Typography>
         <IconButton onClick={handleClose} sx={{ color: theme.palette.primary.light }}>
           <Icon icon='mdi:close' fontSize={24} />

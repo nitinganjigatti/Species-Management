@@ -7,7 +7,7 @@ import { useTheme, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 
 import VitalFormDialog from './VitalFormDialog'
-import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models'
+import { AnesthesiaSetup, AnesthesiaSetupFields } from 'src/types/hospital/models/anesthesia'
 
 interface MeasurementFieldEntry {
   value?: string | number | null
@@ -249,7 +249,7 @@ export default function GenericMeasurementDialog({
           </Box>
 
           <Box sx={measurementSecondaryFieldColumnSx}>
-            <Typography sx={measurementFieldLabelSx(theme)}>UOM</Typography>
+            <Typography sx={measurementFieldLabelSx(theme)}>{t('hospital_module.uom')}</Typography>
             {isSingleUnit ? (
               <TextField
                 fullWidth

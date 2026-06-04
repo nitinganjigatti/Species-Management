@@ -1,5 +1,5 @@
 import { Id } from "src/types/compliance"
-import { Carcass, GetNecropsyCenter } from "../../models"
+import { Carcass, GetNecropsyCenter } from "../../models/discharge"
 
 export interface GetNecropsyCenterResponse {
     status: boolean

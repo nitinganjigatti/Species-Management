@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 import Utility from 'src/utility'
 import { AnesthesiaRecordsResponse } from 'src/types/hospital/api/Anesthesia/anesthesia'
-import { AnesthesiaAssessmentType, AnesthesiaDetails, AnesthesiaRecordItem } from 'src/types/hospital/models'
+import { AnesthesiaAssessmentType, AnesthesiaDetails, AnesthesiaRecordItem } from 'src/types/hospital/models/anesthesia'
 import { Id } from 'src/types/compliance'
 
 interface SelectAnesthesiaRecordDrawerProps {

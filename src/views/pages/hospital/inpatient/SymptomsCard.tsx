@@ -15,44 +15,11 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { GetSymptomRecordPayload, GetSymptomRecordResponse, UpdateSymptomsCardPayload } from 'src/types/hospital/api/Inpatient/symptoms'
-import { AddSymptomsCard, Id, Severity, SymptomList, SymptomRecords, SymptomStatus, UpdateSymptomsCard } from 'src/types/hospital/models'
+import { Id, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { AddSymptomsCard, SymptomList, SymptomRecords, UpdateSymptomsCard } from 'src/types/hospital/models/symptoms'
 import { DurationUnit } from 'src/types/hospital/models'
-
-interface SymptomsCardProps {
-  record: SymptomList
-  isResolved?: boolean
-  fetchSymptoms: (query?: string, page?: number, append?: boolean) => Promise<void> | void
-  setPage: any
-  patientData?: {
-    animal_detail?: { animal_id?: Id }
-    medical_record_code?: string
-    admitted_at?: string
-    discharge_at?: string
-    status?: string
-  }
-  isDischared?: boolean
-}
-
-export interface UpdateSymptomsCardFormData {
-  complaint_id?: Id
-  medical_record_id?: Id
-  animal_id?: Id
-  durationValue: number | string
-  durationUnit: DurationUnit
-  notes: string
-  recordedDateTime: string
-  severity: Severity
-  status: SymptomStatus
-}
-
-export interface PreviousDetails {
-  severity: Severity
-  durationValue: number | string
-  durationUnit: DurationUnit
-  recordedDateTime: string
-  status: SymptomStatus
-
-}
+import { SymptomsCardProps } from 'src/types/hospital/components/symptoms'
+import { UpdateSymptomsCardFormData, PreviousDetails } from 'src/types/hospital/components/symptoms'
 
 const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }: SymptomsCardProps) => {
   const { t } = useTranslation()

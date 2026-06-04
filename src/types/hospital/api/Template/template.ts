@@ -1,4 +1,5 @@
-import { Id, TemplateAction, TemplateList } from "../../models"
+import { Id } from "../../models"
+import { TemplateAction, TemplateList } from "../../models/templates"
 
 export interface GetTemplatesResponse {
     success: boolean

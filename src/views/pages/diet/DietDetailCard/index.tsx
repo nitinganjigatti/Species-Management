@@ -21,7 +21,6 @@ import { useTheme } from '@mui/material/styles'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DeleteDialogConfirmationBase from 'src/components/utility/DeleteDialogConfirmation'
-const DeleteDialogConfirmation = DeleteDialogConfirmationBase as any
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -29,6 +28,7 @@ import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useTranslation } from 'react-i18next'
+const DeleteDialogConfirmation = DeleteDialogConfirmationBase as any
 
 interface Props {
   dietDetails: any
@@ -267,7 +267,7 @@ const DietDetailCard = ({
                   src={'/icons/pencil_outlined.svg'}
                   variant='square'
                   onClick={() =>
-                    router.push(`/diet/add-diet?id=${dietDetails.id}&action=${'update' }`)
+                    router.push(`/diet/add-diet?id=${dietDetails.id}&action=${'update'}`)
                   }
                 />
               </Box>
@@ -661,7 +661,7 @@ const DietDetailCard = ({
                       profile_image={dietDetails?.created_by_user?.profile_pic}
                       user_name={dietDetails?.created_by_user?.user_name}
 
-                      // date={dietDetails?.created_at}
+                    // date={dietDetails?.created_at}
                     />
                   </Box>
                   {/* <Avatar

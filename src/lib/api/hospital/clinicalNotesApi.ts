@@ -10,9 +10,8 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { ApiResponse, ClinicalNoteListResponse } from 'src/types/hospital'
 import { AddClinicalNotesParams, AddClinicalNotesResponse, DeleteClinicalNotesResponse, GetClinicalNotesResponse } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes';
-import { ClinicalNotesParams } from 'src/types/hospital/models';
+import { ClinicalNotesParams } from 'src/types/hospital/models/clinicalNotes';
 
 export async function getClinicalNotes({
   animalId,

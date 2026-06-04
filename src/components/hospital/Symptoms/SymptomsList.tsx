@@ -20,29 +20,8 @@ import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { StatusKey } from '../inpatient/Symptoms'
-import { GetSymptomClinicalTabList, Id, Symptom, SymptomsListForAdding } from 'src/types/hospital/models'
-
-interface SymptomsListProps {
-  symptoms?: SymptomsListForAdding[]
-  temporarilySelected?: SymptomsListForAdding | null
-  selectedSymptoms?: Id[]
-  onSelect?: (s: SymptomsListForAdding) => void
-  searchQuery?: string
-  handleSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleClearSearch?: () => void
-  handleScroll?: (e: any) => void
-  loading?: boolean
-  searching?: boolean
-  isTabsLoading?: boolean
-  tabOptions?: GetSymptomClinicalTabList[]
-  currentTab?: StatusKey | string
-  handleTabChange?: (category: string, id: Id) => void
-  symptomsCount?: number
-  hasMore?: boolean
-  handleAddNewClick?: () => void
-  alreadySelectedIds?: Id[]
-}
+import { GetSymptomClinicalTabList, Symptom, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
+import { SymptomsListProps } from 'src/types/hospital/components/symptoms'
 
 export default function SymptomsList({
   symptoms = [],

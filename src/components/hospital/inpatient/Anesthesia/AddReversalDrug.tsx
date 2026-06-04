@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import type { TFunction } from 'i18next'
-import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models'
+import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models/anesthesia'
 import { ReversalDrugFormItem } from 'src/components/hospital/shared/AddAnesthesiaRecordPage'
 dayjs.extend(customParseFormat)
 

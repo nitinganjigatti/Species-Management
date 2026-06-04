@@ -19,13 +19,6 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  AnesthesiaListParams,
-  AnesthesiaListResponse,
-  MedicineListParams,
-  MedicineListResponse
-} from 'src/types/hospital'
 import { AddAnesthesiaParams, AddAnesthesiaResponse, AnesthesiaAssessmentTypeParams, AnesthesiaAssessmentTypeResponse,AnesthesiaRecordsParams, AnesthesiaRecordsResponse, AnesthesiaSetUpListResponse, AnesthesiaSetupParams, DeleteAnesthesiaMedicationParams, DeleteAnesthesiaResponse, DeleteVitalMonitoringParams, DeliveryRouteResponse, GetAnesthesiaDetailParams, GetAnesthesiaDetailResponse, UpdateMedicationParams, VitalMonitoringParams, VitalMonitoringResponse, AnesthesiaDetailResponse } from 'src/types/hospital/api/Anesthesia/anesthesia';
 import { DeleteApiResponse, UpdateDeleteApiResponse } from 'src/types/hospital/api';
 import { GetMedicineListParams, GetMedicineListResponse } from 'src/types/hospital/api/PrescriptionMonitoring/medicineBatch';

@@ -7,37 +7,12 @@ import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
-import { ComplaintNotes, DiagnosisNotes, DurationUnit, Id, NotesDump, Prognosis, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { DurationUnit, Id, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { DiagnosisNotes, Prognosis } from 'src/types/hospital/models/clinicalAssessment'
+import { ComplaintNotes, NotesDump } from 'src/types/hospital/models/symptoms'
 import { UpdateNotesPayload } from 'src/types/hospital/api/Inpatient/symptomClinical'
-
-interface ActivityListProps {
-  activities?: ActivityFormData[]
-  onEdit?: (activity: ActivityFormData) => void
-  activityLoader?: boolean
-  isFromAssessment?: boolean
-}
-export interface ActivityFormData {
-  isSystemGenerated?: boolean
-  createdBy?: Id
-  formattedTime: string
-  oldSeverity?: Severity
-  newSeverity?: Severity
-  oldRecord?: string
-  newRecord?: string
-  oldPrognosis?: Prognosis
-  newPrognosis?: Prognosis
-  oldIsChronical?: number
-  newIsChronical?: number
-  note: string
-  status?: SymptomStatus
-  duration?: string | number
-  duration_unit?: DurationUnit
-  created_at?: string
-  notes_dump?: NotesDump
-  created_by_user_name?: string
-  is_system_generated?: number
-  note_id?: Id
-}
+import { ActivityListProps } from 'src/types/hospital/components/symptoms'
+import { ActivityFormData } from 'src/types/hospital/components/common'
 
 
 const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessment = false }: ActivityListProps) => {

@@ -33,7 +33,8 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
 import { AnesthesiaRecordsResponse, AnesthesiaDetailResponse } from 'src/types/hospital/api/Anesthesia/anesthesia'
 import { ApiError } from 'src/types/hospital/api'
-import { AnesthesiaAssessmentType, AnesthesiaDetailOption, AnesthesiaDetails, AnesthesiaGasRow, AnesthesiaMedicationRow, AnesthesiaReversalRow, AnesthesiaSetupFields, Gas, Medications, PatientDetailsData, Reversal, VitalMonitoringFields, VitalMonitoringRecords, VitalMonitoringTimeSlots } from 'src/types/hospital/models'
+import { PatientDetailsData } from 'src/types/hospital/models'
+import { AnesthesiaAssessmentType, AnesthesiaDetailOption, AnesthesiaDetails, AnesthesiaGasRow, AnesthesiaMedicationRow, AnesthesiaReversalRow, AnesthesiaSetupFields, Gas, Medications, Reversal, VitalMonitoringFields, VitalMonitoringRecords, VitalMonitoringTimeSlots } from 'src/types/hospital/models/anesthesia'
 import { Id } from 'src/types/compliance'
 
 export interface VitalMonitoringRow {
@@ -386,8 +387,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     if (!preAnesthesiaDetail) return []
 
     return [
-      { label: 'Temperature', value: preAnesthesiaDetail.temperature || '' },
-      { label: 'Humidity', value: preAnesthesiaDetail.humidity || '' }
+      { label: t('hospital_module.temparature'), value: preAnesthesiaDetail.temperature || '' },
+      { label: t('hospital_module.humidity'), value: preAnesthesiaDetail.humidity || '' }
     ]
   }, [preAnesthesiaDetail])
 
@@ -633,12 +634,33 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     setDeleteDialogOpen(false)
   }, [deleteLoading])
 
-  const handleEditClick = (value: AnesthesiaDetails) => {
-    // const caseId =  router?.query?.id
+  const handleEditRouterNavigation = (anaesthesiaId: AnesthesiaDetails['anaesthesia_id']) => {
     const caseId = resolvedHospitalCaseId || router?.query?.id
 
-    if (value?.anaesthesia_id && caseId) {
-      router.push(`/hospital/inpatient/${caseId}/AddAnesthesiaRecord?tab=anesthesia&from_tab=anesthesia&anaesthesia_id=${value?.anaesthesia_id}`)
+    if (!caseId) return
+
+    const queryParams = `?tab=anesthesia&from_tab=anesthesia&anaesthesia_id=${anaesthesiaId}`
+
+    if (category === 'Outpatients') {
+      router.push(`/hospital/outpatient/${caseId}/AddAnesthesiaRecord${queryParams}`)
+    }
+    else if (category === 'Discharged') {
+      router.push(`/hospital/discharged/${caseId}/AddAnesthesiaRecord${queryParams}`)
+    }
+    else if (category === 'Mortality') {
+      router.push(`/hospital/mortality/${caseId}/AddAnesthesiaRecord${queryParams}`)
+    }
+    else if (category === 'Follow Up') {
+      router.push(`/hospital/followup/${caseId}/AddAnesthesiaRecord${queryParams}`)
+    }
+    else {
+      router.push(`/hospital/inpatient/${caseId}/AddAnesthesiaRecord${queryParams}`)
+    }
+  }
+
+  const handleEditClick = (value: AnesthesiaDetails) => {
+    if (value?.anaesthesia_id) {
+      handleEditRouterNavigation(value.anaesthesia_id)
     }
   }
 

@@ -28,10 +28,10 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard'
-import { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
-import { StatusKey } from './Symptoms'
+import { ActivityFormData, StatusKey } from 'src/types/hospital/components/common'
 import { GetClinicalAssessmentCardResponse, GetClinicalAssmntRecordParams, GetClinicalAssmntRecordResponse, UpdateClinicalAssmntParams, UpdateClinicalAssmntResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt'
-import { ClinicalAssessmentCardList, SymptomStatus, ClinicalAsmntType, Prognosis } from 'src/types/hospital/models'
+import { SymptomStatus } from 'src/types/hospital/models'
+import { ClinicalAssessmentCardList, ClinicalAsmntType, Prognosis } from 'src/types/hospital/models/clinicalAssessment'
 import { DeleteNotesPayload, DeleteNotesResponse, UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 import { ApiError } from 'src/types/hospital/api'
 
@@ -241,6 +241,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
   const handleTabChange = (newValue: StatusKey) => {
+    if (newValue === currentTab) return
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])

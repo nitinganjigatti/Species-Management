@@ -391,7 +391,7 @@ const HospitalBedDetails = () => {
     {
       width: 80,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('sl_no') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <StyledTypography fontSize='0.75rem' sx={{ pl: 3 }}>
@@ -402,7 +402,7 @@ const HospitalBedDetails = () => {
     {
       minWidth: 230,
       field: 'bed_name',
-      headerName: 'Cage/stall/enclosure',
+      headerName: t('hospital_module.cage_stall_enclosure') as string,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal

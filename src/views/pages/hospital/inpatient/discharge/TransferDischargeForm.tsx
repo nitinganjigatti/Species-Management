@@ -24,32 +24,33 @@ import { useParams, useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 
-const transferHospitalSchema = yup.object({
-  transfer_hospital_id: yup
-    .object({
-      value: yup.mixed().required(),
-      label: yup.string().required()
-    })
-    .nullable()
-    .required('Hospital is required'),
-  reason_for_transfer: yup.string().trim().required('Reason for transferring is required'),
-  date_of_death: yup
-    .date()
-    .nullable()
-    .required('Date of death is required')
-    .min(new Date(), 'Date of death cannot be in the future'),
-  time_of_death: yup
-    .date()
-    .nullable()
-    .required('Time of death is required')
-    .max(new Date(), 'Time of death cannot be in the future'),
+const createTransferHospitalSchema = (t: (key: string) => string) =>
+  yup.object({
+    transfer_hospital_id: yup
+      .object({
+        value: yup.mixed().required(),
+        label: yup.string().required()
+      })
+      .nullable()
+      .required(t('hospital_module.hospital_required')),
+    reason_for_transfer: yup.string().trim().required(t('hospital_module.reason_for_transferring_required')),
+    date_of_death: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.date_of_death_required'))
+      .min(new Date(), t('hospital_module.date_of_death_cannot_be_in_future')),
+    time_of_death: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.time_of_death_required'))
+      .max(new Date(), t('hospital_module.time_of_death_cannot_be_in_future')),
 
-  reason: yup.string().optional(),
-  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
-  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
-  care_notes: yup.string().trim().required('Care notes is required'),
-  attachments: yup.array().nullable().optional()
-})
+    reason: yup.string().optional(),
+    care_diet_instruction: yup.string().trim().required(t('hospital_module.care_diet_instructions_required')),
+    care_restriction: yup.string().trim().required(t('hospital_module.care_restriction_activities_required')),
+    care_notes: yup.string().trim().required(t('hospital_module.care_notes_required')),
+    attachments: yup.array().nullable().optional()
+  })
 
 interface TransferDischargeFormProps {
   patientData?: any
@@ -126,6 +127,8 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
     }),
     []
   )
+
+  const transferHospitalSchema = useMemo(() => createTransferHospitalSchema(t as (key: string) => string), [t])
 
   const {
     control,

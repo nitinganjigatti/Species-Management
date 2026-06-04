@@ -33,7 +33,7 @@ import {
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
 import { AddMonitoringParameterPayload, GetTemplatesParamsListResponse, SaveTemplatePayload, TemplateAssessmentCategory } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
-import { TemplateAssessmentTypes } from 'src/types/hospital/models'
+import { TemplateAssessmentTypes } from 'src/types/hospital/models/treatmentMonitoring'
 
 export interface AssessmentFormItem {
   id: string

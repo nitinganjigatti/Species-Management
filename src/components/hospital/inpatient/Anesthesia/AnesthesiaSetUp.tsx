@@ -17,7 +17,7 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useFormContext, FieldError } from 'react-hook-form'
 import { alpha, useTheme, Theme } from '@mui/material/styles'
-import { AnesthesiaAssessmentType, AnesthesiaMonitoringState, AnesthesiaSetup, AnesthesiaSetupFields, AnesthesiaSetupRow, AnesthesiaSetupSectionFieldEntry, AnesthesiaSetupSectionState, MonitoringToggleItem } from 'src/types/hospital/models'
+import { AnesthesiaAssessmentType, AnesthesiaMonitoringState, AnesthesiaSetup, AnesthesiaSetupFields, AnesthesiaSetupRow, AnesthesiaSetupSectionFieldEntry, AnesthesiaSetupSectionState, MonitoringToggleItem } from 'src/types/hospital/models/anesthesia'
 import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'

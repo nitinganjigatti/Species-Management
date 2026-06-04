@@ -23,8 +23,10 @@ import {
   updateMedicalTemplate
 } from 'src/lib/api/hospital/clinicalAssessment'
 import { CreateUpdateTemplateResponse, GetTemplateResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
-import type { ComplaintsDiagnosisTemplates, Id, SymptomsListForAdding, Template, TemplateItems, TransformedTemplateItems } from 'src/types/hospital/models'
-import { Symptom } from 'src/types/hospital/models'
+import type { Id } from 'src/types/hospital/models'
+import type { ComplaintsDiagnosisTemplates, Template, TemplateItems, TransformedTemplateItems } from 'src/types/hospital/models/templates'
+import { SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
+import { Symptom } from 'src/types/hospital/models/symptoms'
 
 interface SaveMedicalTemplateSectionProps {
   templateType: string
@@ -146,7 +148,7 @@ export function SaveMedicalTemplateSection({
   if (selectedItems.length === 0) {
     return (
       <Typography variant='caption' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-        Add {itemLabel} to enable template saving.
+        {t('hospital_module.add_to_enable_template_saving', { itemLabel })}
       </Typography>
     )
   }
@@ -178,7 +180,7 @@ export function SaveMedicalTemplateSection({
             px: 0.5
           }}
         >
-          Save as template
+          {t('hospital_module.save_as_template')}
         </Button>
       ) : (
         <Box
@@ -192,8 +194,8 @@ export function SaveMedicalTemplateSection({
           <TextField
             fullWidth
             size='small'
-            label='Template name'
-            placeholder={`Enter ${templateLabel} name`}
+            label={t('hospital_module.template_name') as string}
+            placeholder={`${t('enter') as string} ${templateLabel} ${t('name') as string}`}
             value={templateName}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setTemplateName(event.target.value)}
             disabled={isSaving}
@@ -205,7 +207,7 @@ export function SaveMedicalTemplateSection({
             disabled={!templateName.trim()}
             sx={{ minWidth: 110 }}
           >
-            Save
+            {t('save')}
           </LoadingButton>
           <IconButton
             onClick={() => {
@@ -472,16 +474,16 @@ function SelectionTemplatePanel({
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface }}>
-              Your templates
+              {t('hospital_module.your_templates')}
             </Typography>
             {showTemplatesInDrawer ? (
               <Button size='small' onClick={() => setTemplatesDrawerOpen(true)} sx={{ px: 0.5 }}>
-                View all
+                {t('view_all')}
               </Button>
             ) : null}
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-            {inlineTemplates.map((item) => (
+            {inlineTemplates.map(item => (
               <Box
                 key={item.id}
                 sx={{
@@ -497,9 +499,7 @@ function SelectionTemplatePanel({
                       ? `1px solid ${theme.palette.primary.main}`
                       : `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.18)}`,
                   backgroundColor:
-                    activeTemplateId === item.id
-                      ? alpha(theme.palette.primary.main, 0.08)
-                      : theme.palette.common.white
+                    activeTemplateId === item.id ? alpha(theme.palette.primary.main, 0.08) : theme.palette.common.white
                 }}
               >
                 <Chip
@@ -509,9 +509,7 @@ function SelectionTemplatePanel({
                   sx={{
                     backgroundColor: 'transparent',
                     color:
-                      activeTemplateId === item.id
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.OnSurface,
+                      activeTemplateId === item.id ? theme.palette.primary.main : theme.palette.customColors.OnSurface,
                     '& .MuiChip-label': { px: 1.5 }
                   }}
                 />
@@ -553,10 +551,10 @@ function SelectionTemplatePanel({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
             <Box>
               <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                Edit Template
+                {t('hospital_module.edit_template')}
               </Typography>
               <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Update template name and items
+                {t('hospital_module.update_template_name_and_items')}
               </Typography>
             </Box>
             <IconButton onClick={closeEditDialog} disabled={isUpdating || isDeleting}>
@@ -587,7 +585,7 @@ function SelectionTemplatePanel({
             <TextField
               fullWidth
               size='small'
-              label='Template name'
+              label={t('hospital_module.template_name') as string}
               value={editingName}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEditingName(event.target.value)}
               disabled={isUpdating || isDeleting}
@@ -607,12 +605,14 @@ function SelectionTemplatePanel({
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
               <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-                Template items ({editingItems.length})
+                {t('hospital_module.template_items_count', {
+                  count: editingItems.length
+                })}
               </Typography>
             </Box>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {editingItems.map((item) => (
+              {editingItems.map(item => (
                 <Chip
                   key={item?.id}
                   label={item?.name}
@@ -622,7 +622,9 @@ function SelectionTemplatePanel({
               ))}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}
+            >
               <Button
                 variant='text'
                 color='inherit'
@@ -636,7 +638,7 @@ function SelectionTemplatePanel({
                   '&:hover': { backgroundColor: 'transparent' }
                 }}
               >
-                Clear
+                {t('clear')}
               </Button>
               <Button
                 variant='contained'
@@ -648,7 +650,7 @@ function SelectionTemplatePanel({
                   boxShadow: 'none'
                 }}
               >
-                Add
+                {t('add')}
               </Button>
             </Box>
           </Box>
@@ -667,10 +669,10 @@ function SelectionTemplatePanel({
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                 <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurface }}>
-                  Select items to add
+                  {t('hospital_module.select_items_to_add')}
                 </Typography>
                 <Button size='small' onClick={() => setShowSelectionPicker(false)}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </Box>
 
@@ -678,7 +680,9 @@ function SelectionTemplatePanel({
                 value={pickerSearchValue}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onPickerSearchChange(event.target.value)}
                 onClear={() => onPickerSearchChange('')}
-                placeholder={`Search ${templateType === 'complaints' ? 'symptoms' : 'clinical assessments'}`}
+                placeholder={t('search_template', {
+                  type: templateType === 'complaints' ? t('hospital_module.symptoms') : t('hospital_module.clinical_assessments')
+                })}
                 width='100%'
                 disabled={isUpdating || isDeleting}
                 sx={{
@@ -720,13 +724,15 @@ function SelectionTemplatePanel({
                         onClick={() => {
                           if (isAlreadyInTemplate) return
 
-                          const candidate = selectedItems.concat(availableItems).find((item: Symptom) => Number(item?.id) === option.id)
+                          const candidate = selectedItems
+                            .concat(availableItems)
+                            .find((item: Symptom) => Number(item?.id) === option.id)
                           if (!candidate) return
                           const mappedItem = mapTemplateItem(candidate)
 
                           if (!mappedItem) return
 
-                          setEditingItems((prev) => [...prev, mappedItem])
+                          setEditingItems(prev => [...prev, mappedItem])
                         }}
                         sx={{
                           px: 3,
@@ -741,7 +747,11 @@ function SelectionTemplatePanel({
                         }}
                       >
                         <Typography sx={{ color: theme.palette.customColors.OnSurface }}>{option.name}</Typography>
-                        {isAlreadyInTemplate ? <Chip label='Added' size='small' /> : <Chip label='Add' size='small' />}
+                        {isAlreadyInTemplate ? (
+                          <Chip label={t('added') as string} size='small' />
+                        ) : (
+                          <Chip label={t('add') as string} size='small' />
+                        )}
                       </Box>
                     )
                   })
@@ -756,7 +766,7 @@ function SelectionTemplatePanel({
                 {pickerLoading ? (
                   <Box sx={{ px: 3, py: 2, textAlign: 'center' }}>
                     <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                      Loading...
+                      {t('hospital_module.loading')}
                     </Typography>
                   </Box>
                 ) : null}
@@ -781,7 +791,7 @@ function SelectionTemplatePanel({
             disabled={isUpdating || isDeleting}
             sx={{ flex: 1, height: 48 }}
           >
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? t('deleting') : t('delete')}
           </Button>
           <LoadingButton
             variant='contained'
@@ -790,7 +800,7 @@ function SelectionTemplatePanel({
             disabled={isDeleting}
             sx={{ flex: 1, height: 48 }}
           >
-            Save
+            {t('save')}
           </LoadingButton>
         </Box>
       </Drawer>
@@ -801,12 +811,12 @@ function SelectionTemplatePanel({
           if (isDeleting) return
           setDeleteConfirmOpen(false)
         }}
-        title='Delete template?'
-        description='Are you sure you want to delete this template?'
-        additionalDescription='This action cannot be undone.'
+        title={t('hospital_module.delete_template_label')}
+        description={t('hospital_module.delete_template_confirmation')}
+        additionalDescription={t('hospital_module.delete_template_confirmation_desc')}
         icon='mdi:delete-outline'
         iconColor={theme.palette.error.main}
-        ConfirmationText='Delete'
+        ConfirmationText={t('delete')}
         confirmAction={handleDeleteTemplate}
         loading={isDeleting}
         confirmBtnStyle={{ backgroundColor: theme.palette.error.main }}
@@ -847,10 +857,10 @@ function SelectionTemplatePanel({
               <Icon icon='mdi:view-grid-outline' fontSize={24} color={theme.palette.primary.main} />
               <Box>
                 <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                  All Templates
+                  {t('all_templates')}
                 </Typography>
                 <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                  Select and manage saved templates
+                  {t('hospital_module.select_and_manage_saved_templates')}
                 </Typography>
               </Box>
             </Box>
@@ -878,7 +888,7 @@ function SelectionTemplatePanel({
               gap: 3
             }}
           >
-            {orderedTemplates.map((item) => (
+            {orderedTemplates.map(item => (
               <Box
                 key={item.id}
                 sx={{

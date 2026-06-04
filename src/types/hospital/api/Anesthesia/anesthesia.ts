@@ -1,5 +1,5 @@
 import { Id } from "src/types/compliance"
-import { AnesthesiaAssessmentType, AnesthesiaDetails, AnesthesiaSetup, DeliveryRoute, DeliveryStatus, EstimatedUnit, VitalMonitoring } from "../../models"
+import { AnesthesiaAssessmentType, AnesthesiaDetails, AnesthesiaSetup, DeliveryRoute, DeliveryStatus, EstimatedUnit, VitalMonitoring } from "../../models/anesthesia"
 import { Dayjs } from "dayjs"
 import { Day } from "date-fns"
 

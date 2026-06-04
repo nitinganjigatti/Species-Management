@@ -11,18 +11,8 @@ import {
   HospitalAnalytics,
   Patient,
   PatientDetailsData,
-  Symptom,
-  Diagnosis,
-  ClinicalNote,
-  ClinicalAssessment,
-  Medicine,
-  Prescription,
-  TreatmentMonitoringEntry,
-  SurgeryRecord,
-  AnesthesiaRecord,
   Doctor,
   Staff,
-  PatientMedia,
   SiteLists,
   Id,
   HospitalStaff,
@@ -243,23 +233,23 @@ export interface SymptomListParams extends PaginationParams {
   patient_id?: string | number
 }
 
-export interface SymptomListResponse extends PaginatedResponse<Symptom> {}
+// export interface SymptomListResponse extends PaginatedResponse<Symptom> {}
 
 // ==================== Clinical ====================
 
-export interface ClinicalNoteListResponse extends PaginatedResponse<ClinicalNote> {}
+// export interface ClinicalNoteListResponse extends PaginatedResponse<ClinicalNote> {}
 
 export interface ClinicalAssessmentListParams extends PaginationParams {
   patient_id?: string | number
   assessment_type?: string
 }
 
-export interface ClinicalAssessmentListResponse extends PaginatedResponse<ClinicalAssessment> {}
+// export interface ClinicalAssessmentListResponse extends PaginatedResponse<ClinicalAssessment> {}
 
 
 // ==================== Diagnosis ====================
 
-export interface DiagnosisListResponse extends PaginatedResponse<Diagnosis> {}
+// export interface DiagnosisListResponse extends PaginatedResponse<Diagnosis> {}
 
 // ==================== Prescription ====================
 
@@ -268,11 +258,11 @@ export interface PrescriptionListParams extends PaginationParams {
   status?: string
 }
 
-export interface PrescriptionListResponse extends PaginatedResponse<Prescription> {}
+// export interface PrescriptionListResponse extends PaginatedResponse<Prescription> {}
 
 export interface MedicineListParams extends PaginationParams {}
 
-export interface MedicineListResponse extends PaginatedResponse<Medicine> {}
+// export interface MedicineListResponse extends PaginatedResponse<Medicine> {}
 
 // ==================== Treatment Monitoring ====================
 
@@ -281,7 +271,7 @@ export interface TreatmentMonitoringListParams extends PaginationParams {
   parameter_id?: string | number
 }
 
-export interface TreatmentMonitoringListResponse extends PaginatedResponse<TreatmentMonitoringEntry> {}
+// export interface TreatmentMonitoringListResponse extends PaginatedResponse<TreatmentMonitoringEntry> {}
 
 // ==================== Surgery / Anesthesia ====================
 
@@ -289,13 +279,13 @@ export interface SurgeryListParams extends PaginationParams {
   patient_id?: string | number
 }
 
-export interface SurgeryListResponse extends PaginatedResponse<SurgeryRecord> {}
+// export interface SurgeryListResponse extends PaginatedResponse<SurgeryRecord> {}
 
 export interface AnesthesiaListParams extends PaginationParams {
   patient_id?: string | number
 }
 
-export interface AnesthesiaListResponse extends PaginatedResponse<AnesthesiaRecord> {}
+// export interface AnesthesiaListResponse extends PaginatedResponse<AnesthesiaRecord> {}
 
 // ==================== Doctors & Staff ====================
 
@@ -353,7 +343,7 @@ export interface PatientMediaListParams extends PaginationParams {
   patient_id?: string | number
 }
 
-export interface PatientMediaListResponse extends PaginatedResponse<PatientMedia> {}
+// export interface PatientMediaListResponse extends PaginatedResponse<PatientMedia> {}
 
 // ==================== Rooms & Enclosures (cross-housing) ====================
 

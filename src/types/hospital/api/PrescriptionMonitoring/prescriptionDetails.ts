@@ -1,4 +1,5 @@
-import { Id, PrescriptionDetails, PrescriptionFrequency } from '../../models'
+import { Id } from '../../models'
+import { PrescriptionDetails, PrescriptionFrequency } from '../../models/prescription'
 
 export interface GetPrescriptionDetailsParams {
   prescription_id: Id

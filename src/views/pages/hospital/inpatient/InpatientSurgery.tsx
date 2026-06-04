@@ -19,7 +19,8 @@ import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital
 import { Theme } from '@mui/material/styles'
 import { TooltipProps } from '@mui/material'
 import { Id } from 'src/types/hospital'
-import { SurgeryRecords, SurgeryDetails, SurgeryAttachments, AnesthesiaDetails } from 'src/types/hospital/models'
+import { SurgeryRecords, SurgeryDetails, SurgeryAttachments } from 'src/types/hospital/models/surgery'
+import { AnesthesiaDetails } from 'src/types/hospital/models/anesthesia'
 import { SecondarySurgeonOption } from 'src/components/hospital/shared/AddSurgeryRecord'
 
 interface SurgeonDetail {

@@ -73,10 +73,10 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
   const mortalitySchema = yup.object({
     date_of_death: yup
       .date()
-      .typeError('Date of death is invalid')
+      .typeError(t('hospital_module.date_of_death_invalid') as string)
       .nullable()
-      .required('Date of death is required')
-      .test('is-valid-date', 'Date of death is invalid', function (value: any) {
+      .required(t('hospital_module.date_of_death_required') as string)
+      .test('is-valid-date', t('hospital_module.date_of_death_invalid') as string, function (value: any) {
         if (!value) return true
 
         const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).startOf('day')
@@ -85,24 +85,24 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
 
         if (selectedDate.isBefore(admittedAt)) {
           return this.createError({
-            message: `Date cannot be before the admitted date (${dayjs(
-              Utility.convertUTCToLocal(patientData?.admitted_at)
-            ).format('DD MMM YYYY')})`
+            message: t('hospital_module.date_cannot_be_before_admitted_date', {
+              date: dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format('DD MMM YYYY')
+            }) as string
           })
         }
 
         if (selectedDate.isAfter(now)) {
-          return this.createError({ message: 'Date cannot be in the future' })
+          return this.createError({ message: t('hospital_module.date_cannot_be_in_future') as string })
         }
 
         return true
       }),
     time_of_death: yup
       .date()
-      .typeError('Time of death is invalid')
+      .typeError(t('hospital_module.time_of_death_invalid') as string)
       .nullable()
-      .required('Time of death is required')
-      .test('is-valid-time', 'Time of death is invalid', function (value: any) {
+      .required(t('hospital_module.time_of_death_required') as string)
+      .test('is-valid-time', t('hospital_module.time_of_death_invalid') as string, function (value: any) {
         const { date_of_death } = this.parent
         if (!value || !date_of_death) return true
 
@@ -118,16 +118,16 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
         if (dayjs(date_of_death).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
           if (deathDateTime.isBefore(admittedAt)) {
             return this.createError({
-              message: `Time cannot be before the admitted time (${Utility.convertUTCToLocaltime(
-                patientData?.admitted_at
-              )})`
+              message: t('hospital_module.time_cannot_be_before_admitted_time', {
+                time: Utility.convertUTCToLocaltime(patientData?.admitted_at)
+              }) as string
             })
           }
         }
 
         if (dayjs(date_of_death).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
           if (deathDateTime.isAfter(now)) {
-            return this.createError({ message: 'Time cannot be in the future' })
+            return this.createError({ message: t('hospital_module.time_cannot_be_in_future') as string })
           }
         }
 
@@ -138,19 +138,19 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
         value: yup.string().required(),
         label: yup.string().required()
       })
-      .required('Cause of death is required'),
+      .required(t('hospital_module.cause_of_death_required') as string),
     carcass_condition: yup
       .object({
         value: yup.string().required(),
         label: yup.string().required()
       })
-      .required('Carcass condition is required'),
+      .required(t('hospital_module.carcass_condition_required') as string),
     carcass_disposition: yup
       .object({
         value: yup.string().required(),
         label: yup.string().required()
       })
-      .required('Carcass disposition is required'),
+      .required(t('hospital_module.carcass_disposition_required') as string),
     reason: yup.string().optional(),
     necropsy_requested: yup.boolean().optional(),
     necropsy_reason: yup
@@ -158,12 +158,12 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
       .nullable()
       .when('necropsy_requested', {
         is: false,
-        then: (schema: any) => schema.required('Reason for not performing necropsy is required').trim(),
+        then: (schema: any) => schema.required(t('hospital_module.reason_for_not_performing_necropsy_required') as string).trim(),
         otherwise: (schema: any) => schema.notRequired().nullable()
       }),
     priority: yup.string().when('necropsy_requested', {
       is: true,
-      then: (schema: any) => schema.required('Priority is required'),
+      then: (schema: any) => schema.required(t('hospital_module.priority_required') as string),
       otherwise: (schema: any) => schema.notRequired()
     }),
     necropsy_center_id: yup
@@ -174,7 +174,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
       .nullable()
       .when('necropsy_requested', {
         is: true,
-        then: (schema: any) => schema.required('Necropsy Center is required'),
+        then: (schema: any) => schema.required(t('hospital_module.necropsy_center_required') as string),
         otherwise: (schema: any) => schema.notRequired()
       }),
     attachments: yup.array().nullable().optional()

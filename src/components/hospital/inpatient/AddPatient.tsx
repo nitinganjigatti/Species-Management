@@ -8,7 +8,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const AddPatient = () => {
   const { t } = useTranslation()
-  const router: any = useSafeRouter()
+  const router = useSafeRouter()
 
   return (
     <>

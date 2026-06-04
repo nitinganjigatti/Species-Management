@@ -62,7 +62,10 @@ import { borderRadius } from '@mui/system'
 import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse } from 'src/types/hospital/api/Masters/surgery'
 import { ApiError } from 'src/types/hospital/api'
 import { AddSurgeryRecordResponse, GetPatientSurgeryListResponse, GetSurgeryMasterParams, GetSurgeryMasterResponse } from 'src/types/hospital/api/Surgery/surgery'
-import { AnesthesiaDetails, DoctorDetails, DoctorOption, Id, PatientDetailsData, SurgeryMaster, SurgeryRecords } from 'src/types/hospital/models'
+import { Id, PatientDetailsData } from 'src/types/hospital/models'
+import { SurgeryMaster } from 'src/types/hospital/models/surgeryMaster'
+import { AnesthesiaDetails, DoctorDetails, DoctorOption } from 'src/types/hospital/models/anesthesia'
+import { SurgeryRecords } from 'src/types/hospital/models/surgery'
 import { HospitalStaffListParams, HospitalStaffListResponse } from 'src/types/hospital/api'
 
 interface SurgeryDrawerFormValues {
@@ -193,7 +196,7 @@ interface SurgeryRecordFormValues {
 
 export interface SecondarySurgeonOption {
   user_full_name: string
-  user_id: Id
+  user_id: string
 }
 const FORM_ID = 'add-surgery-record-form'
 
@@ -883,12 +886,12 @@ const AddSurgeryRecord = () => {
 
   const getStaffList = async (searchTerm: string = '') => {
     try {
-      if (!selectedHospital?.id) return
+      if (!patientData?.hospital_id) return
 
       const params: HospitalStaffListParams = {
         page_no: 1,
         limit: 10,
-        hospital_id: selectedHospital.id
+        hospital_id: patientData.hospital_id
       }
 
       if (searchTerm.trim()) {
@@ -914,10 +917,10 @@ const AddSurgeryRecord = () => {
   }
 
   useEffect(() => {
-    if (!selectedHospital?.id) return
+    if (!patientData?.hospital_id) return
 
     getStaffList(debouncedAttendingDoctorSearch)
-  }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
+  }, [debouncedAttendingDoctorSearch, patientData?.hospital_id])
 
   //   useEffect(() => {
   //   const hospitalId = patientData?.hospital_id
@@ -1800,7 +1803,7 @@ const AddSurgeryRecord = () => {
                       filterSelectedOptions
                       disableCloseOnSelect
                       getOptionLabel={option => option?.label || ''}
-                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      isOptionEqualToValue={(option, value) => String(option.value) === String(value?.value)}
                       noOptionsText={t('hospital_module.no_available_attending_vets')}
                       onChange={(event, newValue) => {
                         setSelectedAttendingDoctors(newValue)
@@ -1891,7 +1894,7 @@ const AddSurgeryRecord = () => {
                 textTransform: 'uppercase'
               }}
             >
-              ADD NEW
+              {t('hospital_module.add_new')}
             </Button>
             <Button
               type='button'
@@ -1902,7 +1905,7 @@ const AddSurgeryRecord = () => {
                 height: '48px'
               }}
             >
-              SELECT FROM RECORD
+              {t('hospital_module.select_from_record')}
             </Button>
           </Box>
         ) : (

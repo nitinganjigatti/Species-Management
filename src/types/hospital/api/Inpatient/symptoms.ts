@@ -1,5 +1,6 @@
-import { AddSymptomsCard, Complaints, Id, MedicalType, Severity, SymptomList, SymptomRecords, SymptomsListForAdding, SymptomStatus, EntityType, DurationUnit, UpdateSymptomsCard, ClinicalAsmntType } from "../../models"
+import { Id, MedicalType, Severity, SymptomStatus, EntityType, DurationUnit } from "../../models"
 
+import { AddSymptomsCard, Complaints, SymptomList, SymptomRecords, SymptomsListForAdding, UpdateSymptomsCard  } from "../../models/symptoms"
 
 export interface GetSymptomsCardResponse {
     success?: boolean

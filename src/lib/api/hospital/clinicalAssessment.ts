@@ -18,14 +18,9 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  ClinicalAssessmentListParams,
-  ClinicalAssessmentListResponse,
-  DiagnosisListResponse
-} from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
 import { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, CreateUpdateTemplatePayload, CreateUpdateTemplateResponse, DeleteNotesPayload, DeleteNotesResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse, GetTemplatePayload, GetTemplateResponse, UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical';
-import { CheckAnimalStatusByType } from 'src/types/hospital/models';
+import { CheckAnimalStatusByType } from 'src/types/hospital/models/symptoms';
 import { GetClinicalAssessmentCardParams, GetClinicalAssessmentCardResponse,  GetClinicalAssessmentListParams,  GetClinicalAssessmentListResponse,  GetClinicalAssmntRecordParams, GetClinicalAssmntRecordResponse, UpdateClinicalAssmntParams, UpdateClinicalAssmntResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt';
 
 export async function getClinicalAssessments(

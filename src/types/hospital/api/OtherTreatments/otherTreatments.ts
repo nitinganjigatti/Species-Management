@@ -1,5 +1,6 @@
 import { GridSortModel } from '@mui/x-data-grid'
-import { Id, OtherTreatment, OtherTreatmentRecord, TreatmentMaster } from '../../models'
+import { Id } from '../../models'
+import { OtherTreatment, OtherTreatmentRecord, TreatmentMaster } from '../../models/treatmentMonitoring'
 
 export interface GetOtherTreatmentsParams {
   hospital_case_id: string

@@ -1,4 +1,8 @@
-import { Category, CheckAnimalStatusByType, ComplaintsDiagnosisTemplates, GetSymptomClinicalTabList, Id, MedicalType,  Template, UpdateSymptomsCard } from "../../models";
+import { Id, MedicalType } from "../../models";
+
+import { Category, ComplaintsDiagnosisTemplates, Template   } from "../../models/templates";
+import { CheckAnimalStatusByType, GetSymptomClinicalTabList, UpdateSymptomsCard  } from "../../models/symptoms";
+
 
 export interface CategoryPayload {
     type?: MedicalType

@@ -1,5 +1,6 @@
 import { Id } from "src/types/compliance"
-import { PrescriptionRecord, StatusAction } from "../../models"
+import { StatusAction } from "../../models"
+import { PrescriptionRecord } from "../../models/prescription"
 
 export type PrescriptionRecordResponse = | {
     success: true
