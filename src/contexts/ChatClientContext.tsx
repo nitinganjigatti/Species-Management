@@ -627,7 +627,39 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
         recoverFromStuckSocket(`${source}:active`)
       }
     }
-    const onVisibilityChange = () => checkSocketOnTabActive('visibility')
+    // Connection lifecycle on tab visibility — the SDK's recommended pattern:
+    // DISCONNECT when the tab goes hidden, and on RETURN re-auth + reconnect.
+    // The reconnect re-runs the full transit handshake (/crypto/pubkey +
+    // /crypto/session) so REST + socket both get a FRESH session — which is
+    // what prevents the post-gap "Transit encryption required" 403 on 1.2.6
+    // (it never refreshes the REST session on its own). We have no external
+    // token-refresh, so `getAccessToken` (re-reads localStorage on connect)
+    // supplies the latest token.
+    const onVisibilityChange = () => {
+      if (typeof document === 'undefined') return
+      if (document.visibilityState === 'hidden') {
+        try {
+          disconnectSocket()
+        } catch (e) {
+          console.warn('[chat:socket] disconnect on hidden threw', e)
+        }
+        setConnected(false)
+
+        return
+      }
+      // Tab visible again → fresh auth + reconnect (fresh handshake).
+      try {
+        refreshSocketAuth()
+      } catch (e) {
+        console.warn('[chat:socket] refreshSocketAuth on visible threw', e)
+      }
+      connectSocket(resolvedSocketConfig, getAccessToken)
+        .then(() => setConnected(true))
+        .catch(e => console.warn('[chat:socket] reconnect on visible failed', (e as Error)?.message))
+    }
+    // Kept as a lightweight complement for the alt-tab-to-another-app case
+    // (window focus without a visibilitychange) — only acts if the socket is
+    // actually down, so it won't double-reconnect after onVisibilityChange.
     const onWindowFocus = () => checkSocketOnTabActive('focus')
 
     // Cross-tab token refresh. The `storage` event fires in OTHER tabs
