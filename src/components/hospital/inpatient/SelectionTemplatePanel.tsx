@@ -605,7 +605,7 @@ function SelectionTemplatePanel({
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
               <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-                {t('template_items_count', {
+                {t('hospital_module.template_items_count', {
                   count: editingItems.length
                 })}
               </Typography>

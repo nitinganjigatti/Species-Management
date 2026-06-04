@@ -23,7 +23,7 @@ import { useParams } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
-import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
+import PrescriptionSidesheet from '../drawer/PrescriptionSidesheet'
 import { PrescriptionList, PrescriptionScheduleItem } from 'src/types/hospital/models/prescription'
 import { Id } from 'src/types/compliance'
 import {
