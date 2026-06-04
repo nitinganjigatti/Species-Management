@@ -1,5 +1,14 @@
 # Socket Recovery — Transit-Encryption-on-Reconnect Fix
 
+> ⚠️ **HISTORICAL (removed 2026-06-04).** The recovery layer described here —
+> `recoverFromStuckSocket`, the long-sleep self-heal reinit, the receipt-sync-on-focus
+> workaround, and the reactive transit-403 interceptor — has been **removed** from
+> `ChatClientContext.tsx`. The provider now follows the `@antzsoft/chat-core` integration
+> guide's connection lifecycle instead (token via `authProvider`; disconnect-on-hidden;
+> `refreshSocketAuth()` + reconnect-on-visible, which re-runs the transit handshake). See
+> [chat-client-context.md](./chat-client-context.md) for the current behavior. This document
+> is kept for historical context on the 1.2.6 transit-session-on-reconnect issue.
+
 How the chat socket recovers from the SDK + server interaction bug where Socket.IO's built-in auto-reconnect succeeds at the transport layer but is then immediately rejected by the server because of stale transit-encryption ephemeral keys — leaving the socket permanently dead until the user refreshes the page.
 
 All code lives in [src/contexts/ChatClientContext.tsx](../../../src/contexts/ChatClientContext.tsx).
