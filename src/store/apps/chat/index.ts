@@ -44,7 +44,7 @@ import {
   getLastRead,
   getMessage,
   listMessages,
-  clearConversationHistory,
+  clearChatOverSocket,
   markReadOverSocket,
   sendMessageOverSocket,
   sdkUserToProfile,
@@ -596,11 +596,14 @@ export const deleteConversation = createAsyncThunk<void, ChatEntityId>(
 
 /**
  * v1.2.6 Clear Chat — clears all messages in a conversation for the CALLING
- * user only (server-side). The conversation stays in the list; other
- * participants are unaffected. On success we mirror the server by wiping the
- * local message cache + suppressing `lastMessage` via `clearChatLocal`.
+ * user only. The conversation stays in the list; other participants are
+ * unaffected. Sent over the SOCKET (`clearChatOverSocket`) rather than REST so
+ * it runs through the realtime pipeline — the server processes it and keeps
+ * the user's other devices in sync, consistent with how this app sends / edits
+ * / deletes. We mirror the clear locally via `clearChatLocal` for instant UI
+ * and let the socket/server be the source of truth for the cleared state.
  *
- * Re-throws on failure so the UI can surface a toast (e.g. a network error).
+ * Re-throws on failure so the UI can surface a toast (e.g. socket down).
  */
 export const clearChatHistory = createAsyncThunk<void, ChatEntityId>(
   'appChat/clearChatHistory',
@@ -618,7 +621,7 @@ export const clearChatHistory = createAsyncThunk<void, ChatEntityId>(
     }
 
     try {
-      await clearConversationHistory(chatId)
+      await clearChatOverSocket(chatId)
       dispatch(clearChatLocal({ chatId }))
     } catch (err) {
       console.error('[chat] clearChatHistory failed:', err)

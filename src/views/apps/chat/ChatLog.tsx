@@ -931,10 +931,6 @@ const ChatLog = (props: ChatLogType) => {
 
   // ** Renders user chat
   const renderChats = () => {
-    // Track whether we've already injected the group-created card so it only
-    // appears once — right after the first system message in history.
-    let groupCardInjected = false
-
     const rendered = formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
@@ -971,18 +967,15 @@ const ChatLog = (props: ChatLogType) => {
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
-        // Show the group-created card after the "X created group Y" system
-        // message, identified by content — independent of pagination state so
-        // the card stays visible even when more messages load later.
-        const isGroupCreationMsg =
-          !groupCardInjected && groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
-        if (isGroupCreationMsg) groupCardInjected = true
-
-        // When showing the group-created card, skip the redundant system
-        // message ("X created group Y") — the card conveys the same info.
-        // Outer `.map` requires each returned element to carry a key, so
-        // use Fragment with an explicit key instead of a bare `<>`.
-        if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
+        // The "X created group Y" event is represented by the group-created
+        // card pinned at the top of the thread (rendered once via the head
+        // fallback below). Suppress the redundant inline pill whenever the card
+        // is available. Visibility of the card depends ONLY on the head
+        // condition (`!hasMoreOlder`) — never on whether this message happens
+        // to be in the loaded page — so it can't flip render paths after a
+        // Clear Chat or a pagination change.
+        const isGroupCreationMsg = groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
+        if (isGroupCreationMsg) return null
 
         // WhatsApp-style perspective rewrite — delegated to the
         // shared resolver so ChatLog, SidebarLeft, and ChatContent all
@@ -1618,15 +1611,16 @@ const ChatLog = (props: ChatLogType) => {
       )
     })()
 
-    // Fallback: when the "X created group" system message isn't in the
-    // rendered list (e.g. after Clear chat wiped messages, or for a member
-    // whose loaded history doesn't include it) but we're at the true
-    // beginning of the thread, still show the group-created card at the top —
-    // WhatsApp keeps this notice permanently. Gated on `!hasMoreOlder` so it
-    // never appears prematurely while older pages (which may contain the real
-    // system message) are still unloaded.
+    // Group-created card — single source of truth. Shown at the top of the
+    // thread whenever we're at the true beginning of history (`!hasMoreOlder`)
+    // and the card is available. This is the ONLY place the card renders; the
+    // inline "X created group Y" system message is suppressed above. Keying
+    // visibility solely on `!hasMoreOlder` (rather than also on whether the
+    // system message happens to be loaded) makes it deterministic — it can't
+    // flip on/off across a Clear Chat or a pagination change. WhatsApp keeps
+    // this notice permanently at the top of the conversation.
     const head =
-      !groupCardInjected && groupCreatedCard !== null && !hasMoreOlder
+      groupCreatedCard !== null && !hasMoreOlder
         ? [<Fragment key='grp-card-top'>{groupCreatedCard}</Fragment>]
         : []
     const tail = removalPill ? [removalPill] : []

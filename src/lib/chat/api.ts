@@ -284,6 +284,15 @@ export async function deleteMessageForMeOverSocket(messageId: string): Promise<u
   return sdkSocketEmit.deleteMessageForMe(messageId)
 }
 
+// v1.2.6 Clear Chat over the socket (ack-based, mirrors deleteMessageForMe).
+// Preferred over the REST `clearConversationHistory` so the clear runs through
+// the realtime pipeline — the server processes it and keeps the user's other
+// devices in sync via its own broadcast, same as the rest of this app's
+// mutations (send / edit / delete) which all go over the socket.
+export async function clearChatOverSocket(conversationId: string): Promise<unknown> {
+  return sdkSocketEmit.clearChat(conversationId)
+}
+
 export async function addReactionOverSocket(messageId: string, emoji: string): Promise<unknown> {
   return sdkSocketEmit.addReaction(messageId, emoji)
 }
