@@ -684,14 +684,31 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // added to one at runtime. Per SDK doc Step 7, the server does NOT
     // auto-join the user's socket to the new room — only the personal
     // conversation_created event is emitted to that user. We must:
-    //   1. Add the conversation to the sidebar (via fetchChatsContacts refresh)
+    //   1. Make the conversation appear in the sidebar
     //   2. Emit `joinRoom` so the socket subscribes to new_message etc. for that room
-    // Without this, the user would receive no realtime events for the new chat
+    // Without (2), the user would receive no realtime events for the new chat
     // until the next page reload.
+    //
+    // Payload-shape branching mirrors `onConversationUpdated` below:
+    //   • Full conversation (carries `participants` + `settings`)
+    //       → pipe through `sdkConversationToChat` + `addOrReplaceChat`.
+    //         Instant, no REST roundtrip.
+    //   • Slim event (just an id, no full conv)
+    //       → fall back to `fetchChatsContacts` so the new conv lands in
+    //         state via the conversation-list refresh.
     const onConversationCreated = (evt: any) => {
       const conv = evt?.conversation ?? evt?.data ?? evt
       const convId = conv?.id ?? evt?.conversationId
       if (!convId) return
+      const isFullConversation = Array.isArray(conv?.participants) && conv?.settings !== undefined
+      if (isFullConversation) {
+        const myId = userProfileIdRef.current ?? ''
+        dispatch(addOrReplaceChat(sdkConversationToChat(conv, myId)))
+        joinChatRoom(convId)
+
+        return
+      }
+      // Slim payload — refresh the full list, then join the room.
       dispatch(fetchChatsContacts()).then(() => {
         joinChatRoom(convId)
       })
