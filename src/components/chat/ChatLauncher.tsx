@@ -33,7 +33,7 @@ import {
 } from 'src/store/apps/chat'
 
 // ** Chat API
-import { getChatSocket, sdkConversationToChat, sdkMessageToMessage } from 'src/lib/chat/api'
+import { getChatSocket, sdkConversationToChat, sdkMessageToMessage, isFullConversationPayload } from 'src/lib/chat/api'
 import { onSocketStatus, getSocketStatus, type SocketStatus } from '@antzsoft/chat-core'
 
 // Floating chat launcher: a FAB anchored at the bottom-right of every
@@ -196,8 +196,7 @@ const ChatLauncher = () => {
       const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
 
-      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
-      if (isFullConversation) {
+      if (isFullConversationPayload(evt)) {
         const chat = sdkConversationToChat(evt, userProfileId ?? '')
         dispatch(addOrReplaceChat(chat))
 

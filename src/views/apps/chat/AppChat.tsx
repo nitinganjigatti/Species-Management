@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
@@ -43,7 +44,8 @@ import {
   sdkConversationToChat,
   sdkMessageToMessage,
   getUserLastSeen,
-  getOnlineUsersOverSocket
+  getOnlineUsersOverSocket,
+  isFullConversationPayload
 } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 // ** Types
@@ -138,6 +140,18 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     }
   }, [])
 
+  // Clear every pending typing-clear timeout on unmount. Without this, a
+  // timer that's mid-flight when AppChat unmounts (e.g. the floating
+  // ChatLauncher panel closes while a peer is typing) fires `setTypingUsers`
+  // on an unmounted component — a wasted update + React warning.
+  useEffect(() => {
+    const timers = typingTimers.current
+
+    return () => {
+      Object.values(timers).forEach(byUser => Object.values(byUser).forEach(timer => clearTimeout(timer)))
+    }
+  }, [])
+
   // ** Hooks
   const theme = useTheme()
   const { settings } = useSettings()
@@ -194,7 +208,15 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   const chatClient = getChatClientOrNull()
   const chatSocket = socketStatus === 'disconnected' ? null : tryGetSocket()
   const chatConnected = socketStatus === 'connected'
-  const chatError = socketStatus === 'error' ? new Error('chat socket error') : null
+
+  // Latch: true once the socket has connected at least once this mount. Gates
+  // the "reconnecting" banner so a cold start (before the first connect) never
+  // flashes it — the banner is only meaningful after a connection was lost.
+  const everConnectedRef = useRef(false)
+  useEffect(() => {
+    if (socketStatus === 'connected') everConnectedRef.current = true
+  }, [socketStatus])
+  const showConnectionBanner = everConnectedRef.current && socketStatus !== 'connected'
 
   // Mark conversation notifications as read when conversation is opened
   useEffect(() => {
@@ -482,9 +504,35 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     contactsRef.current = store?.contacts ?? null
   }, [store?.chats, store?.contacts])
 
+  // In-flight guard for the unknown-conversation refetch below. When a burst
+  // of `new_message` events arrives for a conversation we don't have yet
+  // (e.g. someone just added us to a busy group), each one would otherwise
+  // fire its own full `fetchChatsContacts()`. We track conversationIds with a
+  // refetch in flight and skip duplicates — the first fetch lands the whole
+  // list, after which the conversation is known and the burst takes the
+  // normal path.
+  const pendingConvFetchRef = useRef<Set<string | number>>(new Set())
+
+  // Trailing-debounce timer for the system-message metadata refetch below.
+  // A single structural change (add/remove/promote/demote/rename) arrives as
+  // a system `new_message`; in an active group several can land in quick
+  // succession. Each one used to fire its own full `fetchChatsContacts()`.
+  // We coalesce a burst into ONE refetch ~600ms after the last system
+  // message — same full-list sync as before, just not repeated per pill.
+  const systemRefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (chatError) return
-    if (!chatSocket || !chatConnected) return
+    return () => {
+      if (systemRefetchTimerRef.current) clearTimeout(systemRefetchTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Guard on the stable `socketStatus` string — NOT the derived `chatError`
+    // (a freshly-allocated Error each render) which would otherwise re-run
+    // this effect on every render during an error state and re-subscribe all
+    // 16 listeners repeatedly. `socketStatus !== 'connected'` covers the same
+    // cases the old `chatError` / `!chatConnected` guards did.
+    if (!chatSocket || socketStatus !== 'connected') return
 
     // Live incoming message → adapt + push into Redux. The receiveMessage
     // reducer dedupes by id, so the server-echo of our own `sendMsg` is a
@@ -513,15 +561,24 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const isOwn = Boolean(userProfileIdRef.current && raw.senderId === String(userProfileIdRef.current))
 
       if (!knownChatIdsRef.current.has(raw.conversationId)) {
-        dispatch(fetchChatsContacts()).then(() => {
-          dispatch(
-            receiveMessage({
-              conversationId: raw.conversationId,
-              message: sdkMessageToMessage(raw),
-              isOwn
-            })
-          )
-        })
+        // Coalesce a burst of messages for the same unknown conversation into
+        // a single list refetch. Subsequent events still re-dispatch
+        // receiveMessage once the list lands and the conversation is known.
+        if (pendingConvFetchRef.current.has(raw.conversationId)) return
+        pendingConvFetchRef.current.add(raw.conversationId)
+        dispatch(fetchChatsContacts())
+          .then(() => {
+            dispatch(
+              receiveMessage({
+                conversationId: raw.conversationId,
+                message: sdkMessageToMessage(raw),
+                isOwn
+              })
+            )
+          })
+          .finally(() => {
+            pendingConvFetchRef.current.delete(raw.conversationId)
+          })
 
         return
       }
@@ -537,8 +594,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       // System messages signal structural changes (role promoted/demoted,
       // member added/removed, group renamed). Refresh conversation metadata
       // so adminIds / participants stay in sync without a page reload.
+      // Debounced: a burst of system events coalesces into one full refetch.
       if (raw.content?.type === 'system') {
-        dispatch(fetchChatsContacts())
+        if (systemRefetchTimerRef.current) clearTimeout(systemRefetchTimerRef.current)
+        systemRefetchTimerRef.current = setTimeout(() => {
+          systemRefetchTimerRef.current = null
+          dispatch(fetchChatsContacts())
+        }, 600)
       }
 
       const isOpen = selectedChatIdRef.current === raw.conversationId
@@ -643,8 +705,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
 
-      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
-      if (isFullConversation) {
+      if (isFullConversationPayload(evt)) {
         // Brand-new conversation surfaced via this event (rare — usually
         // covered by `conversation_created`): we still need to join the
         // socket room to receive future new_message events.
@@ -700,8 +761,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const conv = evt?.conversation ?? evt?.data ?? evt
       const convId = conv?.id ?? evt?.conversationId
       if (!convId) return
-      const isFullConversation = Array.isArray(conv?.participants) && conv?.settings !== undefined
-      if (isFullConversation) {
+      if (isFullConversationPayload(conv)) {
         const myId = userProfileIdRef.current ?? ''
         dispatch(addOrReplaceChat(sdkConversationToChat(conv, myId)))
         joinChatRoom(convId)
@@ -1014,7 +1074,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       chatSocket.off('participant_left', onParticipantLeft)
       chatSocket.off('typing_indicator', handleTypingEvent)
     }
-  }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
+  }, [chatSocket, socketStatus, dispatch, handleTypingEvent])
 
   const handleLeftSidebarToggle = () => setLeftSidebarOpen(!leftSidebarOpen)
   const handleUserProfileLeftSidebarToggle = () => setUserProfileLeftOpen(!userProfileLeftOpen)
@@ -1027,6 +1087,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         width: '100%',
         height: '100%',
         display: 'flex',
+        flexDirection: 'column',
         // borderRadius: 0,
         overflow: 'hidden',
         position: 'relative',
@@ -1035,7 +1096,39 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}` })
       }}
     >
-      <SidebarLeft
+      {/* Connection status — shown only after a prior successful connect, so
+          a cold start never flashes it. Sends typed while offline are queued
+          by `pendingOutbox` + flushed on recovery (ChatClientContext); this
+          bar just communicates that state. */}
+      {showConnectionBanner && (
+        <Box
+          sx={{
+            flexShrink: 0,
+            px: 4,
+            py: 1,
+            textAlign: 'center',
+            backgroundColor: 'customColors.BgTeritary',
+            borderBottom: theme => `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Typography variant='caption' sx={{ color: 'customColors.Tertiary', lineHeight: 'normal' }}>
+            {socketStatus === 'connecting'
+              ? 'Reconnecting…'
+              : "Connection lost — messages will send when you're back online."}
+          </Typography>
+        </Box>
+      )}
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          width: '100%',
+          display: 'flex',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        <SidebarLeft
         store={store}
         hidden={hidden}
         mdAbove={mdAbove}
@@ -1088,6 +1181,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
           }}
         />
       )}
+      </Box>
     </Box>
   )
 }

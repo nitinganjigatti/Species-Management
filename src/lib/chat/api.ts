@@ -1122,6 +1122,21 @@ export function clearSelfLeft(chatId: string | number): void {
   writeSelfLeftSet(set)
 }
 
+// The server reuses ONE `conversation_updated` / `conversation_created`
+// socket event for two payload shapes:
+//   • Full Conversation — carries `participants` (array) AND `settings`.
+//     Metadata changed (rename / avatar / participants / role / settings)
+//     → REPLACE the whole entry via `sdkConversationToChat` + addOrReplaceChat.
+//   • Slim event — just `{ id, lastMessage, unreadCount, updatedAt }`.
+//     A new message arrived → PATCH only those fields.
+// This predicate is the single source of truth for that discrimination,
+// shared by AppChat + ChatLauncher so the rule can't drift between them.
+export function isFullConversationPayload(evt: unknown): boolean {
+  const e = evt as { participants?: unknown; settings?: unknown } | null | undefined
+
+  return Array.isArray(e?.participants) && e?.settings !== undefined
+}
+
 export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEntityId): ChatsArrType {
   const isGroup = conv.conversationType === 'group'
 
