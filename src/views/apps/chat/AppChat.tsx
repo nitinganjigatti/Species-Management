@@ -264,13 +264,34 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     roomIds.forEach(id => joinChatRoom(id as string))
   }, [chatSocket, chatConnected, store?.chats])
 
-  // Connect-time refetch lives in ChatLauncher (mounted persistently in
-  // the app shell). AppChat no longer refetches on mount — it would
-  // re-fire on every FAB open (since `{open && <Box>}` unmounts/remounts
-  // AppChat) and that fetch is redundant: Redux already holds the list
-  // and is kept fresh by `new_message` + `conversation_updated` socket
-  // events. Cold start and socket-reconnect refetches are both owned by
-  // ChatLauncher's persistent effects.
+  // Connect-time refetch on the FAB/launcher surface lives in ChatLauncher
+  // (mounted persistently in the app shell). AppChat doesn't refetch on mount —
+  // it would re-fire on every FAB open (since `{open && <Box>}` unmounts/
+  // remounts AppChat) and is redundant: Redux already holds the list and is
+  // kept fresh by `new_message` + `conversation_updated` socket events.
+  //
+  // BUT ChatLauncher is unmounted on the standalone `/chat` route (see
+  // `(module)/layout.tsx` — `hideChatLauncher` on `/chat`), so its
+  // connect/reconnect refetch doesn't cover this page. Own it here for the
+  // standalone surface only: when the socket (re)connects — returning from a
+  // hidden tab or a wifi drop, where the document lifecycle tears the socket
+  // down and back up — refetch the conversation list so we catch up on any
+  // `new_message` / `conversation_created` / `conversation_updated` that
+  // arrived while we were disconnected (live listeners only cover events that
+  // fire WHILE connected). `enrichLastMessageSenders` follows so the refreshed
+  // list keeps the "Saket: …" sender prefix.
+  //
+  // `!compact && !isFullscreen` = the standalone page only. ChatLauncher always
+  // renders AppChat with `compact` (panel) or `isFullscreen` (popout) set, so
+  // this never double-fires with ChatLauncher's own reconnect refetch.
+  const isStandalonePage = !compact && !isFullscreen
+  useEffect(() => {
+    if (!isStandalonePage) return
+    if (socketStatus !== 'connected') return
+    dispatch(fetchChatsContacts()).then(() => {
+      dispatch(enrichLastMessageSenders())
+    })
+  }, [isStandalonePage, socketStatus, dispatch])
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
   // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory

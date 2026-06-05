@@ -264,6 +264,52 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     let detachLifecycleLogs: (() => void) | null = null
     let cancelled = false
 
+    // ── 429 (throttle) retry ───────────────────────────────────────────────
+    // The transit handshake (`POST /crypto/session`) is rate-limited
+    // server-side. Because the connection lifecycle re-runs the handshake on
+    // every tab switch, rapid switching can trip the throttler →
+    // `ThrottlerException 429`, which rejects the connect Promise. Nothing else
+    // recovers this: Socket.IO's built-in retry can't help (the failure is in
+    // the REST handshake, before the websocket connects). So ON A 429 ONLY,
+    // retry the fresh connect after 60s. If that attempt 429s again the same
+    // path re-arms — up to MAX_THROTTLE_RETRIES times — then GIVES UP (a later
+    // tab-focus / network change starts a fresh attempt with a fresh budget).
+    // Non-429 failures keep their existing handling untouched.
+    const MAX_THROTTLE_RETRIES = 4
+    let throttleRetryTimer: ReturnType<typeof setTimeout> | null = null
+    let throttleRetryCount = 0
+    const isThrottled = (e: unknown): boolean => {
+      const err = e as { status?: number; statusCode?: number; response?: { status?: number }; message?: string }
+      const status = err?.status ?? err?.statusCode ?? err?.response?.status
+      if (status === 429) return true
+
+      return /\b429\b|too many requests|throttler/i.test(err?.message ?? '')
+    }
+    // Takes the retry callback as a param so it never references `reconnectFresh`
+    // directly (avoids a circular declaration). Single timer — no stacking.
+    const armThrottleRetry = (reason: string, retry: () => void) => {
+      if (throttleRetryTimer) return
+      if (throttleRetryCount >= MAX_THROTTLE_RETRIES) {
+        console.warn(
+          `[chat:socket] transit handshake still throttled (429) after ${MAX_THROTTLE_RETRIES} retries — giving up; will retry on next tab focus / network change`,
+          { reason }
+        )
+
+        return
+      }
+      throttleRetryCount += 1
+      console.warn(
+        `[chat:socket] transit handshake throttled (429) — retry ${throttleRetryCount}/${MAX_THROTTLE_RETRIES} in 60s`,
+        { reason }
+      )
+      throttleRetryTimer = setTimeout(() => {
+        throttleRetryTimer = null
+        if (cancelled) return
+        if (getSocket()?.connected) return // already connected — nothing to do
+        retry()
+      }, 60_000)
+    }
+
     // Replay sends queued by `sendMsg.rejected` while the socket was down.
     // Idempotent — empty outbox → no-op.
     const flushOutbox = (reason: string) => {
@@ -324,6 +370,9 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     // The `online`/`offline` window events cover the wifi-toggle case that
     // `visibilitychange` misses (network changes while the tab stays focused).
     const reconnectFresh = (reason: string) => {
+      // A genuine trigger (visible / online) starts a FRESH retry budget; only
+      // the automatic 60s chain ('…:throttle-retry') counts toward the cap.
+      if (!reason.includes('throttle-retry')) throttleRetryCount = 0
       try {
         refreshSocketAuth()
       } catch (e) {
@@ -332,6 +381,7 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
       connectSocket(resolvedSocketConfig, getAccessToken)
         .then(() => {
           if (cancelled) return
+          throttleRetryCount = 0 // connected — clear the throttle budget
           s = getSocket()
           setSocket(s)
           detachLifecycleLogs?.()
@@ -340,7 +390,15 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
           setConnected(true)
           flushOutbox(reason)
         })
-        .catch(e => console.warn('[chat:socket] reconnect failed', { reason, message: (e as Error)?.message }))
+        .catch(e => {
+          // 429 → retry this same fresh connect in 60s (self-recursive).
+          if (isThrottled(e)) {
+            armThrottleRetry(reason, () => reconnectFresh(`${reason}:throttle-retry`))
+
+            return
+          }
+          console.warn('[chat:socket] reconnect failed', { reason, message: (e as Error)?.message })
+        })
     }
     const teardown = (reason: string) => {
       try {
@@ -371,17 +429,25 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     connectSocket(resolvedSocketConfig, getAccessToken)
       .then(() => {
         if (cancelled) return
+        throttleRetryCount = 0 // connected — clear the throttle budget
         s = getSocket()
         setSocket(s)
         detachLifecycleLogs = attachSocketLifecycleLogs(s)
         attachListeners(s)
       })
       .catch(err => {
+        // 429 → retry via a fresh connect in 60s (same rule as reconnectFresh).
+        if (isThrottled(err)) {
+          armThrottleRetry('initial', () => reconnectFresh('initial:throttle-retry'))
+
+          return
+        }
         setError(err)
       })
 
     return () => {
       cancelled = true
+      if (throttleRetryTimer) clearTimeout(throttleRetryTimer)
       document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('online', onOnline)
       window.removeEventListener('offline', onOffline)

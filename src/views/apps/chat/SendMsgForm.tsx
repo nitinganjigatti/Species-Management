@@ -782,11 +782,13 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       const isAckTimeout = /socket ack timeout/i.test(errMsg)
       const isReconnectFailure = /reconnect\s+failed|socket\s+(?:disconnected|not\s+connected)/i.test(errMsg)
       const toastOpts = { id: 'chat-send-failed' }
-      if (isAckTimeout) {
-        toast.error('Server is slow to respond — we’ll retry shortly.', toastOpts)
-      } else if (isReconnectFailure) {
+      // Ack timeout (socket alive but server slow to ack) is transient and the
+      // message is already queued for auto-retry — stay SILENT rather than
+      // alarm the user with a "server slow" toast. Only surface a toast for the
+      // genuinely actionable cases (offline / unknown send failure).
+      if (isReconnectFailure) {
         toast.error('Can’t send right now — we’ll retry when you’re back online.', toastOpts)
-      } else {
+      } else if (!isAckTimeout) {
         toast.error('Couldn’t send — we’ll retry automatically.', toastOpts)
       }
 
