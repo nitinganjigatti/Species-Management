@@ -378,11 +378,25 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   }, [])
 
   // When the user picks "Edit" on a bubble, store puts the message into
-  // `editingMessage` — prefill the input so the user can amend it inline.
+  // `editingMessage` — prefill the input so the user can amend it inline AND
+  // focus the composer so the user can start typing immediately.
   const editing = store?.editingMessage ?? null
   useEffect(() => {
-    if (editing?.originalText) setMsg(editing.originalText)
+    if (editing?.originalText) {
+      setMsg(editing.originalText)
+      // rAF so focus lands after the edit-preview row has rendered/laid out.
+      requestAnimationFrame(() => textInputRef.current?.focus())
+    }
   }, [editing?.messageId])
+
+  // Mirror WhatsApp: choosing "Reply" on a bubble sets `replyingTo` in the
+  // store — auto-focus the composer so the user can type the reply right away
+  // instead of having to click into the input field first.
+  const replyingToId = store?.replyingTo?.messageId ?? null
+  useEffect(() => {
+    if (!replyingToId) return
+    requestAnimationFrame(() => textInputRef.current?.focus())
+  }, [replyingToId])
 
   // Typing indicator — emit typing(true) on keystrokes, auto-stop after 2s idle
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
