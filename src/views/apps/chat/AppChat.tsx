@@ -541,6 +541,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   // We coalesce a burst into ONE refetch ~600ms after the last system
   // message — same full-list sync as before, just not repeated per pill.
   const systemRefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     return () => {
       if (systemRefetchTimerRef.current) clearTimeout(systemRefetchTimerRef.current)
@@ -1008,34 +1009,50 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
       const leaverIsMe = me !== '' && String(userId) === me
 
-      // Admin-kick (`user_removed`) in-chat pill is rendered DECLARATIVELY by
-      // ChatLog from `contact.removedByName` (set here via `applyParticipantLeft`
-      // live, and by the adapter from the kick-actor cache on refresh) — so we
-      // do NOT synthesize a fake `user_removed` message for it.
-      //
-      // Self-exit (`user_left`) still needs client synthesis: there's no
-      // `removedByName` to drive the declarative pill, and the server doesn't
-      // deliver a `user_left` system message to the leaver.
+      // The kicked / leaver socket gets `participant_left` but the server does
+      // NOT deliver a system `new_message` to it. So synthesize the pill and
+      // route it through `receiveMessage` — the SAME live-append path the
+      // bystander uses (renders + auto-scrolls). Covers BOTH:
+      //   • admin-kick (removedBy present) → "<Actor> removed you"
+      //   • self-exit  (no removedBy)      → "You left the group"
+      // ChatLog's declarative `removalPill` suppresses itself when a
+      // `user_removed` message about me already exists (`alreadyHasKick`
+      // guard), so there's no double pill. On a later refresh (messages.list
+      // is empty for a kicked user) the declarative pill takes over from the
+      // kick-actor cache, so the copy stays consistent.
       if (leaverIsMe) {
         const convKey = String(conversationId)
         const isAdminKick = removedBy !== undefined && removedBy !== null
-        if (!isAdminKick && !syntheticKickFiredRef.current.has(convKey)) {
+        if (!syntheticKickFiredRef.current.has(convKey)) {
           syntheticKickFiredRef.current.add(convKey)
           const myName = userProfileNameRef.current
           const myId = userProfileIdRef.current
           const now = new Date()
-          const syntheticMessage = {
-            id: `synthetic-leave-${convKey}-${now.getTime()}`,
-            message: 'You left the group',
-            time: now.toISOString(),
-            senderId: myId != null ? String(myId) : String(userId),
-            ...(myName ? { senderName: myName } : {}),
-            feedback: { isSent: true, isDelivered: true, isSeen: true },
-            contentType: 'system' as const,
-            systemOperationType: 'user_left',
-            targetUserId: String(userId),
-            ...(myName ? { targetUserName: myName } : {})
-          }
+          const syntheticMessage = isAdminKick
+            ? {
+                id: `synthetic-kick-${convKey}-${now.getTime()}`,
+                message: removedByName ? `${removedByName} removed you` : 'You were removed from this group',
+                time: now.toISOString(),
+                senderId: removedBy != null ? String(removedBy) : '',
+                ...(removedByName ? { senderName: removedByName } : {}),
+                feedback: { isSent: true, isDelivered: true, isSeen: true },
+                contentType: 'system' as const,
+                systemOperationType: 'user_removed',
+                targetUserId: myId != null ? String(myId) : String(userId),
+                ...(myName ? { targetUserName: myName } : {})
+              }
+            : {
+                id: `synthetic-leave-${convKey}-${now.getTime()}`,
+                message: 'You left the group',
+                time: now.toISOString(),
+                senderId: myId != null ? String(myId) : String(userId),
+                ...(myName ? { senderName: myName } : {}),
+                feedback: { isSent: true, isDelivered: true, isSeen: true },
+                contentType: 'system' as const,
+                systemOperationType: 'user_left',
+                targetUserId: String(userId),
+                ...(myName ? { targetUserName: myName } : {})
+              }
           dispatch(
             receiveMessage({
               conversationId,

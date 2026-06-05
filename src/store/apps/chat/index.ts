@@ -2525,6 +2525,12 @@ export const appChatSlice = createSlice({
         ) {
           mergedLastMessage = {
             ...incoming.chat.lastMessage,
+            // Preserve the real text we already have when the REST
+            // `conv.lastMessage` ships it empty (the list endpoint strips the
+            // text from system messages). Without this the sidebar flashes the
+            // bare "System message" placeholder on a tab-switch refetch. Uses
+            // the actual text already in state — no fabricated copy.
+            message: incoming.chat.lastMessage.message || existing.chat.lastMessage.message,
             senderId: incoming.chat.lastMessage.senderId || existing.chat.lastMessage.senderId,
             senderName: incoming.chat.lastMessage.senderName ?? existing.chat.lastMessage.senderName,
             contentType: incoming.chat.lastMessage.contentType ?? existing.chat.lastMessage.contentType,
@@ -3301,6 +3307,12 @@ export const appChatSlice = createSlice({
             // when the next event lands.
             mergedLastMessage = {
               ...inc.chat.lastMessage,
+              // Preserve the real text we already have when the REST list
+              // response ships it empty (it strips the text from system
+              // `lastMessage`). Without this a tab-switch refetch flashes the
+              // bare "System message" placeholder in the sidebar. Real text
+              // already in state — nothing fabricated.
+              message: inc.chat.lastMessage.message || prev.chat.lastMessage.message,
               senderId: inc.chat.lastMessage.senderId || prev.chat.lastMessage.senderId,
               senderName: inc.chat.lastMessage.senderName ?? prev.chat.lastMessage.senderName,
               contentType: inc.chat.lastMessage.contentType ?? prev.chat.lastMessage.contentType,
