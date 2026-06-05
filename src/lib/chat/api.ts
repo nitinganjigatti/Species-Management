@@ -695,6 +695,23 @@ export async function getConversationFiles(
   return { items, total, page, totalPages }
 }
 
+// Fetch a FRESH signed URL for an already-uploaded file. Attachment URLs are
+// short-lived S3/Azure signed URLs (~15 min); an attachment opened in a chat
+// that's been sitting open longer than that returns 403. Callers use this as an
+// on-error fallback: when an <img>/preview fails to load, refresh the URL once
+// and retry. Returns just the URL string (the SDK returns { url, expiresAt }).
+export async function getFileUrl(fileId: string, expiresIn?: number): Promise<string | null> {
+  try {
+    const res = (await requireClient('getFileUrl').storage.getFileUrl(fileId, expiresIn)) as { url?: string }
+
+    return res?.url ?? null
+  } catch (err) {
+    console.warn('[chat-api] getFileUrl failed for', fileId, err)
+
+    return null
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Adapters (SDK types → app types)
 // ─────────────────────────────────────────────────────────────────────────────

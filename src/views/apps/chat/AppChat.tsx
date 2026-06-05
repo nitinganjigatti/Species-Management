@@ -668,8 +668,8 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         Array.isArray(evt.updatedMessageIds) && evt.updatedMessageIds.length
           ? evt.updatedMessageIds
           : evt.messageId
-            ? [evt.messageId]
-            : []
+          ? [evt.messageId]
+          : []
       if (perUserIds.length && evt.userId) {
         dispatch(
           applyReadReceiptEntry({
@@ -903,8 +903,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         const convKey = String(conversationId)
         if (!syntheticAddFiredRef.current.has(convKey)) {
           syntheticAddFiredRef.current.add(convKey)
-          const addedBy: string | number | undefined =
-            evt?.addedBy ?? evt?.invitedBy ?? evt?.actor ?? evt?.actorId
+          const addedBy: string | number | undefined = evt?.addedBy ?? evt?.invitedBy ?? evt?.actor ?? evt?.actorId
           let addedByName: string | undefined =
             evt?.addedByName ?? evt?.addedByDisplayName ?? evt?.actorName ?? evt?.actor?.displayName
           // Backend (verified on 1.2.5) emits `addedBy` as an id but
@@ -1096,6 +1095,70 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}` })
       }}
     >
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          width: '100%',
+          display: 'flex',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        <SidebarLeft
+          store={store}
+          hidden={hidden}
+          mdAbove={mdAbove}
+          dispatch={dispatch}
+          statusObj={statusObj}
+          userStatus={userStatus}
+          selectChat={selectChat}
+          getInitials={getInitials}
+          sidebarWidth={sidebarWidth}
+          setUserStatus={setUserStatus}
+          leftSidebarOpen={leftSidebarOpen}
+          removeSelectedChat={removeSelectedChat}
+          userProfileLeftOpen={userProfileLeftOpen}
+          formatDateToMonthShort={formatDateToMonthShort}
+          handleLeftSidebarToggle={handleLeftSidebarToggle}
+          handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+          compact={compact}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          onCreatingGroupChange={setIsCreatingGroup}
+        />
+        <ChatContent
+          store={store}
+          hidden={hidden}
+          sendMsg={sendMsg}
+          mdAbove={mdAbove}
+          dispatch={dispatch}
+          statusObj={statusObj}
+          getInitials={getInitials}
+          sidebarWidth={sidebarWidth}
+          userProfileRightOpen={userProfileRightOpen}
+          handleLeftSidebarToggle={handleLeftSidebarToggle}
+          handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
+        />
+        {isCreatingGroup && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: sidebarWidth,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
+              backdropFilter: 'blur(3px)',
+              zIndex: theme => theme.zIndex.drawer - 1,
+              pointerEvents: 'all'
+            }}
+          />
+        )}
+      </Box>
       {/* Connection status — shown only after a prior successful connect, so
           a cold start never flashes it. Sends typed while offline are queued
           by `pendingOutbox` + flushed on recovery (ChatClientContext); this
@@ -1118,70 +1181,6 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
           </Typography>
         </Box>
       )}
-      <Box
-        sx={{
-          flexGrow: 1,
-          minHeight: 0,
-          width: '100%',
-          display: 'flex',
-          overflow: 'hidden',
-          position: 'relative'
-        }}
-      >
-        <SidebarLeft
-        store={store}
-        hidden={hidden}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        userStatus={userStatus}
-        selectChat={selectChat}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        setUserStatus={setUserStatus}
-        leftSidebarOpen={leftSidebarOpen}
-        removeSelectedChat={removeSelectedChat}
-        userProfileLeftOpen={userProfileLeftOpen}
-        formatDateToMonthShort={formatDateToMonthShort}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
-        compact={compact}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={onToggleFullscreen}
-        onCreatingGroupChange={setIsCreatingGroup}
-      />
-      <ChatContent
-        store={store}
-        hidden={hidden}
-        sendMsg={sendMsg}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        userProfileRightOpen={userProfileRightOpen}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={onToggleFullscreen}
-        typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
-      />
-      {isCreatingGroup && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: sidebarWidth,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            backdropFilter: 'blur(3px)',
-            zIndex: theme => theme.zIndex.drawer - 1,
-            pointerEvents: 'all'
-          }}
-        />
-      )}
-      </Box>
     </Box>
   )
 }

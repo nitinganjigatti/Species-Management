@@ -5,8 +5,9 @@ Single React Context Provider that owns the `@antzsoft/chat-core` SDK lifecycle 
 **File:** [`src/contexts/ChatClientContext.tsx`](../../../src/contexts/ChatClientContext.tsx)
 
 > **Updated 2026-06-04 — aligned to the `@antzsoft/chat-core` integration guide.**
-> The connection lifecycle now follows the SDK's recommended pattern: token via
-> **`authProvider`** + **disconnect-on-hidden** + **`refreshSocketAuth()` + reconnect-on-visible**
+> The connection lifecycle now follows the SDK's recommended pattern: **disconnect-on-hidden** + **`refreshSocketAuth()` + reconnect-on-visible**
+>
+> **Token: use `authToken`, NOT `authProvider`.** In chat-core 1.2.6's headless core the REST request interceptor reads the token from the SDK auth store (seeded by `authToken`); `config.authProvider` is **not invoked** in this build. Passing `authProvider` instead left the store unseeded → every REST call threw `AntzChatAuthError: Authorization header missing`. The socket gets its token separately (`ChatClientContext` passes `getAccessToken` into `connectSocket`), so socket tokens stay fresh regardless.
 > (the reconnect re-runs the transit handshake `/crypto/pubkey` + `/crypto/session`, so REST and
 > socket get a fresh session). The previous client-side recovery stack — `recoverFromStuckSocket`,
 > the long-sleep self-heal reinit, the receipt-sync-on-focus workaround, and the reactive transit-403
@@ -29,7 +30,7 @@ Single React Context Provider that owns the `@antzsoft/chat-core` SDK lifecycle 
 | Gate on tenant flag | Early-returns when `auth.userData.settings.ENABLE_CHAT_MODULE === false` |
 | Handle auth changes | Effect deps include user_id / id / email — login/logout/user-switch all reconnect correctly |
 | Survive Strict Mode dev double-mount | `cancelled` closure flag blocks the `.then()` body if cleanup ran first |
-| Token delivery | Supplied via **`authProvider`** (configured in [`src/lib/chat/client.ts`](../../../src/lib/chat/client.ts)) — called on every connect/reconnect, reads the latest token from `localStorage`. Never a static `authToken`, so a rotated token is always picked up. |
+| Token delivery | **REST:** `authToken` in [`src/lib/chat/client.ts`](../../../src/lib/chat/client.ts) seeds the SDK auth store the REST interceptor reads. (`authProvider` is NOT invoked in chat-core 1.2.6 — using it caused `Authorization header missing`.) **Socket:** `getAccessToken` passed into `connectSocket` (re-reads `localStorage` each connect → fresh). |
 | Tab visibility lifecycle | **HIDDEN** → `disconnectSocket()`. **VISIBLE** → `refreshSocketAuth()` then `connectSocket()`. The reconnect re-runs the transit handshake (`/crypto/pubkey` + `/crypto/session`), giving REST + socket a fresh session — this is what prevents `403 "Transit encryption required"` after a sleep/tab-switch. Matches the SDK integration guide's `ChatProvider` pattern. |
 | Auto-reconnect | Native Socket.IO built-in retry handles network drops. `onConnect` / `onReconnect` flip `connected`; `connect_error` calls `refreshSocketAuth()` so the next built-in retry uses a current token. No custom recovery layer. |
 | Outbox flush on reconnect | `onReconnect` dispatches `flushPendingOutbox` so messages queued by `sendMsg.rejected` while the socket was dead get replayed automatically. Idempotent — empty outbox is a no-op. |
@@ -196,7 +197,7 @@ Socket.IO's built-in auto-reconnect runs. Our `onReconnect` listener flips `conn
    - onVisibilityChange → disconnectSocket() + setConnected(false)
    - Console: [chat:socket] ❌ DISCONNECTED  reason: io client disconnect
 2. Tab visible again:
-   - refreshSocketAuth() (re-reads token via authProvider)
+   - refreshSocketAuth() (re-reads the socket token via getAccessToken)
    - connectSocket(...) → fresh transit handshake:
        GET  /crypto/pubkey   (often 304)
        POST /crypto/session  (new session)

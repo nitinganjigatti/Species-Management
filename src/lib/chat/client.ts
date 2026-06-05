@@ -2,7 +2,6 @@
 
 import { AntzChatClient, type AntzChatConfig } from '@antzsoft/chat-core'
 import { CHAT_TRANSIT_ENCRYPTION } from 'src/configs/chat'
-import authConfig from 'src/configs/auth'
 
 let _client: AntzChatClient | null = null
 
@@ -178,14 +177,16 @@ export function getChatClient(opts: GetChatClientOpts): AntzChatClient {
         video: 100
       }
     },
-    // Guide-recommended: use `authProvider` (called on every connect/reconnect)
-    // instead of a static `authToken`. This keeps BOTH the REST client and the
-    // socket reading the latest token from localStorage — so a refreshed/rotated
-    // token is always picked up, and `refreshSocketAuth()` has a live source to
-    // re-read. Falls back to the initial `opts.accessToken` if storage is empty.
-    authProvider: async () =>
-      (typeof window !== 'undefined' ? window.localStorage.getItem(authConfig.storageTokenKeyName) : null) ??
-      opts.accessToken,
+    // IMPORTANT — must be `authToken`, NOT `authProvider`. In chat-core 1.2.6
+    // the REST request interceptor reads the token from the SDK auth store
+    // (`getAccessToken: () => store.getState().tokens?.accessToken`), which is
+    // seeded by `authToken`. `config.authProvider` is NOT invoked anywhere in
+    // this build — using it left the auth store unseeded → every REST call
+    // failed with `AntzChatAuthError: Authorization header missing`. The socket
+    // gets its token separately (ChatClientContext passes `getAccessToken` into
+    // `connectSocket`), so dynamic/fresh socket tokens are unaffected. Our token
+    // is long-lived (~15d), so a static REST token is fine.
+    authToken: opts.accessToken,
     userId: opts.userId,
     tenantId: opts.tenantId,
     avatar: opts.avatar,

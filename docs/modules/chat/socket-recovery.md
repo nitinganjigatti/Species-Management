@@ -4,7 +4,7 @@
 > `recoverFromStuckSocket`, the long-sleep self-heal reinit, the receipt-sync-on-focus
 > workaround, and the reactive transit-403 interceptor — has been **removed** from
 > `ChatClientContext.tsx`. The provider now follows the `@antzsoft/chat-core` integration
-> guide's connection lifecycle instead (token via `authProvider`; disconnect-on-hidden;
+> guide's connection lifecycle instead (REST token via `authToken`; disconnect-on-hidden;
 > `refreshSocketAuth()` + reconnect-on-visible, which re-runs the transit handshake). See
 > [chat-client-context.md](./chat-client-context.md) for the current behavior. This document
 > is kept for historical context on the 1.2.6 transit-session-on-reconnect issue.
