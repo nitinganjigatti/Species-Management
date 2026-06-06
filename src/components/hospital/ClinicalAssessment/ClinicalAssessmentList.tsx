@@ -2,13 +2,7 @@
 
 import React, { useContext } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Skeleton,
-  Button
-} from '@mui/material'
+import { Box, Typography, CircularProgress, Skeleton, Button } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useTheme, Theme } from '@mui/material/styles'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
@@ -87,23 +81,23 @@ export default function ClinicalAssessmentList({
           }}
         />
 
-        {userSettings?.medical_add_diagnosis && (
-          <Button
-            variant='contained'
-            startIcon={<AddIcon />}
-            onClick={handleAddNewClick}
-            sx={{
-              height: '40px',
-              borderRadius: '8px',
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: '14px',
-              px: 3
-            }}
-          >
-            {t('hospital_module.add_new')}
-          </Button>
-        )}
+        {/* {userSettings?.medical_add_diagnosis && ( */}
+        <Button
+          variant='contained'
+          startIcon={<AddIcon />}
+          onClick={handleAddNewClick}
+          sx={{
+            height: '40px',
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '14px',
+            px: 3
+          }}
+        >
+          {t('hospital_module.add_new')}
+        </Button>
+        {/* )} */}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

@@ -83,23 +83,23 @@ export default function SymptomsList({
           }}
         />
 
-        {userSettings?.medical_add_complaints && (
-          <Button
-            variant='contained'
-            startIcon={<AddIcon />}
-            onClick={handleAddNewClick}
-            sx={{
-              height: '40px',
-              borderRadius: '8px',
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: '14px',
-              px: 3
-            }}
-          >
-            {t('hospital_module.add_new')}
-          </Button>
-        )}
+        {/* {userSettings?.medical_add_complaints && ( */}
+        <Button
+          variant='contained'
+          startIcon={<AddIcon />}
+          onClick={handleAddNewClick}
+          sx={{
+            height: '40px',
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '14px',
+            px: 3
+          }}
+        >
+          {t('hospital_module.add_new')}
+        </Button>
+        {/* )} */}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -191,7 +191,12 @@ export default function SymptomsList({
               justifyContent: 'center'
             }}
           >
-            <Box component='img' src='/images/no_data_animal_2.png' alt={t('hospital_module.no_symptoms') as string} sx={{ maxWidth: '250px' }} />
+            <Box
+              component='img'
+              src='/images/no_data_animal_2.png'
+              alt={t('hospital_module.no_symptoms') as string}
+              sx={{ maxWidth: '250px' }}
+            />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_symptoms_to_show')}
             </Typography>
