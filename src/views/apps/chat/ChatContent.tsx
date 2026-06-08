@@ -466,7 +466,7 @@ const ChatContent = (props: ChatContentType) => {
 
                             return names.length
                               ? names.join(', ')
-                              : `${selectedChat.contact.participantIds?.length ?? 0} members`
+                              : `${selectedChat.contact.participantCount ?? selectedChat.contact.participantIds?.length ?? 0} members`
                           })()
                         : peerUserId && onlineUsers.includes(peerUserId)
                         ? 'online'

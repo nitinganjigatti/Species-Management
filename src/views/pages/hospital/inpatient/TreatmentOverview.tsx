@@ -101,19 +101,35 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
 interface HealthcareOverviewProps {
   data?: any
   onPrescriptionClick?: () => void
+  category?: string
 }
 
-const HealthcareOverview = ({ data, onPrescriptionClick }: HealthcareOverviewProps) => {
+const HealthcareOverview = ({ data, onPrescriptionClick, category }: HealthcareOverviewProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
   const params = useParams()
+  const router: any = useSafeRouter()
   const { id }: any = params
+
+  const handleRouterNavigation = (tab: string) => {
+    if (category === 'Discharged') {
+      router.push(`/hospital/discharged/${id}?tab=${tab}`)
+    } else if (category === 'Mortality') {
+      router.push(`/hospital/mortality/${id}?tab=${tab}`)
+    } else if (category === 'Follow Up') {
+      router.push(`/hospital/followup/${id}?tab=${tab}`)
+    } else if (category === 'Outpatients') {
+      router.push(`/hospital/outpatient/${id}?tab=${tab}`)
+    } else {
+      router.push(`/hospital/inpatient/${id}?tab=${tab}`)
+    }
+  }
 
   const statsData = [
     {
       icon: '/icons/hospital/TreatmentMonitoring.svg',
       count: data?.treatment_monitoring,
-      navigateTo: `/hospital/inpatient/${id}?tab=treatmentMonitoring`,
+      onClick: () => handleRouterNavigation('treatmentMonitoring'),
       label: t('hospital_module.treatment_monitoring_label'),
       color: theme.palette.customColors.Error,
       backgroundColor: '#FFD3D333'
@@ -121,7 +137,7 @@ const HealthcareOverview = ({ data, onPrescriptionClick }: HealthcareOverviewPro
     {
       icon: '/icons/hospital/ActiveSymptoms.svg',
       count: data?.active_diagnosis_count,
-      navigateTo: `/hospital/inpatient/${id}?tab=clinicalAssessment`,
+      onClick: () => handleRouterNavigation('clinicalAssessment'),
       label: t('hospital_module.active_clinical_assessment_label'),
       color: theme.palette.primary.dark,
       backgroundColor: '#FCF4AE99'
@@ -129,7 +145,7 @@ const HealthcareOverview = ({ data, onPrescriptionClick }: HealthcareOverviewPro
     {
       icon: '/icons/hospital/ActiveClinicalAassesment.svg',
       count: data?.active_complaints_count,
-      navigateTo: `/hospital/inpatient/${id}?tab=symptoms`,
+      onClick: () => handleRouterNavigation('symptoms'),
       label: t('hospital_module.active_symptoms_label'),
       color: theme.palette.primary.main,
       backgroundColor: '#E1F9EDCC'

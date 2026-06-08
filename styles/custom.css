@@ -421,13 +421,13 @@
     width: 710px;
   }
   .cell_dimn1 {
-    width: 715px;
+    width: 620px;
   }
   .cell_dimn2 {
-    width: 630px;
+    width: 570px;
   }
   .cell_dimn3 {
-    width: 590px;
+    width: 574px;
   }
   .cell_gend {
     width: 560px;
@@ -573,7 +573,12 @@
   }
 }
 
-/* Chat — highlight when a bubble is scrolled into view (pinned bar / reply / search jump) */
+/* Chat — highlight when a bubble is scrolled into view (pinned bar / reply / search jump).
+   Added by ChatLog's scroll-target effect (`el.classList.add('msg-flash')`); the class
+   is removed automatically after the animation duration. Soft alpha-tint of the brand
+   primary green (theme.palette.primary.main = #37BD69) so the flash reads on both
+   light and dark bubble fills without clashing. Background + matching box-shadow ring
+   together give a subtle but unmistakable "found it" pulse. */
 .msg-flash {
   animation: msg-flash-anim 2200ms cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 10px;

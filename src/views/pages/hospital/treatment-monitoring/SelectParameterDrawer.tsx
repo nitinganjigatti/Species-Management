@@ -25,7 +25,7 @@ import {
   GetHospitalParamsFilterOptionsResponse,
   GetParametersBasedOnFiltersParams
 } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
-import { HospitalParamsFilterOption, ParametersBasedOnFilters } from 'src/types/hospital/models'
+import { HospitalParamsFilterOption, ParametersBasedOnFilters } from 'src/types/hospital/models/treatmentMonitoring'
 import { AssessmentFormItem } from './AddParameterDrawer'
 
 const PAGE_SIZE = 10
@@ -255,7 +255,8 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
                     overflowX: 'auto',
                     scrollbarWidth: 'none',
                     '&::-webkit-scrollbar': { display: 'none' },
-                    '-ms-overflow-style': 'none'
+                    msOverflowStyle: 'none'
+                    
                   }}
                 >
                   {Array.from(new Array(4)).map((_, idx) => (

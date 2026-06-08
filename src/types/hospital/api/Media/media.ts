@@ -1,5 +1,5 @@
 import { Id } from "src/types/compliance"
-import { PatientMediaData, PatientMediaNotes } from "../../models"
+import { PatientMediaData, PatientMediaNotes } from "../../models/media"
 
 export interface PatientMediaResponse {
     success: boolean

@@ -22,27 +22,12 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
-import type { DurationUnit, Severity, SymptomsListForAdding } from 'src/types/hospital/models'
-import type { SymptomFormData } from '../inpatient/AddSymptoms'
+import type { DurationUnit, Severity } from 'src/types/hospital/models'
+import { AddSymptomDrawerProps } from 'src/types/hospital/components/symptoms'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-interface AddSymptomDrawerProps extends BaseDrawerProps {
-  selectedSymptom?: SymptomsListForAdding | null
-  onSave: (payload: SymptomFormData) => void
-  severity: Severity
-  setSeverity: (v: Severity) => void
-  durationValue: number | string
-  setDurationValue: (v: number | string) => void
-  durationUnit: DurationUnit
-  setDurationUnit: (v: DurationUnit) => void
-  notes: string
-  setNotes: (v: string) => void
-  admittedDate?: string | null
-  dischargedDate?: string | null
-  isDischarged?: boolean
-}
 
 const AddSymptomDrawer = ({
   open,

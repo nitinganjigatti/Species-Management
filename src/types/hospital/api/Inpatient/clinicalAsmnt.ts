@@ -1,4 +1,5 @@
-import { ClinicalAsmntType, ClinicalAssessmentCardList, ClinicalAssessmentList, ClinicalRecords, Id, MedicalStatus, MedicalType, Prognosis, SymptomStatus, UpdateClinicalAssmntCard } from "../../models";
+import { Id, MedicalType, SymptomStatus } from "src/types/hospital/models";
+import { ClinicalAsmntType, ClinicalAssessmentCardList, ClinicalAssessmentList, ClinicalRecords, MedicalStatus, Prognosis, UpdateClinicalAssmntCard } from "src/types/hospital/models/clinicalAssessment";
 
 export type GetClinicalAssessmentCardResponse =
   | {

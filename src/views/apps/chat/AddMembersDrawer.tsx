@@ -4,8 +4,10 @@ import { ChangeEvent, useEffect, useState } from 'react'
 
 // ** Redux Imports
 import { useDispatch } from 'react-redux'
+import toast from 'react-hot-toast'
 import type { AppDispatch } from 'src/store'
 import { addParticipantsToGroup } from 'src/store/apps/chat'
+import { chatErrorMessage } from 'src/lib/chat/errors'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -142,6 +144,8 @@ const AddMembersDrawer = ({
 
   const handleAdd = () => {
     if (!groupId || selected.size === 0) return
+    // Optimistic close — surface a toast if the add is rejected (e.g. 403 when
+    // a non-admin attempts it). `.unwrap()` rejects because the thunk re-throws.
     dispatch(
       addParticipantsToGroup({
         groupId,
@@ -149,6 +153,8 @@ const AddMembersDrawer = ({
         ...(addAsAdmin ? { role: 'admin' as const } : {})
       })
     )
+      .unwrap()
+      .catch(err => toast.error(chatErrorMessage(err, 'Couldn’t add members')))
     onAdded?.()
     onClose()
   }

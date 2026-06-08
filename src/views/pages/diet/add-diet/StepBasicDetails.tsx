@@ -1,6 +1,6 @@
 'use client';
 // ** React Imports
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
@@ -229,6 +229,17 @@ const StepBasicDetails = ({
     name: 'meal_data'
   })
 
+  const pendingUpdatesRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (pendingUpdatesRef.current) {
+      const update = pendingUpdatesRef.current
+      pendingUpdatesRef.current = null
+
+      update()
+    }
+  })
+
   const handleImageUpload = (imageData?: any) => {
     setUploadedImage(imageData)
   }
@@ -243,9 +254,7 @@ const StepBasicDetails = ({
     window.open(url, '_blank')
   }
 
-  const handleChildStateChange = (value: any) => {
-    setChildStateValue(value)
-
+  const handleChildStateChange = useCallback((value: any) => {
     const uniqueValues = value.filter(
       (val: any, index: any, self: any) =>
         index ===
@@ -254,57 +263,46 @@ const StepBasicDetails = ({
         )
     )
 
-    setAllSelectedValues(prevState => {
-      const filteredPrevState = prevState.filter(
-        prevVal =>
-          !uniqueValues.some(
-            (uniqueVal: any) =>
-              String(uniqueVal?.ingredient_id) === String(prevVal?.ingredient_id) &&
-              String(uniqueVal?.mealid) === String(prevVal?.mealid)
-          )
-      )
-
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
-        const matchedMealData = formData.meal_data.find(
-          (mealData: any) =>
-            Array.isArray(mealData.ingredient) &&
-            mealData.ingredient.some(
-              (ingredient: any) =>
-                String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
-                String(ingredient?.mealid) === String(uniqueVal?.mealid)
-            )
-        )
-
-        if (matchedMealData) {
-          const matchedIngredient = matchedMealData.ingredient.find(
+    const updatedValues = [...uniqueValues].map((uniqueVal: any) => {
+      const matchedMealData = formData.meal_data.find(
+        (mealData: any) =>
+          Array.isArray(mealData.ingredient) &&
+          mealData.ingredient.some(
             (ingredient: any) =>
               String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
               String(ingredient?.mealid) === String(uniqueVal?.mealid)
           )
+      )
 
-          return {
-            ...uniqueVal,
-            meal_type: matchedIngredient?.meal_type || []
-          }
+      if (matchedMealData) {
+        const matchedIngredient = matchedMealData.ingredient.find(
+          (ingredient: any) =>
+            String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
+            String(ingredient?.mealid) === String(uniqueVal?.mealid)
+        )
+
+        return {
+          ...uniqueVal,
+          meal_type: matchedIngredient?.meal_type || []
         }
-
-        return uniqueVal
-      })
-
-      for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i] as any
-        field.ingredient = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
-      return updatedValues
+      return uniqueVal
     })
 
-    setfinalvalue(fieldsIngredients)
-  }
+    const updatedFields = fieldsIngredients.map((field: any) => ({
+      ...field,
+      ingredient: updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
+    }))
 
-  const handleRecipeStateChange = (value: any) => {
-    setRecipeChildStateValue(value)
+    pendingUpdatesRef.current = () => {
+      setChildStateValue(value)
+      setAllSelectedValues(updatedValues)
+      setfinalvalue(updatedFields)
+    }
+  }, [fieldsIngredients, formData])
 
+  const handleRecipeStateChange = useCallback((value: any) => {
     const uniqueValues = value.filter(
       (val: any, index: any, self: any) =>
         index ===
@@ -313,57 +311,46 @@ const StepBasicDetails = ({
         )
     )
 
-    setAllRecipeSelectedValues(prevState => {
-      const filteredPrevState = prevState.filter(
-        prevVal =>
-          !uniqueValues.some(
-            (uniqueVal: any) =>
-              String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
-              String(uniqueVal?.mealid) === String(prevVal?.mealid)
-          )
-      )
-
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
-        const matchedMealData = formData.meal_data.find(
-          (mealData: any) =>
-            Array.isArray(mealData.recipe) &&
-            mealData.recipe.some(
-              (recipe: any) =>
-                String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
-                String(recipe?.mealid) === String(uniqueVal?.mealid)
-            )
-        )
-
-        if (matchedMealData) {
-          const matchedRecipe = matchedMealData.recipe.find(
+    const updatedValues = [...uniqueValues].map((uniqueVal: any) => {
+      const matchedMealData = formData.meal_data.find(
+        (mealData: any) =>
+          Array.isArray(mealData.recipe) &&
+          mealData.recipe.some(
             (recipe: any) =>
               String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
               String(recipe?.mealid) === String(uniqueVal?.mealid)
           )
+      )
 
-          return {
-            ...uniqueVal,
-            meal_type: matchedRecipe?.meal_type || []
-          }
+      if (matchedMealData) {
+        const matchedRecipe = matchedMealData.recipe.find(
+          (recipe: any) =>
+            String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
+            String(recipe?.mealid) === String(uniqueVal?.mealid)
+        )
+
+        return {
+          ...uniqueVal,
+          meal_type: matchedRecipe?.meal_type || []
         }
-
-        return uniqueVal
-      })
-
-      for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i] as any
-        field.recipe = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
-      return updatedValues
+      return uniqueVal
     })
 
-    setfinalrecipevalue(fieldsIngredients)
-  }
+    const updatedFields = fieldsIngredients.map((field: any) => ({
+      ...field,
+      recipe: updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
+    }))
 
-  const handleComboStateChange = (value: any) => {
-    setComboChildStateValue(value)
+    pendingUpdatesRef.current = () => {
+      setRecipeChildStateValue(value)
+      setAllRecipeSelectedValues(updatedValues)
+      setfinalrecipevalue(updatedFields)
+    }
+  }, [fieldsIngredients, formData])
 
+  const handleComboStateChange = useCallback((value: any) => {
     const uniqueValues = value.filter(
       (val: any, index: any, self: any) =>
         index ===
@@ -372,65 +359,57 @@ const StepBasicDetails = ({
         )
     )
 
-    setAllComboSelectedValues(prevState => {
-      const filteredPrevState = prevState.filter(
-        prevVal =>
-          !uniqueValues.some(
-            (uniqueVal: any) =>
-              String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
-              String(uniqueVal?.mealid) === String(prevVal?.mealid)
-          )
-      )
-
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
-        const matchedMealData = formData.meal_data.find(
-          (mealData: any) =>
-            Array.isArray(mealData.combo) &&
-            mealData.combo?.some(
-              (combo: any) =>
-                String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
-                String(combo?.mealid) === String(uniqueVal?.mealid)
-            )
-        )
-
-        if (matchedMealData) {
-          const matchedCombo = matchedMealData.combo?.find(
+    const updatedValues = [...uniqueValues].map((uniqueVal: any) => {
+      const matchedMealData = formData.meal_data.find(
+        (mealData: any) =>
+          Array.isArray(mealData.combo) &&
+          mealData.combo?.some(
             (combo: any) =>
               String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
               String(combo?.mealid) === String(uniqueVal?.mealid)
           )
+      )
 
-          return {
-            ...uniqueVal,
-            meal_type: matchedCombo?.meal_type || []
-          }
+      if (matchedMealData) {
+        const matchedCombo = matchedMealData.combo?.find(
+          (combo: any) =>
+            String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
+            String(combo?.mealid) === String(uniqueVal?.mealid)
+        )
+
+        return {
+          ...uniqueVal,
+          meal_type: matchedCombo?.meal_type || []
         }
-
-        return uniqueVal
-      })
-
-      for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i] as any
-        field.combo = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
-      return updatedValues
+      return uniqueVal
     })
 
-    setfinalcombovalue(fieldsIngredients)
-  }
+    const updatedFields = fieldsIngredients.map((field: any) => ({
+      ...field,
+      combo: updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
+    }))
 
-  const handleIngredientchoiceStateChange = (value: any) => {
-    setIngredientchoiceChildStateValue(value)
-
-    setAllIngredientchoiceSelectedValues(value)
-
-    for (let i = 0; i < fieldsIngredients.length; i++) {
-      const field = fieldsIngredients[i] as any
-      field.ingredientwithchoice = value.filter((up: any) => up?.mealid === field.mealid)
+    pendingUpdatesRef.current = () => {
+      setComboChildStateValue(value)
+      setAllComboSelectedValues(updatedValues)
+      setfinalcombovalue(updatedFields)
     }
-    setfinalvalueingredientchoice(fieldsIngredients)
-  }
+  }, [fieldsIngredients, formData])
+
+  const handleIngredientchoiceStateChange = useCallback((value: any) => {
+    const updatedFields = fieldsIngredients.map((field: any) => ({
+      ...field,
+      ingredientwithchoice: value.filter((up: any) => up?.mealid === field.mealid)
+    }))
+
+    pendingUpdatesRef.current = () => {
+      setIngredientchoiceChildStateValue(value)
+      setAllIngredientchoiceSelectedValues(value)
+      setfinalvalueingredientchoice(updatedFields)
+    }
+  }, [fieldsIngredients])
 
   function deleteCookie(name: string) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'

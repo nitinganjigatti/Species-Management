@@ -14,27 +14,18 @@ import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimme
 import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { GetSymptomRecordResponse, GetSymptomsCardParams, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms'
-import { Id, SymptomList, SymptomStatus } from 'src/types/hospital/models'
+import { Id, SymptomStatus } from 'src/types/hospital/models'
+import { SymptomList } from 'src/types/hospital/models/symptoms'
+import { SymptomsProps, SymptomParams } from 'src/types/hospital/components/symptoms'
+import { StatusKey } from 'src/types/hospital/components/common'
 
 const STORAGE_KEY = 'medical_record_data'
 
-interface SymptomsProps {
-  selectedTab?: string
-  patientData?: any
-  overviewData?: any
-  category?: string
-}
-
-export type StatusKey = 'Active' | 'Resolved' | 'All' 
-export type Params = {
-  id: string
-  medical_record_id: string
-}
 
 const Symptoms = ({ selectedTab, patientData, overviewData, category }: SymptomsProps = {}) => {
   const { t } = useTranslation()
   const router: any = useRouter()
-  const params = useParams() as Params
+  const params = useParams() as SymptomParams
   const searchParams: any = useSearchParams()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const id = params?.id
@@ -121,6 +112,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
   )
 
   const handleTabChange = (newValue: StatusKey) => {
+    if (newValue === currentTab) return
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])

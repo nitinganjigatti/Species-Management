@@ -474,7 +474,10 @@ const ChatLog = (props: ChatLogType) => {
       pendingExternalJumpRef.current = null
       scrollMessageIntoView(el)
       el.classList.add('msg-flash')
-      setTimeout(() => el.classList.remove('msg-flash'), 1200)
+      // Match the CSS animation duration (2200ms in styles/custom.css).
+      // Removing earlier would cut the fade-out mid-way and the highlight
+      // would visibly snap instead of easing back to transparent.
+      setTimeout(() => el.classList.remove('msg-flash'), 2200)
       onScrollToTargetDone?.()
 
       return
@@ -928,11 +931,7 @@ const ChatLog = (props: ChatLogType) => {
 
   // ** Renders user chat
   const renderChats = () => {
-    // Track whether we've already injected the group-created card so it only
-    // appears once — right after the first system message in history.
-    let groupCardInjected = false
-
-    return formattedChatData().map((item: FormattedChatsType, index: number) => {
+    const rendered = formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
       const isDateGroup = item.senderId === 'date'
       const isUnreadGroup = item.senderId === 'unread'
@@ -968,18 +967,15 @@ const ChatLog = (props: ChatLogType) => {
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
-        // Show the group-created card after the "X created group Y" system
-        // message, identified by content — independent of pagination state so
-        // the card stays visible even when more messages load later.
-        const isGroupCreationMsg =
-          !groupCardInjected && groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
-        if (isGroupCreationMsg) groupCardInjected = true
-
-        // When showing the group-created card, skip the redundant system
-        // message ("X created group Y") — the card conveys the same info.
-        // Outer `.map` requires each returned element to carry a key, so
-        // use Fragment with an explicit key instead of a bare `<>`.
-        if (isGroupCreationMsg) return <Fragment key={`grp-card-${index}`}>{groupCreatedCard}</Fragment>
+        // The "X created group Y" event is represented by the group-created
+        // card pinned at the top of the thread (rendered once via the head
+        // fallback below). Suppress the redundant inline pill whenever the card
+        // is available. Visibility of the card depends ONLY on the head
+        // condition (`!hasMoreOlder`) — never on whether this message happens
+        // to be in the loaded page — so it can't flip render paths after a
+        // Clear Chat or a pagination change.
+        const isGroupCreationMsg = groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
+        if (isGroupCreationMsg) return null
 
         // WhatsApp-style perspective rewrite — delegated to the
         // shared resolver so ChatLog, SidebarLeft, and ChatContent all
@@ -1572,6 +1568,64 @@ const ChatLog = (props: ChatLogType) => {
         </Box>
       )
     })
+
+    // Removal pill (bottom). The server returns NO messages to a removed user
+    // (messages.list → empty), so the "<Actor> removed you" pill can't come
+    // from the thread data. Render it declaratively from the removal info the
+    // adapter hydrates onto the contact (`removedByName`, sourced from the
+    // kick-actor cache / live `participant_left`) — same source the sidebar +
+    // banner use. Only for the removed user themselves (isCurrentUserActive
+    // === false); active members see the real "X removed Y" message instead.
+    // Skipped if a real kick-about-me message already exists in the thread, so
+    // it never double-renders alongside server data.
+    const removalPill = (() => {
+      const meId = String(data.userContact.id ?? '')
+      const alreadyHasKick = data.chat.messages.some(
+        m =>
+          (m.systemOperationType === 'user_removed' || m.systemOperationType === 'participant_removed') &&
+          m.targetUserId !== undefined &&
+          String(m.targetUserId) === meId
+      )
+      if (!isGroupChat || data.contact.isCurrentUserActive !== false) return null
+      const actor = data.contact.removedByName
+      if (!actor) return null
+      if (alreadyHasKick) return null
+
+      return (
+        <Box key='removed-pill' sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              backgroundColor: theme => theme.palette.action.hover,
+              color: 'text.secondary',
+              maxWidth: '75%',
+              textAlign: 'center'
+            }}
+          >
+            {`${actor} removed you`}
+          </Typography>
+        </Box>
+      )
+    })()
+
+    // Group-created card — single source of truth. Shown at the top of the
+    // thread whenever we're at the true beginning of history (`!hasMoreOlder`)
+    // and the card is available. This is the ONLY place the card renders; the
+    // inline "X created group Y" system message is suppressed above. Keying
+    // visibility solely on `!hasMoreOlder` (rather than also on whether the
+    // system message happens to be loaded) makes it deterministic — it can't
+    // flip on/off across a Clear Chat or a pagination change. WhatsApp keeps
+    // this notice permanently at the top of the conversation.
+    const head =
+      groupCreatedCard !== null && !hasMoreOlder
+        ? [<Fragment key='grp-card-top'>{groupCreatedCard}</Fragment>]
+        : []
+    const tail = removalPill ? [removalPill] : []
+
+    return [...head, ...rendered, ...tail]
   }
 
   // Native-overflow (mobile fallback) scroll handler. Triggers a load only on

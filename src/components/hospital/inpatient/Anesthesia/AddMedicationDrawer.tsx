@@ -17,7 +17,8 @@ import { useTranslation } from 'react-i18next'
 import dayjs, { Dayjs } from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { MedicationFormData } from '../../shared/AddAnesthesiaRecordPage'
-import { DeliveryRoute, DeliveryStatus, Id, MedicationDrugOption, SelectOption, UnitParams } from 'src/types/hospital/models'
+import { Id, SelectOption } from 'src/types/hospital/models'
+import { DeliveryRoute, DeliveryStatus, MedicationDrugOption, UnitParams } from 'src/types/hospital/models/anesthesia'
 
 dayjs.extend(customParseFormat)
 

@@ -1,5 +1,5 @@
 import { Id } from "src/types/compliance"
-import { MedicalSummary } from "../../models"
+import { MedicalSummary } from "../../models/medicalSummary"
 
 export interface GetMedicalSummaryResponse {
     success: boolean

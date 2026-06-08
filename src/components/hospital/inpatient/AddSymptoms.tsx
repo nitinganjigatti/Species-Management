@@ -16,14 +16,17 @@ import Toaster from 'src/components/Toaster'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
-import type { Id, CheckAnimalStatusByType, ComplaintsAdditionalInfo, Severity, DurationUnit, GetSymptomClinicalTabList, TemplateItems, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { Id, Severity, DurationUnit } from 'src/types/hospital/models'
+import type { TemplateItems } from 'src/types/hospital/models/templates'
+import type { CheckAnimalStatusByType, ComplaintsAdditionalInfo, GetSymptomClinicalTabList, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
 import type { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 import type { AddSymptomsCardResponse, GetSymptomsListForAddingParams, GetSymptomsListForAddingResponse } from 'src/types/hospital/api/Inpatient/symptoms'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
-import { StatusKey } from './Symptoms'
+import type { SymptomFormItem, AddSymptomFormData } from 'src/types/hospital/components/symptoms'
+import { StatusKey } from 'src/types/hospital/components/common'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -52,30 +55,6 @@ const useDebounce = (callback: (...args: any[]) => void, delay: number) => {
   )
 }
 
-export interface Symptom {
-  id: Id
-  name: string
-  severity?: Severity
-  notes?: string
-  durationValue?: number
-  durationUnit?: DurationUnit
-  recordedDateTime?: string
-}
-
-export interface AddSymptomFormData {
-  id: Id
-  name: string
-  additional_info: ComplaintsAdditionalInfo
-}
-
-export interface SymptomFormData {
-  severity?: Severity
-  durationValue?: number | string
-  durationUnit?: DurationUnit
-  notes?: string
-  recordedDateTime?: string
-}
-
 function AddSymptoms() {
   const { t } = useTranslation()
   const theme: any = useTheme()
@@ -86,7 +65,7 @@ function AddSymptoms() {
   const id = routerParams?.id || router.query?.id
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState<SymptomsListForAdding[]>([])
-  const [temporarilySelected, setTemporarilySelected] = useState<Symptom | null>(null)
+  const [temporarilySelected, setTemporarilySelected] = useState<SymptomFormItem | null>(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState<boolean>(false)
   const [complaintDrawerOpen, setComplaintDrawerOpen] = useState<boolean>(false)
   const [severity, setSeverity] = useState<Severity>('Mild')
@@ -446,12 +425,12 @@ function AddSymptoms() {
     fetchPickerSymptoms(pickerSearchQuery, 1, false, tabId)
   }
 
-  const checkDuplicateSymptoms = async (symptomItems: Symptom[]):Promise<CheckAnimalStatusByType[]> => {
+  const checkDuplicateSymptoms = async (symptomItems: SymptomFormItem[]):Promise<CheckAnimalStatusByType[]> => {
     try {
       const payload: CheckAnimalStatusByTypePayload = {
         type: 'complaint',
         animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
-        master_ids: JSON.stringify((symptomItems || []).map((s: Symptom) => s.id))
+        master_ids: JSON.stringify((symptomItems || []).map((s: SymptomFormItem) => s.id))
       }
       const response: CheckAnimalStatusByTypeResponse = await checkAnimalStatusByType(payload)
 
@@ -494,7 +473,7 @@ function AddSymptoms() {
         return
       }
 
-      const complaints: AddSymptomFormData[] = submittableSymptoms.map((symptom: Symptom): AddSymptomFormData  => ({
+      const complaints: AddSymptomFormData[] = submittableSymptoms.map((symptom: SymptomFormItem): AddSymptomFormData  => ({
         id: symptom.id,
         name: symptom.name,
         additional_info: {
@@ -535,7 +514,7 @@ function AddSymptoms() {
     setComplaintDrawerOpen(true)
   }
 
-  const handleComplaintAdded = (symptom: Symptom) => {
+  const handleComplaintAdded = (symptom: SymptomFormItem) => {
     handleSymptomSelect(symptom)
 
     fetchDiagnosisTypes()
@@ -618,7 +597,7 @@ function AddSymptoms() {
               templateType='complaints'
               selectedItems={selectedSymptoms}
               availableItems={pickerList.filter(
-                (symptom: SymptomsListForAdding) => !selectedSymptoms.some((s: Symptom) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+                (symptom: SymptomsListForAdding) => !selectedSymptoms.some((s: SymptomFormItem) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
               )}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel={t('hospital_module.symptom_template') as string}

@@ -933,6 +933,7 @@ const PatientAdmitForm = () => {
                                 debouncedAttendingVetSearch(value)
                               }}
                               noOptionsText='No available attending vets...'
+                              loadingText='loading...'
                               renderInput={(params: any) => (
                                 <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                               )}

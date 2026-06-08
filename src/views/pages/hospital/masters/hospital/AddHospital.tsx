@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useContext, useCallback } from 'react'
+import React, { useContext, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
@@ -16,22 +16,23 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import type { SelectOption } from 'src/types/hospital/api'
 import { AddHospitalMasterPayload } from 'src/types/hospital/api/Masters/hospitalDetailTypes'
 
-const schema = yup.object().shape({
-  hospital_name: yup
-    .string()
-    .trim()
-    .min(3, 'Hospital name must have at least 3 characters')
-    .required('Hospital Name is required'),
-  description: yup.string().trim().nullable().optional(),
-  is_internal_hospital: yup.string().trim().nullable().optional(),
-  site_id: yup
-    .object({
-      site_id: yup.string(),
-      site_name: yup.string()
-    })
-    .nullable()
-    .optional()
-})
+const createSchema = (t: (key: string) => string) =>
+  yup.object().shape({
+    hospital_name: yup
+      .string()
+      .trim()
+      .min(3, t('hospital_module.hospital_name_must_have_at_least_3_chars'))
+      .required(t('hospital_module.hospital_name_required')),
+    description: yup.string().trim().nullable().optional(),
+    is_internal_hospital: yup.string().trim().nullable().optional(),
+    site_id: yup
+      .object({
+        site_id: yup.string(),
+        site_name: yup.string()
+      })
+      .nullable()
+      .optional()
+  })
 
 interface FormValues {
   hospital_name: string
@@ -69,6 +70,8 @@ const AddHospital = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const authData = useContext(AuthContext)
+
+  const schema = useMemo(() => createSchema(t as (key: string) => string), [t])
 
   const {
     reset,
@@ -133,7 +136,7 @@ const AddHospital = ({
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <Box component='img' src='/icons/activity_icon.png' sx={{ width: 30, height: 30 }} alt='Hospital Icon' />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add Hospital
+            {t('hospital_module.add_hospital')}
           </Typography>
         </Box>
 
@@ -159,7 +162,7 @@ const AddHospital = ({
                   errors={errors}
                   label={`${t('hospital_module.hospital_name')}*`}
                   name='hospital_name'
-                  placeholder='Enter Hospital Name'
+                  placeholder={t('hospital_module.enter_hospital_name') as string}
                   fullWidth
                 />
               </Grid>
@@ -167,9 +170,9 @@ const AddHospital = ({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Description'
+                  label={t('hospital_module.description') as string}
                   name='description'
-                  placeholder='Enter Description'
+                  placeholder={t('hospital_module.enter_description') as string}
                   fullWidth
                 />
               </Grid>
@@ -179,7 +182,7 @@ const AddHospital = ({
                   control={control}
                   name='site_id'
                   errors={errors}
-                  label='Site Name'
+                  label={t('hospital_module.site_name') as string}
                   options={sites}
                   getOptionLabel={(option: SelectOption) => option?.label || ''}
                   getOptionValue={(option: SelectOption) => option?.value || ''}
@@ -218,7 +221,7 @@ const AddHospital = ({
           sx={{ flex: 1, py: 4 }}
           disabled={!isValid || submitLoader}
         >
-          Add Hospital
+          {t('hospital_module.add_hospital')}
         </LoadingButton>
       </Box>
     </Drawer>

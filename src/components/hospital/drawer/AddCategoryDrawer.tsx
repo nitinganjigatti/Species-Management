@@ -14,7 +14,7 @@ import { addMedicalCategory } from 'src/lib/api/medical/masters'
 import { useState } from 'react'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import type { BaseDrawerProps } from 'src/types/hospital'
-import type { Category } from 'src/types/hospital/models'
+import { Category } from 'src/types/hospital/models/templates'
 import type { AddCategoryResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface AddCategoryDrawerProps extends BaseDrawerProps {

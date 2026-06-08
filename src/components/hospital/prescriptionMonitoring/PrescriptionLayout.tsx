@@ -38,7 +38,7 @@ const ScheduleDosage: any = ScheduleDosageRaw
 const MedicinePrescriptionCardForMultipleTimeSlots: any = MedicinePrescriptionCardForMultipleTimeSlotsRaw
 import dayjs from 'dayjs'
 import { Id } from 'src/types/hospital'
-import { AddDosageScheduleInfo, ApplyDosage, DosePurpose, PrescriptionDates, PrescriptionList, PrescriptionMedicineTiming, PrescriptionScheduleItem } from 'src/types/hospital/models'
+import { AddDosageScheduleInfo, ApplyDosage, DosePurpose, PrescriptionDates, PrescriptionList, PrescriptionMedicineTiming, PrescriptionScheduleItem } from 'src/types/hospital/models/prescription'
 import { AdditionalDosageParams, AdministerAllMedicineParams, AdministerDoseParams, DirectAdministerForPastSlotParams, GetPrescriptionListParams, PrescriptionDatesParams, StopMedicineParams, UndoPrescriptionParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
 import { GetPrescriptionDetailsParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails'
 import { MedicalMasterFormData } from './AddMedicineToPrescription'

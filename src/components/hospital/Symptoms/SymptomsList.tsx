@@ -20,29 +20,8 @@ import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { StatusKey } from '../inpatient/Symptoms'
-import { GetSymptomClinicalTabList, Id, Symptom, SymptomsListForAdding } from 'src/types/hospital/models'
-
-interface SymptomsListProps {
-  symptoms?: SymptomsListForAdding[]
-  temporarilySelected?: SymptomsListForAdding | null
-  selectedSymptoms?: Id[]
-  onSelect?: (s: SymptomsListForAdding) => void
-  searchQuery?: string
-  handleSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleClearSearch?: () => void
-  handleScroll?: (e: any) => void
-  loading?: boolean
-  searching?: boolean
-  isTabsLoading?: boolean
-  tabOptions?: GetSymptomClinicalTabList[]
-  currentTab?: StatusKey | string
-  handleTabChange?: (category: string, id: Id) => void
-  symptomsCount?: number
-  hasMore?: boolean
-  handleAddNewClick?: () => void
-  alreadySelectedIds?: Id[]
-}
+import { GetSymptomClinicalTabList, Symptom, SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
+import { SymptomsListProps } from 'src/types/hospital/components/symptoms'
 
 export default function SymptomsList({
   symptoms = [],
@@ -104,23 +83,23 @@ export default function SymptomsList({
           }}
         />
 
-        {userSettings?.medical_add_complaints && (
-          <Button
-            variant='contained'
-            startIcon={<AddIcon />}
-            onClick={handleAddNewClick}
-            sx={{
-              height: '40px',
-              borderRadius: '8px',
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: '14px',
-              px: 3
-            }}
-          >
-            {t('hospital_module.add_new')}
-          </Button>
-        )}
+        {/* {userSettings?.medical_add_complaints && ( */}
+        <Button
+          variant='contained'
+          startIcon={<AddIcon />}
+          onClick={handleAddNewClick}
+          sx={{
+            height: '40px',
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '14px',
+            px: 3
+          }}
+        >
+          {t('hospital_module.add_new')}
+        </Button>
+        {/* )} */}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -212,7 +191,12 @@ export default function SymptomsList({
               justifyContent: 'center'
             }}
           >
-            <Box component='img' src='/images/no_data_animal_2.png' alt={t('hospital_module.no_symptoms') as string} sx={{ maxWidth: '250px' }} />
+            <Box
+              component='img'
+              src='/images/no_data_animal_2.png'
+              alt={t('hospital_module.no_symptoms') as string}
+              sx={{ maxWidth: '250px' }}
+            />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_symptoms_to_show')}
             </Typography>

@@ -1,4 +1,5 @@
-import { PreviousAssessmentEntry, TemplateAssessmentTypes,TreatmentMonitoringData, Id, ParametersBasedOnFilters, HospitalParamsFilterOption } from "../../models"
+import { Id } from "../../models"
+import { PreviousAssessmentEntry, TemplateAssessmentTypes, TreatmentMonitoringData, ParametersBasedOnFilters, HospitalParamsFilterOption } from "../../models/treatmentMonitoring"
 import { Dayjs } from "dayjs"
 
 export interface GetTreatmentMonitoringListResponse {

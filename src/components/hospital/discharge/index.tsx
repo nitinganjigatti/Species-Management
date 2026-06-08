@@ -36,7 +36,8 @@ import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { Theme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import { PatientDetailsData, PrescriptionRecord } from 'src/types/hospital/models'
+import { PatientDetailsData } from 'src/types/hospital/models'
+import { PrescriptionRecord } from 'src/types/hospital/models/prescription'
 import { Id } from 'src/types/hospital'
 import { PrescriptionRecordParams } from 'src/types/hospital/api/Discharge/prescriptionRecord'
 import { StopMedicineParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
@@ -294,7 +295,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   const prescriptionsColumns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl.NO',
+      headerName: t('sl_no') as string,
       minWidth: 80,
       flex: 1,
       sortable: false,
@@ -306,7 +307,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'name',
-      headerName: 'Medicine Name',
+      headerName: t('hospital_module.medicine_name'),
       minWidth: 200,
       flex: 1,
       sortable: false,
@@ -326,7 +327,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'frequency',
-      headerName: 'Dosage Times & Frequency',
+      headerName: t('hospital_module.dosage_times_frequency'),
       minWidth: 250,
       flex: 1,
       sortable: false,
@@ -369,7 +370,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'start_date',
-      headerName: 'Starting Date',
+      headerName: t('hospital_module.starting_date'),
       minWidth: 140,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -380,7 +381,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'end_date',
-      headerName: 'Ending Date',
+      headerName: t('hospital_module.ending_date'),
       minWidth: 180,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => {
@@ -417,7 +418,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'duration',
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -428,7 +429,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       minWidth: 160,
       sortable: false,
       renderCell: (params: GridRenderCellParams) =>
@@ -447,7 +448,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
             }}
             onClick={() => handleStopPrescription(params?.row)}
           >
-            Stop Medicine
+            {t('hospital_module.stop_medicine')}
           </Button>
         )
     }
@@ -466,7 +467,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   const medicationsColumns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl.NO',
+      headerName: t('sl_no') as string,
       minWidth: 80,
       flex: 1,
       sortable: false,
@@ -478,7 +479,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'name',
-      headerName: 'Medicine Name',
+      headerName: t('hospital_module.medicine_name'),
       minWidth: 200,
       flex: 1,
       sortable: false,
@@ -516,7 +517,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'frequency_name',
-      headerName: 'Dosage Times & Frequency',
+      headerName: t('hospital_module.dosage_times_frequency'),
       minWidth: 250,
       flex: 1,
       sortable: false,
@@ -536,7 +537,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'start_date',
-      headerName: 'Starting Date',
+      headerName: t('hospital_module.starting_date'),
       minWidth: 140,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -547,7 +548,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'end_date',
-      headerName: 'Ending Date',
+      headerName: t('hospital_module.ending_date'),
       minWidth: 140,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -558,7 +559,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'duration',
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -569,7 +570,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'delivery_route_name',
-      headerName: 'Delivery Route',
+      headerName: t('navigation.delivery_route'),
       minWidth: 160,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
@@ -588,18 +589,18 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       width: 120,
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Edit'>
+          <Tooltip title={t('edit')}>
             <IconButton size='small' onClick={() => {}}>
               <Icon icon='mdi:pencil-outline' fontSize={20} />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title='Delete'>
+          <Tooltip title={t('delete')}>
             <IconButton size='small' onClick={() => {}}>
               <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
@@ -865,7 +866,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     return (
       <Box sx={{ my: 20 }}>
         <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.customColors.OnSurfaceVariant }}>
-          This animal has been discharged — no further actions can be performed.
+          {t('hospital_module.animal_already_discharged')}
         </StyledTypography>
       </Box>
     )
@@ -885,7 +886,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
               gap: 1
             }}
           >
-            <StyledTypography color={theme.palette.customColors.neutralPrimary}>Reason of Admission</StyledTypography>
+            <StyledTypography color={theme.palette.customColors.neutralPrimary}>{t('hospital_module.reason_of_admission')}</StyledTypography>
             <StyledTypography color={theme.palette.customColors.neutralPrimary} fontSize='0.875rem' fontWeight={400}>
               {purpose_of_visit}
             </StyledTypography>
@@ -893,7 +894,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
         )}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <StyledTypography>Discharge Type</StyledTypography>
+          <StyledTypography>{t('hospital_module.discharge_type')}</StyledTypography>
           <Controller
             name='discharge_type'
             control={control}
@@ -974,7 +975,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
           <ConfirmationDialog
             dialogBoxStatus={confirmOpen}
             onClose={handleCancel}
-            title={'You have unsaved changes. Do you really want to switch discharge type?'}
+            title={t('hospital_module.unsaved_changes_switch_type')}
             cancelText={'Cancel'}
             confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
             confirmAction={handleConfirm}
@@ -986,13 +987,13 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
             dialogBoxStatus={dischargeConfirmOpen}
             onClose={handleDischargeCancel}
             loading={watchDischargeType === 'Mortality' ? mortalitySubmitLoader : transferEnclosureSubmitLoader}
-            title={pendingDischargeData?.title || 'Are you sure you want to discharge this animal?'}
+            title={pendingDischargeData?.title || t('hospital_module.discharge_animal_confirm')}
             description={pendingDischargeData?.description || ''}
             additionalDescription={pendingDischargeData?.additionalDescription || ''}
-            cancelText={'Cancel'}
+            cancelText={t('cancel')}
             confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
             confirmAction={handleDischargeConfirm}
-            ConfirmationText={'Yes, Discharge'}
+            ConfirmationText={t('hospital_module.yes_discharge')}
             image={'/images/warning-icon.svg'}
             imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           />

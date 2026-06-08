@@ -15,8 +15,10 @@ The Chat module is the standard Materio chat template ported into the Antz Web D
 - [kicked-user-fix.md](./kicked-user-fix.md) — Kicked-user UX path: synthesis for the kicked socket (server doesn't deliver `user_removed` `new_message` to it), idempotent `applyParticipantLeft`, and the four-guard defense that keeps post-kick activity out of the kicked user's UI.
 - [delete-for-me-undo.md](./delete-for-me-undo.md) — WhatsApp-style 5-second Undo window for "Delete for me": deferred-commit pattern (`setTimeout` + `cancelled` flag), `restoreDeletedMessage` reducer, time-sorted re-insert, plus the related backend-filter caveat.
 - [composer-attachment-input.md](./composer-attachment-input.md) — Three converging input paths for attachments (file picker, clipboard paste, drag-and-drop) sharing one `enqueueFiles` pipeline, click-to-preview reusing `AttachmentPreviewDialog`, drop → focus-input → Enter-sends fix, voice-record button styled like Send.
-- [socket-recovery.md](./socket-recovery.md) — Transit-encryption-on-reconnect bug + the four-trigger recovery layer (connect_error pattern / reconnect_failed / visibilitychange / focus / storage event), visibility-gated + cooldown-guarded, fully forward-compat with SDK updates.
-- [chat-client-context.md](./chat-client-context.md) — `ChatClientProvider` lifecycle, init gating, socket connect/reconnect, dispose
+- [socket-recovery.md](./socket-recovery.md) — ⚠️ **HISTORICAL** (recovery layer removed 2026-06-04). Documents the old transit-encryption-on-reconnect recovery stack; superseded by the SDK-guide lifecycle in chat-client-context.md.
+- [chat-client-context.md](./chat-client-context.md) — `ChatClientProvider` lifecycle: `authToken` for REST (NOT `authProvider` — not invoked in 1.2.6), disconnect-on-hidden / reconnect-on-visible + online/offline (wifi), fresh transit handshake on reconnect, outbox flush, dispose on logout
+- [conversation-list-fetch-model.md](./conversation-list-fetch-model.md) — Why the conversation list is fetched **all at once + filtered client-side** (not via the SDK's server-side `ConversationListParams`), what depends on the full list, and when to switch to server-side pagination
+- [chat-api-call-map.md](./chat-api-call-map.md) — **Complete call map**: every `@antzsoft/chat-core` capability → our `api.ts` wrapper → which thunk/component invokes it → how it processes into Redux. The full SDK-surface coverage reference.
 - [api-integration-status.md](./api-integration-status.md) — Backend quirks list (v1.2.1 gaps the client compensates for)
 
 ## Module Location

@@ -12,7 +12,8 @@ import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
 import { useSelector } from 'react-redux'
 import { AddClinicalNotesParams, AddClinicalNotesResponse, DeleteClinicalNotesResponse } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes'
-import { ClinicalNotesList, PatientDetailsData } from 'src/types/hospital/models'
+import { PatientDetailsData } from 'src/types/hospital/models'
+import { ClinicalNotesList } from 'src/types/hospital/models/clinicalNotes'
 
 const STORAGE_KEY = 'medical_record_data'
 

@@ -23,11 +23,7 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  TreatmentMonitoringListParams,
-  TreatmentMonitoringListResponse
-} from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
 import { DeletePreviousEntryResponse, GetHospitalParamsFilterOptionsPayload, GetHospitalParamsFilterOptionsResponse, GetParametersBasedOnFiltersParams, GetParametersBasedOnFiltersResponse,GetTreatmentMonitoringListParams, GetTreatmentMonitoringListResponse, PreviousEntryParams, PreviousEntryResponse, UpdatePreviousEntryParams, UpdatePreviousEntryResponse } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring';
 import { AddIntervalForParameterPayload, AddIntervalForParametersResponse, AddMonitoringParameterPayload, AddMonitoringParameterResponse, DeleteMonitoringParameterPayload, DeleteMonitoringParameterResponse, GetHospitalParametersUnitResponse, GetParamsBasedOnTemplatesPayload, GetParamsBasedOnTemplatesResponse, GetTemplatesParamsListPayload, GetTemplatesParamsListResponse, GetTreatmentIntervalsResponse, MonitoringParametersPayload, MonitoringParametersResponse, SaveTemplatePayload, SaveTemplateResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit';
 import { AddTreatmentMonitoringParams, AddTreatmentMonitoringResponse } from 'src/types/hospital/api/TreatmentMonitoring/addTreatmentMonitoring';

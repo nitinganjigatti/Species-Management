@@ -42,7 +42,7 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
@@ -52,7 +52,45 @@ import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 import Utility from 'src/utility'
+import { ApiError, HealthStatusOption, RoomEnclosureResponse, SelectDoctorOption, TreatmentTypeOption } from 'src/types/hospital/api'
+import { Id } from 'src/types/hospital'
+import { AddPatientParams } from 'src/types/hospital/api/Inpatient/inpatient'
+import { HospitalBed, HospitalRoom, HospitalStaff, SelectOption, VisitTypeReason } from 'src/types/hospital/models'
 
+export interface HoldingEnclosureOption {
+  label: string
+  value: Id
+  room_id: Id
+  room_name: string
+}
+
+export interface AddPatientFilterOptions {
+  Gender: string[]
+  Species: string[]
+  Site: string[]
+  Section: string[]
+  Enclosure: string[]
+}
+
+export interface AddPatientFormData {
+  purposeOfVisit: string
+  medicalRecordId: Id
+  visitType: VisitTypeReason
+  treatmentType: TreatmentTypeOption
+  healthStatus: HealthStatusOption
+  holdingEnclosure: HoldingEnclosureOption
+  room: {
+    value: string
+  }
+  admission_date: string
+  admission_time: string
+  attendingDoctors: SelectOption[]
+}
+
+export interface PaginationParam {
+  page: number
+  pageSize: number 
+}
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const createSchema = (t: any, createdAt: any) => yup.object().shape({
@@ -164,18 +202,18 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital() as any
-  const [medicalId, setMedicalId] = useState<any[]>([])
-  const [holdingEnclosures, setHoldingEnclosures] = useState<any[]>([])
+  const [medicalId, setMedicalId] = useState<any>([])
+  const [holdingEnclosures, setHoldingEnclosures] = useState<HoldingEnclosureOption[]>([])
   const [openAnimalDrawer, setAnimalDrawer] = useState<boolean>(false)
   const [selectedAnimal, setSelectedAnimal] = useState<any>(null)
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
   const [doctors, setDoctors] = useState<any[]>([])
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
-  const [currentSort, setCurrentSort] = useState<any>({ column: 'animal_id', sort: 'asc' })
+  const [currentSort, setCurrentSort] = useState<{ column: string; sort: 'asc' | 'desc' }>({ column: 'animal_id', sort: 'asc' })
   const [bedsLoading, setBedsLoading] = useState<boolean>(false)
   const [searchEnclosure, setSearchEnclosure] = useState<string>('')
-  const [rooms, setRooms] = useState<any[]>([])
+  const [rooms, setRooms] = useState<SelectOption[]>([])
   const [roomsLoading, setRoomsLoading] = useState<boolean>(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
@@ -184,11 +222,11 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   const [searchRoom, setSearchRoom] = useState<string>('')
   const [searchAttendDoctor, setSearchAttendDoctor] = useState<string>('')
   const [staffLoading, setStaffLoading] = useState<boolean>(false)
-  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState<any[]>([])
+  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState<SelectOption[]>([])
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState<boolean>(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState<boolean>(false)
-  const [attendingDoctors, setAttendingDoctors] = useState<any[]>([])
-  const [paginationModel, setPaginationModel] = useState<any>({
+  const [attendingDoctors, setAttendingDoctors] = useState<SelectOption[]>([])
+  const [paginationModel, setPaginationModel] = useState<PaginationParam>({
     page: 0,
     pageSize: 10
   })
@@ -206,7 +244,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     { label: t('hospital_module.add_to_existing_id'), value: 'existing', disabled: medicalId.length === 0 }
   ]
 
-  const applyFilters = (selectedOptions: any) => {
+  const applyFilters = (selectedOptions: AddPatientFilterOptions) => {
     setSelectedOptions(selectedOptions)
     setOpenFilterDrawer(false)
   }
@@ -244,7 +282,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
 
   // Time limits for admission time
   const now = dayjs()
-  let maxTime: any = null
+  let maxTime: Dayjs | null = null
 
   if (selectedDate && dayjs(selectedDate).isSame(now, 'day')) {
     maxTime = now
@@ -293,7 +331,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     const getHospitalBeds = async () => {
       setBedsLoading(true)
       try {
-        const res: any = await getRoomsAndEnclosures({
+        const res: RoomEnclosureResponse = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
           status: 'active',
           page: 1,
@@ -301,12 +339,12 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
         })
         if (res?.success === true) {
           setHoldingEnclosures(
-            res?.data?.records?.map((item: any) => ({
+            (res?.data?.records ?? [])?.map((item: HospitalBed) => ({
               label: `${item?.bed_name}${item?.room_name ? ` (${item?.room_name})` : ''}`,
-              value: item?.id,
-              room_id: item?.room_id,
-              room_name: item?.room_name
-            }))
+              value: item?.id ?? '',
+              room_id: item?.room_id ?? '',
+              room_name: item?.room_name ?? '',
+            })) || []
           )
         }
       } catch (error) {
@@ -342,7 +380,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   // Auto-populate room when enclosure is selected
   useEffect(() => {
     if (selectedEnclosure?.value && selectedEnclosure?.room_id) {
-      const roomObj = rooms.find((r: any) => r.value === selectedEnclosure.room_id)
+      const roomObj = rooms.find((r: SelectOption) => r.value === selectedEnclosure.room_id)
       if (roomObj) {
         setValue('room', roomObj)
       } else {
@@ -371,7 +409,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   useEffect(() => {
     const getAnimalIds = async () => {
       try {
-        await getAnimalMedicalIds(selectedAnimal?.animal_id, { for_hospital: 1 }).then((res: any) => {
+        await getAnimalMedicalIds(selectedAnimal?.animal_id ?? '', { for_hospital: 1 }).then((res: any) => {
           if (res?.success === true) {
             setMedicalId(
               res?.data?.result?.map((item: any) => ({
@@ -392,7 +430,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     }
   }, [selectedAnimal?.animal_id])
 
-  const fetchAndUpdateHospitalStats = async (hospitalId: any) => {
+  const fetchAndUpdateHospitalStats = async (hospitalId: Id) => {
     if (!hospitalId) return
 
     try {
@@ -408,7 +446,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   const getUserLists = async () => {
     setLoading(true)
     try {
-      const res: any = await getHospitalStaff({
+      const res = await getHospitalStaff({
         params: {
           q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
@@ -417,14 +455,16 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
         }
       })
         if (res?.success === true) {
-          const chiefs = res?.data?.records
-            .filter((item: any) => item?.is_hospital_chief_doctor === '1')
-            .map((item: any) => ({
-              name: item?.user_full_name,
-              id: item?.user_id,
-              default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
-            }))
+          const chiefs = Array.isArray(res?.data?.records)
+            ? res.data.records
+                .filter((item) => item?.is_hospital_chief_doctor === '1')
+                .map((item) => ({
+                  name: item?.user_full_name,
+                  id: item?.user_id,
+                  default_icon: item?.user_profile_pic,
+                  role_name: item?.role_name
+                }))
+            : []
 
           if (chiefs.length === 1 && selectedHospital?.id) {
             const singleDoctor = chiefs[0]
@@ -445,7 +485,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   useEffect(() => {
     getUserLists()
   }, [])
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AddPatientFormData) => {
     const valid = await trigger()
     if (!valid) {
       setSubmitLoader(false)
@@ -454,8 +494,8 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     } 
       setSubmitLoader(true)
       try {
-        const params = {
-          source_id: selectedAnimal?.site_id,
+        const params: AddPatientParams = {
+          source_id: selectedAnimal?.site_id ??'' ,
           source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
           destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
           usecase: 'add-patient',
@@ -485,11 +525,11 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
             admit_time: dayjs(data?.admission_time).format('HH:mm')
           }),
           co_attend_doctor: data?.attendingDoctors?.length
-            ? JSON.stringify(data.attendingDoctors.map((doc: any) => String(doc.value)))
+            ? JSON.stringify(data.attendingDoctors.map((doc) => String(doc.value)))
             : '[]'
         }
 
-        const res: any = await addHospitalPatient(params)
+        const res = await addHospitalPatient(params)
 
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
@@ -505,8 +545,9 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
           throw res
         }
         setSubmitLoader(false)
-      } catch (error: any) {
-        Toaster({ type: 'error', message: error?.message })
+      } catch (error) {
+        const err = error as Error
+        Toaster({ type: 'error', message: err?.message })
         // console.error(error?.message, 'Cannot Add-Patient')
         setSubmitLoader(false)
       }
@@ -519,11 +560,12 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     clearErrors('selectedAnimal')
   }
 
-  const filteredAttendingDoctors = attendingDoctors.filter((item: any) => item.value !== selectedDoctor?.id)
+
+  const filteredAttendingDoctors = attendingDoctors.filter((item: SelectDoctorOption) => item.value !== selectedDoctor?.id)
 
   const getStaffList = async () => {
     try {
-      const response: any = await getHospitalStaff({
+      const response = await getHospitalStaff({
         params: {
           q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
@@ -533,19 +575,20 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
       })
 
       if (response?.success && response?.data?.records) {
-        const mappedData = response.data.records.map((item: any) => ({
+        const mappedData = response.data.records.map((item) => ({
           label: item.user_full_name,
           value: item.user_id
         }))
 
-        setAttendingDoctors(mappedData)
+        setAttendingDoctors(mappedData as SelectOption[])
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital staff:', error?.message)
+    } catch (error) {
+      const err = error as ApiError
+      console.error('Error fetching hospital staff:', err?.message)
       setStaffLoading(false)
       Toaster({
         type: 'error',
-        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+        message: err?.response?.data?.message || err?.message || 'Failed to load hospital staff'
       })
     } finally {
       setStaffLoading(false)
@@ -556,12 +599,13 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     getStaffList()
   }, [searchAttendDoctor])
 
-  const handleDoctorSelection = (doctor: any) => {
+
+  const handleDoctorSelection = (doctor:  SelectDoctorOption) => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
     clearErrors('selectedDoctor')
 
-    const filtered = attendingSelectedDoctors.filter((item: any) => item.value !== doctor.id)
+    const filtered = attendingSelectedDoctors.filter((item: SelectDoctorOption) => item.value !== doctor.id)
     setAttendingSelectedDoctors(filtered)
     setValue('attendingDoctors', filtered)
   }
@@ -623,7 +667,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select Patient*
+                  {t('hospital_module.select_patient_required')}
                 </Typography>
                 {selectedAnimal !== null ? (
                   <>
@@ -671,7 +715,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                           : theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      Select Animal*
+                      {t('hospital_module.select_animal_required')}
                     </Typography>
                     <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                   </Box>
@@ -688,7 +732,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select treatment type*
+                  {t('hospital_module.select_treatment_type_required')}
                 </Typography>
                 <Controller
                   name='treatmentType'
@@ -725,7 +769,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Health Status
+                  {t('hospital_module.health_status')}
                 </Typography>
                 <Controller
                   name='healthStatus'
@@ -758,7 +802,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Date and Time
+                      {t('date_and_time')}
                     </Typography>
                   </Grid>
 
@@ -807,7 +851,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Medical Record ID
+                            {t('hospital_module.medical_record_id')}
                           </Typography>
                         </Grid>
                         {medicalRecordType?.map((item, index) => (
@@ -862,7 +906,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                                   </Box>
                                 </>
                               )}
-                              getOptionValue={(option: any) => option.value}
+                              getOptionValue={(option: SelectOption) => option.value}
                               sx={{ background: theme.palette.customColors.Surface }}
                               disabled={!selectedAnimal || submitLoader}
                             />
@@ -876,7 +920,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Visit Type
+                    {t('hospital_module.visit_type')}
                   </Typography>
                   <ControlledSelect
                     control={control}
@@ -894,7 +938,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending chief Veterinarian
+                      {t('hospital_module.attending_chief_veterinarian')}
                     </Typography>
                     {selectedDoctor === null ? (
                       <Box
@@ -922,8 +966,8 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                        Select chief Veterinarian*   
-                        </Typography>
+                          {t('hospital_module.select_chief_veterinarian_required')}      
+                          </Typography>
                         <Icon
                           icon='mdi:chevron-down'
                           fontSize={24}
@@ -988,7 +1032,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending Veterinarian
+                      {t('hospital_module.attending_veterinarian')}
                     </Typography>
                     <Controller
                       name='attendingDoctors'
@@ -1018,6 +1062,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                             field.onChange(newValue)
                           }}
                           noOptionsText='No available attending vets...'
+                          loadingText='Loading...'
                           renderInput={params => (
                             <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                           )}
@@ -1044,7 +1089,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Purpose of visit*
+                    {t('hospital_module.purpose_of_visit_label_required')}
                   </Typography>
                   <ControlledTextArea
                     control={control}
@@ -1087,7 +1132,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Holding Enclosure
+                    {t('hospital_module.holding_enclosure')}
                   </Typography>
                   <ControlledAutocomplete
                     name='holdingEnclosure'
@@ -1129,7 +1174,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                         fontWeight: 400
                       }}
                     >
-                      No active/available enclosures available
+                      {t('hospital_module.no_active_available_enclosures_available')}
                     </Typography>
                   )}
                 </Grid>
@@ -1137,7 +1182,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Room
+                    {t('hospital_module.room')}
                   </Typography>
                   <ControlledAutocomplete
                     name='room'
@@ -1182,7 +1227,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                         fontWeight: 400
                       }}
                     >
-                      No available Rooms, All Rooms are occupied
+                      {t('hospital_module.no_available_rooms_all_rooms_are_occupied')}
                     </Typography>
                   )}
                 </Grid>
@@ -1225,7 +1270,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
             setAnimalDrawer(false)
           }}
           from='Add Patient Form'
-          btnText='ADD'
+          btnText= {t('add')}
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}
           showFilterAndSort
@@ -1254,7 +1299,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
           open={isSortBottomSheetOpen}
           onClose={() => setIsSortBottomSheetOpen(false)}
           currentSort={currentSort.sort === 'asc' ? 'recent' : 'oldest'}
-          onSortChange={(sortObj: any) => setCurrentSort(sortObj)}
+          onSortChange={(sortObj: { column: string; sort: 'asc' | 'desc' }) => setCurrentSort(sortObj)}
         />
       )}
       <AddPatientFiltersDrawer

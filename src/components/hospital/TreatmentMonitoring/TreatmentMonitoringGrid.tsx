@@ -42,7 +42,8 @@ import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { DeleteMonitoringParameterPayload, GetTreatmentIntervalsResponse, MonitoringParametersResponse } from 'src/types/hospital/api/TreatmentMonitoring/parametersUnit'
 import { GetTreatmentMonitoringListResponse } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
-import { AssessmentDetails, PatientDetailsData, RemoveParameterPeriod, TreatmentMonitoringData } from 'src/types/hospital/models'
+import { PatientDetailsData } from 'src/types/hospital/models'
+import { AssessmentDetails, RemoveParameterPeriod, TreatmentMonitoringData } from 'src/types/hospital/models/treatmentMonitoring'
 
 const Grid: any = MuiGrid
 

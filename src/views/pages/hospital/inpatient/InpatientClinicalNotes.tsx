@@ -15,7 +15,8 @@ import { useSelector } from 'react-redux'
 import { createEmptyRichTextValue, getRichTextContent, getRichTextHtmlValue } from 'src/utility'
 import 'quill/dist/quill.snow.css'
 import { AddClinicalNotesParams } from 'src/types/hospital/api/ClinicalNotes/clinicalNotes'
-import { ClinicalNotesList, PatientDetailsData } from 'src/types/hospital/models'
+import { PatientDetailsData } from 'src/types/hospital/models'
+import { ClinicalNotesList } from 'src/types/hospital/models/clinicalNotes'
 
 const STORAGE_KEY = 'medical_record_data'
 

@@ -17,7 +17,7 @@ import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/li
 import Toaster from 'src/components/Toaster'
 import { UpdatePreviousEntryParams } from 'src/types/hospital/api/TreatmentMonitoring/treatmentMonitoring'
 import { SelectOption } from 'src/types/hospital'
-import { PreviousAssessmentEntry } from 'src/types/hospital/models'
+import { PreviousAssessmentEntry } from 'src/types/hospital/models/treatmentMonitoring'
 import { ObservationFormData } from './AddParameterDataEntry'
 
 const parseIntervalToTimeRange = (interval: any) => {

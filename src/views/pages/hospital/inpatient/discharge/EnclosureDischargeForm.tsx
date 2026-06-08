@@ -113,27 +113,27 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
     site_name: yup
       .object()
       .nullable()
-      .test('has-value', 'Site is required', (value: any) => {
+      .test('has-value', t('hospital_module.site_required') as string, (value: any) => {
         return value && value.value && value.value !== null && value.value !== ''
       }),
     section_name: yup
       .object()
       .nullable()
-      .test('has-value', 'Section is required', (value: any) => {
+      .test('has-value', t('hospital_module.section_required') as string, (value: any) => {
         return value && value.value && value.value !== null && value.value !== ''
       }),
     user_enclosure_name: yup
       .object()
       .nullable()
-      .test('has-value', 'Enclosure is required', (value: any) => {
+      .test('has-value', t('hospital_module.enclosure_required') as string, (value: any) => {
         return value && value.value && value.value !== null && value.value !== ''
       }),
     discharge_date: yup
       .date()
-      .typeError('Invalid Date')
+      .typeError(t('hospital_module.invalid_date') as string)
       .nullable()
-      .required('Date of discharge is required')
-      .test('is-valid-date', 'Discharge date is invalid', function (value: any) {
+      .required(t('hospital_module.date_of_discharge_required') as string)
+      .test('is-valid-date', t('hospital_module.discharge_date_invalid') as string, function (value: any) {
         if (!value) return true
 
         const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).startOf('day')
@@ -142,24 +142,24 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
 
         if (selectedDate.isBefore(admittedAt)) {
           return this.createError({
-            message: `Date cannot be before the admitted date (${dayjs(
-              Utility.convertUTCToLocal(patientData?.admitted_at)
-            ).format('DD MMM YYYY')})`
+            message: t('hospital_module.date_cannot_be_before_admitted_date', {
+              date: dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format('DD MMM YYYY')
+            }) as string
           })
         }
 
         if (selectedDate.isAfter(now)) {
-          return this.createError({ message: 'Discharge date cannot be in the future' })
+          return this.createError({ message: t('hospital_module.discharge_date_cannot_be_in_future') as string })
         }
 
         return true
       }),
     discharge_time: yup
       .date()
-      .typeError('Invalid Date')
+      .typeError(t('hospital_module.invalid_date') as string)
       .nullable()
-      .required('Time of discharge is required')
-      .test('is-valid-time', 'Discharge time is invalid', function (value: any) {
+      .required(t('hospital_module.time_of_discharge_required') as string)
+      .test('is-valid-time', t('hospital_module.discharge_time_invalid') as string, function (value: any) {
         const { discharge_date } = this.parent
         if (!value || !discharge_date) return true
 
@@ -175,16 +175,16 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
         if (dayjs(discharge_date).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
           if (dischargeDateTime.isBefore(admittedAt)) {
             return this.createError({
-              message: `Time cannot be before the admitted time (${Utility.convertUTCToLocaltime(
-                patientData?.admitted_at
-              )})`
+              message: t('hospital_module.time_cannot_be_before_admitted_time', {
+                time: Utility.convertUTCToLocaltime(patientData?.admitted_at)
+              }) as string
             })
           }
         }
 
         if (dayjs(discharge_date).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
           if (dischargeDateTime.isAfter(now)) {
-            return this.createError({ message: 'Time cannot be in the future' })
+            return this.createError({ message: t('hospital_module.time_cannot_be_in_future') as string })
           }
         }
 
@@ -193,14 +193,14 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
     follow_up_required: yup.boolean().optional(),
     follow_up_date: yup
       .date()
-      .typeError('Invalid date')
+      .typeError(t('hospital_module.invalid_date') as string)
       .nullable()
       .when('follow_up_required', {
         is: true,
         then: (schema: any) =>
           schema
-            .required('Follow up date required')
-            .test('not-in-past', 'Follow up date cannot be in the past', function (this: any, value: any) {
+            .required(t('hospital_module.follow_up_date_required') as string)
+            .test('not-in-past', t('hospital_module.follow_up_date_cannot_be_in_past') as string, function (this: any, value: any) {
               if (!value) return true
 
               const today = dayjs().startOf('day')
@@ -208,7 +208,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
 
               if (selected.isBefore(today)) {
                 return this.createError({
-                  message: 'Follow up date cannot be in the past'
+                  message: t('hospital_module.follow_up_date_cannot_be_in_past') as string
                 })
               }
 
@@ -360,13 +360,13 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
               ...col,
               renderCell: (params: any) => (
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Tooltip title='Edit'>
+                  <Tooltip title={t('edit') as string}>
                     <IconButton size='small' onClick={() => handleEditMedicine(params.row)}>
                       <Icon icon='mdi:pencil-outline' fontSize={20} />
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title='Delete'>
+                  <Tooltip title={t('delete') as string}>
                     <IconButton size='small' onClick={() => handleDeleteMedicine(params.row.id)}>
                       <Icon icon='mdi:close' fontSize={20} />
                     </IconButton>
@@ -774,7 +774,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
               }}
               id='medications-section'
             >
-              <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
+              <StyledTypography fontSize='1.25rem'>{t('hospital_module.medications') as string}</StyledTypography>
               <Button
                 sx={{ py: 2 }}
                 onClick={() => {
@@ -787,7 +787,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                 variant='contained'
                 disabled={isPrescriptionLoading}
               >
-                Add New Prescription
+                {t('hospital_module.add_new_prescription') as string}
               </Button>
             </Box>
 

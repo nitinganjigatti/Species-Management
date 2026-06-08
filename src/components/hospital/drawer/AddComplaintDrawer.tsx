@@ -15,7 +15,7 @@ import AddCategoryDrawer from './AddCategoryDrawer'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { AddSymptomsPayload, AddSymptomsResponse } from 'src/types/hospital/api/Inpatient/symptoms'
-import { Category } from 'src/types/hospital/models'
+import { Category } from 'src/types/hospital/models/templates'
 import { CategoryResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface AddComplaintDrawerProps {

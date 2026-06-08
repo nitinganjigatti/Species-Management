@@ -1,4 +1,4 @@
-import { AddIntervalParameter, HospitalParametersUnit, IntervalAssessmentList, MeasurementUnitDropdown, MonitoringParameters, ParameterDropdownValue, RemoveParameterPeriod, SaveTemplate, TemplateAssessmentTypes, TemplatesAssessmentList } from "../../models"
+import { AddIntervalParameter, HospitalParametersUnit, IntervalAssessmentList, MeasurementUnitDropdown, MonitoringParameters, ParameterDropdownValue, RemoveParameterPeriod, SaveTemplate, TemplateAssessmentTypes, TemplatesAssessmentList } from "../../models/treatmentMonitoring"
 
 export interface MonitoringParametersPayload {
     monitoring_date?: string

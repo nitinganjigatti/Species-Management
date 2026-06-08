@@ -16,21 +16,15 @@ export type {
   PatientStatus,
   Patient,
   // IncomingPatient,
-  Symptom,
-  Diagnosis,
-  ClinicalNote,
-  ClinicalAssessment,
-  Medicine,
-  PrescriptionMedicine,
-  Prescription,
-  TreatmentMonitoringEntry,
-  SurgeryRecord,
-  AnesthesiaRecord,
   Doctor,
   Staff,
-  PatientMedia,
   SelectOption
 } from './models'
+export type { Medicine, PrescriptionMedicine, Prescription } from './models/prescription'
+export type { TreatmentMonitoringEntry } from './models/treatmentMonitoring'
+export type { SurgeryRecord } from './models/surgery'
+export type { AnesthesiaRecord } from './models/anesthesia'
+export type { PatientMedia } from './models/media'
 
 // ==================== API ====================
 export type {
@@ -52,27 +46,17 @@ export type {
   InpatientListResponse,
   DischargePayload,
   SymptomListParams,
-  SymptomListResponse,
-  ClinicalNoteListResponse,
   ClinicalAssessmentListParams,
-  ClinicalAssessmentListResponse,
-  DiagnosisListResponse,
   PrescriptionListParams,
-  PrescriptionListResponse,
   MedicineListParams,
-  MedicineListResponse,
   TreatmentMonitoringListParams,
-  TreatmentMonitoringListResponse,
   SurgeryListParams,
-  SurgeryListResponse,
   AnesthesiaListParams,
-  AnesthesiaListResponse,
   DoctorListParams,
   DoctorListResponse,
   StaffListParams,
   StaffListResponse,
   PatientMediaListParams,
-  PatientMediaListResponse,
   RoomsAndEnclosuresParams,
   RoomsAndEnclosuresResponse
 } from './api'

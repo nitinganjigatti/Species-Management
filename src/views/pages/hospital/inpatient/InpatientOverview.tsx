@@ -23,7 +23,8 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
 import { GetDischargeSummaryPayload, GetPatientMediaResponse } from 'src/types/hospital/api/Inpatient/patientMedia'
-import { Files, Id, VisitHistory } from 'src/types/hospital/models'
+import { Id, VisitHistory } from 'src/types/hospital/models'
+import { Files } from 'src/types/hospital/models/media'
 import { GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid'
 import { VisitHistoryFilters } from 'src/types/hospital/api/Inpatient/visitHistory'
 import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
@@ -38,6 +39,7 @@ interface InpatientOverviewProps {
   visitFilters?: any
   setVisitFilters?: any
   patientData?: any
+  category?: string
 }
 
 export interface IndexedRows extends VisitHistory {
@@ -57,7 +59,8 @@ const InpatientOverview = ({
   patientVisitFetching,
   visitFilters,
   setVisitFilters,
-  patientData
+  patientData,
+  category
 }: InpatientOverviewProps) => {
   const { t } = useTranslation()
   const params = useParams()
@@ -385,7 +388,7 @@ const InpatientOverview = ({
     <>
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box>
-          <HealthcareOverview data={overviewData} onPrescriptionClick={() => setPrescriptionSheetOpen(true)} />
+          <HealthcareOverview data={overviewData} onPrescriptionClick={() => setPrescriptionSheetOpen(true)} category={category} />
         </Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, padding: '0 0 16px 16px' }}>
           {isLoadingMedia ? (

@@ -13,20 +13,30 @@
  * Drift between them caused the bugs the user reported (sidebar showing
  * "Anil Rathod added Ajay Antony" while the pill showed "Anil Rathod
  * added you", banner not matching the pill, etc.). Centralizing here
- * guarantees the three surfaces stay in lockstep — change a template
- * once, all surfaces update.
+ * guarantees the three surfaces stay in lockstep.
+ *
+ * Resolution strategy (post SDK 1.2.5)
+ * -----------------------------------
+ * The SDK now resolves `content.text` viewer-aware at delivery time —
+ * actor receives "You removed X", target receives "X removed you",
+ * bystander receives "X removed Y" — see SDK docs § MessageMetadata.
+ * We therefore TRUST the server-resolved text and pass it through, no
+ * client-side templates. The fallback chain (Steps 2-5 of
+ * `resolveSystemMessageText`) is kept as a safety net for:
+ *   • Cold-load REST `lastMessage` where backend strips metadata
+ *   • Legacy text-only events without `systemOperationType`
+ *   • Surfaces that show the message from a different viewer's
+ *     perspective than the one the server resolved for (rare)
  *
  * Layers
  * ------
  *   1. `resolvePerspective` — pure ID-based check. Returns 'actor' |
- *      'target' | 'bystander'. No display text.
- *   2. `SYSTEM_MESSAGE_TEMPLATES` — declarative table (the "JSON data"
- *      the user asked for) keyed by `systemOperationType`. Each entry
- *      returns the resolved string for a given perspective, or
- *      `undefined` if no rewrite applies (caller falls back).
- *   3. `resolveSystemMessageText` — combines the two layers + the
- *      fallback chain (actor-prefix, target-replace, legacy verb
- *      regex) and returns the final display string.
+ *      'target' | 'bystander'. No display text. Used by callers that
+ *      need to know the viewer's role (e.g. to style the bubble) and
+ *      by the fallback chain in `resolveSystemMessageText`.
+ *   2. `resolveSystemMessageText` — runs the fallback chain on top of
+ *      the server-resolved `msg.message`. In the 99% case where the
+ *      server already provided viewer-aware text, this is a passthrough.
  */
 
 import type { MessageType } from 'src/types/apps/chatTypes'
@@ -92,100 +102,7 @@ export function resolvePerspective(
   return 'bystander'
 }
 
-type TemplateFn = (msg: MessageType, perspective: Perspective) => string | undefined
-
 const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-/**
- * Declarative template table. One entry per backend `systemOperationType`.
- * Each entry is a pure function returning the display string for a given
- * perspective + message, or `undefined` if the template doesn't apply
- * (caller falls through to the fallback chain).
- *
- * Aliases (e.g. `participant_removed` → `user_removed`) are wired
- * explicitly so the table reflects what backend has actually shipped
- * historically. Keep the aliases — they're cheap insurance.
- */
-const userRemoved: TemplateFn = (msg, p) => {
-  if (p === 'target' && msg.senderName) return `${msg.senderName} removed you`
-  if (p === 'actor' && msg.targetUserName) return `You removed ${msg.targetUserName}`
-
-  return undefined
-}
-
-const userAdded: TemplateFn = (msg, p) => {
-  if (p === 'target' && msg.senderName) return `${msg.senderName} added you`
-  if (p === 'actor' && msg.targetUserName) return `You added ${msg.targetUserName}`
-
-  return undefined
-}
-
-const userLeft: TemplateFn = (_msg, p) => {
-  if (p === 'actor') return 'You left the group'
-
-  return undefined
-}
-
-export const SYSTEM_MESSAGE_TEMPLATES: Record<string, TemplateFn> = {
-  // Membership
-  user_removed: userRemoved,
-  participant_removed: userRemoved,
-  user_added: userAdded,
-  participant_added: userAdded,
-  user_left: userLeft,
-  participant_left: userLeft,
-  member_left: userLeft,
-
-  // Role changes
-  admin_promoted: (msg, p) => {
-    if (p === 'target' && msg.senderName) return `${msg.senderName} made you an admin`
-    if (p === 'target') return "You're now an admin" // fallback when actor name missing
-    if (p === 'actor' && msg.targetUserName) return `You made ${msg.targetUserName} an admin`
-
-    return undefined
-  },
-  admin_demoted: (msg, p) => {
-    if (p === 'target' && msg.senderName) return `${msg.senderName} dismissed you as admin`
-    if (p === 'target') return "You're no longer an admin" // fallback when actor name missing
-    if (p === 'actor' && msg.targetUserName) return `You dismissed ${msg.targetUserName} as admin`
-
-    return undefined
-  },
-
-  // Group meta — backend likely just sends a free-text `message` like
-  // "Anil Rathod changed the subject to X". The actor-prefix replace in
-  // the fallback chain handles the actor case ("You changed the subject
-  // to X"); bystanders see the raw text. Keep an entry here only when
-  // backend uses a STRUCTURED op type we want to support.
-  group_renamed: (msg, p) => {
-    if (p === 'actor' && msg.senderName && msg.message?.startsWith(msg.senderName + ' ')) {
-      return 'You ' + msg.message.slice(msg.senderName.length + 1)
-    }
-
-    return undefined
-  },
-  group_description_changed: (msg, p) => {
-    if (p === 'actor' && msg.senderName && msg.message?.startsWith(msg.senderName + ' ')) {
-      return 'You ' + msg.message.slice(msg.senderName.length + 1)
-    }
-
-    return undefined
-  },
-  group_icon_changed: (msg, p) => {
-    if (p === 'actor' && msg.senderName && msg.message?.startsWith(msg.senderName + ' ')) {
-      return 'You ' + msg.message.slice(msg.senderName.length + 1)
-    }
-
-    return undefined
-  },
-  group_created: (msg, p) => {
-    if (p === 'actor' && msg.senderName && msg.message?.startsWith(msg.senderName + ' ')) {
-      return 'You ' + msg.message.slice(msg.senderName.length + 1)
-    }
-
-    return undefined
-  }
-}
 
 /** Verbs used by the legacy fallback when `targetUserId` is stripped on
  * cold-load (REST conversation list drops system metadata). Order doesn't
@@ -215,16 +132,12 @@ export function resolveSystemMessageText(
   const text = msg.message ?? ''
   const perspective = resolvePerspective(msg, ctx)
 
-  // 1. Structured template
-  if (msg.systemOperationType) {
-    const template = SYSTEM_MESSAGE_TEMPLATES[msg.systemOperationType]
-    const result = template?.(msg, perspective)
-    if (result !== undefined) return result
-  }
-
   if (!text) return ''
 
   // 2. Actor-prefix replace (text starts with my own name → "You ...")
+  //    Triggers when the server didn't pre-resolve actor text — common
+  //    on cold-load lastMessage which sometimes ships the bystander
+  //    form for every viewer.
   if (perspective === 'actor' && msg.senderName && text.startsWith(msg.senderName + ' ')) {
     return 'You ' + text.slice(msg.senderName.length + 1)
   }

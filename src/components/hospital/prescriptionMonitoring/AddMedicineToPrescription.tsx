@@ -43,7 +43,8 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 const BottomActionBar: any = BottomActionBarRaw
 import { AuthContext } from 'src/context/AuthContext'
 import { Id } from 'src/types/hospital'
-import { AddPrescriptionParamList, AddPrescriptionScheduleDose, DateRangeValue, DirectAdministerScheduleDose, MedicalCaseType, MedicineBatchList, PatientDetailsData, PrescriptionDeliveryRoute, PrescriptionDetails, PrescriptionDosageMeasurementType, PrescriptionDurationOption, PrescriptionFrequencyList, PrescriptionIntervalList, PrescriptionList, PrescriptionMeasurementType } from 'src/types/hospital/models'
+import { DateRangeValue, PatientDetailsData } from 'src/types/hospital/models'
+import { AddPrescriptionParamList, AddPrescriptionScheduleDose, DirectAdministerScheduleDose, MedicalCaseType, MedicineBatchList, PrescriptionDeliveryRoute, PrescriptionDetails, PrescriptionDosageMeasurementType, PrescriptionDurationOption, PrescriptionFrequencyList, PrescriptionIntervalList, PrescriptionList, PrescriptionMeasurementType } from 'src/types/hospital/models/prescription'
 import { AddDirectAdministerParams, AddDirectAdministerResponse, AddPrescriptionParams, AddPrescriptionResponse, GetPrescriptionListParams, GetPrescriptionMedicineSideEffectResponse, RestartMedicineParams, UpdatePrescriptionParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescription'
 import { GetPrescriptionDetailsParams } from 'src/types/hospital/api/PrescriptionMonitoring/prescriptionDetails'
 import { FilterDate } from 'src/types/medical'
@@ -896,21 +897,21 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           prescriptionFrequency: prevData?.prescriptionFrequency || [],
           intervalList: prevData?.intervalList || [],
           prescriptionDosageMeasurementType:
-            response?.data?.prescriptionDosageMeasurementType?.map((item) => ({
+            response?.data?.prescriptionDosageMeasurementType?.map((item: PrescriptionDosageMeasurementType) => ({
               ...item,
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
             }))?.sort((a: PrescriptionDosageMeasurementType, b: PrescriptionDosageMeasurementType) => a.label?.localeCompare(b.label)) || [],
-          prescriptionDuration: response?.data?.prescriptionDuration?.map((item) => ({ ...item, value: item.key })) || [],
+          prescriptionDuration: response?.data?.prescriptionDuration?.map((item: PrescriptionDurationOption) => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
-            response?.data?.prescriptionMeasurementType?.map((item) => ({
+            response?.data?.prescriptionMeasurementType?.map((item: PrescriptionMeasurementType) => ({
               ...item,
               label: item.unit_name,
               value: item.uom_abbr
             })) || [],
           prescriptionDeliveryRoute:
-            response?.data?.prescriptionDeliveryRoute?.map((item) => ({
+            response?.data?.prescriptionDeliveryRoute?.map((item: PrescriptionDeliveryRoute) => ({
               ...item,
               label: item.delivery,
               value: item.route_abbr

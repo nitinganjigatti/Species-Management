@@ -38,6 +38,10 @@ import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const HospitalMortality = () => {
   const theme: any = useTheme()
@@ -440,11 +444,11 @@ const HospitalMortality = () => {
       headerAlign: 'left',
 
       renderCell: (params: any) => {
-        const totalDuration = Number(params?.row?.duration_days || 0) + 1
+        const totalDuration = dayjs(params.row.discharge_at).utc().diff(dayjs(params.row.admitted_at).utc(), 'day') + 1
 
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
+            {totalDuration} {totalDuration > 1 ? t('hospital_module.days') : t('hospital_module.day')}
           </Typography>
         )
       }
@@ -485,7 +489,7 @@ const HospitalMortality = () => {
         const isRowLoading = downloadingRowId === params.row.id
 
         return (
-          <Tooltip title={(t('hospital_module.download_discharge_summary') as string)}>
+          <Tooltip title={t('hospital_module.download_discharge_summary') as string}>
             <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
               {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
             </IconButton>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 
 // ** MUI Imports
@@ -37,6 +37,10 @@ const DocxPreview = dynamic(() => import('src/views/apps/chat/DocxPreview'), {
 
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
+
+// On-demand fresh signed URL — attachment URLs are short-lived (~15 min); used
+// as an onError fallback when an attachment fails to load in a long-open chat.
+import { getFileUrl } from 'src/lib/chat/api'
 
 interface Props {
   attachment: ChatAttachmentType | null
@@ -100,6 +104,29 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
     setZoom(1)
     setRotate(0)
   }, [current?.id])
+
+  // ── Expired signed-URL recovery ─────────────────────────────────────────────
+  // Attachment URLs are short-lived signed S3/Azure URLs (~15 min). If the chat
+  // has been open longer than that, opening an older attachment 403s. On a load
+  // error we fetch ONE fresh URL via getFileUrl(fileId) and swap it in. Keyed by
+  // attachment id; the `freshUrls[id]` guard makes it retry-once (no loop if the
+  // refreshed URL also fails). Purely additive — happy-path loads never call it.
+  const [freshUrls, setFreshUrls] = useState<Record<string, string>>({})
+  const refreshingRef = useRef<Set<string>>(new Set())
+  const refreshAttachmentUrl = (att: ChatAttachmentType | null | undefined) => {
+    if (!att?.id) return
+    if (freshUrls[att.id]) return // already refreshed once
+    if (refreshingRef.current.has(att.id)) return // in flight
+    refreshingRef.current.add(att.id)
+    getFileUrl(att.id)
+      .then(url => {
+        if (url) setFreshUrls(prev => ({ ...prev, [att.id]: url }))
+      })
+      .finally(() => refreshingRef.current.delete(att.id))
+  }
+  // The URL to render — a refreshed one if we've fetched it, else the original.
+  // Always a string (render branches only run when `current` exists).
+  const displayUrl: string = (current ? freshUrls[current.id] || current.url : '') ?? ''
 
   // Block Ctrl/Cmd + S (save) and Ctrl/Cmd + P (print) while the dialog is open.
   // Also handle left/right arrow keys for carousel navigation. Plus block
@@ -264,9 +291,10 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
         {!current ? null : current.type === 'image' ? (
           <Box
             component='img'
-            src={current.url}
+            src={displayUrl}
             alt={current.filename}
             draggable={false}
+            onError={() => refreshAttachmentUrl(current)}
             onContextMenu={(e: any) => e.preventDefault()}
             sx={
               {
@@ -286,9 +314,10 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
         ) : current.type === 'video' ? (
           <Box
             component='video'
-            src={current.url}
+            src={displayUrl}
             controls
             controlsList='nodownload noplaybackrate'
+            onError={() => refreshAttachmentUrl(current)}
             onContextMenu={(e: any) => e.preventDefault()}
             sx={{
               maxWidth: '100%',
@@ -302,12 +331,12 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
           // its Save/Print/Inspect context menu) never enters the DOM.
           // Component is dynamic + ssr:false because react-pdf / pdfjs-dist
           // touches DOMMatrix at module-evaluation time (SSR-incompatible).
-          <PdfPreview url={current.url} attachmentId={current.id} />
+          <PdfPreview url={displayUrl} attachmentId={current.id} />
         ) : isSpreadsheet ? (
           // CSV / XLSX / XLS — parsed client-side via SheetJS and rendered
           // as a plain MUI <Table>. No iframe, no native viewer chrome.
           <SpreadsheetPreview
-            url={current.url}
+            url={displayUrl}
             filename={current.filename}
             attachmentId={current.id}
           />
@@ -315,7 +344,7 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
           // DOCX — converted to HTML client-side via mammoth and rendered
           // inside a sanitized container. Legacy .doc binary falls through
           // to the file-info card (no client-side parser exists).
-          <DocxPreview url={current.url} attachmentId={current.id} />
+          <DocxPreview url={displayUrl} attachmentId={current.id} />
         ) : (
           // Non-image, non-video, non-audio, non-PDF document → file-info card.
           <Box sx={{ textAlign: 'center', color: 'common.white', maxWidth: 360 }}>

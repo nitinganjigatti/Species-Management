@@ -1,5 +1,6 @@
 import { GridSortModel } from "@mui/x-data-grid"
-import { Id, MedicineList, MedicineBatchList } from "../../models"
+import { Id } from "../../models"
+import { MedicineList, MedicineBatchList } from "../../models/prescription"
 export type GetMedicineListResponse =
   | {
       success: true

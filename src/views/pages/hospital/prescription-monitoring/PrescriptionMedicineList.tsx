@@ -23,7 +23,7 @@ import { useSelector } from 'react-redux'
 import RenderUtility from 'src/utility/render'
 import { useSearchParams } from 'next/navigation'
 import { Control, FieldErrors, FieldValues, UseFormSetValue } from 'react-hook-form'
-import { MedicineList, PrescriptionList } from 'src/types/hospital/models'
+import { MedicineList, PrescriptionList } from 'src/types/hospital/models/prescription'
 import { Id } from 'src/types/hospital'
 import { MedicineIdentifier } from 'src/components/hospital/prescriptionMonitoring/AddMedicineToPrescription'
 

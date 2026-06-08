@@ -65,7 +65,7 @@ export default function SelectedClinicalAssessment({
             justifyContent: 'center'
           }}
         >
-          <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
+          <Box component='img' src='/images/no_data_animal_2.png' alt='No Symptoms' sx={{ maxWidth: '250px' }} />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
             {t('hospital_module.selected_clinical_assessment_appear_here')}
           </Typography>

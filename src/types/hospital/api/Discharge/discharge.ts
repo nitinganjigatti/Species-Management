@@ -1,4 +1,5 @@
-import { Id, PrescriptionMedicationParams, VisitTypeReason } from "../../models"
+import { Id, VisitTypeReason } from "../../models"
+import { PrescriptionMedicationParams } from "../../models/prescription"
 import { PatientCategory } from "../Inpatient/inpatient"
 
 export interface DischargeAnimalResponse {

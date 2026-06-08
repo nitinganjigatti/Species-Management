@@ -6,15 +6,9 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { useTranslation } from 'react-i18next'
-import { Id, Severity, SymptomsListForAdding } from 'src/types/hospital/models'
-
-interface SelectedSymptomsProps {
-  selected?: SymptomsListForAdding[]
-  onRemove?: (id: Id) => void
-  severity?: Severity
-  alreadySelectedIds?: Id[]
-  footer?: any
-}
+import { Id, Severity } from 'src/types/hospital/models'
+import { SymptomsListForAdding } from 'src/types/hospital/models/symptoms'
+import { SelectedSymptomsProps } from 'src/types/hospital/components/symptoms'
 
 export default function SelectedSymptoms({
   selected = [],

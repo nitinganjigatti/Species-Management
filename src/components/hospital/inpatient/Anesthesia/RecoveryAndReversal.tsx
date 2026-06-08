@@ -21,7 +21,7 @@ import { Id } from 'src/types/hospital'
 import { RecoveryFormData, ReversalDrugFormItem } from '../../shared/AddAnesthesiaRecordPage'
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { SelectOption } from 'src/types/necropsy'
-import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models'
+import { DeliveryRoute, MedicationDrugOption, UnitParams } from 'src/types/hospital/models/anesthesia'
 
 interface RecoveryAndReversalProps {
   unitList?: UnitParams[]

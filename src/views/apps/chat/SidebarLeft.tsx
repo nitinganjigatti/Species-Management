@@ -256,6 +256,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     }
   }, [selectedChatId])
 
+  // ── unread counts for the filter-tab badges ───────────────────────────────
+  // WhatsApp-style: "Unread" badge shows chats with any unread, "Groups"
+  // badge shows GROUP chats with any unread. Both are derived from
+  // `state.chats[*].chat.unseenMsgs` which is socket-driven: a
+  // `conversation_updated` broadcast updates `unseenMsgs` via
+  // `patchConversationFromEvent`, and opening a chat triggers
+  // `markReadOverSocket` which lands a follow-up `conversation_updated`
+  // with `unreadCount: 0`. No polling, no REST — recomputes per render
+  // off Redux state, so the badges blink up/down live.
+  const unreadChatCount = (store?.chats ?? []).filter(c => (c.chat?.unseenMsgs ?? 0) > 0).length
+  const unreadGroupCount = (store?.chats ?? []).filter(
+    c => c.isGroup === true && (c.chat?.unseenMsgs ?? 0) > 0
+  ).length
+
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
     if (!store?.chats) return []
@@ -503,10 +517,32 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           ((currentUserIdForPresence && String(lastMessage.senderId) === currentUserIdForPresence) ||
             (!lastMessage.senderId && myFullName && lastMessage.senderName === myFullName))
       )
+      // Tick source — merge the cached `lastMessage.feedback` with the LIVE
+      // thread message of the same id (when that chat's messages are loaded,
+      // e.g. the currently-open chat). A `message_delivered`/`read_receipt`
+      // always mutates the live message in `messages[]`, but only syncs the
+      // cached `lastMessage.feedback` when their ids match — which can miss
+      // (the two drift to different ids), leaving the sidebar stuck at ✓ while
+      // the bubble shows ✓✓. OR-merging both sources is render-only and
+      // monotonic (sent → delivered → seen), so it can NEVER show fewer ticks
+      // than the cached value alone, only recover ticks the live message
+      // already earned. Falls back to the cached value for chats whose
+      // messages aren't loaded.
+      const liveTwinFeedback = lastMessage?.id
+        ? chat.chat.messages?.find(m => m.id === lastMessage.id)?.feedback
+        : undefined
+      const tickFeedback =
+        lastMessage?.feedback || liveTwinFeedback
+          ? {
+              isSent: Boolean(lastMessage?.feedback?.isSent || liveTwinFeedback?.isSent),
+              isDelivered: Boolean(lastMessage?.feedback?.isDelivered || liveTwinFeedback?.isDelivered),
+              isSeen: Boolean(lastMessage?.feedback?.isSeen || liveTwinFeedback?.isSeen)
+            }
+          : undefined
       const lastMsgTick =
-        isOwnLastMessage && lastMessage?.feedback
+        isOwnLastMessage && tickFeedback
           ? (() => {
-              const { isSent, isDelivered, isSeen } = lastMessage.feedback
+              const { isSent, isDelivered, isSeen } = tickFeedback
               if (!isSent && !isDelivered && !isSeen) return null
               const icon = isSeen || isDelivered ? 'mdi:check-all' : 'mdi:check'
               // Match the chat bubble's seen-check color (success.main —
@@ -1057,14 +1093,28 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {FILTER_TABS.map(tab => (
-                  <FilterChip
-                    key={tab.value}
-                    label={tab.label}
-                    active={activeFilter === tab.value}
-                    onClick={() => handleFilterChange(tab.value)}
-                  />
-                ))}
+                {FILTER_TABS.map(tab => {
+                  // WhatsApp-style count badge — only Unread and Groups
+                  // get one. "All" stays bare. Counts are Redux-derived,
+                  // so live socket updates (conversation_updated →
+                  // unseenMsgs) propagate to the badge automatically.
+                  const count =
+                    tab.value === 'unread'
+                      ? unreadChatCount
+                      : tab.value === 'groups'
+                      ? unreadGroupCount
+                      : undefined
+
+                  return (
+                    <FilterChip
+                      key={tab.value}
+                      label={tab.label}
+                      active={activeFilter === tab.value}
+                      onClick={() => handleFilterChange(tab.value)}
+                      count={count}
+                    />
+                  )
+                })}
               </Box>
             </Box>
 

@@ -127,19 +127,19 @@ const StepPreviewDiet = ({
 
       const initialval = mealTypeObject
         ? {
-            quantity: mealTypeObject.quantity || '',
-            meal_value_uom_id: mealValueUomId || '',
-            notes: mealTypeObject.notes || '',
-            feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
-            check: item?.portion_uom_id ? 'recipe' : ''
-          }
+          quantity: mealTypeObject.quantity || '',
+          meal_value_uom_id: mealValueUomId || '',
+          notes: mealTypeObject.notes || '',
+          feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
+          check: item?.portion_uom_id ? 'recipe' : ''
+        }
         : {
-            quantity: '',
-            meal_value_uom_id: mealValueUomId || '',
-            notes: '',
-            feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
-            check: item?.portion_uom_id ? 'recipe' : ''
-          }
+          quantity: '',
+          meal_value_uom_id: mealValueUomId || '',
+          notes: '',
+          feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
+          check: item?.portion_uom_id ? 'recipe' : ''
+        }
 
       setInitialValues(initialval)
     } else {
@@ -161,19 +161,19 @@ const StepPreviewDiet = ({
 
       const initialval = mealTypeObject
         ? {
-            quantity: mealTypeObject.quantity || '',
-            meal_value_uom_id: mealValueUomId || '',
-            notes: mealTypeObject.notes || '',
-            feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
-            check: item?.portion_uom_id ? 'recipe' : ''
-          }
+          quantity: mealTypeObject.quantity || '',
+          meal_value_uom_id: mealValueUomId || '',
+          notes: mealTypeObject.notes || '',
+          feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
+          check: item?.portion_uom_id ? 'recipe' : ''
+        }
         : {
-            quantity: '',
-            meal_value_uom_id: mealValueUomId || '',
-            notes: '',
-            feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
-            check: item?.portion_uom_id ? 'recipe' : ''
-          }
+          quantity: '',
+          meal_value_uom_id: mealValueUomId || '',
+          notes: '',
+          feed_uom_name: feedUomName ? { value: mealValueUomId, label: feedUomName } : '',
+          check: item?.portion_uom_id ? 'recipe' : ''
+        }
 
       setInitialValues(initialval)
     }
@@ -1426,10 +1426,10 @@ const StepPreviewDiet = ({
                             </TableRow>
 
                             <React.Fragment key={`recipes-${index}`}>
-                              {itemd?.recipe?.map((item: any, rIndex: any) => {
+                              {itemd?.recipe?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`recipe-${index}-${rIndex}`}
+                                    key={`recipe-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -1449,7 +1449,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={rIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -1464,25 +1464,25 @@ const StepPreviewDiet = ({
                                             ? formData?.child?.length === 1
                                               ? 'cellmodule9'
                                               : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4'
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                  ? 'cellmodule2'
+                                                  : formData?.child?.length === 3
+                                                    ? 'cellmodule22'
+                                                    : formData?.child?.length > 3
+                                                      ? 'cellmodule3'
+                                                      : 'cellmodule4'
                                             : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4'
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6'
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4'
-                                            : 'cellmodule4'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'Generic'
+                                                ? 'cellmodule6'
+                                                : formData?.diet_type_name === 'By Lifestage'
+                                                  ? formData?.child?.length > 2
+                                                    ? 'cellmodule7'
+                                                    : 'cellmodule4'
+                                                  : 'cellmodule4'
                                         }
                                       >
                                         <Box>
@@ -1566,9 +1566,8 @@ const StepPreviewDiet = ({
                                                           color: theme.palette.common.black
                                                         }}
                                                       >
-                                                        {`${name?.ingredient_name || ''} | ${
-                                                          name?.preparation_type || ''
-                                                        } | ${name?.cut_size || ''} |  `}
+                                                        {`${name?.ingredient_name || ''} | ${name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
                                                       </Typography>
                                                       <Typography
                                                         component='span'
@@ -1786,11 +1785,11 @@ const StepPreviewDiet = ({
                                               ? 'diet_val_container'
                                               : formData?.diet_type_name === 'By Weight' &&
                                                 (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                              ? 'diet_val_weight'
-                                              : formData?.diet_type_name === 'By Weight' &&
-                                                formData?.child?.length === 3
-                                              ? 'diet_val_weight1'
-                                              : 'diet_val_cont'
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                  ? 'diet_val_weight1'
+                                                  : 'diet_val_cont'
                                           }
                                         >
                                           <Typography
@@ -1805,41 +1804,41 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? (() => {
-                                                  // Prepare the display values
-                                                  const genericMeals = item.meal_type
-                                                    .map((meal: any) => {
-                                                      if (meal.meal_value_header === 'Generic') {
-                                                        // If portion_uom_id exists, use portion_uom_name
-                                                        const uomName = item?.portion_uom_id
-                                                          ? item.portion_uom_name
-                                                          : meal.feed_uom_name
+                                                // Prepare the display values
+                                                const genericMeals = item.meal_type
+                                                  .map((meal: any) => {
+                                                    if (meal.meal_value_header === 'Generic') {
+                                                      // If portion_uom_id exists, use portion_uom_name
+                                                      const uomName = item?.portion_uom_id
+                                                        ? item.portion_uom_name
+                                                        : meal.feed_uom_name
 
-                                                        return meal.quantity + (uomName ? ' ' + uomName : '')
-                                                      }
+                                                      return meal.quantity + (uomName ? ' ' + uomName : '')
+                                                    }
 
-                                                      return null
-                                                    })
-                                                    .filter(Boolean)
+                                                    return null
+                                                  })
+                                                  .filter(Boolean)
 
-                                                  // If no Generic meal found, show "Add"
-                                                  return genericMeals.length === 0 ? 'Add' : genericMeals
-                                                })()
+                                                // If no Generic meal found, show "Add"
+                                                return genericMeals.length === 0 ? 'Add' : genericMeals
+                                              })()
                                               : 'Add'}
                                             {item.meal_type
                                               ? item.meal_type.map((meal: any, i: any) =>
-                                                  meal.meal_value_header === 'Generic' &&
+                                                meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
-                                                    <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                      <img
-                                                        src='/icons/Notes.svg'
-                                                        alt='Grocery Icon'
-                                                        width='35px'
-                                                        draggable={false}
-                                                      />
-                                                    </Typography>
-                                                  ) : null
-                                                )
+                                                  <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                    <img
+                                                      src='/icons/Notes.svg'
+                                                      alt='Grocery Icon'
+                                                      width='35px'
+                                                      draggable={false}
+                                                    />
+                                                  </Typography>
+                                                ) : null
+                                              )
                                               : null}
                                           </Typography>
                                         </Box>
@@ -1882,11 +1881,11 @@ const StepPreviewDiet = ({
                                                     ? 'diet_val_container'
                                                     : formData?.diet_type_name === 'By Weight' &&
                                                       (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                    ? 'diet_val_weight'
-                                                    : formData?.diet_type_name === 'By Weight' &&
-                                                      formData?.child?.length === 3
-                                                    ? 'diet_val_weight1'
-                                                    : 'diet_val_cont'
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                        ? 'diet_val_weight1'
+                                                        : 'diet_val_cont'
                                                 }
                                               >
                                                 <Typography
@@ -1901,91 +1900,91 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? 'Add'
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? 'Add'
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
-                                                    : 'Add'}
+                                                      : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? ''
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
@@ -2007,8 +2006,8 @@ const StepPreviewDiet = ({
                                                           return null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? ''
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? ''
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2028,7 +2027,7 @@ const StepPreviewDiet = ({
 
                                                           return null
                                                         })
-                                                    : ''}
+                                                      : ''}
                                                 </Typography>
                                               </Box>
                                             </Box>
@@ -2043,10 +2042,10 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`combos-${index}`}>
-                              {itemd?.combo?.map((item: any, cIndex: any) => {
+                              {itemd?.combo?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`combo-${index}-${cIndex}`}
+                                    key={`combo-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -2066,7 +2065,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={cIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -2081,25 +2080,25 @@ const StepPreviewDiet = ({
                                             ? formData?.child?.length === 1
                                               ? 'cellmodule9'
                                               : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4'
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                  ? 'cellmodule2'
+                                                  : formData?.child?.length === 3
+                                                    ? 'cellmodule22'
+                                                    : formData?.child?.length > 3
+                                                      ? 'cellmodule3'
+                                                      : 'cellmodule4'
                                             : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4'
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6'
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4'
-                                            : 'cellmodule4'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'Generic'
+                                                ? 'cellmodule6'
+                                                : formData?.diet_type_name === 'By Lifestage'
+                                                  ? formData?.child?.length > 2
+                                                    ? 'cellmodule7'
+                                                    : 'cellmodule4'
+                                                  : 'cellmodule4'
                                         }
                                       >
                                         <Box>
@@ -2182,9 +2181,8 @@ const StepPreviewDiet = ({
                                                           color: theme.palette.common.black
                                                         }}
                                                       >
-                                                        {`${name?.ingredient_name || ''} | ${
-                                                          name?.preparation_type || ''
-                                                        } | ${name?.cut_size || ''} |  `}
+                                                        {`${name?.ingredient_name || ''} | ${name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
                                                       </Typography>
                                                       <Typography
                                                         component='span'
@@ -2196,9 +2194,8 @@ const StepPreviewDiet = ({
                                                           color: theme.palette.common.black
                                                         }}
                                                       >
-                                                        {` ${parseFloat(name?.quantity) || 0}${
-                                                          name?.quantity_type === 'percentage' ? ' %' : ''
-                                                        }`}
+                                                        {` ${parseFloat(name?.quantity) || 0}${name?.quantity_type === 'percentage' ? ' %' : ''
+                                                          }`}
                                                       </Typography>
                                                     </Box>
                                                   ))}
@@ -2402,11 +2399,11 @@ const StepPreviewDiet = ({
                                               ? 'diet_val_container'
                                               : formData?.diet_type_name === 'By Weight' &&
                                                 (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                              ? 'diet_val_weight'
-                                              : formData?.diet_type_name === 'By Weight' &&
-                                                formData?.child?.length === 3
-                                              ? 'diet_val_weight1'
-                                              : 'diet_val_cont'
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                  ? 'diet_val_weight1'
+                                                  : 'diet_val_cont'
                                           }
                                         >
                                           <Typography
@@ -2421,36 +2418,36 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
-                                                  .filter(Boolean).length === 0
+                                                .map((meal: any, i: any) => {
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
+                                                .filter(Boolean).length === 0
                                                 ? 'Add'
                                                 : item.meal_type.map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
                                               : 'Add'}
                                             {item.meal_type
                                               ? item.meal_type.map((meal: any, i: any) =>
-                                                  meal.meal_value_header === 'Generic' &&
+                                                meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
-                                                    <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                      <img
-                                                        src='/icons/Notes.svg'
-                                                        alt='Grocery Icon'
-                                                        width='35px'
-                                                        draggable={false}
-                                                      />
-                                                    </Typography>
-                                                  ) : null
-                                                )
+                                                  <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                    <img
+                                                      src='/icons/Notes.svg'
+                                                      alt='Grocery Icon'
+                                                      width='35px'
+                                                      draggable={false}
+                                                    />
+                                                  </Typography>
+                                                ) : null
+                                              )
                                               : null}
                                           </Typography>
                                         </Box>
@@ -2492,11 +2489,11 @@ const StepPreviewDiet = ({
                                                     ? 'diet_val_container'
                                                     : formData?.diet_type_name === 'By Weight' &&
                                                       (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                    ? 'diet_val_weight'
-                                                    : formData?.diet_type_name === 'By Weight' &&
-                                                      formData?.child?.length === 3
-                                                    ? 'diet_val_weight1'
-                                                    : 'diet_val_cont'
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                        ? 'diet_val_weight1'
+                                                        : 'diet_val_cont'
                                                 }
                                               >
                                                 <Typography
@@ -2511,91 +2508,91 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? 'Add'
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? 'Add'
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
-                                                    : 'Add'}
+                                                      : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? ''
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
@@ -2617,8 +2614,8 @@ const StepPreviewDiet = ({
                                                           return null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? ''
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? ''
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2638,7 +2635,7 @@ const StepPreviewDiet = ({
 
                                                           return null
                                                         })
-                                                    : ''}
+                                                      : ''}
                                                 </Typography>
                                               </Box>
                                             </Box>
@@ -2653,10 +2650,10 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`ingredients-${index}`}>
-                              {itemd?.ingredient?.map((item: any, iIndex: any) => {
+                              {itemd?.ingredient?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`ingredient-${index}-${iIndex}`}
+                                    key={`ingredient-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -2676,7 +2673,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={iIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -2691,25 +2688,25 @@ const StepPreviewDiet = ({
                                             ? formData?.child?.length === 1
                                               ? 'cellmodule9'
                                               : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4'
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                  ? 'cellmodule2'
+                                                  : formData?.child?.length === 3
+                                                    ? 'cellmodule22'
+                                                    : formData?.child?.length > 3
+                                                      ? 'cellmodule3'
+                                                      : 'cellmodule4'
                                             : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4'
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6'
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4'
-                                            : 'cellmodule4'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'Generic'
+                                                ? 'cellmodule6'
+                                                : formData?.diet_type_name === 'By Lifestage'
+                                                  ? formData?.child?.length > 2
+                                                    ? 'cellmodule7'
+                                                    : 'cellmodule4'
+                                                  : 'cellmodule4'
                                         }
                                       >
                                         <Box>
@@ -2974,11 +2971,11 @@ const StepPreviewDiet = ({
                                               ? 'diet_val_container'
                                               : formData?.diet_type_name === 'By Weight' &&
                                                 (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                              ? 'diet_val_weight'
-                                              : formData?.diet_type_name === 'By Weight' &&
-                                                formData?.child?.length === 3
-                                              ? 'diet_val_weight1'
-                                              : 'diet_val_cont'
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                  ? 'diet_val_weight1'
+                                                  : 'diet_val_cont'
                                           }
                                         >
                                           <Typography
@@ -2993,36 +2990,36 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
-                                                  .filter(Boolean).length === 0
+                                                .map((meal: any, i: any) => {
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
+                                                .filter(Boolean).length === 0
                                                 ? 'Add'
                                                 : item.meal_type.map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
                                               : 'Add'}
                                             {item.meal_type
                                               ? item.meal_type.map((meal: any, i: any) =>
-                                                  meal.meal_value_header === 'Generic' &&
+                                                meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
-                                                    <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                      <img
-                                                        src='/icons/Notes.svg'
-                                                        alt='Grocery Icon'
-                                                        width='35px'
-                                                        draggable={false}
-                                                      />
-                                                    </Typography>
-                                                  ) : null
-                                                )
+                                                  <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                    <img
+                                                      src='/icons/Notes.svg'
+                                                      alt='Grocery Icon'
+                                                      width='35px'
+                                                      draggable={false}
+                                                    />
+                                                  </Typography>
+                                                ) : null
+                                              )
                                               : null}
                                           </Typography>
                                         </Box>
@@ -3064,11 +3061,11 @@ const StepPreviewDiet = ({
                                                     ? 'diet_val_container'
                                                     : formData?.diet_type_name === 'By Weight' &&
                                                       (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                    ? 'diet_val_weight'
-                                                    : formData?.diet_type_name === 'By Weight' &&
-                                                      formData?.child?.length === 3
-                                                    ? 'diet_val_weight1'
-                                                    : 'diet_val_cont'
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                        ? 'diet_val_weight1'
+                                                        : 'diet_val_cont'
                                                 }
                                               >
                                                 <Typography
@@ -3083,91 +3080,91 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? 'Add'
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? 'Add'
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
-                                                    : 'Add'}
+                                                      : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? ''
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
@@ -3189,8 +3186,8 @@ const StepPreviewDiet = ({
                                                           return null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? ''
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? ''
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -3210,7 +3207,7 @@ const StepPreviewDiet = ({
 
                                                           return null
                                                         })
-                                                    : ''}
+                                                      : ''}
                                                 </Typography>
                                               </Box>
                                             </Box>
@@ -3226,10 +3223,10 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`choice-${index}`}>
-                              {itemd?.ingredientwithchoice?.map((item: any, chIndex: any) => {
+                              {itemd?.ingredientwithchoice?.map((item: any, index: any) => {
                                 return (
                                   <TableRow
-                                    key={`choice-${index}-${chIndex}`}
+                                    key={`choice-${index}`}
                                     className='tablerowi'
                                     sx={{
                                       '&:hover': {
@@ -3249,7 +3246,7 @@ const StepPreviewDiet = ({
                                       }}
                                     >
                                       <Box
-                                        key={chIndex}
+                                        key={index}
                                         sx={{
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -3264,25 +3261,25 @@ const StepPreviewDiet = ({
                                             ? formData?.child?.length === 1
                                               ? 'cellmodule9'
                                               : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4'
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                  ? 'cellmodule2'
+                                                  : formData?.child?.length === 3
+                                                    ? 'cellmodule22'
+                                                    : formData?.child?.length > 3
+                                                      ? 'cellmodule3'
+                                                      : 'cellmodule4'
                                             : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4'
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6'
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4'
-                                            : 'cellmodule4'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'Generic'
+                                                ? 'cellmodule6'
+                                                : formData?.diet_type_name === 'By Lifestage'
+                                                  ? formData?.child?.length > 2
+                                                    ? 'cellmodule7'
+                                                    : 'cellmodule4'
+                                                  : 'cellmodule4'
                                         }
                                       >
                                         <Box
@@ -3516,11 +3513,11 @@ const StepPreviewDiet = ({
                                               ? 'diet_val_container'
                                               : formData?.diet_type_name === 'By Weight' &&
                                                 (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                              ? 'diet_val_weight'
-                                              : formData?.diet_type_name === 'By Weight' &&
-                                                formData?.child?.length === 3
-                                              ? 'diet_val_weight1'
-                                              : 'diet_val_cont'
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                  ? 'diet_val_weight1'
+                                                  : 'diet_val_cont'
                                           }
                                         >
                                           <Typography
@@ -3535,36 +3532,36 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
-                                                  .filter(Boolean).length === 0
+                                                .map((meal: any, i: any) => {
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
+                                                .filter(Boolean).length === 0
                                                 ? 'Add'
                                                 : item.meal_type.map((meal: any, i: any) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : null
-                                                  })
+                                                  return meal.meal_value_header === 'Generic'
+                                                    ? meal.quantity +
+                                                    (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                    : null
+                                                })
                                               : 'Add'}
                                             {item.meal_type
                                               ? item.meal_type.map((meal: any, i: any) =>
-                                                  meal.meal_value_header === 'Generic' &&
+                                                meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
-                                                    <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                      <img
-                                                        src='/icons/Notes.svg'
-                                                        alt='Grocery Icon'
-                                                        width='35px'
-                                                        draggable={false}
-                                                      />
-                                                    </Typography>
-                                                  ) : null
-                                                )
+                                                  <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                    <img
+                                                      src='/icons/Notes.svg'
+                                                      alt='Grocery Icon'
+                                                      width='35px'
+                                                      draggable={false}
+                                                    />
+                                                  </Typography>
+                                                ) : null
+                                              )
                                               : null}
                                           </Typography>
                                         </Box>
@@ -3607,11 +3604,11 @@ const StepPreviewDiet = ({
                                                     ? 'diet_val_container'
                                                     : formData?.diet_type_name === 'By Weight' &&
                                                       (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                    ? 'diet_val_weight'
-                                                    : formData?.diet_type_name === 'By Weight' &&
-                                                      formData?.child?.length === 3
-                                                    ? 'diet_val_weight1'
-                                                    : 'diet_val_cont'
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                        ? 'diet_val_weight1'
+                                                        : 'diet_val_cont'
                                                 }
                                               >
                                                 <Typography
@@ -3626,91 +3623,91 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? 'Add'
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          }
+                                                        if (all.includes(meal.meal_value_header)) {
+                                                          return (
+                                                            meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? 'Add'
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                             : null
                                                         })
-                                                    : 'Add'}
+                                                      : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                      .map((meal: any, i: any) => {
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
-                                                        .filter(Boolean).length === 0
+                                                        return null
+                                                      })
+                                                      .filter(Boolean).length === 0
                                                       ? ''
                                                       : item.meal_type.map((meal: any, i: any) => {
-                                                          if (
-                                                            all.includes(meal.meal_value_header) &&
-                                                            meal.notes &&
-                                                            meal.notes.trim() !== ''
-                                                          ) {
-                                                            return (
-                                                              <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                                <img
-                                                                  src='/icons/Notes.svg'
-                                                                  alt='Grocery Icon'
-                                                                  width='35px'
-                                                                  draggable={false}
-                                                                />
-                                                              </Typography>
-                                                            )
-                                                          }
+                                                        if (
+                                                          all.includes(meal.meal_value_header) &&
+                                                          meal.notes &&
+                                                          meal.notes.trim() !== ''
+                                                        ) {
+                                                          return (
+                                                            <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                              <img
+                                                                src='/icons/Notes.svg'
+                                                                alt='Grocery Icon'
+                                                                width='35px'
+                                                                draggable={false}
+                                                              />
+                                                            </Typography>
+                                                          )
+                                                        }
 
-                                                          return null
-                                                        })
+                                                        return null
+                                                      })
                                                     : item.meal_type
-                                                    ? item.meal_type
+                                                      ? item.meal_type
                                                         .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
@@ -3732,8 +3729,8 @@ const StepPreviewDiet = ({
                                                           return null
                                                         })
                                                         .filter(Boolean).length === 0
-                                                      ? ''
-                                                      : item.meal_type.map((meal: any, i: any) => {
+                                                        ? ''
+                                                        : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -3753,7 +3750,7 @@ const StepPreviewDiet = ({
 
                                                           return null
                                                         })
-                                                    : ''}
+                                                      : ''}
                                                 </Typography>
                                               </Box>
                                             </Box>
