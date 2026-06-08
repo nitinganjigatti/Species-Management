@@ -85,6 +85,59 @@ export const platformUploadPartFn: NonNullable<AntzChatConfig['platformUploadPar
   })
 }
 
+// Text-based document MIME types that gzip well. Images are deliberately
+// EXCLUDED — they're already compressed upstream via `maybeCompressImage`
+// (SendMsgForm / GroupIconEditor), and binary docs (pdf/docx/xlsx) + media
+// (video/audio) don't benefit from gzip. SVG is text under the hood, so it
+// gzips well and is included here even though its MIME starts with `image/`.
+const GZIP_DOCUMENT_RE =
+  /^(text\/|application\/(json|xml|x-yaml|yaml|rtf|sql|csv)|image\/svg\+xml)/i
+
+// Document-only compression hook (SDK Step 16.5). The SDK ships NO default
+// compressor — it delegates to this fn, which receives a blob-URL-backed
+// `UploadableFile` and must return a `CompressedFile`. We gzip ONLY text-based
+// documents; everything else (images, media, binary docs) returns unchanged
+// with `compressed: false`. Any failure (unsupported CompressionStream, fetch
+// error, gzip larger than original) falls back to the original bytes — so
+// wiring this can never block or corrupt an upload.
+export const platformCompressFn: NonNullable<AntzChatConfig['platformCompressFn']> = async (file, options) => {
+  const passthrough = (): Awaited<ReturnType<NonNullable<AntzChatConfig['platformCompressFn']>>> => ({
+    ...file,
+    originalSize: file.size,
+    compressed: false,
+    compressionAlgorithm: 'none'
+  })
+
+  // Respect the SDK's resolved config: bail unless document compression is on.
+  if (!options?.enabled || !options?.compressDocuments) return passthrough()
+  if (!GZIP_DOCUMENT_RE.test(file.type)) return passthrough()
+  if (typeof CompressionStream === 'undefined') return passthrough()
+
+  try {
+    const blob = await fetch(file.uri).then(r => r.blob())
+    const gzippedBlob = await new Response(
+      blob.stream().pipeThrough(new CompressionStream('gzip'))
+    ).blob()
+
+    // Don't ship a gzip that's bigger than the source (tiny files can grow).
+    if (gzippedBlob.size >= file.size) return passthrough()
+
+    return {
+      uri: URL.createObjectURL(gzippedBlob),
+      name: file.name,
+      type: file.type,
+      size: gzippedBlob.size,
+      originalSize: file.size,
+      compressed: true,
+      compressionAlgorithm: 'gzip'
+    }
+  } catch (err) {
+    console.warn('[chat] document gzip failed, sending original:', err)
+
+    return passthrough()
+  }
+}
+
 export interface GetChatClientOpts {
   accessToken: string
   userId: string
@@ -124,6 +177,15 @@ export function getChatClient(opts: GetChatClientOpts): AntzChatClient {
         video: 100
       }
     },
+    // IMPORTANT — must be `authToken`, NOT `authProvider`. In chat-core 1.2.6
+    // the REST request interceptor reads the token from the SDK auth store
+    // (`getAccessToken: () => store.getState().tokens?.accessToken`), which is
+    // seeded by `authToken`. `config.authProvider` is NOT invoked anywhere in
+    // this build — using it left the auth store unseeded → every REST call
+    // failed with `AntzChatAuthError: Authorization header missing`. The socket
+    // gets its token separately (ChatClientContext passes `getAccessToken` into
+    // `connectSocket`), so dynamic/fresh socket tokens are unaffected. Our token
+    // is long-lived (~15d), so a static REST token is fine.
     authToken: opts.accessToken,
     userId: opts.userId,
     tenantId: opts.tenantId,

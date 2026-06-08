@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
@@ -31,6 +32,7 @@ import {
   applyReadReceiptEntry,
   addOrReplaceChat,
   patchConversationFromEvent,
+  setUnseenCount,
   removeChatFromList,
   updateChatFlags
 } from 'src/store/apps/chat'
@@ -42,7 +44,8 @@ import {
   sdkConversationToChat,
   sdkMessageToMessage,
   getUserLastSeen,
-  getOnlineUsersOverSocket
+  getOnlineUsersOverSocket,
+  isFullConversationPayload
 } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 // ** Types
@@ -137,6 +140,18 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     }
   }, [])
 
+  // Clear every pending typing-clear timeout on unmount. Without this, a
+  // timer that's mid-flight when AppChat unmounts (e.g. the floating
+  // ChatLauncher panel closes while a peer is typing) fires `setTypingUsers`
+  // on an unmounted component — a wasted update + React warning.
+  useEffect(() => {
+    const timers = typingTimers.current
+
+    return () => {
+      Object.values(timers).forEach(byUser => Object.values(byUser).forEach(timer => clearTimeout(timer)))
+    }
+  }, [])
+
   // ** Hooks
   const theme = useTheme()
   const { settings } = useSettings()
@@ -193,7 +208,15 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   const chatClient = getChatClientOrNull()
   const chatSocket = socketStatus === 'disconnected' ? null : tryGetSocket()
   const chatConnected = socketStatus === 'connected'
-  const chatError = socketStatus === 'error' ? new Error('chat socket error') : null
+
+  // Latch: true once the socket has connected at least once this mount. Gates
+  // the "reconnecting" banner so a cold start (before the first connect) never
+  // flashes it — the banner is only meaningful after a connection was lost.
+  const everConnectedRef = useRef(false)
+  useEffect(() => {
+    if (socketStatus === 'connected') everConnectedRef.current = true
+  }, [socketStatus])
+  const showConnectionBanner = everConnectedRef.current && socketStatus !== 'connected'
 
   // Mark conversation notifications as read when conversation is opened
   useEffect(() => {
@@ -241,13 +264,34 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     roomIds.forEach(id => joinChatRoom(id as string))
   }, [chatSocket, chatConnected, store?.chats])
 
-  // Connect-time refetch lives in ChatLauncher (mounted persistently in
-  // the app shell). AppChat no longer refetches on mount — it would
-  // re-fire on every FAB open (since `{open && <Box>}` unmounts/remounts
-  // AppChat) and that fetch is redundant: Redux already holds the list
-  // and is kept fresh by `new_message` + `conversation_updated` socket
-  // events. Cold start and socket-reconnect refetches are both owned by
-  // ChatLauncher's persistent effects.
+  // Connect-time refetch on the FAB/launcher surface lives in ChatLauncher
+  // (mounted persistently in the app shell). AppChat doesn't refetch on mount —
+  // it would re-fire on every FAB open (since `{open && <Box>}` unmounts/
+  // remounts AppChat) and is redundant: Redux already holds the list and is
+  // kept fresh by `new_message` + `conversation_updated` socket events.
+  //
+  // BUT ChatLauncher is unmounted on the standalone `/chat` route (see
+  // `(module)/layout.tsx` — `hideChatLauncher` on `/chat`), so its
+  // connect/reconnect refetch doesn't cover this page. Own it here for the
+  // standalone surface only: when the socket (re)connects — returning from a
+  // hidden tab or a wifi drop, where the document lifecycle tears the socket
+  // down and back up — refetch the conversation list so we catch up on any
+  // `new_message` / `conversation_created` / `conversation_updated` that
+  // arrived while we were disconnected (live listeners only cover events that
+  // fire WHILE connected). `enrichLastMessageSenders` follows so the refreshed
+  // list keeps the "Saket: …" sender prefix.
+  //
+  // `!compact && !isFullscreen` = the standalone page only. ChatLauncher always
+  // renders AppChat with `compact` (panel) or `isFullscreen` (popout) set, so
+  // this never double-fires with ChatLauncher's own reconnect refetch.
+  const isStandalonePage = !compact && !isFullscreen
+  useEffect(() => {
+    if (!isStandalonePage) return
+    if (socketStatus !== 'connected') return
+    dispatch(fetchChatsContacts()).then(() => {
+      dispatch(enrichLastMessageSenders())
+    })
+  }, [isStandalonePage, socketStatus, dispatch])
 
   // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
   // After a page refresh `useChatStore.onlineUsers` starts empty (in-memory
@@ -453,19 +497,64 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
   // and possible on socket reconnects).
   const syntheticKickFiredRef = useRef<Set<string>>(new Set())
 
+  // Mirror guard for the "added-back-to-group" path. Backend (verified on
+  // 1.2.5) does NOT reliably deliver a `new_message` with
+  // `systemOperationType: 'user_added'` to the joiner, so the in-chat pill
+  // never appeared until the user refreshed. We synthesize one client-side
+  // via `receiveMessage` on `participant_joined` when the joiner is us.
+  // The ref is cleared on `participant_left` (kick) so a future kick → re-
+  // add cycle can synthesize a fresh pill.
+  const syntheticAddFiredRef = useRef<Set<string>>(new Set())
+
   // Stable ref of the chat id set. Used inside the new_message handler so we
   // can detect events for conversations we don't yet have (e.g. someone just
   // created a DM with us) and pull a fresh list via `fetchChatsContacts`.
   const knownChatIdsRef = useRef<Set<string | number>>(new Set())
   const chatsRef = useRef(store?.chats ?? null)
+  // Deduped contacts list across all conversations — used as a fallback
+  // actor-name source when a `participant_joined` event arrives for a
+  // conversation whose participants array doesn't (yet) include the
+  // admin who added us. After a kick the chat's participants cache
+  // typically drops to just the kicked user, so the re-add event can't
+  // resolve `addedByName` from the chat itself — but the admin's likely
+  // a contact via another chat. Belt-and-suspenders for the synthesis.
+  const contactsRef = useRef(store?.contacts ?? null)
   useEffect(() => {
     knownChatIdsRef.current = new Set(store?.chats?.map(c => c.id) ?? [])
     chatsRef.current = store?.chats ?? null
-  }, [store?.chats])
+    contactsRef.current = store?.contacts ?? null
+  }, [store?.chats, store?.contacts])
+
+  // In-flight guard for the unknown-conversation refetch below. When a burst
+  // of `new_message` events arrives for a conversation we don't have yet
+  // (e.g. someone just added us to a busy group), each one would otherwise
+  // fire its own full `fetchChatsContacts()`. We track conversationIds with a
+  // refetch in flight and skip duplicates — the first fetch lands the whole
+  // list, after which the conversation is known and the burst takes the
+  // normal path.
+  const pendingConvFetchRef = useRef<Set<string | number>>(new Set())
+
+  // Trailing-debounce timer for the system-message metadata refetch below.
+  // A single structural change (add/remove/promote/demote/rename) arrives as
+  // a system `new_message`; in an active group several can land in quick
+  // succession. Each one used to fire its own full `fetchChatsContacts()`.
+  // We coalesce a burst into ONE refetch ~600ms after the last system
+  // message — same full-list sync as before, just not repeated per pill.
+  const systemRefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (chatError) return
-    if (!chatSocket || !chatConnected) return
+    return () => {
+      if (systemRefetchTimerRef.current) clearTimeout(systemRefetchTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Guard on the stable `socketStatus` string — NOT the derived `chatError`
+    // (a freshly-allocated Error each render) which would otherwise re-run
+    // this effect on every render during an error state and re-subscribe all
+    // 16 listeners repeatedly. `socketStatus !== 'connected'` covers the same
+    // cases the old `chatError` / `!chatConnected` guards did.
+    if (!chatSocket || socketStatus !== 'connected') return
 
     // Live incoming message → adapt + push into Redux. The receiveMessage
     // reducer dedupes by id, so the server-echo of our own `sendMsg` is a
@@ -494,15 +583,24 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const isOwn = Boolean(userProfileIdRef.current && raw.senderId === String(userProfileIdRef.current))
 
       if (!knownChatIdsRef.current.has(raw.conversationId)) {
-        dispatch(fetchChatsContacts()).then(() => {
-          dispatch(
-            receiveMessage({
-              conversationId: raw.conversationId,
-              message: sdkMessageToMessage(raw),
-              isOwn
-            })
-          )
-        })
+        // Coalesce a burst of messages for the same unknown conversation into
+        // a single list refetch. Subsequent events still re-dispatch
+        // receiveMessage once the list lands and the conversation is known.
+        if (pendingConvFetchRef.current.has(raw.conversationId)) return
+        pendingConvFetchRef.current.add(raw.conversationId)
+        dispatch(fetchChatsContacts())
+          .then(() => {
+            dispatch(
+              receiveMessage({
+                conversationId: raw.conversationId,
+                message: sdkMessageToMessage(raw),
+                isOwn
+              })
+            )
+          })
+          .finally(() => {
+            pendingConvFetchRef.current.delete(raw.conversationId)
+          })
 
         return
       }
@@ -518,8 +616,13 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       // System messages signal structural changes (role promoted/demoted,
       // member added/removed, group renamed). Refresh conversation metadata
       // so adminIds / participants stay in sync without a page reload.
+      // Debounced: a burst of system events coalesces into one full refetch.
       if (raw.content?.type === 'system') {
-        dispatch(fetchChatsContacts())
+        if (systemRefetchTimerRef.current) clearTimeout(systemRefetchTimerRef.current)
+        systemRefetchTimerRef.current = setTimeout(() => {
+          systemRefetchTimerRef.current = null
+          dispatch(fetchChatsContacts())
+        }, 600)
       }
 
       const isOpen = selectedChatIdRef.current === raw.conversationId
@@ -535,7 +638,12 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // active participants have received the message — mirrors mobile's
     // computeGroupTickStatus logic via the applyDeliveryReceipt reducer.
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
-      if (!evt) return
+      // Bail on malformed / undecrypted-transit-envelope events. A real
+      // MessageDeliveredEvent always carries conversationId + messageId +
+      // deliveredTo.userId; without this guard an encrypted envelope
+      // ({ v, iv, tag, ct }) slipping through threw an uncaught TypeError
+      // at `evt.deliveredTo.userId`. Legit events have all three → unaffected.
+      if (!evt?.conversationId || !evt.messageId || !evt.deliveredTo?.userId) return
       dispatch(
         applyDeliveryReceipt({
           conversationId: evt.conversationId,
@@ -549,7 +657,11 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // Batch delivered — used when a user comes back online and the server
     // catches them up on multiple acknowledgements at once.
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
-      if (!evt?.messageIds?.length) return
+      // `messageIds.length` already filters out undecrypted envelopes (no such
+      // field); also require conversationId + deliveredTo so a malformed event
+      // can't dispatch a receipt with undefined targets. Legit batch events
+      // carry all three → unaffected.
+      if (!evt?.messageIds?.length || !evt.conversationId || !evt.deliveredTo) return
       dispatch(
         applyDeliveryReceipt({
           conversationId: evt.conversationId,
@@ -566,7 +678,11 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     // fullyReadMessageIds = messages ALL participants read → blue tick (isSeen).
     // Mirrors mobile's handleReadReceipt logic in useSocketRoom.ts.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
-      if (!evt) return
+      // Require conversationId so an undecrypted-transit envelope / malformed
+      // event is skipped before any field access. Legit read receipts always
+      // carry conversationId → unaffected. (The body already tolerates missing
+      // updatedMessageIds/fullyReadMessageIds, so this only hardens the entry.)
+      if (!evt?.conversationId) return
 
       // Per-user read: update readBy arrays. A reader counts as delivered,
       // so this also recomputes isDelivered for group messages.
@@ -574,8 +690,8 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         Array.isArray(evt.updatedMessageIds) && evt.updatedMessageIds.length
           ? evt.updatedMessageIds
           : evt.messageId
-            ? [evt.messageId]
-            : []
+          ? [evt.messageId]
+          : []
       if (perUserIds.length && evt.userId) {
         dispatch(
           applyReadReceiptEntry({
@@ -611,8 +727,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
 
-      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
-      if (isFullConversation) {
+      if (isFullConversationPayload(evt)) {
         // Brand-new conversation surfaced via this event (rare — usually
         // covered by `conversation_created`): we still need to join the
         // socket room to receive future new_message events.
@@ -635,18 +750,47 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       )
     }
 
+    // `unread_count_changed` (SDK Step 10) — server pushes the authoritative
+    // unread count to ALL of the user's devices simultaneously. Covers the one
+    // case `conversation_updated` / `new_message` do NOT: reading a chat on
+    // ANOTHER device must clear the badge here without a new message arriving.
+    // Dispatches the dedicated `setUnseenCount` reducer (unseenMsgs only — no
+    // lastMessage / reorder side effects). Field names read defensively.
+    const onUnreadCountChanged = (evt: any) => {
+      const convId = evt?.conversationId ?? evt?.id
+      const count = evt?.unreadCount ?? evt?.count ?? evt?.unread
+      if (!convId || typeof count !== 'number') return
+      dispatch(setUnseenCount({ chatId: convId, count }))
+    }
+
     // Fires when a new conversation is created OR when the current user is
     // added to one at runtime. Per SDK doc Step 7, the server does NOT
     // auto-join the user's socket to the new room — only the personal
     // conversation_created event is emitted to that user. We must:
-    //   1. Add the conversation to the sidebar (via fetchChatsContacts refresh)
+    //   1. Make the conversation appear in the sidebar
     //   2. Emit `joinRoom` so the socket subscribes to new_message etc. for that room
-    // Without this, the user would receive no realtime events for the new chat
+    // Without (2), the user would receive no realtime events for the new chat
     // until the next page reload.
+    //
+    // Payload-shape branching mirrors `onConversationUpdated` below:
+    //   • Full conversation (carries `participants` + `settings`)
+    //       → pipe through `sdkConversationToChat` + `addOrReplaceChat`.
+    //         Instant, no REST roundtrip.
+    //   • Slim event (just an id, no full conv)
+    //       → fall back to `fetchChatsContacts` so the new conv lands in
+    //         state via the conversation-list refresh.
     const onConversationCreated = (evt: any) => {
       const conv = evt?.conversation ?? evt?.data ?? evt
       const convId = conv?.id ?? evt?.conversationId
       if (!convId) return
+      if (isFullConversationPayload(conv)) {
+        const myId = userProfileIdRef.current ?? ''
+        dispatch(addOrReplaceChat(sdkConversationToChat(conv, myId)))
+        joinChatRoom(convId)
+
+        return
+      }
+      // Slim payload — refresh the full list, then join the room.
       dispatch(fetchChatsContacts()).then(() => {
         joinChatRoom(convId)
       })
@@ -756,8 +900,76 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       // future re-kick can synthesize a fresh pill (otherwise the ref
       // would block synthesis on the second kick).
       const meId = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
-      if (meId && String(userId) === meId) {
+      const joinerIsMe = meId !== '' && String(userId) === meId
+      if (joinerIsMe) {
         syntheticKickFiredRef.current.delete(String(conversationId))
+      }
+
+      // Synthesize "<Actor> added you" pill when I'm the joiner — backend
+      // doesn't reliably deliver a `new_message` system event with
+      // `user_added` to the re-added user, so the in-chat pill never
+      // appears until the next page refresh. Mirrors the kick synthesis
+      // at the bottom of `onParticipantLeft` for the exit path.
+      //
+      // Actor name resolution (in order):
+      //   1. event.addedBy / event.invitedBy / event.actor (whatever the
+      //      backend uses — we accept the common variants)
+      //   2. event.addedByName / event.actorName / event.user.addedByName
+      //   3. fallback: generic "You were added" copy
+      //
+      // Deterministic id (`synthetic-add-<conversationId>`) + the
+      // `syntheticAddFiredRef` guard make this idempotent so a
+      // double-fire of `participant_joined` (StrictMode dev double-mount,
+      // socket re-delivery) doesn't produce duplicate pills.
+      if (joinerIsMe) {
+        const convKey = String(conversationId)
+        if (!syntheticAddFiredRef.current.has(convKey)) {
+          syntheticAddFiredRef.current.add(convKey)
+          const addedBy: string | number | undefined = evt?.addedBy ?? evt?.invitedBy ?? evt?.actor ?? evt?.actorId
+          let addedByName: string | undefined =
+            evt?.addedByName ?? evt?.addedByDisplayName ?? evt?.actorName ?? evt?.actor?.displayName
+          // Backend (verified on 1.2.5) emits `addedBy` as an id but
+          // OMITS the actor's display name from `participant_joined`.
+          // Resolve it from our cached participants array — same pattern
+          // the kick handler uses for `removedByName` lookup. The actor
+          // is still a group admin, so they're in the participants list.
+          if (!addedByName && addedBy) {
+            const cachedChat = chatsRef.current?.find(c => String(c.id) === String(conversationId))
+            const actor = cachedChat?.participants?.find(p => String(p.userId) === String(addedBy))
+            addedByName = actor?.displayName ?? actor?.username
+          }
+          // Fallback: after a kick, the affected chat's participants
+          // cache typically drops the admin (only the kicked user
+          // remains). The admin is almost always reachable via another
+          // chat in `store.contacts` (deduped across all conversations).
+          // Pure client-side lookup — no extra network call needed.
+          if (!addedByName && addedBy) {
+            const contactActor = contactsRef.current?.find(c => String(c.id) === String(addedBy))
+            addedByName = contactActor?.fullName
+          }
+          const myName = userProfileNameRef.current
+          const myId = userProfileIdRef.current
+          const now = new Date()
+          const syntheticMessage = {
+            id: `synthetic-add-${convKey}-${now.getTime()}`,
+            message: addedByName ? `${addedByName} added you` : 'You were added to this group',
+            time: now.toISOString(),
+            senderId: addedBy != null ? String(addedBy) : '',
+            ...(addedByName ? { senderName: addedByName } : {}),
+            feedback: { isSent: true, isDelivered: true, isSeen: true },
+            contentType: 'system' as const,
+            systemOperationType: 'user_added',
+            targetUserId: myId != null ? String(myId) : String(userId),
+            ...(myName ? { targetUserName: myName } : {})
+          }
+          dispatch(
+            receiveMessage({
+              conversationId,
+              message: syntheticMessage as any,
+              isOwn: false
+            })
+          )
+        }
       }
     }
 
@@ -797,51 +1009,36 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
       const leaverIsMe = me !== '' && String(userId) === me
 
-      // Backend (v1.2.1) does NOT deliver the `user_removed` system
-      // `new_message` event to the kicked socket — only `participant_left`
-      // reaches us. So the in-chat removal pill never appears unless we
-      // synthesize it client-side. Build a system message that mirrors the
-      // shape the sender's UI receives (senderId/senderName = actor,
-      // targetUserId/targetUserName = me) and route it through
-      // `receiveMessage` so:
-      //   1. The pill appears at the bottom of ChatLog ("<Actor> removed you")
-      //   2. The kick-derivation logic in `receiveMessage` writes
-      //      sidebar.lastMessage + removedBy/removedByName in one pass.
-      // Deterministic id (`synthetic-kick-<conversationId>`) makes
-      // re-dispatch idempotent — second call is dropped by the id-dedupe
-      // branch in `receiveMessage`. Also harmless on later refresh: the
-      // real server message replaces it via `setChatMessages`.
+      // The kicked / leaver socket gets `participant_left` but the server does
+      // NOT deliver a system `new_message` to it. So synthesize the pill and
+      // route it through `receiveMessage` — the SAME live-append path the
+      // bystander uses (renders + auto-scrolls). Covers BOTH:
+      //   • admin-kick (removedBy present) → "<Actor> removed you"
+      //   • self-exit  (no removedBy)      → "You left the group"
+      // ChatLog's declarative `removalPill` suppresses itself when a
+      // `user_removed` message about me already exists (`alreadyHasKick`
+      // guard), so there's no double pill. On a later refresh (messages.list
+      // is empty for a kicked user) the declarative pill takes over from the
+      // kick-actor cache, so the copy stays consistent.
       if (leaverIsMe) {
         const convKey = String(conversationId)
+        const isAdminKick = removedBy !== undefined && removedBy !== null
         if (!syntheticKickFiredRef.current.has(convKey)) {
           syntheticKickFiredRef.current.add(convKey)
           const myName = userProfileNameRef.current
           const myId = userProfileIdRef.current
           const now = new Date()
-          const isAdminKick = removedBy !== undefined && removedBy !== null
-          // Use ISO timestamp — ChatLog's `toDateKey` / `formatDateLabel`
-          // do `new Date(msg.time)` and expect a parseable value, NOT a
-          // short HH:MM display string. Real messages from the adapter
-          // use `msg.sentAt ?? msg.createdAt ?? new Date().toISOString()`,
-          // so we match that exactly to keep the date-divider logic happy.
-          //
-          // Two synthesis shapes, picked by the kick-vs-leave discriminator:
-          //   • Admin kick   → sender = actor, target = me, op = user_removed
-          //   • Self-exit    → sender = me,    target = me, op = user_left
-          // ChatLog + SidebarLeft rewrite each into the correct
-          // perspective-specific copy ("Anil Rathod removed you" vs
-          // "You left the group").
           const syntheticMessage = isAdminKick
             ? {
                 id: `synthetic-kick-${convKey}-${now.getTime()}`,
-                message: removedByName ? `${removedByName} removed you` : 'You were removed',
+                message: removedByName ? `${removedByName} removed you` : 'You were removed from this group',
                 time: now.toISOString(),
-                senderId: String(removedBy),
+                senderId: removedBy != null ? String(removedBy) : '',
                 ...(removedByName ? { senderName: removedByName } : {}),
                 feedback: { isSent: true, isDelivered: true, isSeen: true },
                 contentType: 'system' as const,
                 systemOperationType: 'user_removed',
-                targetUserId: String(userId),
+                targetUserId: myId != null ? String(myId) : String(userId),
                 ...(myName ? { targetUserName: myName } : {})
               }
             : {
@@ -884,6 +1081,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
     chatSocket.on('messages_delivered', onMessagesDelivered)
     chatSocket.on('read_receipt', onReadReceipt)
     chatSocket.on('conversation_updated', onConversationUpdated)
+    chatSocket.on('unread_count_changed', onUnreadCountChanged)
     chatSocket.on('conversation_created', onConversationCreated)
     chatSocket.on('conversation_deleted', onConversationDeleted)
     chatSocket.on('reaction_updated', onReactionUpdated)
@@ -901,6 +1099,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       chatSocket.off('messages_delivered', onMessagesDelivered)
       chatSocket.off('read_receipt', onReadReceipt)
       chatSocket.off('conversation_updated', onConversationUpdated)
+      chatSocket.off('unread_count_changed', onUnreadCountChanged)
       chatSocket.off('conversation_created', onConversationCreated)
       chatSocket.off('conversation_deleted', onConversationDeleted)
       chatSocket.off('reaction_updated', onReactionUpdated)
@@ -912,7 +1111,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
       chatSocket.off('participant_left', onParticipantLeft)
       chatSocket.off('typing_indicator', handleTypingEvent)
     }
-  }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
+  }, [chatSocket, socketStatus, dispatch, handleTypingEvent])
 
   const handleLeftSidebarToggle = () => setLeftSidebarOpen(!leftSidebarOpen)
   const handleUserProfileLeftSidebarToggle = () => setUserProfileLeftOpen(!userProfileLeftOpen)
@@ -925,6 +1124,7 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         width: '100%',
         height: '100%',
         display: 'flex',
+        flexDirection: 'column',
         // borderRadius: 0,
         overflow: 'hidden',
         position: 'relative',
@@ -933,58 +1133,91 @@ const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: 
         ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}` })
       }}
     >
-      <SidebarLeft
-        store={store}
-        hidden={hidden}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        userStatus={userStatus}
-        selectChat={selectChat}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        setUserStatus={setUserStatus}
-        leftSidebarOpen={leftSidebarOpen}
-        removeSelectedChat={removeSelectedChat}
-        userProfileLeftOpen={userProfileLeftOpen}
-        formatDateToMonthShort={formatDateToMonthShort}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
-        compact={compact}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={onToggleFullscreen}
-        onCreatingGroupChange={setIsCreatingGroup}
-      />
-      <ChatContent
-        store={store}
-        hidden={hidden}
-        sendMsg={sendMsg}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        userProfileRightOpen={userProfileRightOpen}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={onToggleFullscreen}
-        typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
-      />
-      {isCreatingGroup && (
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
+          width: '100%',
+          display: 'flex',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        <SidebarLeft
+          store={store}
+          hidden={hidden}
+          mdAbove={mdAbove}
+          dispatch={dispatch}
+          statusObj={statusObj}
+          userStatus={userStatus}
+          selectChat={selectChat}
+          getInitials={getInitials}
+          sidebarWidth={sidebarWidth}
+          setUserStatus={setUserStatus}
+          leftSidebarOpen={leftSidebarOpen}
+          removeSelectedChat={removeSelectedChat}
+          userProfileLeftOpen={userProfileLeftOpen}
+          formatDateToMonthShort={formatDateToMonthShort}
+          handleLeftSidebarToggle={handleLeftSidebarToggle}
+          handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+          compact={compact}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          onCreatingGroupChange={setIsCreatingGroup}
+        />
+        <ChatContent
+          store={store}
+          hidden={hidden}
+          sendMsg={sendMsg}
+          mdAbove={mdAbove}
+          dispatch={dispatch}
+          statusObj={statusObj}
+          getInitials={getInitials}
+          sidebarWidth={sidebarWidth}
+          userProfileRightOpen={userProfileRightOpen}
+          handleLeftSidebarToggle={handleLeftSidebarToggle}
+          handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={onToggleFullscreen}
+          typingUsers={store?.selectedChat?.contact?.id ? typingUsers[String(store.selectedChat.contact.id)] ?? [] : []}
+        />
+        {isCreatingGroup && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: sidebarWidth,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
+              backdropFilter: 'blur(3px)',
+              zIndex: theme => theme.zIndex.drawer - 1,
+              pointerEvents: 'all'
+            }}
+          />
+        )}
+      </Box>
+      {/* Connection status — shown only after a prior successful connect, so
+          a cold start never flashes it. Sends typed while offline are queued
+          by `pendingOutbox` + flushed on recovery (ChatClientContext); this
+          bar just communicates that state. */}
+      {showConnectionBanner && (
         <Box
           sx={{
-            position: 'absolute',
-            top: 0,
-            left: sidebarWidth,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            backdropFilter: 'blur(3px)',
-            zIndex: theme => theme.zIndex.drawer - 1,
-            pointerEvents: 'all'
+            flexShrink: 0,
+            px: 4,
+            py: 1,
+            textAlign: 'center',
+            backgroundColor: 'customColors.BgTeritary',
+            borderBottom: theme => `1px solid ${theme.palette.divider}`
           }}
-        />
+        >
+          <Typography variant='caption' sx={{ color: 'customColors.Tertiary', lineHeight: 'normal' }}>
+            {socketStatus === 'connecting'
+              ? 'Reconnecting…'
+              : "Connection lost — messages will send when you're back online."}
+          </Typography>
+        </Box>
       )}
     </Box>
   )

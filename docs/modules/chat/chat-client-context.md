@@ -4,6 +4,19 @@ Single React Context Provider that owns the `@antzsoft/chat-core` SDK lifecycle 
 
 **File:** [`src/contexts/ChatClientContext.tsx`](../../../src/contexts/ChatClientContext.tsx)
 
+> **Updated 2026-06-04 — aligned to the `@antzsoft/chat-core` integration guide.**
+> The connection lifecycle now follows the SDK's recommended pattern: **disconnect-on-hidden** + **`refreshSocketAuth()` + reconnect-on-visible**
+>
+> **Token: use `authToken`, NOT `authProvider`.** In chat-core 1.2.6's headless core the REST request interceptor reads the token from the SDK auth store (seeded by `authToken`); `config.authProvider` is **not invoked** in this build. Passing `authProvider` instead left the store unseeded → every REST call threw `AntzChatAuthError: Authorization header missing`. The socket gets its token separately (`ChatClientContext` passes `getAccessToken` into `connectSocket`), so socket tokens stay fresh regardless.
+> (the reconnect re-runs the transit handshake `/crypto/pubkey` + `/crypto/session`, so REST and
+> socket get a fresh session). The previous client-side recovery stack — `recoverFromStuckSocket`,
+> the long-sleep self-heal reinit, the receipt-sync-on-focus workaround, and the reactive transit-403
+> interceptor — was **removed**. Those were workarounds for the 1.2.6 SDK no longer refreshing its
+> REST transit session on reconnect; the guide's disconnect/reconnect-on-visibility handles it
+> directly. [socket-recovery.md](./socket-recovery.md) describes that removed layer and is now
+> historical. Trade-off: a *foreground* laptop lid-close (no `visibilitychange` event) relies on
+> Socket.IO's built-in auto-reconnect — same as any app following the guide.
+
 ---
 
 ## What it does
@@ -17,7 +30,13 @@ Single React Context Provider that owns the `@antzsoft/chat-core` SDK lifecycle 
 | Gate on tenant flag | Early-returns when `auth.userData.settings.ENABLE_CHAT_MODULE === false` |
 | Handle auth changes | Effect deps include user_id / id / email — login/logout/user-switch all reconnect correctly |
 | Survive Strict Mode dev double-mount | `cancelled` closure flag blocks the `.then()` body if cleanup ran first |
-| Auto-reconnect | Native Socket.IO behavior + `refreshSocketAuth()` on `connect_error` + **client-side recovery layer** for the transit-encryption-on-reconnect bug ([socket-recovery.md](./socket-recovery.md)). Four triggers: transit error pattern, `reconnect_failed`, `visibilitychange → visible`, `window.focus`, cross-tab `storage` token-refresh. Visibility-gated + 10s cooldown. |
+| Token delivery | **REST:** `authToken` in [`src/lib/chat/client.ts`](../../../src/lib/chat/client.ts) seeds the SDK auth store the REST interceptor reads. (`authProvider` is NOT invoked in chat-core 1.2.6 — using it caused `Authorization header missing`.) **Socket:** `getAccessToken` passed into `connectSocket` (re-reads `localStorage` each connect → fresh). |
+| Tab visibility lifecycle | **HIDDEN** → `disconnectSocket()`. **VISIBLE** → `refreshSocketAuth()` then `connectSocket()`. The reconnect re-runs the transit handshake (`/crypto/pubkey` + `/crypto/session`), giving REST + socket a fresh session — this is what prevents `403 "Transit encryption required"` after a sleep/tab-switch. Matches the SDK integration guide's `ChatProvider` pattern **exactly**. **Accepted consequence (by design):** fires on every `visibilitychange`, so each tab switch logs `io client disconnect` + a reconnect with a new `socket.id`. A 30s grace threshold to suppress that on quick switches was prototyped and **not adopted** (chose literal document parity) — don't re-add it without a decision. |
+| Reconnect catch-up | On `socketStatus → 'connected'`, the conversation list is refetched (`fetchChatsContacts` + `enrichLastMessageSenders`) to recover events missed while disconnected. **ChatLauncher** owns this on every non-`/chat` route; **AppChat** owns it on the standalone `/chat` page (`!compact && !isFullscreen`), where ChatLauncher is unmounted. |
+| Auto-reconnect | Native Socket.IO built-in retry handles network drops. `onConnect` / `onReconnect` flip `connected`; `connect_error` calls `refreshSocketAuth()` so the next built-in retry uses a current token. No custom recovery layer. |
+| 429 throttle retry | The transit handshake (`POST /crypto/session`) is rate-limited; the per-tab-switch churn can trip it (`ThrottlerException 429`), which rejects the connect Promise (the built-in retry can't help — it's a pre-socket REST failure). **On a 429 only**, the connect is retried after **60s**, capped at **4** attempts (`retry N/4`), then it gives up until the next genuine trigger. Budget resets on a successful connect and on each genuine `visible`/`online` reconnect. Single timer, cleared on cleanup. Non-429 failures unchanged. |
+| Outbox flush on reconnect | `onReconnect` dispatches `flushPendingOutbox` so messages queued by `sendMsg.rejected` while the socket was dead get replayed automatically. Idempotent — empty outbox is a no-op. |
+| Deactivation → logout | A `getAuthStore()` subscriber bridges a server-side account deactivation (auth store `isAuthenticated` flips true→false) to the app's existing `session-expired` event, so an idle chat user still gets logged out. |
 
 ---
 
@@ -171,7 +190,24 @@ Race protection via the `cancelled` closure flag — cleanup before `connectSock
 
 ### Network drop / reconnect
 
-Socket.IO's built-in auto-reconnect runs. Our `onReconnect` listener flips `connected` back to true. The Provider is not involved in retries — the SDK owns the retry logic.
+Socket.IO's built-in auto-reconnect runs. Our `onReconnect` listener flips `connected` back to true and flushes the pending outbox. The Provider is not involved in retries — the SDK owns the retry logic.
+
+### Tab hidden / visible (the SDK guide's pattern)
+
+```
+1. Tab hidden (other tab / minimize):
+   - onVisibilityChange → disconnectSocket() + setConnected(false)
+   - Console: [chat:socket] ❌ DISCONNECTED  reason: io client disconnect
+2. Tab visible again:
+   - refreshSocketAuth() (re-reads the socket token via getAccessToken)
+   - connectSocket(...) → fresh transit handshake:
+       GET  /crypto/pubkey   (often 304)
+       POST /crypto/session  (new session)
+   - Console: [chat:socket] ✅ CONNECTED  id: <new-id>
+   - Subsequent chat REST calls use the fresh session → no 403
+```
+
+While hidden, the socket is closed, so no live messages arrive in the background (they load on the reconnect). Background delivery relies on web push. This is the integration guide's intended behavior.
 
 ---
 
@@ -200,8 +236,9 @@ npx tsc --noEmit
 grep -rn "ChatBoot" src/                       # → 0 hits
 grep -rn "src/hooks/useChatClient" src/        # → 0 hits
 
-# Exactly one connectSocket call site
-grep -rn "connectSocket(" src/                 # → 1 hit (ChatClientContext.tsx:192)
+# connectSocket call sites — both inside ChatClientContext (initial connect +
+# reconnect-on-visible). No other file calls it.
+grep -rln "connectSocket(" src/                # → 1 file: ChatClientContext.tsx
 
 # Provider mounted in exactly the two routers
 grep -rn "<ChatClientProvider" src/            # → 2 JSX mounts

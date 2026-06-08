@@ -2,6 +2,9 @@
 
 import { ReactNode } from 'react'
 
+// ** Redux — swipe-to-reply dispatches setReplyingTo
+import { useDispatch } from 'react-redux'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -16,6 +19,12 @@ import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
 import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
+
+// ** Touch gesture — WhatsApp-style swipe-right to enter reply mode.
+// Active on tablet / phone (touch only); desktop click flow uses the
+// chevron menu's "Reply" item via MessageActions.
+import { useSwipeToReply } from 'src/views/apps/chat/useSwipeToReply'
+import { setReplyingTo } from 'src/store/apps/chat'
 
 // ** Forward marker — strip the sentinel for display and detect the
 // "Forwarded" state so we can render <ForwardedTag /> above the body.
@@ -150,16 +159,47 @@ const MessageBubble = ({
     onJumpToReply?.(String(targetId))
   }
 
+  // Swipe-right-to-reply (tablet / phone). Same payload shape that
+  // MessageActions' "Reply" menu item uses, so the composer state and
+  // server `replyTo` mapping are identical regardless of entry point.
+  // `canInteract === false` (kicked from the group) disables the
+  // gesture entirely so reply state can't be set on a read-only view.
+  const dispatch = useDispatch()
+  const triggerReply = () => {
+    if (!chat.id) return
+    dispatch(
+      setReplyingTo({
+        messageId: chat.id,
+        senderId: senderId ?? '',
+        senderName,
+        textPreview: chat.msg?.slice(0, 120) ?? '',
+        hasAttachment: Boolean(chat.attachments?.length)
+      })
+    )
+  }
+  const swipe = useSwipeToReply(triggerReply, !canInteract)
+
   return (
     // Outer column stacks [bubble+picker row] and [reactions row] vertically.
     // alignItems keeps both children flush to the same edge (left for receiver,
     // right for sender) so the reactions row never pushes the picker sideways.
+    //
+    // Swipe-right-to-reply: handlers + offset come from `useSwipeToReply`.
+    // The offset is applied via `transform: translateX(...)` while the
+    // finger is moving; on release the hook resets offset to 0 and we
+    // animate back with a brief ease-out. `touchAction: 'pan-y'` tells
+    // the browser to only honor vertical pans natively — horizontal
+    // gestures stay available to JS for the reply swipe.
     <Box
+      {...swipe.handlers}
       sx={{
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: isSender ? 'flex-end' : 'flex-start',
+        touchAction: 'pan-y',
+        transform: `translateX(${swipe.offset}px)`,
+        transition: swipe.offset > 0 ? 'none' : 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover .msg-actions': {
           opacity: 1,
           pointerEvents: 'auto'

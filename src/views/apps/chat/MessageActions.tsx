@@ -33,6 +33,8 @@ import {
   unpinMessageOverSocket
 } from 'src/lib/chat/api'
 
+import { chatErrorMessage } from 'src/lib/chat/errors'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -176,7 +178,7 @@ const MessageActions = ({
     const call = chat.isPinned ? unpinMessageOverSocket(chat.id) : pinMessageOverSocket(chat.id)
     call.catch(err => {
       console.error('[chat] pin toggle failed:', err)
-      toast.error('Couldn’t update pin')
+      toast.error(chatErrorMessage(err, 'Couldn’t update pin'))
     })
   }
 
@@ -203,7 +205,7 @@ const MessageActions = ({
         setConfirmingDelete(null)
       } catch (err) {
         console.error('[chat] delete failed:', err)
-        toast.error('Delete failed')
+        toast.error(chatErrorMessage(err, 'Delete failed'))
       } finally {
         setDeleting(false)
       }
@@ -233,7 +235,7 @@ const MessageActions = ({
         setConfirmingDelete(null)
       } catch (err) {
         console.error('[chat] delete-for-me failed:', err)
-        toast.error('Delete failed')
+        toast.error(chatErrorMessage(err, 'Delete failed'))
       } finally {
         setDeleting(false)
       }
