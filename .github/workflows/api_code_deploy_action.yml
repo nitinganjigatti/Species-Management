@@ -80,17 +80,26 @@ jobs:
           NEXT_PUBLIC_LIMS_BASE_URL=${{ vars.NEXT_PUBLIC_LIMS_BASE_URL }}
           ENVEOF
 
-      - name: Copy environment file for prod-release
+      - name: Write .env for prod-release from GitHub Environment
         if: github.ref == 'refs/heads/prod-release'
         run: |
-          rm -r .env
-          cp -r env.production .env
+          cat > .env <<'ENVEOF'
+          NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_ML_OPERATIONS_BASE_URL=${{ vars.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL }}
+          NEXT_PUBLIC_BRANDING=${{ vars.NEXT_PUBLIC_BRANDING }}
+          ENVEOF
 
-      - name: Copy environment file for release/farm
+      - name: Write .env for release/farm from GitHub Environment
         if: github.ref == 'refs/heads/release/farm'
         run: |
-          rm -r .env
-          cp -r env.farm .env
+          cat > .env <<'ENVEOF'
+          NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_ML_OPERATIONS_BASE_URL=${{ vars.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL }}
+          NEXT_PUBLIC_BRANDING=${{ vars.NEXT_PUBLIC_BRANDING }}
+          NEXT_PUBLIC_LIMS_BASE_URL=${{ vars.NEXT_PUBLIC_LIMS_BASE_URL }}
+          ENVEOF
       - name: Build Next.js Application (Optimize for memory)
         env:
           NODE_OPTIONS: --max_old_space_size=4096
