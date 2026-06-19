@@ -105,6 +105,8 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=4096
         run: |
           npm run build
+      - name: Bundle .env into build artifact
+        run: cp .env .next/deploy.env
       - name: Sanitize Branch Name
         id: sanitize
         env:
