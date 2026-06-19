@@ -69,11 +69,16 @@ jobs:
           NEXT_PUBLIC_LIMS_BASE_URL=${{ vars.NEXT_PUBLIC_LIMS_BASE_URL }}
           ENVEOF
 
-      - name: Copy environment file for uat-release
+      - name: Write .env for uat-release from GitHub Environment
         if: github.ref == 'refs/heads/uat-release'
         run: |
-          rm -r .env
-          cp -r env.uat .env
+          cat > .env <<'ENVEOF'
+          NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_ML_OPERATIONS_BASE_URL=${{ vars.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL }}
+          NEXT_PUBLIC_BRANDING=${{ vars.NEXT_PUBLIC_BRANDING }}
+          NEXT_PUBLIC_LIMS_BASE_URL=${{ vars.NEXT_PUBLIC_LIMS_BASE_URL }}
+          ENVEOF
 
       - name: Copy environment file for prod-release
         if: github.ref == 'refs/heads/prod-release'
