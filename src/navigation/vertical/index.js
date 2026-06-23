@@ -20,6 +20,7 @@ import notesNavigation from 'src/components/navigation/notes'
 
 import animalsNavigation from 'src/components/navigation/animals'
 import componentLibraryNavigation from 'src/components/navigation/component-library'
+import speciesManagementNavigation from 'src/components/navigation/species-management'
 import vmsNavigation from 'src/components/navigation/vms'
 import collectionNavigation from 'src/components/navigation/collection'
 import chatNavigation from 'src/components/navigation/chat'
@@ -78,6 +79,10 @@ const ComposeNavigation = () => {
   const navigationArray = []
   const dashboardNav = dashboardNavigation({ userRole })
   navigationArray.push(...dashboardNav)
+
+  // Species Management module (App Router) — always visible
+  const speciesManagementNav = speciesManagementNavigation()
+  navigationArray.push(...speciesManagementNav)
 
   // Announcements module (App Router)
   // const announcementsNav = announcementsNavigation()
