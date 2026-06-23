@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { Agentation } from 'agentation'
 import { Providers } from './providers'
 
 // ** Global css styles (CSS imports are safe in Server Components)
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
+        {process.env.NODE_ENV === 'development' && <Agentation />}
       </body>
     </html>
   )
