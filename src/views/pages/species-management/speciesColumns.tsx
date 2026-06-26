@@ -3,7 +3,12 @@ import type { Theme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import StatChip from 'src/views/utility/StatChip'
-import { getReadiness, type SpeciesRow } from 'src/views/pages/species-management/speciesListing.utils'
+import {
+  analysisValue,
+  getReadiness,
+  type AnalysisFilter,
+  type SpeciesRow
+} from 'src/views/pages/species-management/speciesListing.utils'
 
 /**
  * Column definitions for the Species Management listing.
@@ -11,7 +16,7 @@ import { getReadiness, type SpeciesRow } from 'src/views/pages/species-managemen
  * Per-sex columns are dropped here (they live on the species detail page); readiness summarises them.
  * Keeps the existing DataGrid styling (SpeciesCard + StatChip + token colors).
  */
-export const buildSpeciesColumns = (theme: Theme): GridColDef[] => {
+export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
 
   const textCell = (value: string, color?: string, fontWeight?: number) => (
@@ -44,7 +49,52 @@ export const buildSpeciesColumns = (theme: Theme): GridColDef[] => {
     )
   }
 
-  return [
+  // Temporary metric column surfaced while an Analysis filter is active (inserted after Population).
+  const analysisColumn = (): GridColDef | null => {
+    if (!analysis?.mode) return null
+
+    if (analysis.mode === 'lifespan') {
+      return {
+        width: 150,
+        sortable: false,
+        field: 'analysis_metric',
+        headerName: 'Avg adult life',
+        renderCell: (params: GridRenderCellParams) => {
+          const r = params.row as SpeciesRow
+          const head = r.lifespanAvgAdult ?? r.lifespanAvg
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+              <Typography variant='body2' sx={{ fontWeight: 700, color: theme.palette.secondary.main }}>
+                {head != null ? `${head}y` : '—'}
+              </Typography>
+              {r.lifespanMax != null && (
+                <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+                  max {r.lifespanMax}y · n={r.lifespanCount}
+                </Typography>
+              )}
+            </Box>
+          )
+        }
+      }
+    }
+
+    const isBirths = analysis.mode === 'births'
+
+    return {
+      width: 140,
+      sortable: false,
+      field: 'analysis_metric',
+      headerName: isBirths ? 'Births in period' : 'Deaths in period',
+      renderCell: (params: GridRenderCellParams) => {
+        const v = analysisValue(params.row as SpeciesRow, analysis) || 0
+
+        return textCell(v.toLocaleString(), isBirths ? theme.palette.primary.dark : cc.Tertiary, 700)
+      }
+    }
+  }
+
+  const cols: GridColDef[] = [
     {
       width: 60,
       sortable: false,
@@ -80,6 +130,99 @@ export const buildSpeciesColumns = (theme: Theme): GridColDef[] => {
           </Typography>
         </Box>
       )
+    },
+    {
+      width: 150,
+      sortable: false,
+      field: 'mfu',
+      headerName: 'M · F · U',
+      renderCell: (params: GridRenderCellParams) => {
+        const r = params.row as SpeciesRow
+        const seg = (n: number, color: string) => (
+          <Typography variant='body2' sx={{ fontWeight: 600, color }}>
+            {Number(n || 0).toLocaleString()}
+          </Typography>
+        )
+        const dot = (
+          <Typography variant='body2' sx={{ color: cc.OutlineVariant }}>
+            ·
+          </Typography>
+        )
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, height: '100%' }}>
+            {seg(r.male, cc.OnSurfaceVariant)}
+            {dot}
+            {seg(r.female, cc.OnSurfaceVariant)}
+            {dot}
+            {seg(r.undetermined, cc.OnSurfaceVariant)}
+          </Box>
+        )
+      }
+    },
+    {
+      width: 90,
+      sortable: false,
+      field: 'sexed_pct',
+      headerName: 'Sexed %',
+      renderCell: (params: GridRenderCellParams) => {
+        const r = params.row as SpeciesRow
+        const pct = r.population > 0 ? Math.round(((r.male + r.female) / r.population) * 100) : 0
+        return textCell(r.population > 0 ? `${pct}%` : '—', pct >= 80 ? theme.palette.primary.dark : cc.OnSurfaceVariant, 600)
+      }
+    },
+    {
+      width: 80,
+      sortable: false,
+      field: 'sites_count',
+      headerName: 'Sites',
+      renderCell: (params: GridRenderCellParams) => textCell(String(((params.row as SpeciesRow).sites || []).length), undefined, 600)
+    },
+    {
+      width: 110,
+      sortable: false,
+      field: 'enclosures',
+      headerName: 'Enclosures',
+      renderCell: (params: GridRenderCellParams) => textCell(Number((params.row as SpeciesRow).enclosures || 0).toLocaleString(), undefined, 600)
+    },
+    {
+      width: 90,
+      sortable: false,
+      field: 'pairs',
+      headerName: 'Paired',
+      renderCell: (params: GridRenderCellParams) => textCell(Number((params.row as SpeciesRow).pairs || 0).toLocaleString(), undefined, 600)
+    },
+    {
+      width: 90,
+      sortable: false,
+      field: 'chipped',
+      headerName: 'Chip',
+      renderCell: (params: GridRenderCellParams) => textCell(Number((params.row as SpeciesRow).chipped || 0).toLocaleString(), undefined, 600)
+    },
+    {
+      width: 90,
+      sortable: false,
+      field: 'births',
+      headerName: 'Births',
+      renderCell: (params: GridRenderCellParams) => textCell(Number((params.row as SpeciesRow).births || 0).toLocaleString(), theme.palette.primary.dark, 600)
+    },
+    {
+      width: 90,
+      sortable: false,
+      field: 'deaths',
+      headerName: 'Deaths',
+      renderCell: (params: GridRenderCellParams) => textCell(Number((params.row as SpeciesRow).deaths || 0).toLocaleString(), cc.Tertiary, 600)
+    },
+    {
+      width: 110,
+      sortable: false,
+      field: 'accessions',
+      headerName: 'Accessions',
+      renderCell: (params: GridRenderCellParams) => {
+        const n = Number((params.row as SpeciesRow).accessions || 0)
+
+        return textCell(n ? n.toLocaleString() : '—', n ? cc.OnSurfaceVariant : cc.neutralSecondary, 600)
+      }
     },
     {
       width: 110,
@@ -142,4 +285,12 @@ export const buildSpeciesColumns = (theme: Theme): GridColDef[] => {
       renderCell: (params: GridRenderCellParams) => textCell(params.row.genus)
     }
   ]
+
+  const metricCol = analysisColumn()
+  if (metricCol) {
+    const popIdx = cols.findIndex(c => c.field === 'population')
+    cols.splice(popIdx + 1, 0, metricCol)
+  }
+
+  return cols
 }

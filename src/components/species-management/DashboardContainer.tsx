@@ -1,10 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import DashboardView from 'src/views/pages/species-management/dashboard/DashboardView'
-import type { VitalSegment, Composition, Tone } from 'src/views/pages/species-management/dashboard/dashboardUi'
+import type { VitalSegment, Composition } from 'src/views/pages/species-management/dashboard/dashboardUi'
+import {
+  PRESETS,
+  monthKey,
+  resolveRange
+} from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import type { RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 import { getSpeciesDashboard } from 'src/lib/api/species-management/dashboard'
 import type { DashboardAlert } from 'src/types/species-management/dashboard'
 
@@ -22,29 +28,48 @@ const THREATENED_STATUSES = [
 
 export default function DashboardContainer() {
   const router = useRouter()
+  const [range, setRange] = useState<RangeSelection>({ preset: 'last_1y', start: null, end: null })
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['species-dashboard'],
     queryFn: getSpeciesDashboard
   })
 
+  // Date range drives the event-based widgets only (births/deaths trend + net change);
+  // composition widgets are current inventory with no time dimension in the data.
+  const { trend, windowNet, rangeLabel } = useMemo(() => {
+    const monthly = data?.trendMonthly ?? []
+    const { from, to } = resolveRange(range, new Date())
+    const fromK = from ? monthKey(from) : null
+    const toK = monthKey(to)
+    const filtered = monthly.filter(m => (!fromK || m.label >= fromK) && m.label <= toK)
+    const series = filtered.length ? filtered : monthly.slice(-1)
+    const net = series.reduce((s, m) => s + (m.births - m.deaths), 0)
+    const label =
+      range.preset === 'custom' && (range.start || range.end)
+        ? 'custom range'
+        : (PRESETS.find(p => p.key === range.preset)?.label ?? '').toLowerCase()
+
+    return { trend: series, windowNet: net, rangeLabel: label }
+  }, [data, range])
+
   const segments: VitalSegment[] = useMemo(() => {
     if (!data) return []
     const t = data.totals
-    const net = data.netYTD.net
+    const net = windowNet
 
     return [
       { label: 'Species', value: t.species.toLocaleString(), onClick: () => router.push(LIST) },
       {
         label: 'Animals',
         value: t.animals.total.toLocaleString(),
-        sub: `${t.animals.m.toLocaleString()} M · ${t.animals.f.toLocaleString()} F · ${t.animals.u.toLocaleString()} unsexed`,
+        sub: 'individuals across all species',
         onClick: () => router.push(LIST)
       },
       {
-        label: `Net change (${data.netYTD.year})`,
+        label: 'Net change',
         value: `${net >= 0 ? '▲' : '▼'} ${Math.abs(net).toLocaleString()}`,
-        sub: 'births − deaths, YTD'
+        sub: `births − deaths · ${rangeLabel}`
       },
       {
         label: 'Threatened',
@@ -54,85 +79,78 @@ export default function DashboardContainer() {
       },
       {
         label: 'Breedable',
-        value: data.breeding.can_pair.toLocaleString(),
+        value: data.breeding.can_pair.speciesCount.toLocaleString(),
         sub: 'both sexes present',
         onClick: () => router.push(q({ Readiness: 'can_pair' }))
       },
       { label: 'Assessed', value: `${data.coverage.pct}%`, sub: 'of animals, weight coverage' },
       { label: 'Sexed', value: `${data.coverage.sexedPct}%`, sub: 'of animals' }
     ]
-  }, [data, router])
+  }, [data, router, windowNet, rangeLabel])
 
   const compositions: Composition[] = useMemo(() => {
     if (!data) return []
-    const iucnTone: Record<string, Tone> = {
-      CR: 'error',
-      EN: 'warning',
-      VU: 'warning',
-      NT: 'success',
-      LC: 'primary',
-      OTHER: 'neutral'
-    }
-    const classTones: Tone[] = ['primary', 'info', 'success', 'neutral', 'warning', 'error']
 
     return [
       {
-        title: 'Conservation (IUCN)',
-        segments: data.iucn.map(i => ({
-          label: i.status.split(' (')[0],
-          value: i.speciesCount,
-          tone: iucnTone[i.code] || 'neutral',
-          onClick: () => router.push(q({ Conservation: i.status }))
-        }))
-      },
-      {
         title: 'By class',
-        segments: data.byClass.slice(0, 6).map((c, idx) => ({
+        chart: 'donut',
+        segments: data.byClass.slice(0, 5).map(c => ({
           label: c.class,
           value: c.speciesCount,
-          tone: classTones[idx % classTones.length],
+          animalCount: c.animalCount,
           onClick: () => router.push(q({ Class: c.class }))
         }))
       },
       {
-        title: 'Breeding readiness',
-        segments: [
-          { label: 'Can Pair', value: data.breeding.can_pair, tone: 'success', onClick: () => router.push(q({ Readiness: 'can_pair' })) },
-          { label: 'Needs Sexing', value: data.breeding.needs_sexing, tone: 'warning', onClick: () => router.push(q({ Readiness: 'needs_sexing' })) },
-          { label: 'Single Sex', value: data.breeding.single_sex, tone: 'error', onClick: () => router.push(q({ Readiness: 'single_sex' })) },
-          { label: 'No Data', value: data.breeding.no_data, tone: 'neutral', onClick: () => router.push(q({ Readiness: 'no_data' })) }
-        ]
-      },
-      {
-        title: 'Category',
-        segments: data.category.map((c, idx) => ({
-          label: c.label,
-          value: c.speciesCount,
-          tone: classTones[idx % classTones.length],
-          onClick: () => router.push(q({ Category: c.label }))
-        }))
-      },
-      {
-        title: 'CITES',
-        segments: data.cites.slice(0, 6).map((c, idx) => ({
-          label: c.label.split(' (')[0],
-          value: c.speciesCount,
-          tone: classTones[idx % classTones.length],
-          onClick: () => router.push(q({ CITES: c.label }))
+        title: 'Conservation (IUCN)',
+        chart: 'bar-h',
+        segments: data.iucn.slice(0, 5).map(i => ({
+          label: i.status.split(' (')[0],
+          value: i.speciesCount,
+          animalCount: i.animalCount,
+          onClick: () => router.push(q({ Conservation: i.status }))
         }))
       },
       {
         title: 'Population size',
-        segments: data.populationBands.map(b => {
-          const popTone: Record<string, Tone> = { '1-3': 'error', '4-10': 'warning', '11-50': 'info', '51-100': 'primary', '100+': 'success' }
-
-          return {
-            label: b.label,
-            value: b.speciesCount,
-            tone: popTone[b.key] || 'neutral',
-            onClick: () => router.push(q({ Population: b.key }))
-          }
-        })
+        chart: 'bar-v',
+        segments: data.populationBands.map(b => ({
+          label: b.label,
+          value: b.speciesCount,
+          animalCount: b.animalCount,
+          onClick: () => router.push(q({ Population: b.key }))
+        }))
+      },
+      {
+        title: 'Breeding readiness',
+        chart: 'radial',
+        segments: [
+          { label: 'Can Pair', value: data.breeding.can_pair.speciesCount, animalCount: data.breeding.can_pair.animalCount, onClick: () => router.push(q({ Readiness: 'can_pair' })) },
+          { label: 'Needs Sexing', value: data.breeding.needs_sexing.speciesCount, animalCount: data.breeding.needs_sexing.animalCount, onClick: () => router.push(q({ Readiness: 'needs_sexing' })) },
+          { label: 'Single Sex', value: data.breeding.single_sex.speciesCount, animalCount: data.breeding.single_sex.animalCount, onClick: () => router.push(q({ Readiness: 'single_sex' })) },
+          { label: 'No Data', value: data.breeding.no_data.speciesCount, animalCount: data.breeding.no_data.animalCount, onClick: () => router.push(q({ Readiness: 'no_data' })) }
+        ]
+      },
+      {
+        title: 'CITES',
+        chart: 'polar',
+        segments: data.cites.slice(0, 6).map(c => ({
+          label: c.label.split(' (')[0],
+          value: c.speciesCount,
+          animalCount: c.animalCount,
+          onClick: () => router.push(q({ CITES: c.label }))
+        }))
+      },
+      {
+        title: 'Category',
+        chart: 'pie',
+        segments: data.category.slice(0, 5).map(c => ({
+          label: c.label,
+          value: c.speciesCount,
+          animalCount: c.animalCount,
+          onClick: () => router.push(q({ Category: c.label }))
+        }))
       }
     ]
   }, [data, router])
@@ -148,7 +166,10 @@ export default function DashboardContainer() {
       alerts={data?.alerts ?? []}
       totalAlertItems={totalAlertItems}
       compositions={compositions}
-      trend={data?.trend12 ?? []}
+      sex={data?.totals.animals ?? { m: 0, f: 0, u: 0, total: 0 }}
+      trend={trend}
+      range={range}
+      onRangeChange={setRange}
       onAlertClick={onAlertClick}
     />
   )

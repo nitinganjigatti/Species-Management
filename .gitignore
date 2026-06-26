@@ -47,3 +47,6 @@ public/reports/*
 .vscode/*
 .claude
 docs/superpowers/*
+
+# dev screenshot harness output
+.screenshots/

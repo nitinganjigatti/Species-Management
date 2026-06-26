@@ -78,9 +78,10 @@ const SpeciesDetailContainer = () => {
 
   const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile')
   const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing')
-  const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing')
+  const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing' || tab === 'pairing')
   const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle')
   const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle')
+  const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle')
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
   const vaccination = useTabQuery(['sm-vaccination', id], () => detailApi.getSpeciesVaccination(id), tab === 'medical')
@@ -99,14 +100,14 @@ const SpeciesDetailContainer = () => {
       case 'profile':
         return profile.isLoading ? <Loading /> : <ProfileTab profile={profile.data} header={header.data} />
       case 'pairing':
-        return housing.isLoading ? <Loading /> : <PairingTab housing={housing.data} />
+        return housing.isLoading ? <Loading /> : <PairingTab housing={housing.data} animals={animals.data?.animals} />
       case 'housing':
         return housing.isLoading ? <Loading /> : <HousingTab housing={housing.data} animals={animals.data?.animals} />
       case 'circle':
-        return births.isLoading || deaths.isLoading ? (
+        return births.isLoading || deaths.isLoading || lifecycle.isLoading ? (
           <Loading />
         ) : (
-          <CircleOfLifeTab births={births.data} deaths={deaths.data} />
+          <CircleOfLifeTab births={births.data} deaths={deaths.data} lifecycle={lifecycle.data} />
         )
       case 'eggs':
         return eggs.isLoading ? <Loading /> : <EggsTab eggs={eggs.data} />

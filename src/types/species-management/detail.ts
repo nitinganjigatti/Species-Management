@@ -515,4 +515,36 @@ export type SpeciesDetailTab =
   | 'breeds'
 
 export type MedicalSubTab = 'vaccination' | 'deworming' | 'complaints' | 'diagnosis'
-export type CircleSubTab = 'births' | 'deaths'
+export type CircleSubTab = 'births' | 'deaths' | 'lifespan'
+
+/* ------------------------------------------------------------------ Lifecycle events */
+/** A single real birth/death event (day-level), from public/species-data/lifecycle/<id>.json. */
+export interface LifecycleBirth {
+  d: string // YYYY-MM-DD
+  aid?: string // antz_animal_id
+  idn?: string // local identifier name (e.g. "Name")
+  idv?: string // local identifier value (e.g. "Riley 62")
+  g?: string // gender
+  s?: string // site
+  e?: string // enclosure
+  b?: string // breed
+  k?: number // animal count (omitted when 1)
+}
+export interface LifecycleDeath {
+  d: string // YYYY-MM-DD (mortality recorded on)
+  aid?: string // antz_animal_id
+  idn?: string // local identifier name
+  idv?: string // local identifier value
+  g?: string // gender
+  s?: string // site
+  e?: string // enclosure
+  m?: string // manner of death
+  c?: string // carcass condition
+  y?: string // necropsy status (Pending | Completed | NA)
+  a?: number // age at death (years); omitted when no usable birth date
+  k?: number // died count (omitted when 1)
+}
+export interface SpeciesLifecycle {
+  births: LifecycleBirth[]
+  deaths: LifecycleDeath[]
+}

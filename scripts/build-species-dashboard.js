@@ -29,11 +29,17 @@ function iucnCode(s) {
 }
 const THREATENED = new Set(['CR', 'EN', 'VU'])
 const num = v => Number(v) || 0
+// Accumulate species (s) + animal (a) counts into a keyed map.
+const bump = (map, key, a) => {
+  if (!map[key]) map[key] = { s: 0, a: 0 }
+  map[key].s++
+  map[key].a += a
+}
 
-// trailing 12 month labels ending current month of YEAR
-function last12Labels() {
+// trailing N month labels ending current month of YEAR
+function lastNLabels(n) {
   const out = []
-  for (let i = 11; i >= 0; i--) {
+  for (let i = n - 1; i >= 0; i--) {
     const d = new Date(YEAR, new Date().getMonth() - i, 1)
     out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
@@ -56,10 +62,15 @@ const POP_BANDS = [
   { key: '100+', label: '100+', min: 101, max: Infinity }
 ]
 const popCounts = {}
-const breeding = { can_pair: 0, needs_sexing: 0, single_sex: 0, no_data: 0 }
+const breeding = {
+  can_pair: { s: 0, a: 0 },
+  needs_sexing: { s: 0, a: 0 },
+  single_sex: { s: 0, a: 0 },
+  no_data: { s: 0, a: 0 }
+}
 const monthly = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, births: 0, deaths: 0, net: 0 }))
 let birthsYTD = 0, deathsYTD = 0
-const trendLabels = last12Labels()
+const trendLabels = lastNLabels(60)
 const trend = trendLabels.map(label => ({ label, births: 0, deaths: 0 }))
 const trendIdx = Object.fromEntries(trendLabels.map((l, i) => [l, i]))
 let assessedAnimals = 0, totalReal = 0
@@ -82,23 +93,26 @@ for (const sp of list) {
   totals.animals.m += m; totals.animals.f += f; totals.animals.u += u
   totals.animals.total += num(sp.animal_count)
 
+  const ac = num(sp.animal_count)
+
   const status = sp.iucn_status || '(Unknown)'
-  iucnMap[status] = (iucnMap[status] || 0) + 1
+  bump(iucnMap, status, ac)
   const code = iucnCode(status)
   if (THREATENED.has(code)) { threatened++; codeCount[code]++ }
 
   const cls = sp.class_name || '(Unknown)'
-  classMap[cls] = (classMap[cls] || 0) + 1
+  bump(classMap, cls, ac)
 
   const cat = sp.breeding_category || '(Unknown)'
-  catMap[cat] = (catMap[cat] || 0) + 1
+  bump(catMap, cat, ac)
   const cit = sp.cites_appendix || '(Unknown)'
-  citesMap[cit] = (citesMap[cit] || 0) + 1
-  const pop = num(sp.animal_count)
-  const band = POP_BANDS.find(b => pop >= b.min && pop <= b.max)
-  if (band) popCounts[band.key] = (popCounts[band.key] || 0) + 1
+  bump(citesMap, cit, ac)
+  const band = POP_BANDS.find(b => ac >= b.min && ac <= b.max)
+  if (band) bump(popCounts, band.key, ac)
 
-  breeding[readiness(m, f, u)]++
+  const r = readiness(m, f, u)
+  breeding[r].s++
+  breeding[r].a += ac
 
   let d
   try { d = JSON.parse(fs.readFileSync(path.join(DATA, 'detail', `${id}.json`), 'utf8')) } catch { continue }
@@ -153,10 +167,15 @@ if (maxDeathMonth) {
 const out = {
   totals,
   netYTD: { year: YEAR, births: birthsYTD, deaths: deathsYTD, net: birthsYTD - deathsYTD, monthly },
-  iucn: Object.entries(iucnMap).map(([status, speciesCount]) => ({ status, code: iucnCode(status), speciesCount }))
+  iucn: Object.entries(iucnMap).map(([status, v]) => ({ status, code: iucnCode(status), speciesCount: v.s, animalCount: v.a }))
     .sort((a, b) => b.speciesCount - a.speciesCount),
   threatened: { count: threatened, byCode: codeCount },
-  breeding,
+  breeding: {
+    can_pair: { speciesCount: breeding.can_pair.s, animalCount: breeding.can_pair.a },
+    needs_sexing: { speciesCount: breeding.needs_sexing.s, animalCount: breeding.needs_sexing.a },
+    single_sex: { speciesCount: breeding.single_sex.s, animalCount: breeding.single_sex.a },
+    no_data: { speciesCount: breeding.no_data.s, animalCount: breeding.no_data.a }
+  },
   coverage: {
     pct: totalReal ? Math.round((assessedAnimals / totalReal) * 100) : 0,
     assessedAnimals,
@@ -164,13 +183,18 @@ const out = {
     sexedPct: totalHeaderAnimals ? Math.round((sexedAnimals / totalHeaderAnimals) * 100) : 0,
     chippedPct: totalHeaderAnimals ? Math.round((chippedAnimals / totalHeaderAnimals) * 100) : 0
   },
-  byClass: Object.entries(classMap).map(([cls, speciesCount]) => ({ class: cls, speciesCount }))
+  byClass: Object.entries(classMap).map(([cls, v]) => ({ class: cls, speciesCount: v.s, animalCount: v.a }))
     .sort((a, b) => b.speciesCount - a.speciesCount),
-  category: Object.entries(catMap).map(([label, speciesCount]) => ({ label, speciesCount }))
+  category: Object.entries(catMap).map(([label, v]) => ({ label, speciesCount: v.s, animalCount: v.a }))
     .sort((a, b) => b.speciesCount - a.speciesCount),
-  cites: Object.entries(citesMap).map(([label, speciesCount]) => ({ label, speciesCount }))
+  cites: Object.entries(citesMap).map(([label, v]) => ({ label, speciesCount: v.s, animalCount: v.a }))
     .sort((a, b) => b.speciesCount - a.speciesCount),
-  populationBands: POP_BANDS.map(b => ({ key: b.key, label: b.label, speciesCount: popCounts[b.key] || 0 })),
+  populationBands: POP_BANDS.map(b => ({
+    key: b.key,
+    label: b.label,
+    speciesCount: popCounts[b.key] ? popCounts[b.key].s : 0,
+    animalCount: popCounts[b.key] ? popCounts[b.key].a : 0
+  })),
   alerts: [
     ...ALERT_DEFS.map(def => ({
       key: def.key, label: def.label, severity: def.severity,
@@ -182,7 +206,8 @@ const out = {
       speciesCount: spike.speciesCount, animalCount: spike.animalCount,
       pctSpecies: Math.round(spike.speciesCount / totals.species * 1000) / 10, speciesIds: spike.speciesIds }
   ].sort((a, b) => b.speciesCount - a.speciesCount),
-  trend12: trend,
+  trend12: trend.slice(-12),
+  trendMonthly: trend,
   generatedAt: new Date().toISOString()
 }
 

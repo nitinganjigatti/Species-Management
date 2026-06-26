@@ -11,7 +11,7 @@ let listCache: any[] | null = null
 
 async function loadList(): Promise<any[]> {
   if (!listCache) {
-    const res = await fetch('/species-data/list.json')
+    const res = await fetch('/species-data/list.json', { cache: 'no-store' })
     listCache = res.ok ? await res.json() : []
   }
 

@@ -9,7 +9,8 @@ import type {
   SpeciesMedication,
   SpeciesConditions,
   SpeciesIdentification,
-  SpeciesBreeds
+  SpeciesBreeds,
+  SpeciesLifecycle
 } from 'src/types/species-management/detail'
 
 /**
@@ -107,3 +108,20 @@ export const getSpeciesAnaesthesia = async (id: number | string): Promise<Specie
 
 export const getSpeciesPharmacy = async (id: number | string): Promise<SpeciesPharmacy | undefined> =>
   (await loadDetail(id))?.pharmacy
+
+// --- Lifecycle events (day-level births/deaths) — separate sidecar, fetched lazily by Circle of Life ---
+const lifecycleCache = new Map<string, Promise<SpeciesLifecycle | null>>()
+
+export const getSpeciesLifecycle = (id: number | string): Promise<SpeciesLifecycle | null> => {
+  const k = String(id)
+  if (!lifecycleCache.has(k)) {
+    lifecycleCache.set(
+      k,
+      fetch(`/species-data/lifecycle/${k}.json`)
+        .then(r => (r.ok ? r.json() : null))
+        .catch(() => null)
+    )
+  }
+
+  return lifecycleCache.get(k) as Promise<SpeciesLifecycle | null>
+}

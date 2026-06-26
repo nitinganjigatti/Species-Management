@@ -3,8 +3,10 @@
 import Box from '@mui/material/Box'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { VitalStrip, NeedsAttention, ExploreRail, BirthsDeathsTrend } from './dashboardUi'
+import { VitalStrip, NeedsAttention, ExploreGrid, SexDonut, BirthsDeathsTrend } from './dashboardUi'
 import type { VitalSegment, Composition } from './dashboardUi'
+import DashboardDateRange from './DashboardDateRange'
+import type { RangeSelection } from './DashboardDateRange'
 import type { DashboardData, DashboardAlert } from 'src/types/species-management/dashboard'
 
 export interface DashboardViewProps {
@@ -14,12 +16,16 @@ export interface DashboardViewProps {
   alerts: DashboardAlert[]
   totalAlertItems: number
   compositions: Composition[]
+  sex: DashboardData['totals']['animals']
   trend: DashboardData['trend12']
+  range: RangeSelection
+  onRangeChange: (sel: RangeSelection) => void
   onAlertClick: (a: DashboardAlert) => void
 }
 
 export default function DashboardView(props: DashboardViewProps) {
-  const { loading, error, segments, alerts, totalAlertItems, compositions, trend, onAlertClick } = props
+  const { loading, error, segments, alerts, totalAlertItems, compositions, sex, trend, range, onRangeChange, onAlertClick } =
+    props
 
   if (error) {
     return (
@@ -31,23 +37,37 @@ export default function DashboardView(props: DashboardViewProps) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-      <Typography variant='h5'>Species Management</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+        <Box>
+          <Typography variant='h5'>Species Management</Typography>
+          <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+            Date range applies to births / deaths · composition shown as of today
+          </Typography>
+        </Box>
+        <DashboardDateRange value={range} onChange={onRangeChange} />
+      </Box>
 
+      {/* Band 1 — vital strip */}
       {loading ? <Skeleton variant='rounded' height={96} /> : <VitalStrip segments={segments} />}
 
-      <Box sx={{ display: 'flex', gap: 1.75, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1.55 1 320px', minWidth: 0 }}>
+      {/* Band 2 — triage + sex composition (original widths, equal height) */}
+      <Box sx={{ display: 'flex', gap: 1.75, alignItems: 'stretch', flexWrap: 'wrap' }}>
+        <Box sx={{ flex: '1.6 1 340px', minWidth: 0, display: 'flex' }}>
           {loading ? (
-            <Skeleton variant='rounded' height={220} />
+            <Skeleton variant='rounded' height={320} sx={{ width: '100%' }} />
           ) : (
             <NeedsAttention alerts={alerts} totalItems={totalAlertItems} onAlertClick={onAlertClick} />
           )}
         </Box>
-        <Box sx={{ flex: '1 1 240px', minWidth: 0 }}>
-          {loading ? <Skeleton variant='rounded' height={220} /> : <ExploreRail compositions={compositions} />}
+        <Box sx={{ flex: '1 1 260px', minWidth: 0, display: 'flex' }}>
+          {loading ? <Skeleton variant='rounded' height={320} sx={{ width: '100%' }} /> : <SexDonut animals={sex} />}
         </Box>
       </Box>
 
+      {/* Band 3 — explore chart grid */}
+      {loading ? <Skeleton variant='rounded' height={280} /> : <ExploreGrid compositions={compositions} />}
+
+      {/* Band 4 — births vs deaths */}
       {!loading && <BirthsDeathsTrend trend={trend} />}
     </Box>
   )

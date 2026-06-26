@@ -7,10 +7,10 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import {
+  DRAWER_FILTER_KEYS,
   EMPTY_FILTERS,
-  LIVE_FILTER_KEYS,
   PARKED_FILTER_KEYS,
-  countAppliedFilters,
+  type FilterInsights,
   type SpeciesFilters
 } from 'src/views/pages/species-management/speciesListing.utils'
 
@@ -18,6 +18,10 @@ export interface FilterOption {
   value: string
   label: string
   count: number
+  /** Total animals across the species matching this option. */
+  animals: number
+  insights?: FilterInsights
+  note?: string
 }
 
 interface SpeciesManagementFilterDrawerProps {
@@ -38,12 +42,18 @@ const FILTER_LABELS: Record<keyof SpeciesFilters, string> = {
   Population: 'Population',
   Readiness: 'Breeding Readiness',
   Site: 'Site',
+  Sex: 'Sex',
   Category: 'Category',
   Conservation: 'Conservation',
   CITES: 'CITES'
 }
 
-const MENU_KEYS: (keyof SpeciesFilters)[] = [...LIVE_FILTER_KEYS, ...PARKED_FILTER_KEYS]
+// Major facets (Category/Class/Readiness/Sex) are surfaced as upfront pills, not in the drawer.
+const MENU_KEYS: (keyof SpeciesFilters)[] = [...DRAWER_FILTER_KEYS, ...PARKED_FILTER_KEYS]
+
+/** Count only the drawer's own facets — major-facet pills carry their own state. */
+const countDrawerFilters = (filters: SpeciesFilters): number =>
+  DRAWER_FILTER_KEYS.reduce((n, k) => n + filters[k].length, 0)
 
 const SpeciesManagementFilterDrawer: React.FC<SpeciesManagementFilterDrawerProps> = ({
   open,
@@ -56,7 +66,7 @@ const SpeciesManagementFilterDrawer: React.FC<SpeciesManagementFilterDrawerProps
   const theme = useTheme()
   const cc = theme.palette.customColors as Record<string, string>
 
-  const [selectedMenu, setSelectedMenu] = useState<keyof SpeciesFilters>('Class')
+  const [selectedMenu, setSelectedMenu] = useState<keyof SpeciesFilters>(DRAWER_FILTER_KEYS[0])
   const [searchQuery, setSearchQuery] = useState('')
   const [selected, setSelected] = useState<SpeciesFilters>({ ...EMPTY_FILTERS })
 
@@ -101,12 +111,20 @@ const SpeciesManagementFilterDrawer: React.FC<SpeciesManagementFilterDrawerProps
   }
 
   const handleClearAll = () => {
-    setSelected({ ...EMPTY_FILTERS })
+    // Clear only the drawer's own facets — leave the upfront pill selections intact.
+    setSelected(prev => {
+      const next = { ...prev }
+      DRAWER_FILTER_KEYS.forEach(k => {
+        next[k] = []
+      })
+
+      return next
+    })
     setFilterCount(0)
   }
 
   const handleApply = () => {
-    setFilterCount(countAppliedFilters(selected))
+    setFilterCount(countDrawerFilters(selected))
     onApply(selected)
     onClose()
   }
@@ -195,7 +213,7 @@ const SpeciesManagementFilterDrawer: React.FC<SpeciesManagementFilterDrawerProps
     )
   }
 
-  const appliedCount = countAppliedFilters(selected)
+  const appliedCount = countDrawerFilters(selected)
   const title = appliedCount > 0 ? `Filter - ${appliedCount}` : 'Filter'
 
   return (

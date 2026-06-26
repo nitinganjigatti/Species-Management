@@ -1,16 +1,21 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Box, Button, Card, Chip, IconButton, Typography } from '@mui/material'
+import React, { useEffect, useRef, useState } from 'react'
+import { Box, Button, Card, Checkbox, Chip, Collapse, Menu, MenuItem, TextField, Typography } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Icon from 'src/@core/components/icon'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-import { getReadiness, type SpeciesRow } from 'src/views/pages/species-management/speciesListing.utils'
+import SpeciesListMajorFilters, {
+  type MajorFilterOption,
+  type MajorFilterRow
+} from 'src/views/pages/species-management/SpeciesListMajorFilters'
+import SpeciesListAnalysisFilter from 'src/views/pages/species-management/SpeciesListAnalysisFilter'
+import { compactNumber, type AnalysisFilter, type SpeciesFilters } from 'src/views/pages/species-management/speciesListing.utils'
 
 export interface AppliedChip {
   id: string
@@ -44,6 +49,140 @@ interface SpeciesListingViewProps {
   chips: AppliedChip[]
   onResetAll: () => void
   posture: PostureStats
+  majorFilters: MajorFilterRow[]
+  appliedFilters: SpeciesFilters
+  onToggleFacet: (key: keyof SpeciesFilters, value: string) => void
+  onClearFacet: (key: keyof SpeciesFilters) => void
+  sexOptions: MajorFilterOption[]
+  sexSelected: string[]
+  siteOptions: MajorFilterOption[]
+  siteSelected: string[]
+  readinessOptions: MajorFilterOption[]
+  readinessSelected: string[]
+  analysis: AnalysisFilter
+  analysisYears: number[]
+  onAnalysisChange: (next: AnalysisFilter) => void
+}
+
+// Multi-select facet dropdown that sits beside the search bar (Gender / Site / Readiness).
+// Self-contained anchor state so multiple instances open independently.
+const FacetDropdown: React.FC<{
+  label: string
+  facetKey: keyof SpeciesFilters
+  options: MajorFilterOption[]
+  selected: string[]
+  onToggle: (key: keyof SpeciesFilters, value: string) => void
+  onClear: (key: keyof SpeciesFilters) => void
+  /** Show a search field inside the menu (for high-cardinality facets like Site). */
+  searchable?: boolean
+  /** Maps an option label to a short code (e.g. Male→M). When set, the button shows the
+   *  selected codes ("Gender-M & F") and selecting ALL options resets to default (no filter). */
+  abbreviate?: (label: string) => string
+}> = ({ label, facetKey, options, selected, onToggle, onClear, searchable, abbreviate }) => {
+  const theme = useTheme()
+  const cc = theme.palette.customColors as Record<string, string>
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null)
+  const [q, setQ] = useState('')
+
+  const filtered =
+    searchable && q.trim() ? options.filter(o => o.label.toLowerCase().includes(q.trim().toLowerCase())) : options
+
+  const handleToggle = (value: string) => {
+    const next = selected.includes(value) ? selected.filter(v => v !== value) : [...selected, value]
+    // For few-option facets (abbreviate set): selecting every option == no filter (default).
+    if (abbreviate && next.length >= options.length) return onClear(facetKey)
+    onToggle(facetKey, value)
+  }
+
+  const labelText = !selected.length
+    ? label
+    : abbreviate
+    ? `${label}-${options.filter(o => selected.includes(o.value)).map(o => abbreviate(o.label)).join(' & ')}`
+    : `${label} · ${selected.length}`
+
+  return (
+    <>
+      <Button
+        variant='outlined'
+        onClick={e => setAnchor(e.currentTarget)}
+        endIcon={<Icon icon='mdi:chevron-down' />}
+        sx={{
+          textTransform: 'none',
+          fontWeight: 500,
+          color: cc.OnSurfaceVariant,
+          borderColor: selected.length ? cc.OnSurfaceVariant : cc.OutlineVariant,
+          '&:hover': { borderColor: cc.Outline, bgcolor: alpha(theme.palette.common.black, 0.04) }
+        }}
+      >
+        {labelText}
+      </Button>
+      <Menu
+        anchorEl={anchor}
+        open={Boolean(anchor)}
+        onClose={() => {
+          setAnchor(null)
+          setQ('')
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        disableAutoFocusItem={searchable}
+        slotProps={{ paper: { sx: { mt: 1, minWidth: 240, maxHeight: 380, borderRadius: '10px' } } }}
+      >
+        {searchable && (
+          <Box
+            onKeyDown={e => e.stopPropagation()}
+            sx={{ position: 'sticky', top: 0, zIndex: 1, bgcolor: theme.palette.background.paper, px: 1.5, pt: 1, pb: 1 }}
+          >
+            <TextField
+              size='small'
+              fullWidth
+              autoFocus
+              placeholder={`Search ${label.toLowerCase()}…`}
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+            />
+          </Box>
+        )}
+        {filtered.map(opt => {
+          const checked = selected.includes(opt.value)
+
+          return (
+            <MenuItem key={opt.value} onClick={() => handleToggle(opt.value)} sx={{ gap: 1 }}>
+              <Checkbox checked={checked} size='small' sx={{ p: 0.5 }} />
+              <Typography variant='body2' sx={{ flex: 1, color: cc.OnSurfaceVariant }} noWrap>
+                {opt.label}
+              </Typography>
+              <Typography variant='caption' sx={{ color: cc.neutralSecondary, whiteSpace: 'nowrap' }}>
+                S-{compactNumber(opt.count)} • A-{compactNumber(opt.animals)}
+              </Typography>
+            </MenuItem>
+          )
+        })}
+        {searchable && filtered.length === 0 && (
+          <MenuItem disabled sx={{ justifyContent: 'center' }}>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+              No matches
+            </Typography>
+          </MenuItem>
+        )}
+        {selected.length > 0 && (
+          <MenuItem
+            onClick={() => {
+              onClear(facetKey)
+              setAnchor(null)
+              setQ('')
+            }}
+            sx={{ justifyContent: 'center', mt: 0.5 }}
+          >
+            <Typography variant='caption' sx={{ color: cc.Tertiary, fontWeight: 600 }}>
+              Clear {label.toLowerCase()}
+            </Typography>
+          </MenuItem>
+        )}
+      </Menu>
+    </>
+  )
 }
 
 const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
@@ -63,222 +202,272 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   isDownloading,
   chips,
   onResetAll,
-  posture
+  posture,
+  majorFilters,
+  appliedFilters,
+  onToggleFacet,
+  onClearFacet,
+  sexOptions,
+  sexSelected,
+  siteOptions,
+  siteSelected,
+  readinessOptions,
+  readinessSelected,
+  analysis,
+  analysisYears,
+  onAnalysisChange
 }) => {
   const theme = useTheme()
   const cc = theme.palette.customColors as Record<string, string>
   const filtered = posture.species !== posture.totalSpecies
-  const [view, setView] = useState<'list' | 'gallery'>('list')
-  const readinessColor = (r: string) =>
-    r === 'can_pair'
-      ? theme.palette.primary.main
-      : r === 'single_sex'
-      ? cc.Tertiary
-      : r === 'needs_sexing'
-      ? theme.palette.warning.main
-      : cc.Outline
+  const [filtersOpen, setFiltersOpen] = useState(true)
+
+  // The Filters card is sticky at top:0; the Results row pins right beneath it, so its sticky
+  // offset must track the Filters card's (collapsible) live height.
+  const filtersRef = useRef<HTMLDivElement>(null)
+  const [filtersH, setFiltersH] = useState(0)
+  useEffect(() => {
+    const el = filtersRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const update = () => setFiltersH(el.offsetHeight)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+
+    return () => ro.disconnect()
+  }, [])
+
+  const divider = <Box sx={{ width: '1px', height: 38, bgcolor: cc.OutlineVariant }} />
+
+  const statTile = (
+    value: number,
+    label: string,
+    opts: { hero?: boolean; accent?: string; sub?: string; dot?: string } = {}
+  ) => (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        variant={opts.hero ? 'h4' : 'h5'}
+        sx={{ fontWeight: 700, lineHeight: 1.05, color: opts.accent ?? (opts.hero ? theme.palette.primary.dark : cc.OnSurfaceVariant) }}
+      >
+        {value.toLocaleString()}
+        {opts.sub && (
+          <Typography component='span' variant='body2' sx={{ color: cc.neutralSecondary, fontWeight: 500, ml: 0.75 }}>
+            {opts.sub}
+          </Typography>
+        )}
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1.75 }}>
+        {opts.dot && <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: opts.dot, flexShrink: 0 }} />}
+        <Typography
+          variant='caption'
+          sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, whiteSpace: 'nowrap' }}
+        >
+          {label}
+        </Typography>
+      </Box>
+    </Box>
+  )
+
+  const chipStrip = (
+    <>
+      {chips.map(chip => (
+        <Chip
+          key={chip.id}
+          label={chip.label}
+          onDelete={chip.onRemove}
+          deleteIcon={<Icon icon='mdi:close' fontSize='1rem' />}
+          size='small'
+          sx={{
+            bgcolor: alpha(theme.palette.common.black, 0.06),
+            color: cc.OnSurfaceVariant,
+            fontWeight: 500,
+            '& .MuiChip-deleteIcon': { color: cc.neutralSecondary, '&:hover': { color: cc.OnSurfaceVariant } }
+          }}
+        />
+      ))}
+      <Button
+        variant='text'
+        size='small'
+        onClick={onResetAll}
+        sx={{ color: cc.Tertiary, fontWeight: 600, textTransform: 'none', minWidth: 'auto' }}
+      >
+        Clear all
+      </Button>
+    </>
+  )
 
   return (
     <Box>
       <DynamicBreadcrumbs sx={{ mb: 5 }} />
 
-      <Card>
-        {/* Header: title + count + download */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {/* ── CARD 1: Overview — title + download + live posture ── */}
+        <Card>
+          <Box
+            sx={{
+              px: 5,
+              pt: 5,
+              pb: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
+          >
+            <Typography variant='h6' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
+              Species List
+            </Typography>
+            <Button
+              variant='text'
+              onClick={onDownload}
+              disabled={isDownloading}
+              endIcon={
+                isDownloading ? (
+                  <CircularProgress size={16} sx={{ color: cc.OnSurface }} />
+                ) : (
+                  <Icon icon='solar:download-square-linear' />
+                )
+              }
+              sx={{ color: cc.OnSurface, fontWeight: 500, textTransform: 'none' }}
+            >
+              {isDownloading ? 'Preparing...' : 'Download'}
+            </Button>
+          </Box>
+
+          {/* Stats band — live posture for the current (filtered) working set */}
+          <Box sx={{ px: 5, pb: 5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 3, md: 9 },
+                flexWrap: 'wrap',
+                bgcolor: cc.Surface,
+                border: `1px solid ${cc.SurfaceVariant}`,
+                borderRadius: '12px',
+                px: { xs: 3, md: 5 },
+                py: 3
+              }}
+            >
+              {statTile(posture.species, 'Species', {
+                hero: true,
+                sub: filtered ? `of ${posture.totalSpecies.toLocaleString()}` : undefined
+              })}
+              {divider}
+              {statTile(posture.animals, 'Animals')}
+              {divider}
+              {statTile(posture.singleSex, 'Single-sex', { accent: cc.Tertiary, dot: cc.Tertiary })}
+              {statTile(posture.criticallyFew, 'Critically few · 1–3', {
+                accent: theme.palette.error.main,
+                dot: theme.palette.error.main
+              })}
+            </Box>
+          </Box>
+        </Card>
+
+        {/* ── CARD 2: Filters — sticky controls (collapsible; pins while the table scrolls) ── */}
+        <Card ref={filtersRef} sx={{ position: 'sticky', top: 0, zIndex: 10 }}>
+          <Box
+            sx={{
+              px: 5,
+              py: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              flexWrap: 'wrap',
+              borderBottom: filtersOpen ? `1px solid ${cc.SurfaceVariant}` : 'none'
+            }}
+          >
+            <Box
+              onClick={() => setFiltersOpen(o => !o)}
+              sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', userSelect: 'none', py: 0.5 }}
+            >
+              <Icon icon='mdi:filter-variant' fontSize='1.35rem' color={cc.OnSurfaceVariant} />
+              <Typography variant='subtitle1' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
+                Filters
+              </Typography>
+              {chips.length > 0 && (
+                <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+                  · {chips.length} active
+                </Typography>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <FacetDropdown label='Gender' facetKey='Sex' options={sexOptions} selected={sexSelected} onToggle={onToggleFacet} onClear={onClearFacet} abbreviate={l => l.charAt(0)} />
+              <FacetDropdown label='Site' facetKey='Site' options={siteOptions} selected={siteSelected} onToggle={onToggleFacet} onClear={onClearFacet} searchable />
+              <FacetDropdown label='Readiness' facetKey='Readiness' options={readinessOptions} selected={readinessSelected} onToggle={onToggleFacet} onClear={onClearFacet} abbreviate={l => l.split(' ').map(w => w.charAt(0)).join('')} />
+              <FilterButtonWithNotification label='Other Filters' onClick={onFilterOpen} appliedFiltersCount={filterCount || undefined} />
+              <Box
+                onClick={() => setFiltersOpen(o => !o)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  color: cc.neutralSecondary,
+                  transform: filtersOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                <Icon icon='mdi:chevron-down' fontSize='1.5rem' />
+              </Box>
+            </Box>
+          </Box>
+          <Collapse in={filtersOpen}>
+            <Box sx={{ px: 5, pt: 4, pb: 5 }}>
+              <Box sx={{ pb: 3.5, mb: 3.5, borderBottom: `1px solid ${cc.SurfaceVariant}` }}>
+                <SpeciesListAnalysisFilter value={analysis} years={analysisYears} onChange={onAnalysisChange} />
+              </Box>
+              <SpeciesListMajorFilters
+                rows={majorFilters}
+                selected={appliedFilters}
+                onToggle={onToggleFacet}
+                onClearFacet={onClearFacet}
+              />
+            </Box>
+          </Collapse>
+        </Card>
+
+        {/* ── CARD 3: Results header + table (one connected card; header pins below Filters) ── */}
+        <Card sx={{ overflow: 'visible' }}>
         <Box
           sx={{
             px: 5,
             pt: 5,
-            pb: 2,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2
-          }}
-        >
-          <Typography variant='h6' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
-            Species List ({totalCount.toLocaleString()})
-          </Typography>
-          <Button
-            variant='text'
-            onClick={onDownload}
-            disabled={isDownloading}
-            endIcon={
-              isDownloading ? (
-                <CircularProgress size={16} sx={{ color: cc.OnSurface }} />
-              ) : (
-                <Icon icon='solar:download-square-linear' />
-              )
-            }
-            sx={{ color: cc.OnSurface, fontWeight: 500, textTransform: 'none' }}
-          >
-            {isDownloading ? 'Preparing...' : 'Download'}
-          </Button>
-        </Box>
-
-        {/* Applied-filter chips (visible, removable) */}
-        {chips.length > 0 && (
-          <Box sx={{ px: 5, pb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600 }}>
-              Applied:
-            </Typography>
-            {chips.map(chip => (
-              <Chip
-                key={chip.id}
-                label={chip.label}
-                onDelete={chip.onRemove}
-                size='small'
-                sx={{
-                  bgcolor: cc.OnBackground,
-                  color: cc.primaryDark || theme.palette.primary.dark,
-                  fontWeight: 500,
-                  '& .MuiChip-deleteIcon': { color: cc.neutralSecondary }
-                }}
-              />
-            ))}
-            <Button
-              variant='text'
-              size='small'
-              onClick={onResetAll}
-              sx={{ color: cc.Tertiary, fontWeight: 600, textTransform: 'none', minWidth: 'auto' }}
-            >
-              Clear all
-            </Button>
-          </Box>
-        )}
-
-        {/* Posture strip — live stats for the current (filtered) working set */}
-        <Box sx={{ px: 5, pb: 3 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              flexWrap: 'wrap',
-              border: `1px solid ${cc.SurfaceVariant}`,
-              borderRadius: '10px',
-              px: 3,
-              py: 2
-            }}
-          >
-            <Box>
-              <Typography variant='h5' sx={{ color: theme.palette.primary.dark, lineHeight: 1 }}>
-                {posture.species.toLocaleString()}
-              </Typography>
-              <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
-                species · {posture.animals.toLocaleString()} animals
-                {filtered ? ` of ${posture.totalSpecies.toLocaleString()}` : ''}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: cc.Tertiary }} />
-              <Typography variant='body2' sx={{ color: cc.OnSurfaceVariant }}>
-                <strong>{posture.singleSex.toLocaleString()}</strong> single-sex
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: theme.palette.warning.main }} />
-              <Typography variant='body2' sx={{ color: cc.OnSurfaceVariant }}>
-                <strong>{posture.criticallyFew.toLocaleString()}</strong> critically-few (1–3)
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Toolbar: search + filter */}
-        <Box
-          sx={{
-            px: 5,
             pb: 3,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: { xs: 'flex-start', md: 'center' },
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 3
+            position: 'sticky',
+            top: `${filtersH}px`,
+            zIndex: 9,
+            bgcolor: theme.palette.background.paper,
+            borderRadius: '10px 10px 0 0'
           }}
         >
-          <Search
-            borderRadius='4px'
-            width='220px'
-            placeholder='Search species...'
-            value={searchValue}
-            onClear={onSearchClear}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: 'flex', border: `1px solid ${cc.SurfaceVariant}`, borderRadius: '8px', overflow: 'hidden' }}>
-              {(['list', 'gallery'] as const).map(v => (
-                <IconButton
-                  key={v}
-                  size='small'
-                  onClick={() => setView(v)}
-                  sx={{
-                    borderRadius: 0,
-                    bgcolor: view === v ? cc.Surface : 'transparent',
-                    color: view === v ? theme.palette.primary.dark : cc.neutralSecondary
-                  }}
-                >
-                  <Icon icon={v === 'list' ? 'mdi:view-list' : 'mdi:view-grid-outline'} />
-                </IconButton>
-              ))}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexWrap: 'wrap' }}>
+              <Typography variant='h5' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
+                Results
+              </Typography>
+              <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+                {posture.species.toLocaleString()} species · {posture.animals.toLocaleString()} animals
+              </Typography>
             </Box>
-            <FilterButtonWithNotification
-              label='Filter'
-              onClick={onFilterOpen}
-              appliedFiltersCount={filterCount || undefined}
+            <Search
+              borderRadius='4px'
+              width='240px'
+              placeholder='Search species...'
+              value={searchValue}
+              onClear={onSearchClear}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
             />
           </Box>
+          {chips.length > 0 && (
+            <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>{chipStrip}</Box>
+          )}
         </Box>
 
-        {/* Gallery view */}
-        {view === 'gallery' && (
-          <Box sx={{ mx: 5, mb: 5, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 3 }}>
-            {rows.map(r => {
-              const row = r as unknown as SpeciesRow
-              const rd = getReadiness(row)
-
-              return (
-                <Card
-                  key={row.id}
-                  onClick={() => onCellClick({ field: 'species_name', row: r })}
-                  sx={{
-                    cursor: 'pointer',
-                    border: `1px solid ${cc.SurfaceVariant}`,
-                    boxShadow: 'none',
-                    p: 2,
-                    transition: '0.15s',
-                    '&:hover': { borderColor: theme.palette.primary.main }
-                  }}
-                >
-                  <Box sx={{ height: 120, borderRadius: '8px', bgcolor: cc.OnBackground, display: 'grid', placeItems: 'center', mb: 1.5, overflow: 'hidden' }}>
-                    <img src={row.image || '/images/housing/species-icon-colored.svg'} alt='' style={{ maxWidth: '70%', maxHeight: '70%' }} />
-                  </Box>
-                  <Typography variant='subtitle2' noWrap sx={{ fontWeight: 600 }}>
-                    {row.species_name}
-                  </Typography>
-                  <Typography variant='caption' noWrap sx={{ fontStyle: 'italic', color: cc.neutralSecondary, display: 'block' }}>
-                    {row.scientific_name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-                    <Typography variant='body2' sx={{ fontWeight: 700, color: cc.OnSurface }}>
-                      {row.population.toLocaleString()}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: readinessColor(rd), flexShrink: 0 }} />
-                      <Typography variant='caption' noWrap sx={{ color: cc.neutralSecondary }}>
-                        {(row.iucn || '').split(' (')[0]}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
-              )
-            })}
-          </Box>
-        )}
-
         {/* Table */}
-        {view === 'list' && (
-        <Box sx={{ mx: 5, mb: 5 }}>
+        <Box sx={{ mx: 5, mb: 7 }}>
           <CommonTable
             columns={columns}
             indexedRows={rows}
@@ -328,8 +517,8 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
             }}
           />
         </Box>
-        )}
-      </Card>
+        </Card>
+      </Box>
     </Box>
   )
 }

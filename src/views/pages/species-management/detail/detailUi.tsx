@@ -3,7 +3,6 @@
 import React from 'react'
 import { Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { Area, AreaChart, Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
 import Icon from 'src/@core/components/icon'
 import NoDataFound from 'src/views/utility/NoDataFound'
 
@@ -16,6 +15,16 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 type Tone = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary'
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
+
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** "2025-07" → "Jul '25"; passes through anything that isn't a YYYY-MM string. */
+const fmtMonth = (v: any): string => {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(v))
+  if (!m) return String(v ?? '')
+
+  return `${MONTH_ABBR[Number(m[2]) - 1] ?? m[2]} '${m[1].slice(2)}`
+}
 
 /** Resolve a semantic tone to {bg, fg} token colors. */
 export const useTone = () => {
@@ -51,7 +60,8 @@ export const SectionCard: React.FC<{
   action?: React.ReactNode
   children: React.ReactNode
   sx?: object
-}> = ({ title, action, children, sx }) => {
+  titleMb?: number
+}> = ({ title, action, children, sx, titleMb = 3 }) => {
   const theme = useTheme() as any
 
   return (
@@ -65,7 +75,7 @@ export const SectionCard: React.FC<{
       }}
     >
       {(title || action) && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: titleMb }}>
           {typeof title === 'string' ? (
             <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
               {title}
@@ -349,24 +359,47 @@ export const EntityListDrawer: React.FC<{
   )
 }
 
-/** Stacked horizontal bar of segments (gender split, survival buckets, ID distribution). */
-export const StackedBar: React.FC<{ segments: { label: string; value: number; tone: Tone }[] }> = ({ segments }) => {
+/** Stacked horizontal bar of segments (gender split, survival buckets, ID distribution).
+ * Pass `legend` to show a dot/label/value key beneath — without it the colors are opaque. */
+export const StackedBar: React.FC<{ segments: { label: string; value: number; tone: Tone }[]; legend?: boolean }> = ({
+  segments,
+  legend = false
+}) => {
   const tones = useTone()
   const total = segments.reduce((s, x) => s + x.value, 0) || 1
 
   return (
-    <Box sx={{ display: 'flex', width: '100%', height: 10, borderRadius: '5px', overflow: 'hidden' }}>
-      {segments.map((seg, i) => {
-        const { fg } = tones(seg.tone)
-        const pct = (seg.value / total) * 100
-        if (pct <= 0) return null
+    <Box>
+      <Box sx={{ display: 'flex', width: '100%', height: 10, borderRadius: '5px', overflow: 'hidden' }}>
+        {segments.map((seg, i) => {
+          const { fg } = tones(seg.tone)
+          const pct = (seg.value / total) * 100
+          if (pct <= 0) return null
 
-        return (
-          <Tooltip key={i} title={`${seg.label}: ${seg.value.toLocaleString()} (${Math.round(pct)}%)`} arrow>
-            <Box sx={{ width: `${pct}%`, backgroundColor: fg, height: '100%' }} />
-          </Tooltip>
-        )
-      })}
+          return (
+            <Tooltip key={i} title={`${seg.label}: ${seg.value.toLocaleString()} (${Math.round(pct)}%)`} arrow>
+              <Box sx={{ width: `${pct}%`, backgroundColor: fg, height: '100%' }} />
+            </Tooltip>
+          )
+        })}
+      </Box>
+      {legend && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', mt: 1.5 }}>
+          {segments
+            .filter(s => s.value > 0)
+            .map((s, i) => (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.625 }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: tones(s.tone).fg, flexShrink: 0 }} />
+                <Typography variant='caption' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                  {s.label}{' '}
+                  <Box component='span' sx={{ color: 'customColors.neutralSecondary' }}>
+                    {s.value.toLocaleString()}
+                  </Box>
+                </Typography>
+              </Box>
+            ))}
+        </Box>
+      )}
     </Box>
   )
 }
@@ -490,97 +523,159 @@ export const SparkBars: React.FC<{ values: number[]; tone?: Tone; height?: numbe
 }
 
 /**
- * Clean horizontal distribution chart (Recharts). Minimal chrome — no axis lines, no grid,
- * value labels at the bar end, one accent color, rounded bars. Click a bar to drill in.
+ * Clean horizontal distribution bars (CSS flexbox — no chart lib). One row per category:
+ * label · track-with-fill · count. Sorted high→low, single accent color, rounded bars.
+ * Click a row to drill in. Replaces the prior Recharts vertical layout, which collapsed
+ * bars and detached axis labels inside narrow card columns.
  */
 export const DistributionBarChart: React.FC<{
   data: { label: string; count: number }[]
   tone?: Tone
   onSelect?: (label: string) => void
-  rowHeight?: number
-}> = ({ data, tone = 'primary', onSelect, rowHeight = 34 }) => {
+}> = ({ data, tone = 'primary', onSelect }) => {
   const theme = useTheme() as any
+  const c = cc(theme)
   const tones = useTone()
   const { fg } = tones(tone)
-  const [hover, setHover] = React.useState<number | null>(null)
   if (!data.length) return null
-  const height = data.length * rowHeight + 8
-  const labelWidth = Math.min(170, Math.max(72, ...data.map(d => d.label.length * 7)))
+  const rows = [...data].sort((a, b) => b.count - a.count)
+  const max = Math.max(1, ...rows.map(d => d.count))
 
   return (
-    <Box sx={{ width: '100%', height }}>
-      <ResponsiveContainer width='100%' height='100%'>
-        <BarChart
-          data={data}
-          layout='vertical'
-          margin={{ top: 0, right: 36, bottom: 0, left: 0 }}
-          barCategoryGap={6}
+    <Box>
+      {rows.map(d => (
+        <Box
+          key={d.label}
+          onClick={() => onSelect?.(d.label)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            py: 0.75,
+            cursor: onSelect ? 'pointer' : 'default',
+            '&:hover': onSelect ? { opacity: 0.85 } : undefined
+          }}
         >
-          <XAxis type='number' hide />
-          <YAxis
-            type='category'
-            dataKey='label'
-            width={labelWidth}
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: cc(theme).neutralSecondary, fontSize: 12 }}
-          />
-          <Bar
-            dataKey='count'
-            radius={[4, 4, 4, 4]}
-            isAnimationActive={false}
-            onClick={(_d: any, i: number) => onSelect?.(data[i].label)}
-            onMouseEnter={(_d: any, i: number) => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-            cursor={onSelect ? 'pointer' : 'default'}
-          >
-            {data.map((_d, i) => (
-              <Cell key={i} fill={fg} fillOpacity={hover === null || hover === i ? 1 : 0.55} />
-            ))}
-            <LabelList
-              dataKey='count'
-              position='right'
-              style={{ fill: cc(theme).neutralSecondary, fontSize: 12 }}
-              formatter={(v: number) => v.toLocaleString()}
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+          <Typography variant='body2' noWrap sx={{ width: 150, flexShrink: 0, color: c.OnSurfaceVariant }}>
+            {d.label}
+          </Typography>
+          <Box sx={{ flex: 1, height: 10, bgcolor: c.Surface, borderRadius: 5, overflow: 'hidden', minWidth: 0 }}>
+            <Box sx={{ width: `${(d.count / max) * 100}%`, height: '100%', bgcolor: fg, borderRadius: 5, transition: '0.2s' }} />
+          </Box>
+          <Typography variant='subtitle2' sx={{ width: 44, textAlign: 'right', fontWeight: 700, color: c.OnSurfaceVariant }}>
+            {d.count.toLocaleString()}
+          </Typography>
+        </Box>
+      ))}
     </Box>
   )
 }
 
-/** Clean filled trend (Recharts area) — replaces hand-rolled column bars for time series. */
+interface TrendSeries {
+  values: number[]
+  color: string
+  /** unique gradient id within the page */
+  gradId: string
+}
+
+/**
+ * Hand-rolled SVG trend engine (1..N filled series on shared axes). recharts 2.4.3 renders
+ * area charts with broken/swapped axes in this app — category X-axis emits no ticks and the
+ * Y-axis falls into category mode — so we draw the chart directly. viewBox coords scale with
+ * the container; strokes use non-scaling-stroke so they stay crisp. X labels are the data
+ * labels (months), thinned to avoid crowding; Y labels are a 3-stop gutter.
+ */
+const SvgTrend: React.FC<{ labels: string[]; series: TrendSeries[]; height: number }> = ({ labels, series, height }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const VBW = 1000
+  const VBH = 260
+  const W_GUTTER = 40
+  const n = labels.length
+  const max = Math.max(1, ...series.flatMap(s => s.values))
+  const px = (i: number) => (n <= 1 ? 0 : (i / (n - 1)) * VBW)
+  const py = (v: number) => VBH - (v / max) * VBH
+  const linePath = (vals: number[]) => vals.map((v, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ')
+  const areaPath = (vals: number[]) => `${linePath(vals)} L${VBW},${VBH} L0,${VBH} Z`
+  const yLabels = [max, Math.round(max / 2), 0]
+  const step = Math.ceil(n / 12) // show ~12 x-labels max
+
+  return (
+    <>
+      <Box sx={{ position: 'relative', height }}>
+        {/* Y-axis labels */}
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: W_GUTTER,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            pr: 1
+          }}
+        >
+          {yLabels.map(v => (
+            <Typography key={v} variant='caption' sx={{ color: c.neutralSecondary, lineHeight: 1 }}>
+              {v.toLocaleString()}
+            </Typography>
+          ))}
+        </Box>
+        {/* Plot */}
+        <Box sx={{ position: 'absolute', left: W_GUTTER, right: 0, top: 0, bottom: 0 }}>
+          <svg width='100%' height='100%' viewBox={`0 0 ${VBW} ${VBH}`} preserveAspectRatio='none'>
+            <defs>
+              {series.map(s => (
+                <linearGradient key={s.gradId} id={s.gradId} x1='0' y1='0' x2='0' y2='1'>
+                  <stop offset='0%' stopColor={s.color} stopOpacity={0.28} />
+                  <stop offset='100%' stopColor={s.color} stopOpacity={0.02} />
+                </linearGradient>
+              ))}
+            </defs>
+            {[0, VBH / 2, VBH].map(gy => (
+              <line key={gy} x1='0' y1={gy} x2={VBW} y2={gy} stroke={c.SurfaceVariant} strokeWidth='1' vectorEffect='non-scaling-stroke' />
+            ))}
+            {series.map(s => (
+              <path key={`a-${s.gradId}`} d={areaPath(s.values)} fill={`url(#${s.gradId})`} stroke='none' />
+            ))}
+            {series.map(s => (
+              <path key={`l-${s.gradId}`} d={linePath(s.values)} fill='none' stroke={s.color} strokeWidth='2' vectorEffect='non-scaling-stroke' strokeLinejoin='round' />
+            ))}
+          </svg>
+        </Box>
+      </Box>
+      {/* X axis */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', pl: `${W_GUTTER}px`, mt: 0.75 }}>
+        {labels.map((label, i) => (
+          <Typography key={`${label}-${i}`} variant='caption' sx={{ color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+            {i % step === 0 || i === n - 1 ? fmtMonth(label) : ''}
+          </Typography>
+        ))}
+      </Box>
+    </>
+  )
+}
+
+/** Clean filled single-series trend (hand-rolled SVG — see SvgTrend). */
 export const TrendAreaChart: React.FC<{ data: { label: string; value: number }[]; tone?: Tone; height?: number }> = ({
   data,
   tone = 'primary',
   height = 140
 }) => {
-  const theme = useTheme() as any
   const tones = useTone()
   const { fg } = tones(tone)
   if (!data.length) return null
-  const gid = `g-${tone}`
 
   return (
-    <Box sx={{ width: '100%', height }}>
-      <ResponsiveContainer width='100%' height='100%'>
-        <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: -18 }}>
-          <defs>
-            <linearGradient id={gid} x1='0' y1='0' x2='0' y2='1'>
-              <stop offset='0%' stopColor={fg} stopOpacity={0.35} />
-              <stop offset='100%' stopColor={fg} stopOpacity={0.02} />
-            </linearGradient>
-          </defs>
-          <XAxis dataKey='label' axisLine={false} tickLine={false} tick={{ fill: cc(theme).neutralSecondary, fontSize: 11 }} interval='preserveStartEnd' minTickGap={24} />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: cc(theme).neutralSecondary, fontSize: 11 }} width={32} allowDecimals={false} />
-          <RTooltip
-            cursor={{ stroke: cc(theme).OutlineVariant }}
-            contentStyle={{ borderRadius: 8, border: `1px solid ${cc(theme).SurfaceVariant}`, fontSize: 12 }}
-          />
-          <Area type='monotone' dataKey='value' stroke={fg} strokeWidth={2} fill={`url(#${gid})`} isAnimationActive={false} />
-        </AreaChart>
-      </ResponsiveContainer>
+    <Box>
+      <SvgTrend
+        labels={data.map(d => d.label)}
+        series={[{ values: data.map(d => d.value), color: fg, gradId: `trend-${tone}` }]}
+        height={height}
+      />
     </Box>
   )
 }

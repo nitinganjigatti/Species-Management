@@ -139,3 +139,157 @@ session's scratchpad (`extract.js`); re-run with `node --max-old-space-size=4096
 | gaps | #3 Lab/Pharmacy, #4 Vaccination estimator, #5 deaths gender, #6 lineage, #8 pedigree | still open |
 | git | all species-management + Agentation changes | uncommitted — commit when user asks |
 | listing | applied-filter chips upfront, site/cluster filter | not started |
+
+---
+
+# 2026-06-24 session handoff
+
+**Status: whole module BUILT + COMMITTED, but UI/UX quality is the open problem — the user is unhappy and some charts shipped broken.**
+
+## Committed (branch `antzs-codbase-designteam`, NOT pushed — push needs the user's GitHub creds; no gh/ssh in env)
+- `67f21d1b2` FEAT: Species Management module — dashboard, species list, species detail
+- `f766c7071` CHORE: Agentation dev tooling
+- `.superpowers/` left uncommitted (brainstorm mockups; not gitignored — offer to add).
+
+## What got built this session (on top of prior detail work)
+- **Dashboard** (NEW, the keystone) at `/species-management/dashboard/` — Direction A "Vital Signs": vital strip (6 KPIs + Sexed%), Needs-Attention triage (bullet-bars), Explore compositions (IUCN · class · breeding · Category · CITES · Population), births/deaths trend. Everything drills to the list. Container: `DashboardContainer.tsx` → `DashboardView.tsx` + `dashboardUi.tsx` (`VitalStrip`/`NeedsAttention`/`ExploreRail`/`BirthsDeathsTrend`). Data: `public/species-data/dashboard.json` via `scripts/build-species-dashboard.js`.
+- **Routing/nav:** `/species-management/` → redirect to `/dashboard/`; listing relocated to `/list/`. Nav = parent "Species Management" → children Dashboard + Species List (`src/components/navigation/species-management/index.js`).
+- **Species List** (`/list/`): reads incoming dashboard URL filters (facets + `?alert=` via dashboard.json speciesIds), visible removable **chips + Clear all**, **posture strip**, management **column reorder + readiness chip** (sex cols dropped), **Site filter** (real, 48 sites rolled into list.json), **gallery toggle**.
+- **Detail:** 3-band shell (Stats vital strip → **Notifications & Alerts band** → Tabs) in `SpeciesDetailView.tsx`; alerts fed from `assessments.alerts` at shell level in container. Tab gaps: **mortality month-drill** + carcass + **deaths gender/age (real)**, **vaccination estimator**, **Pharmacy (real)**, **Lab/Surgery/Anaesthesia (SAMPLE data, labeled)**, physical sub-types (already rendered).
+- **Data scripts:** `build-species-dashboard.js` (dashboard.json), `build-medical-extras.js` (real pharmacy + deaths gender/age from dump — RUN with sandbox off), `build-medical-dummy.js` (deterministic SAMPLE lab/surgery/anaesthesia, `sample:true`). Site rollup written into list.json.
+
+## 🔴 OPEN / DO FIRST next session
+1. **Visual UI/UX pass across ALL tabs — the user's core grievance ("no UI improvements, made it worse").** The agent was verifying blind (curl = auth shell only). `NEXT_PUBLIC_WSO2_AUTH_ENABLED=false` → install Playwright (`npm i --no-save playwright && npx playwright install chromium`) and SCREENSHOT each screen before claiming anything. (User interrupted the Playwright install to close the session — resume it.)
+2. **`DistributionBarChart` is broken** (overflowing/unreadable). Fixed in CircleOfLife Deaths (vertical month columns + contained horizontal bars, tsc-clean, NOT visually confirmed). **Same component used in AssessmentsTab + HousingTab — review + replace with the clean flexbox pattern.**
+3. **Dev server:** killed a 2-day-stale `next dev` + cleared `.next` + restarted fresh (was why user saw "nothing changed"). If "nothing changed" recurs → restart dev again.
+4. Real **Lab/Surgery/Anaesthesia** data when the user provides it (replaces the sample; same JSON shape, `sample` flag drops).
+
+## Test species: mammal 2150, bird 449 (Eggs), reptile 1871. Local: http://localhost:3000/species-management/dashboard/
+
+---
+
+# 2026-06-24 (evening) session handoff
+
+**Status: visual verification is now UNBLOCKED and the worst charts are fixed. All changes UNCOMMITTED (user will commit in the morning). tsc 0 errors. Each fix screenshot-verified.**
+
+## The big unblock — authed screenshots
+Past sessions verified blind (curl only hits the auth shell). Now there's a working harness:
+`scripts/species-screenshots.js` — auth-STUBBED Playwright (seeds a legacy localStorage session +
+fulfills the dev-backend calls; no real creds, no app code touched). Run:
+`NODE_PATH="$(pwd)/node_modules" node scripts/species-screenshots.js` → writes `./.screenshots/*.png`
+(gitignored). Prereqs: dev server on :3000 with `NEXT_PUBLIC_WSO2_AUTH_ENABLED=false` (default),
+and `npm i --no-save playwright && npx playwright install chromium` (already installed this session).
+**Gotcha:** Playwright runs the LAST-registered matching route first → keep the `refreshtoken` route
+registered AFTER the catch-alls or auth silently logs out to /login.
+
+## Fixed + verified this session
+1. **`DistributionBarChart` rewritten** (`detailUi.tsx`) → clean CSS flexbox horizontal bars
+   (label · track+fill · count, sorted desc). Was a broken Recharts vertical layout. This one
+   component fixes **Housing → Animals by Site** AND **Assessments → Age** in one place.
+   CircleOfLife Deaths keeps its own inline bars (committed-pending from prior session).
+2. **Dashboard "Births vs Deaths" chart fixed** → new `DualTrendAreaChart` in `detailUi.tsx`, used by
+   `BirthsDeathsTrend` (`dashboardUi.tsx`). Single overlaid plot, legend (green Births / orange Deaths),
+   real Y axis (0 / 1,375 / 2,750), gridlines, all 12 month labels.
+
+## 🔴 ROOT CAUSE FOUND — recharts 2.4.3 axes are systemically broken in this app
+`TrendAreaChart` (and any Recharts area/bar with axes here) renders with **no X-axis ticks** and a
+**Y-axis stuck in category mode** (shows raw unsorted data values). Confirmed on the detail
+"Births Over Time" / "Seasonal Pattern" charts too — they currently render as axis-less sparklines.
+The dashboard chart was fixed by **abandoning Recharts and hand-rolling an SVG** (viewBox + scaled
+paths, `vector-effect=non-scaling-stroke`, HTML Y-gutter + month row). `DualTrendAreaChart` is the
+reference pattern.
+
+## 🟢 DO FIRST in the morning
+1. **Convert the remaining trend charts to the hand-rolled SVG pattern** (user asked for this):
+   `TrendAreaChart` callers — Circle of Life "Births Over Time" + "Seasonal Pattern" (and any other
+   `TrendAreaChart`/Recharts-axis usage). Either fix `TrendAreaChart` itself with the SVG approach or
+   generalize `DualTrendAreaChart` to 1–N series.
+2. **Commit** the chart fixes (user deferred the commit). Touched: `detailUi.tsx`, `dashboardUi.tsx`,
+   `CircleOfLifeTab.tsx` (prior), plus new `scripts/species-screenshots.js` + `.gitignore`.
+3. Remaining smaller UI issues found in the pass (not yet addressed): dashboard **Explore rail**
+   stacked bars have **no legend/labels** (Conservation/By class/Breeding/Category/CITES/Population are
+   meaningless color blocks); **Gender split-bars** (Circle of Life Births + Deaths) have no key.
+
+## Dev server note
+Restarted fresh this session (killed stale `next dev`, removed `.next`). Running in background.
+
+---
+
+# 2026-06-24 — Dashboard v2 session (rich ApexCharts)
+
+**Status: dashboard fully rebuilt with ApexCharts and iterated through ~12 rounds of live UI feedback. recharts retired from the module. All UNCOMMITTED. tsc clean. Every change screenshot-verified via `scripts/species-screenshots.js`.**
+
+**Spec:** `docs/superpowers/specs/2026-06-24-species-dashboard-v2-rich-charts-design.md`.
+
+## Shipped — with acceptance checks (hard-refresh `localhost:3000/species-management/dashboard/`)
+- **Rich clickable charts (ApexCharts).** You should see: By class·donut, Conservation·horizontal bar, Population·column, Breeding·radial gauge, CITES·polar (top 6), Category·pie, Sex Composition·donut (Sexed% in center), Births-vs-Deaths·area. Click any segment OR its legend → lands on `/species-management/list/?<facet>=…`. If a click does nothing on a donut/polar arc, it's the ApexCharts `dataPointSelection` quirk — `chart.events.click` is wired as backup; the legend always works.
+- **Date-range filter (top-right).** Pick a preset or custom range → Births-vs-Deaths trend + Net-change KPI change; composition charts stay put (caption says "as of today"). If nothing changes, you clicked a composition chart expecting it to filter — by design it doesn't. Sub-month presets resolve to month granularity (data is monthly).
+- **One global tooltip.** Hover any chart → title + "Species: N species · M animals" (Sex shows animals; trend shows Births/Deaths). If one chart's tooltip looks different, its `tooltip` wasn't routed through `facetTooltip`.
+- **Category readable now.** Was 90% Conservation Focus (pie swallowed the rest). Rebalanced the dummy `breeding_category` in `list.json` (CF 2121→900, spread to other 4). You should see 5 visible slices. The species LIST filter counts match the dashboard (same source).
+- **Misc polish:** top-5 per facet; legends show species count only (animals on hover); Needs-Attention badge reads "N species"; band-2 (Needs Attention | Sex) equal height; all circular charts uniform 260px.
+
+## Files touched (uncommitted)
+`scripts/build-species-dashboard.js` (animalCount + trendMonthly), `public/species-data/{dashboard.json,list.json}` (regen + category rebalance), `src/types/species-management/dashboard.ts`, `src/components/species-management/DashboardContainer.tsx`, `src/views/pages/species-management/dashboard/{DashboardView.tsx,dashboardUi.tsx}`, NEW `dashboard/DashboardDateRange.tsx`, `detail/detailUi.tsx` (SectionCard `titleMb`; trend charts SVG; removed dead DualTrendAreaChart), `detail/tabs/CircleOfLifeTab.tsx`. Untracked: `scripts/species-screenshots.js`, `.superpowers/`.
+
+## Pending / next
+- **Commit** the dashboard-v2 + earlier chart fixes (user has kept everything uncommitted by choice all session).
+- Optional: migrate the detail-page SVG trend charts to ApexCharts for consistency.
+- Daily-granularity births/deaths re-extraction IF the user wants sub-month date presets to be precise (currently monthly).
+- Still open from prior lists: Lab/Pharmacy real data, vaccination estimator, lineage, pedigree rule.
+
+---
+
+# 2026-06-25 session handoff — Species LIST screen redesign
+
+Spent the session reshaping `/species-management/list/` via Agentation feedback. All UNCOMMITTED, tsc 0 errors. New `SpeciesListMajorFilters.tsx`; new `scripts/build-species-list-extras.js`; touched `SpeciesListingView/Container`, `speciesColumns`, `speciesListing.utils`, `SpeciesManagementFilterDrawer`, `lib/api/.../index.ts`, `list.json`. **Hard-refresh (Cmd+Shift+R) to see data** — fetch is now `cache:'no-store'`.
+
+**Acceptance checks (hard-refresh first):**
+- **Upfront filter pills** — Category · Class · Population rows show; pick a Population chip → **Breeding Readiness row appears below**. If it doesn't, the `revealWhenSelected` gate broke.
+- **Gender dropdown** beside Search (Male/Female/Unsexed). If it's a pill row instead, an old build is cached.
+- **Chip tooltip** — hover a pill → light card with Share/Threatened/CITES/Needs-sexing + note + "✨ AI Insight"; click AI Insight → right side-sheet. If text is invisible, contrast regressed.
+- **New table columns** — M·F·U · Sexed% · Sites · Enclosures · Paired · Chip · Births · Deaths show real numbers (species 2150 → 139/8/246/210/12). If all zero, list.json is cached — hard-refresh.
+- **Scroll** down → condensed sticky header (search+gender+filter+Results+chips) pins; scroll up → full top returns.
+
+**Single most important next move:** the user wants the **progressive-reveal chaining applied "in other places"** (specify which filter chains) — and decide on **Accessions + ENCH/day** columns (need dump `report_accessions`/`report_transfers` re-extraction). Then commit.
+
+---
+
+# 2026-06-25 (session 2) handoff — List: drill-downs, dropdowns, layout, real sticky
+
+**Status:** Continued the List-screen reshape via Agentation feedback. All UNCOMMITTED, tsc 0 errors, every change screenshot-verified. Touched: `speciesListing.utils.ts`, `SpeciesListingContainer.tsx`, `SpeciesListingView.tsx`; NEW + inert `scripts/build-species-accessions.js`.
+
+**Shipped — with acceptance checks (hard-refresh `localhost:3000/species-management/list/`):**
+- **Taxonomy drill-down (chaining, was pending).** Upfront pills = Category · Class · Population. Pick a **Class** → an **Order** row appears **scoped to that class** (e.g. Aves shows only bird orders); pick Order → **Family** appears; → **Genus**. If Order doesn't appear, or shows all orders globally, the reveal/scoping (`REVEAL_PARENT` + `FILTER_ANCESTORS` in `SpeciesListingContainer`) broke. Category→Site reveal was dropped (Site is a dropdown now).
+- **Dropdowns in the Filters header** (right of the title): Gender · Site · Readiness · Other Filters. **Site** dropdown has an in-menu **search** (type "crimson" → filters to Crimson sites). **Gender/Readiness** show short codes ("Gender-M & F"); selecting **all** options resets to default (no filter). New reusable `FacetDropdown` in `SpeciesListingView.tsx`. If these render as pill rows, an old build is cached.
+- **3-card layout:** Overview (stats) · **collapsible Filters** (click the header to collapse the pill lanes) · **Results + Table** (one connected card). Filter button reads **"Other Filters"**. List/gallery **view toggle removed** (table only). Search moved to the **right of the Results title**.
+- **Sticky (the load-bearing fix).** Scroll the list → the **Filters bar AND the Results+search row pin** to the top; the **profile AppBar scrolls away**. If nothing pins: the `.layout-wrapper` overflow neutralizer in `SpeciesListingContainer` didn't run — that's the fix. Root cause: `.layout-wrapper` has `overflow-y:auto` (so it's the sticky containing block) but the WINDOW is what scrolls → plain `position:sticky` is silently dead. Fix = relax `.layout-wrapper` overflow to `visible` while mounted (restored on unmount) + `settings.appBar:'static'` (scoped; appBar isn't persisted). Results sub-header offset = Filters card height, measured via ResizeObserver; table card is `overflow:visible`. The old scroll-condensed *fixed* header was REMOVED. **This supersedes the prior handoff's "use fixed, sticky doesn't work" note.**
+
+**Pending / next move:**
+- **Accessions:** `scripts/build-species-accessions.js` is written but **NOT run** (`node --max-old-space-size=4096 scripts/build-species-accessions.js`, sandbox off — reads the 194MB dump). Coverage probe: `report_accessions` ~**1902/2352** species (solid) but `report_transfers` only ~**50/2352** → an "ENCH/day" column would be ~98% empty. Decide: run it + add the **Accessions** column; **probably skip ENCH/day**. Then commit.
+- Everything (whole module + this session) is uncommitted — commit when ready.
+
+---
+
+# 2026-06-26 session handoff — List Analysis filters + Circle of Life rework
+
+Big session, all UNCOMMITTED, tsc 0 errors, every change screenshot-verified via `scripts/species-screenshots.js`.
+
+## Shipped (acceptance checks — hard-refresh first)
+- **List: 3 "Analysis" filters** (`/list/`, new pill row, mutually exclusive). Pick Deaths → list shrinks to species with deaths in the window, ranked desc, red "Deaths in period" column; Year/Month range works incl. **Dec→Jan wrap**. Lifespan → "Avg adult life" column (2150 = 42y, max 65.4y). If the column doesn't appear, `list.json` is stale → re-run `build-species-list-temporal.js`.
+- **Detail → Circle of Life** (`/2150/`): big Births/Deaths/Lifespan **tab cards** (filled-tone selected); Quick|By-month·year **toggle** (dark, green-selected) → presets OR Year/Month selects; **Gender** filter; **Other Filters** drawer (far right, white); gender **pie**; cause-of-death **View more (>5)**; Lifespan **age-at-death distribution**; and a paginated **animal datatable** on all 3 sub-tabs (sticky No+animal, horizontal scroll, "Animals · N" + search; cell shows **name + AID**, no sex chip; **Gender** column; necropsy **Pending/Completed[no date]/NA**; Mother/Father **"--"**; Breed column only if the species has breed). If the table is empty → `lifecycle/<id>.json` missing, re-run `build-species-detail-lifecycle.js`.
+
+## New files
+- `src/views/pages/species-management/SpeciesListAnalysisFilter.tsx` (reusable; flags `label`/`alwaysOn`/`periodForLifespan`)
+- `scripts/build-species-list-temporal.js` → list.json `birthsMonthly`/`deathsMonthly`/`lifespan`
+- `scripts/build-species-detail-lifecycle.js` → `public/species-data/lifecycle/<id>.json` (1,835 sidecars, ~14MB; real day-level events incl. animal id + identifier)
+- `getSpeciesLifecycle` + `SpeciesLifecycle`/`LifecycleBirth`/`LifecycleDeath` types in the detail data layer
+
+## Data scripts (re-run with sandbox off)
+- `node --max-old-space-size=4096 scripts/build-species-list-temporal.js`
+- `node --max-old-space-size=4096 scripts/build-species-detail-lifecycle.js`
+
+## Key decisions (user-confirmed)
+Day-level re-extract so Today/Last-week presets are precise · lifespan = avg-adult headline + max + distribution · necropsy "Completed" shown WITHOUT a date (none in data) · identity = AID + local name · Mother/Father "--" (no parentage in dump) · Breed column conditional · sentinel birth-dates <1950 filtered (were inflating lifespan to 126y/1097y). Working style: **explicit approval gate before building** new features + **ask-don't-assume** on data gaps.
+
+## Single most important next move
+**COMMIT** this session (kept uncommitted by choice). Then still-open gaps: Accessions column (`build-species-accessions.js` written, never run), lineage/pedigree, real lab/pharmacy data.
