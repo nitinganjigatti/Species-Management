@@ -333,3 +333,65 @@ Finish the `origin` (029) push (GitHub Desktop or a PAT), then connect that repo
 - **Wildventure Flask prototype now runs on the dump's data.** Imported `Dump20260622.sql` into local MySQL → DB `species_mgmt_anon` (2,352 species incl. Aardel Antelope); changed the prototype `.env` `MYSQL_DATABASE` → `species_mgmt_anon`; restarted it. Full how-to + gotchas in memory [[wildventure-prototype-db]]. **Acceptance:** open **http://localhost:5002** (restart it if down: `cd "/Users/nitin/Nitin Claude/wildventure-species-mgmt-main"; .venv/bin/python run.py`) → search "Aardel Antelope", it should appear. If not, the app cached the old DB → restart; or `curl -s localhost:5002/api/species | grep "Aardel Antelope"`. Old `strategic_species_management` DB kept as backup.
 - **Git (antz repo):** committed `33077deef`; pushed to `personal` (nitinganjigatti) `main` ✅. `origin` push to **nitinganjigatti029-design** was still **PENDING** (auth mismatch — this Mac's saved login is `nitinganjigatti`; user was finishing via GitHub Desktop or a PAT). Remotes: `origin`=029 personal repo, `personal`=nitinganjigatti repo, `antz`=the real ANTZ company origin. **`git push origin` ≠ ANTZ now.**
 - **Left running intentionally:** the Flask prototype dev server on port 5002 (not a stray — the user is using it).
+
+---
+
+# 2026-06-30 session — List redesign, full-width module chrome, detail Overview tab
+
+Director-led UI pass on the **list + detail** screens. `33077deef`→`b8a852f09` committed; **further Overview-tab work is UNCOMMITTED** (4 files). tsc 0 errors throughout; every change screenshot-verified via `scripts/species-screenshots.js`. **Hard-refresh** to see changes (Fast Refresh doesn't re-run the mount-effects that drive the chrome).
+
+## Committed in `b8a852f09`
+- **List species column** now carries IUCN short-code (colored) + a CITES tag inline; **Sexed % / Chip %** are the trailing columns (percentages, not counts); taxonomy/readiness/accessions columns dropped. _Try `/list/`: species cell shows e.g. "Aardel Antelope (EN) … CITES I"; last two cols are %._
+- **Top stat boxes** = 5 equal colored tiles (Species/Animals/Male/Female/Critical), animal-count metrics, theme tokens only (Option A palette). _If they're a single dividered strip, old build cached._
+- **Left sticky filter rail** (sectioned facets + Analysis) replaced the top filter card; **persistent chip row** sits above Results. _Pick a facet → chip appears above the table; rail scrolls independently._
+- **Module chrome via `useSpeciesChrome`** (dashboard/list/detail): hides the profile app bar, full-width, edge gutter — all **DOM-level** (the `appBar`/`contentWidth` *settings* silently revert on SPA nav, so DOM is the only reliable lever). _Open any species screen wide: no top profile avatar, content fills to ~16px from edges. If detail/dashboard look boxed, you're on a stale tab — hard-refresh._
+- **Detail Overview tab** added as the **default first tab**.
+
+## Uncommitted (Overview-tab refinements — fold into a commit when ready)
+Files: `detail/tabs/OverviewTab.tsx`, `detail/tabs/CircleOfLifeTab.tsx` (added `export` to GenderFilter/MoreFiltersDrawer/RangeSelect/makeMatcher/CTRL_H/FacetDef — no behavior change), `dashboard/dashboardUi.tsx` (exported ProportionChart/RankedBarChart/RadialChart; RankedBarChart gained optional `height`/`barHeight`, defaults preserve dashboard), `SpeciesDetailContainer.tsx` (overview enables housing/births/deaths/lifecycle queries; passes them).
+- Overview cards: **Births** (green col chart, left) · **Deaths** (orange col chart, right), each capped to **last 12 years**; then Sex donut · Breeding-readiness donut · Causes-of-death pie; then Needs-Attention triage · Population-by-Site bar. Lifespan/Welfare/Care cards were **removed** per user.
+- **Filter bar** atop Overview = the **exact Circle-of-Life control** reused: PERIOD [Quick | By month/year] toggle · Gender · period picker · Other Filters drawer; scopes Births & Deaths (period+gender+Site/Enclosure/Cause/Breed) off the lifecycle events. _Try Overview on `/2150/`: toggle Quick↔By-month, pick a gender → the two bar charts rescope. If only two plain dropdowns show, it's the pre-fix build._
+
+## Pending / next move
+- **Commit the 4 uncommitted files** (user was iterating; commit when satisfied). Then the `origin`(029) push + Vercel connect is still open from prior sessions.
+- Still-open feature gaps unchanged: lineage/pedigree, real Lab/Pharmacy/Surgery data, vaccination estimator.
+
+## Working-style notes captured to memory this session
+- [[never-leave-styleguide-color-font]] — only theme-token hues + Inter, ever (no invented blue/pink even for demos).
+- [[work-like-director-not-ceremony]] — once a design is approved, implement in one pass; reuse existing components rather than shipping a reduced stand-in; no repeat wireframe/preview loops; no "done but maybe wrong" hedging.
+
+---
+
+# 2026-06-30 (session 2) — detail header stat band redesign
+
+Replaced the detail-header `VitalStrip` with a new dark-teal **composition stat band** in `SpeciesDetailView.tsx` (the only code change this session; UNCOMMITTED). tsc 0 errors; verified live on `/2150/` via a Chrome/Playwright header capture.
+
+**Acceptance:** open `/species-management/2150/` → header band is dark teal (`customColors.chatBubbleSent #1F515B`) with: **Animals** big number in bright green (`PrimaryContainer #52F990`), a **sex-composition bar** (blue `antzInfo60` Male / pink `AntzTertiary` Female) + `94 Male · 1:1.6 · 153 Female` beneath, a faint divider, then **Sites · Enclosures · Sexed** (Sexed bright green). If you see the old Net-change/Housing/Pairs strip, it's a stale tab — hard-refresh. Chosen from a 4→refined variant exploration (artifact previews); winner = "composition block in the row", brighter green on Animals/Sexed/Chipped, no meter bars.
+
+**Data gap (open):** detail JSON header has `sexedPct` but **no `chippedPct`**, so **Chipped** is gated off and the trailing row shows only 3 items (spread wide via `space-between`). To balance to 4 stats, add `chippedPct` to the detail header builder, OR switch the trailing container to fixed-gap. User said this was "resolved in another terminal" — reconcile before acting.
+
+**Pending:** commit `SpeciesDetailView.tsx` (+ decide whether to fold in the 4 prior-session Overview files). `origin`(029) push + Vercel and feature gaps (lineage/pedigree, real Lab/Pharmacy/Surgery, vaccination estimator) remain open.
+
+**Style memory added:** [[open-links-in-chrome]] (always Chrome), [[match-verbosity-to-prompt]] (terse on simple prompts).
+
+---
+
+# 2026-06-30 (session 3) — detail tab views, sticky header, Housing/Pairing reshapes — COMMITTED
+
+Director-led UI pass on the detail page. tsc 0 errors; every change screenshot-verified via the auth-stub Playwright harness. **This session IS COMMITTED.** `.superpowers/` still excluded.
+
+## Shipped (acceptance checks — hard-refresh `/species-management/2150/`)
+- **Two tab layouts + toggle.** Header-right toggle (beside IUCN/CITES chips) flips **View 2 = sticky 240px left rail** (default, on a white card, all tabs as icon+label) ↔ **View 1 = horizontal top tabs**. Choice persists (localStorage `speciesDetailTabView`). If the rail isn't sticky, the `.layout-wrapper` overflow neutralizer in `SpeciesDetailContainer` didn't run.
+- **Sticky compact header (NEW, prototype-matched).** Scroll down → a pinned bar appears: back arrow + species name (h5) over scientific name (subtitle2) on the left; dark-teal mini stat strip on the right — **ANIMALS(green) · M(blue) · F(pink) · SITES · ENCL · RATIO(amber)**, dividers between groups. No notifications row. Hides on scroll-up (threshold 220px). If it doesn't appear, window scroll isn't firing (overflow neutralizer).
+- **Header band:** breadcrumb moved OUT of the card (plain bg, above); back arrow is borderless (no circle); IUCN text orange + CITES text blue with parentheticals stripped; sex row now **Male · Unsexed(white, always shown) · Female**; **Sex Ratio moved to trailing stats** beside Sites; **Sexed/Chipped render as green progress rings**; `chippedPct` now real (see data).
+- **Housing tab fully reshaped:** stat tiles removed; **Site-wise / Enclosure-wise** segmented toggle in the card header (Circle-of-Life style) with a left title `Sites · N` / `Enclosures · N`; Enclosure-wise has an **All / Single Sexed / Male only / Female only / Unsexed only** dropdown that rescopes the list + title count (single-sexed = exactly one of M/F/U present); SECTION column removed everywhere; Site column width tuned; **two stacked drill sheets** — Site row → enclosures table → enclosure row → animal cards (Enclosure-wise row → animal cards directly).
+- **Pairing tab:** stat tiles removed; **Enclosure Readiness Breakdown is now 2 side-by-side columns** (Ready to Breed | Single Sex), each row = label+count on top, bar below, scaled within its column, big row gaps.
+- **Shared components (consistency):** `AnimalCardList` (divider + breathing space between cards) used in **every** side-sheet animal list (Housing/Pairing/Assessments). `DetailTable` (uniform **64px** rows, aligned padding) used by every detail data table. Use these for any new list/table.
+
+## Data
+- **`chippedPct` patched into all 2352 `detail/<id>.json`** via NEW `scripts/build-species-detail-chipped.js` (computes `chipped / animal_count` from list.json; idempotent, re-run with `node scripts/build-species-detail-chipped.js`).
+
+## Pending / next
+- `origin`(029) push + Vercel connect still open. Feature gaps unchanged: lineage/pedigree, real Lab/Pharmacy/Surgery, vaccination estimator.
+
+**Working-style memory added:** [[no-sticky-unless-told]] — never apply sticky positioning by default; only on explicit request (the View-2 rail and this sticky header were both explicitly asked for).

@@ -6,7 +6,6 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
-import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import type {
   AssessmentAnimal,
@@ -17,6 +16,7 @@ import type {
   SpeciesAssessments
 } from 'src/types/species-management/detail'
 import {
+  AnimalCardList,
   ColumnTrend,
   DeltaChip,
   DistributionBarChart,
@@ -310,24 +310,14 @@ const TypeDrawer: React.FC<{
                     Showing {filtered.length} of {enriched.length}
                   </Typography>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {filtered.map(({ an }, j) => (
-                      <Box
-                        key={j}
-                        onClick={() => onAnimal(an.id, an.name)}
-                        sx={{
-                          borderRadius: '10px',
-                          border: `1px solid ${c.SurfaceVariant}`,
-                          p: 2.5,
-                          cursor: 'pointer',
-                          '&:hover': { boxShadow: 2, borderColor: c.OutlineVariant }
-                        }}
-                      >
-                        <AnimalCard data={cardData(an)} />
-                      </Box>
-                    ))}
-                    {!filtered.length && <EmptyState message='No animals match the filters' />}
-                  </Box>
+                  {filtered.length ? (
+                    <AnimalCardList
+                      cards={filtered.map(({ an }) => cardData(an))}
+                      onClick={i => onAnimal(filtered[i].an.id, filtered[i].an.name)}
+                    />
+                  ) : (
+                    <EmptyState message='No animals match the filters' />
+                  )}
 
                   {/* reused antz filter drawer: category list + checkboxes + date range */}
                   <CustomFilterDrawer

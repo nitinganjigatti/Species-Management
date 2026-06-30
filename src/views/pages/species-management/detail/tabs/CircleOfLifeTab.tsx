@@ -33,7 +33,7 @@ import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-man
 
 
 // Shared height for the period controls (toggle / dropdowns / gender filter) so they all align.
-const CTRL_H = 48
+export const CTRL_H = 48
 // Shared height for the table-card header controls (view toggle + search) so they line up.
 const TABLE_CTRL_H = 44
 
@@ -95,7 +95,7 @@ const GENDER_OPTS = [
   { key: 'female', label: 'Female' },
   { key: 'unsexed', label: 'Unsexed' }
 ]
-const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]) => void }> = ({ selected, onChange }) => {
+export const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]) => void }> = ({ selected, onChange }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const [anchor, setAnchor] = useState<null | HTMLElement>(null)
@@ -140,12 +140,12 @@ const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]) => vo
 }
 
 // "Other Filters" drawer — Site / Enclosure / (Cause or Breed) facets built from the events.
-interface FacetDef {
+export interface FacetDef {
   key: string
   label: string
   options: { value: string; count: number }[]
 }
-const MoreFiltersDrawer: React.FC<{
+export const MoreFiltersDrawer: React.FC<{
   open: boolean
   onClose: () => void
   facets: FacetDef[]
@@ -482,7 +482,7 @@ const inMonth = (m: number, f: number | null, t: number | null) => {
 }
 
 /** Build the predicate the active period (preset window OR month/year range) applies to an event date. */
-function makeMatcher(range: RangeSelection, analysis: AnalysisFilter): (d: string) => boolean {
+export function makeMatcher(range: RangeSelection, analysis: AnalysisFilter): (d: string) => boolean {
   if (range.preset !== 'all') {
     const { from, to } = resolveRange(range, new Date())
     const fromMs = from ? from.getTime() : -Infinity
@@ -721,7 +721,7 @@ const ViewTab: React.FC<{
 }
 
 // Compact period-range Select (Year From–To / Month From–To), shown below the tabs.
-const RangeSelect: React.FC<{
+export const RangeSelect: React.FC<{
   value: number | null
   onPick: (v: number | null) => void
   items: { value: number; label: string }[]

@@ -2,25 +2,35 @@
 
 import React from 'react'
 import { Box, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import { SectionCard, MiniBarRow, RangeBar, StatTile, EmptyState } from 'src/views/pages/species-management/detail/detailUi'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
+import { SectionCard, MiniBarRow, EmptyState } from 'src/views/pages/species-management/detail/detailUi'
 import {
   SexDonut,
-  BirthsDeathsTrend,
   ProportionChart,
   RankedBarChart,
   type CompositionSegment,
   type Tone
 } from 'src/views/pages/species-management/dashboard/dashboardUi'
+import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import {
+  GenderFilter,
+  MoreFiltersDrawer,
+  RangeSelect,
+  makeMatcher,
+  CTRL_H,
+  type FacetDef
+} from 'src/views/pages/species-management/detail/tabs/CircleOfLifeTab'
+import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-management/speciesListing.utils'
 import type {
   SpeciesDetailHeader,
   SpeciesDetailTab,
   SpeciesHousing,
   SpeciesBirths,
   SpeciesDeaths,
-  SpeciesProfile
+  SpeciesLifecycle
 } from 'src/types/species-management/detail'
 import type { DetailAlerts } from 'src/views/pages/species-management/detail/SpeciesDetailView'
 
@@ -29,17 +39,33 @@ interface OverviewTabProps {
   housing?: SpeciesHousing
   births?: SpeciesBirths
   deaths?: SpeciesDeaths
-  profile?: SpeciesProfile
+  lifecycle?: SpeciesLifecycle | null
   alerts?: DetailAlerts | null
   onTabChange: (tab: SpeciesDetailTab) => void
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const num = (v: unknown): number => (typeof v === 'number' && isFinite(v) ? v : Number(v) || 0)
+const gKey = (g?: string) => (g === 'male' ? 'male' : g === 'female' ? 'female' : 'unsexed')
 
-const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deaths, profile, alerts, onTabChange }) => {
+const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deaths, lifecycle, alerts, onTabChange }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const go = (t: SpeciesDetailTab) => () => onTabChange(t)
+
+  // Period / gender / "Other Filters" — the same control band as Circle of Life.
+  const [range, setRange] = React.useState<RangeSelection>({ preset: 'all', start: null, end: null })
+  const [analysis, setAnalysis] = React.useState<AnalysisFilter>(EMPTY_ANALYSIS)
+  const [periodMode, setPeriodMode] = React.useState<'quick' | 'range'>('quick')
+  const [genders, setGenders] = React.useState<string[]>([])
+  const [extra, setExtra] = React.useState<Record<string, string[]>>({})
+  const [filterOpen, setFilterOpen] = React.useState(false)
+
+  const switchMode = (m: 'quick' | 'range') => {
+    if (m === 'quick') setAnalysis(EMPTY_ANALYSIS)
+    else setRange({ preset: 'all', start: null, end: null })
+    setPeriodMode(m)
+  }
 
   const ViewLink: React.FC<{ tab: SpeciesDetailTab; label: string }> = ({ tab, label }) => (
     <Box
@@ -56,7 +82,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     </Box>
   )
 
-  // A card that opens its tab. Title + "View →" affordance; whole card clickable.
   const Card: React.FC<{ title: string; tab: SpeciesDetailTab; viewLabel: string; children: React.ReactNode }> = ({
     title,
     tab,
@@ -77,28 +102,91 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: cols }, gap: 2 }}>{children}</Box>
   )
 
-  // ── Adapters ──
+  const groupLabel = (text: string) => (
+    <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      {text}
+    </Typography>
+  )
+  const dash = (
+    <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+      –
+    </Typography>
+  )
+
+  // ── Data ──
   const animals = { m: num(header?.males), f: num(header?.females), u: num(header?.unsexed), total: num(header?.total) }
 
-  // Births vs Deaths — aggregate to YEARLY buckets (month-level over decades is unreadable),
-  // keep the most recent 20 years so the trajectory reads cleanly.
+  const evB = lifecycle?.births || []
+  const evD = lifecycle?.deaths || []
+  const hasEvents = evB.length > 0 || evD.length > 0
+
+  const years = React.useMemo(() => {
+    const set = new Set<number>()
+    evB.forEach(e => set.add(+e.d.slice(0, 4)))
+    evD.forEach(e => set.add(+e.d.slice(0, 4)))
+
+    return Array.from(set).filter(Number.isFinite).sort((a, b) => b - a)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lifecycle])
+
+  const facets: FacetDef[] = React.useMemo(() => {
+    const tally = (arr: any[], get: (e: any) => string | undefined) => {
+      const m = new Map<string, number>()
+      arr.forEach(e => {
+        const v = get(e)
+        if (v) m.set(v, (m.get(v) || 0) + 1)
+      })
+
+      return Array.from(m.entries()).sort((a, b) => b[1] - a[1]).map(([value, count]) => ({ value, count }))
+    }
+    const all = [...evB, ...evD]
+
+    return ([
+      { key: 'Site', label: 'Site', options: tally(all, e => e.s) },
+      { key: 'Enclosure', label: 'Enclosure', options: tally(all, e => e.e) },
+      { key: 'Breed', label: 'Breed', options: tally(evB, e => e.b) },
+      { key: 'Manner', label: 'Cause of Death', options: tally(evD, e => e.m) }
+    ] as FacetDef[]).filter(f => f.options.length)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lifecycle])
+  const extraCount = Object.values(extra).reduce((n, v) => n + (v?.length || 0), 0)
+
+  // Births & Deaths — yearly buckets, scoped by the control band, capped to the most recent 12 years.
   const trend = React.useMemo(() => {
+    const matcher = makeMatcher(range, analysis)
+    const gOk = (g?: string) => !genders.length || genders.includes(gKey(g))
+    const inExtra = (k: string, v?: string) => !(extra[k]?.length) || (v != null && extra[k].includes(v))
     const by = new Map<string, { births: number; deaths: number }>()
-    const add = (label: string, key: 'births' | 'deaths', v: number) => {
-      const y = String(label).slice(0, 4)
+    const bump = (y: string, key: 'births' | 'deaths', v: number) => {
       if (!/^\d{4}$/.test(y)) return
       const e = by.get(y) || { births: 0, deaths: 0 }
       e[key] += v
       by.set(y, e)
     }
-    ;(births?.byYearMonth || []).forEach(p => add(p.label, 'births', num(p.value)))
-    ;(deaths?.byYearMonth || []).forEach(p => add(p.label, 'deaths', num(p.value)))
+
+    if (hasEvents) {
+      evB.forEach(e => {
+        if (matcher(e.d) && gOk(e.g) && inExtra('Site', e.s) && inExtra('Enclosure', e.e) && inExtra('Breed', e.b))
+          bump(e.d.slice(0, 4), 'births', e.k || 1)
+      })
+      evD.forEach(e => {
+        if (matcher(e.d) && gOk(e.g) && inExtra('Site', e.s) && inExtra('Enclosure', e.e) && inExtra('Manner', e.m))
+          bump(e.d.slice(0, 4), 'deaths', e.k || 1)
+      })
+    } else {
+      ;(births?.byYearMonth || []).forEach(p => matcher(`${p.label}-01`) && bump(String(p.label).slice(0, 4), 'births', num(p.value)))
+      ;(deaths?.byYearMonth || []).forEach(p => matcher(`${p.label}-01`) && bump(String(p.label).slice(0, 4), 'deaths', num(p.value)))
+    }
 
     return Array.from(by.keys())
       .sort()
-      .slice(-20)
+      .slice(-12)
       .map(y => ({ label: y, births: by.get(y)!.births, deaths: by.get(y)!.deaths }))
-  }, [births, deaths])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lifecycle, births, deaths, range, analysis, genders, extra, hasEvents])
+
+  const yearItems = years.map(y => ({ value: y, label: String(y) }))
+  const monthItems = MONTHS.map((m, i) => ({ value: i + 1, label: m }))
 
   const readiness: CompositionSegment[] = [
     { label: 'Can breed', value: num(housing?.pairedEncl), onClick: go('pairing') },
@@ -128,72 +216,127 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     .map(s => ({ label: s.name, value: num(s.total), onClick: go('housing') }))
     .filter(s => s.value > 0)
     .sort((a, b) => b.value - a.value)
-    .slice(0, 6)
 
-  const toYears = (d?: number) => (d == null ? undefined : Math.round((d / 365) * 10) / 10)
-  const aad = deaths?.ageAtDeath
-  const aadAvgY = toYears(aad?.avg)
-  const aadMinY = toYears(aad?.min)
-  const aadMaxY = toYears(aad?.max)
-  const lifeSpecies = num(profile?.lifespanYears)
-
-  const welfare = [
-    { label: 'Intelligence', value: num(profile?.intelligenceScore) },
-    { label: 'Activity', value: num(profile?.activityNeedsScore) },
-    { label: 'Social', value: num(profile?.socialNeedsScore) },
-    { label: 'Space', value: num(profile?.spaceNeedsScore) },
-    { label: 'Stress risk', value: num(profile?.stressRiskScore) }
-  ].filter(r => r.value > 0)
-
-  const care = [
-    { label: 'Budget', value: num(profile?.budgetScore) },
-    { label: 'Size', value: num(profile?.sizeScore) },
-    { label: 'Need', value: num(profile?.needScore) },
-    { label: 'Conservation', value: num(profile?.conservationPriority) },
-    { label: 'Visitor appeal', value: num(profile?.visitorAppeal) }
-  ].filter(r => r.value > 0)
-
-  // Compact radar for 0–10 score sets (variety + at-a-glance shape).
-  const Radar: React.FC<{ scores: { label: string; value: number }[]; color: string }> = ({ scores, color }) => {
-    const options = {
-      chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
-      labels: scores.map(s => s.label),
-      colors: [color],
-      stroke: { width: 2 },
-      fill: { opacity: 0.2 },
-      markers: { size: 3, colors: [color], strokeColors: color },
-      yaxis: { show: false, min: 0, max: 10, tickAmount: 5 },
-      xaxis: { labels: { style: { colors: scores.map(() => cc.neutralSecondary), fontSize: '11px' } } },
-      plotOptions: { radar: { polygons: { strokeColors: cc.SurfaceVariant, connectorColors: cc.SurfaceVariant } } },
-      tooltip: { enabled: true, y: { formatter: (v: number) => `${v}/10` } }
-    }
-
-    return <ReactApexcharts type='radar' height={280} options={options} series={[{ name: 'Score', data: scores.map(s => s.value) }]} />
-  }
+  const yearBar = (data: number[], color: string, name: string) => (
+    <ReactApexcharts
+      type='bar'
+      height={280}
+      options={{
+        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
+        colors: [color],
+        plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        grid: { borderColor: cc.SurfaceVariant, strokeDashArray: 4 },
+        xaxis: {
+          categories: trend.map(t => t.label),
+          labels: { style: { colors: cc.neutralSecondary, fontSize: '10px' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
+        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
+        fill: { opacity: 1 }
+      }}
+      series={[{ name, data }]}
+    />
+  )
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Row 1 — trajectory anchor (yearly area) + sex donut */}
+      {/* Control band — Period (Quick / By month·year) · Gender · Other Filters. Scopes Births & Deaths. */}
+      <Box sx={{ borderRadius: '10px', border: `1px solid ${cc.SurfaceVariant}`, bgcolor: 'background.paper', p: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 2, md: 2.5 },
+            flexWrap: 'wrap',
+            '& .MuiInputBase-root': { height: CTRL_H },
+            '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
+            '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
+          }}
+        >
+          {groupLabel('Period')}
+          <Box sx={{ display: 'inline-flex', height: CTRL_H, p: 1.5, borderRadius: '999px', bgcolor: cc.OnSurfaceVariant }}>
+            {(['quick', 'range'] as const).map(m => {
+              const on = periodMode === m
+
+              return (
+                <Box
+                  key={m}
+                  onClick={() => switchMode(m)}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    px: 4,
+                    borderRadius: '999px',
+                    cursor: 'pointer',
+                    bgcolor: on ? theme.palette.primary.main : 'transparent',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Typography variant='body2' sx={{ fontWeight: on ? 600 : 500, color: on ? theme.palette.common.white : alpha(theme.palette.common.white, 0.7), whiteSpace: 'nowrap' }}>
+                    {m === 'quick' ? 'Quick' : 'By month / year'}
+                  </Typography>
+                </Box>
+              )
+            })}
+          </Box>
+
+          <GenderFilter selected={genders} onChange={setGenders} />
+
+          {periodMode === 'quick' ? (
+            <DashboardDateRange value={range} onChange={setRange} />
+          ) : (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {groupLabel('Years')}
+                <RangeSelect value={analysis.yearFrom} onPick={v => setAnalysis(a => ({ ...a, yearFrom: v }))} items={yearItems} anyLabel='All' />
+                {dash}
+                <RangeSelect value={analysis.yearTo} onPick={v => setAnalysis(a => ({ ...a, yearTo: v }))} items={yearItems} anyLabel='All' />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {groupLabel('Months')}
+                <RangeSelect value={analysis.monthFrom} onPick={v => setAnalysis(a => ({ ...a, monthFrom: v }))} items={monthItems} anyLabel='All' />
+                {dash}
+                <RangeSelect value={analysis.monthTo} onPick={v => setAnalysis(a => ({ ...a, monthTo: v }))} items={monthItems} anyLabel='All' />
+              </Box>
+            </>
+          )}
+
+          <FilterButtonWithNotification
+            label='Other Filters'
+            onClick={() => setFilterOpen(true)}
+            appliedFiltersCount={extraCount || undefined}
+            sx={{ ml: 'auto', height: CTRL_H, bgcolor: theme.palette.background.paper, '&:hover': { bgcolor: theme.palette.background.paper } }}
+          />
+        </Box>
+      </Box>
+
+      {/* Row 1 — Births (green) · Deaths (orange) */}
       {grid(
-        '2fr 1fr',
+        '1fr 1fr',
         <>
-          <Box onClick={go('circle')} sx={{ cursor: 'pointer', borderRadius: '10px', '&:hover': { boxShadow: 2 } }}>
-            {trend.length ? <BirthsDeathsTrend trend={trend as any} /> : (
-              <SectionCard title='Births vs Deaths'><EmptyState /></SectionCard>
-            )}
-          </Box>
-          <Box onClick={go('pairing')} sx={{ cursor: 'pointer', borderRadius: '10px', '&:hover': { boxShadow: 2 } }}>
-            {animals.total ? <SexDonut animals={animals as any} /> : (
-              <SectionCard title='Sex Composition'><EmptyState /></SectionCard>
-            )}
-          </Box>
+          <Card title='Births' tab='circle' viewLabel='View Circle of Life'>
+            {trend.length ? yearBar(trend.map(t => t.births), theme.palette.primary.main, 'Births') : <EmptyState />}
+          </Card>
+          <Card title='Deaths' tab='circle' viewLabel='View Circle of Life'>
+            {trend.length ? yearBar(trend.map(t => t.deaths), cc.Tertiary, 'Deaths') : <EmptyState />}
+          </Card>
         </>
       )}
 
-      {/* Row 2 — breeding (donut) · monitoring (triage) · spread (bar) */}
+      {/* Row 2 — composition: sex (donut) · breeding (donut) · causes (pie) */}
       {grid(
         '1fr 1fr 1fr',
         <>
+          <Box onClick={go('pairing')} sx={{ cursor: 'pointer', borderRadius: '10px', height: '100%', '&:hover': { boxShadow: 2 } }}>
+            {animals.total ? <SexDonut animals={animals as any} /> : (
+              <SectionCard title='Sex Composition' sx={{ height: '100%' }}><EmptyState /></SectionCard>
+            )}
+          </Box>
+
           <Card title='Breeding Readiness' tab='pairing' viewLabel='View Pairing'>
             {readinessTotal ? (
               <>
@@ -207,6 +350,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
             )}
           </Card>
 
+          <Card title='Top Causes of Death' tab='circle' viewLabel='View Circle of Life'>
+            {causes.length ? <ProportionChart segments={causes} variant='pie' /> : <EmptyState />}
+          </Card>
+        </>
+      )}
+
+      {/* Row 3 — operations: monitoring (triage) · spread (bar) */}
+      {grid(
+        '1fr 1fr',
+        <>
           <Card title='Needs Attention' tab='assessments' viewLabel='View Assessments'>
             {alertRows.length ? (
               alertRows.map(r => (
@@ -218,35 +371,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
           </Card>
 
           <Card title='Population by Site' tab='housing' viewLabel='View Housing'>
-            {sites.length ? <RankedBarChart segments={sites} horizontal /> : <EmptyState />}
-          </Card>
-        </>
-      )}
-
-      {/* Row 3 — causes (pie) · lifespan (stats) */}
-      {grid(
-        '1fr 1fr',
-        <>
-          <Card title='Top Causes of Death' tab='circle' viewLabel='View Circle of Life'>
-            {causes.length ? <ProportionChart segments={causes} variant='pie' /> : <EmptyState />}
-          </Card>
-
-          <Card title='Lifespan' tab='circle' viewLabel='View Circle of Life'>
-            {aadAvgY || lifeSpecies ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <StatTile label='Avg age at death' value={aadAvgY != null ? `${aadAvgY} yrs` : '—'} tone='info' />
-                  {lifeSpecies > 0 && <StatTile label='Species lifespan' value={`${lifeSpecies} yrs`} />}
-                </Box>
-                {aadMinY != null && aadMaxY != null && (
-                  <Box>
-                    <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 1.5 }}>
-                      Age-at-death range (years){aad?.count != null ? ` · n=${aad.count}` : ''}
-                    </Typography>
-                    <RangeBar min={aadMinY} avg={aadAvgY ?? aadMinY} max={aadMaxY} tone='info' />
-                  </Box>
-                )}
-              </Box>
+            {sites.length ? (
+              <RankedBarChart segments={sites} horizontal height={Math.max(170, sites.length * 46)} barHeight='42%' />
             ) : (
               <EmptyState />
             )}
@@ -254,19 +380,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
         </>
       )}
 
-      {/* Row 4 — care profile radars (Overview-only) */}
-      {(welfare.length > 0 || care.length > 0) &&
-        grid(
-          '1fr 1fr',
-          <>
-            <Card title='Welfare Needs' tab='profile' viewLabel='View Profile'>
-              {welfare.length >= 3 ? <Radar scores={welfare} color={theme.palette.primary.main} /> : <EmptyState />}
-            </Card>
-            <Card title='Captive-Care Scores' tab='profile' viewLabel='View Profile'>
-              {care.length >= 3 ? <Radar scores={care} color={theme.palette.secondary.main} /> : <EmptyState />}
-            </Card>
-          </>
-        )}
+      <MoreFiltersDrawer open={filterOpen} onClose={() => setFilterOpen(false)} facets={facets} selected={extra} onApply={setExtra} />
     </Box>
   )
 }

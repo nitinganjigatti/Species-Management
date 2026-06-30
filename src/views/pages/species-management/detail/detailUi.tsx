@@ -3,8 +3,11 @@
 import React from 'react'
 import { Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 /**
  * Shared, on-system UI primitives for the Species Management detail tabs.
@@ -157,7 +160,7 @@ export const StatTile: React.FC<{
 }
 
 /** Status / category chip in a semantic tone. */
-export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone }> = ({ label, tone = 'neutral' }) => {
+export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone; fg?: string }> = ({ label, tone = 'neutral', fg: fgOverride }) => {
   const tones = useTone()
   const { bg, fg } = tones(tone)
 
@@ -169,16 +172,87 @@ export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone }> = ({ 
         px: 1.5,
         py: 0.5,
         borderRadius: '6px',
-        backgroundColor: bg,
-        color: fg
+        backgroundColor: bg
       }}
     >
-      <Typography variant='caption' sx={{ fontWeight: 600 }}>
+      <Typography variant='caption' sx={{ fontWeight: 600, color: fgOverride || fg }}>
         {label}
       </Typography>
     </Box>
   )
 }
+
+/**
+ * Standard animal-card list for side sheets — one AnimalCard per row, with a hairline divider
+ * and breathing space between each. Use this EVERYWHERE an animal-card list appears in a sheet
+ * (Housing / Pairing / Assessments …) so the styling stays consistent. Pass pre-mapped card data.
+ */
+export const AnimalCardList: React.FC<{ cards: any[]; onClick?: (index: number) => void }> = ({ cards, onClick }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      {cards.map((data, i) => (
+        <Box
+          key={i}
+          onClick={onClick ? () => onClick(i) : undefined}
+          sx={{
+            py: 2.5,
+            borderBottom: i < cards.length - 1 ? `1px solid ${c.SurfaceVariant}` : 'none',
+            ...(onClick
+              ? { cursor: 'pointer', borderRadius: '8px', transition: '0.15s', '&:hover': { bgcolor: c.Surface } }
+              : {})
+          }}
+        >
+          <AnimalCard data={data} />
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
+/**
+ * Standard data-table styling for the detail tabs — tall rows (so every table matches), aligned
+ * L/R padding (header lines up with cells), and a slightly larger header. Use this as the
+ * `externalTableStyle` on every CommonTable in the module; spread it and add table-specific rules.
+ */
+/** Uniform row height for every detail data table (use DetailTable below). */
+export const DETAIL_TABLE_ROW_H = 64
+
+/**
+ * The standard data table for the detail module. Wraps CommonTable with consistent tall rows,
+ * aligned padding and header. USE THIS for every table here (and any new one) so they all match.
+ * Pass already-indexed rows (each with `id` + `sl_no`).
+ */
+export const DetailTable: React.FC<{
+  columns: GridColDef[]
+  rows: any[]
+  total: number
+  paginationModel: { page: number; pageSize: number }
+  setPaginationModel: (m: any) => void
+  onRowClick?: (params: any) => void
+  rowHeight?: number
+}> = ({ columns, rows, total, paginationModel, setPaginationModel, onRowClick, rowHeight = DETAIL_TABLE_ROW_H }) => (
+  <CommonTable
+    columns={columns}
+    indexedRows={rows}
+    total={total}
+    loading={false}
+    paginationModel={paginationModel}
+    setPaginationModel={setPaginationModel}
+    handleSortModel={() => {}}
+    searchValue=''
+    getRowHeight={() => rowHeight}
+    onRowClick={onRowClick}
+    externalTableStyle={{
+      '& .MuiDataGrid-cell': { paddingLeft: '20px !important', paddingRight: '16px !important', display: 'flex', alignItems: 'center', fontSize: '1rem' },
+      '& .MuiDataGrid-columnHeader': { paddingLeft: '20px !important', paddingRight: '16px !important' },
+      '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem' },
+      ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {})
+    }}
+  />
+)
 
 /** Pill used for taxonomy / link badges. */
 export const Pill: React.FC<{ label: React.ReactNode; onClick?: () => void; icon?: string }> = ({

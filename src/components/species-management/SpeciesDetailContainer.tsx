@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Box, CircularProgress } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
@@ -34,6 +34,17 @@ const Loading = () => (
 
 const SpeciesDetailContainer = () => {
   useSpeciesChrome()
+  // The side-rail tab layout uses a sticky rail. `.layout-wrapper` has `overflow-y: auto`, which
+  // makes it the sticky containing block even though the window is what scrolls — that silently
+  // breaks `position: sticky`. Relax it to `visible` while on this page; restored on unmount.
+  useEffect(() => {
+    const wrapper = document.querySelector('.layout-wrapper') as HTMLElement | null
+    const prevOverflow = wrapper?.style.overflow ?? ''
+    if (wrapper) wrapper.style.overflow = 'visible'
+    return () => {
+      if (wrapper) wrapper.style.overflow = prevOverflow
+    }
+  }, [])
   const params = useParams()
   const router = useRouter()
   const id = String((params as Record<string, string>)?.id || '')
@@ -79,12 +90,12 @@ const SpeciesDetailContainer = () => {
     }
   }, [alertsQ.data])
 
-  const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile' || tab === 'overview')
+  const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile')
   const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing' || tab === 'overview')
   const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing' || tab === 'pairing')
   const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview')
   const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle' || tab === 'overview')
-  const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle')
+  const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle' || tab === 'overview')
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
   const vaccination = useTabQuery(['sm-vaccination', id], () => detailApi.getSpeciesVaccination(id), tab === 'medical')
@@ -107,7 +118,7 @@ const SpeciesDetailContainer = () => {
             housing={housing.data}
             births={births.data}
             deaths={deaths.data}
-            profile={profile.data}
+            lifecycle={lifecycle.data}
             alerts={alerts}
             onTabChange={setTab}
           />

@@ -279,7 +279,12 @@ export const ProportionChart: React.FC<{ segments: CompositionSegment[]; variant
 }
 
 /** Horizontal/vertical bar of ordered categories, clickable to drill. */
-export const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizontal: boolean }> = ({ segments, horizontal }) => {
+export const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizontal: boolean; height?: number; barHeight?: string }> = ({
+  segments,
+  horizontal,
+  height = 320,
+  barHeight = '65%'
+}) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
   const data = segments
@@ -295,7 +300,7 @@ export const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizont
       }
     },
     colors,
-    plotOptions: { bar: { horizontal, distributed: true, borderRadius: 4, columnWidth: '55%', barHeight: '65%' } },
+    plotOptions: { bar: { horizontal, distributed: true, borderRadius: 4, columnWidth: '55%', barHeight } },
     legend: { show: false },
     xaxis: {
       categories: data.map(d => d.label),
@@ -310,7 +315,7 @@ export const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizont
   return (
     <ReactApexcharts
       type='bar'
-      height={320}
+      height={height}
       options={options}
       series={[{ name: 'Species', data: data.map(d => d.value) }]}
     />
