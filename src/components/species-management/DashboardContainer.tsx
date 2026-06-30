@@ -13,6 +13,7 @@ import {
 import type { RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 import { getSpeciesDashboard } from 'src/lib/api/species-management/dashboard'
 import type { DashboardAlert } from 'src/types/species-management/dashboard'
+import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
 
 const LIST = '/species-management/list/'
 const q = (params: Record<string, string>) =>
@@ -27,6 +28,7 @@ const THREATENED_STATUSES = [
 ].join(',')
 
 export default function DashboardContainer() {
+  useSpeciesChrome()
   const router = useRouter()
   const [range, setRange] = useState<RangeSelection>({ preset: 'last_1y', start: null, end: null })
 

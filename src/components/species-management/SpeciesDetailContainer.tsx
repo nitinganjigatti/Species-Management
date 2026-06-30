@@ -9,6 +9,7 @@ import * as detailApi from 'src/lib/api/species-management/detail'
 import { getSpeciesEggs } from 'src/lib/api/species-management/eggs'
 import type { SpeciesDetailTab } from 'src/types/species-management/detail'
 import SpeciesDetailView from 'src/views/pages/species-management/detail/SpeciesDetailView'
+import OverviewTab from 'src/views/pages/species-management/detail/tabs/OverviewTab'
 import ProfileTab from 'src/views/pages/species-management/detail/tabs/ProfileTab'
 import PairingTab from 'src/views/pages/species-management/detail/tabs/PairingTab'
 import HousingTab from 'src/views/pages/species-management/detail/tabs/HousingTab'
@@ -18,6 +19,7 @@ import AssessmentsTab from 'src/views/pages/species-management/detail/tabs/Asses
 import MedicalTab from 'src/views/pages/species-management/detail/tabs/MedicalTab'
 import IdentificationTab from 'src/views/pages/species-management/detail/tabs/IdentificationTab'
 import BreedsTab from 'src/views/pages/species-management/detail/tabs/BreedsTab'
+import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
 
 // Backend endpoints don't exist yet — don't hammer with retries; surface empty states instead.
 // Called unconditionally in a fixed order every render, so it's hook-safe.
@@ -31,11 +33,12 @@ const Loading = () => (
 )
 
 const SpeciesDetailContainer = () => {
+  useSpeciesChrome()
   const params = useParams()
   const router = useRouter()
   const id = String((params as Record<string, string>)?.id || '')
 
-  const [tab, setTab] = useState<SpeciesDetailTab>('profile')
+  const [tab, setTab] = useState<SpeciesDetailTab>('overview')
 
   const header = useQuery({
     queryKey: ['sm-detail-header', id],
@@ -76,11 +79,11 @@ const SpeciesDetailContainer = () => {
     }
   }, [alertsQ.data])
 
-  const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile')
-  const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing')
+  const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile' || tab === 'overview')
+  const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing' || tab === 'overview')
   const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing' || tab === 'pairing')
-  const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle')
-  const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle')
+  const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview')
+  const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle' || tab === 'overview')
   const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle')
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
@@ -97,6 +100,18 @@ const SpeciesDetailContainer = () => {
 
   const renderTab = () => {
     switch (tab) {
+      case 'overview':
+        return (
+          <OverviewTab
+            header={header.data}
+            housing={housing.data}
+            births={births.data}
+            deaths={deaths.data}
+            profile={profile.data}
+            alerts={alerts}
+            onTabChange={setTab}
+          />
+        )
       case 'profile':
         return profile.isLoading ? <Loading /> : <ProfileTab profile={profile.data} header={header.data} />
       case 'pairing':

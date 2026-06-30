@@ -293,3 +293,43 @@ Day-level re-extract so Today/Last-week presets are precise · lifespan = avg-ad
 
 ## Single most important next move
 **COMMIT** this session (kept uncommitted by choice). Then still-open gaps: Accessions column (`build-species-accessions.js` written, never run), lineage/pedigree, real lab/pharmacy data.
+
+---
+
+# 2026-06-29 session handoff — detail-tab reshapes, COMMITTED + pushed to personal repos for Vercel
+
+Director-led UI reshape pass (me as senior design director, no sub-agents). All on-system, tsc 0 errors, every change screenshot-verified via `scripts/species-screenshots.js`. **This session's work IS COMMITTED** as `33077deef` (1,866 files incl. `lifecycle/` sidecars; `.superpowers/` deliberately excluded).
+
+## ⚠️ GIT REMOTES WERE RECONFIGURED — read before any push
+- `origin` → **`github.com/nitinganjigatti029-design/Species-Management.git`** (user's NEW personal repo, for a Vercel deploy)
+- `antz` → `github.com/ANTZ-Systems/antz_web_dashboard.git` (the REAL company origin — renamed, preserved as backup)
+- `personal` → `github.com/nitinganjigatti/Species-Management.git` (user's first personal repo)
+- **So `git push origin` now goes to the personal repo, NOT ANTZ.** To push company work use `git push antz …`.
+
+## Push status
+- `personal` (nitinganjigatti): branch pushed → `main` ✅ (worked via cached macOS keychain creds).
+- `origin` (nitinganjigatti029-design): **PENDING** — cached creds are for `nitinganjigatti`, which is denied (403) on the `029-design`-owned repo. User is finishing the push via **GitHub Desktop** (signed in there as `029`). If they switch to a token instead: `git push origin antzs-codbase-designteam:main` with a `029` PAT.
+
+## Shipped this session (with acceptance checks)
+- **Accessions column (List).** Try `/species-management/list/`, scroll the table right past Deaths → an **Accessions** column with real numbers (em-dash where 0). If all blank, `list.json` is stale → re-run `scripts/build-species-accessions.js`.
+- **Profile tab → "dossier" redesign.** Try `/species-management/2150/` Profile. You should see a tinted **Vital Signs** band (Weight/Lifespan/Birth Weight as big numbers with **units** + "avg · healthy adult") then 3-column labelled **spec grids** with muted icons. If it's a flat label→value list with a big middle gap, the old `ProfileTab.tsx` is cached.
+- **Pairing tab → clickable readiness.** `/2150/` Pairing: readiness breakdown is **clickable bars** (grouped Ready-to-Breed/Needs-Sexing/Single-Sex). Click a category → **sheet 1 = enclosure data table**; click a row → **sheet 2 (stacked) = animal cards + search**. Top stats now include **Male/Female/Unsexed**. If clicking does nothing, animals didn't load (container fetches `animals` for pairing now).
+- **Housing tab → no more accordions.** `/2150/` Housing: a **searchable site dropdown** → per-site stats strip → **searchable paginated enclosure table** (one card). If you see expandable accordions per site, old build cached.
+- **Circle of Life:** Male/Female/Unsexed sex tiles on all 3 sub-tabs; slim **control band** (segmented tabs + filters in one card) over neutral white stats; **Animal-wise / Site-wise** table toggle.
+- **Table alignment fix:** Housing/Pairing enclosure tables — headers now line up with values (forced equal `paddingLeft/Right !important` on `.MuiDataGrid-cell` + `.MuiDataGrid-columnHeader`; the antz DataGrid theme defaults to 32px which my `px` overrides had broken).
+
+## Gotchas captured to memory (see auto-memory)
+- **antz MUI theme spacing ≈ 4px/unit** (not 8px) → `sx gap:N` ≈ 4·N px; use explicit px for big gaps. ([[antz-theme-spacing-4px]])
+- **Agentation feedback: read the React component-path to ID the element** (a `SectionCard` ancestor meant Profile Vital Signs, not the Pairing top grid — cost 3 wrong edits). ([[agentation-read-component-path]])
+- **`.env` + `.env.development` are committed** (only `.env*.local` gitignored); all 15 keys are `NEXT_PUBLIC_*` config, no private keys — but keep the personal repos PRIVATE. ([[species-mgmt-personal-repo-vercel]])
+
+## Vercel (planned, NOT done — user is non-technical for ops)
+Connect via Vercel **dashboard**: log in with the same GitHub account that owns the repo → Add New → Project → Import → Deploy (Next.js auto-detected). Committed `.env` has `NEXT_PUBLIC_WSO2_AUTH_ENABLED=false` so the build deploys auth-OFF (species pages render without login). Caveats: `public/species-data` is **~128 MB** (may hit Vercel Hobby limits → trim/blob if it fails); only the Species Management module works (others need the live ANTZ backend). A GitHub link = code only; the **Vercel link** = the clickable app.
+
+## Single most important next move
+Finish the `origin` (029) push (GitHub Desktop or a PAT), then connect that repo to Vercel. Still-open feature gaps unchanged: lineage/pedigree, real Lab/Pharmacy/Surgery data, vaccination estimator.
+
+### 2026-06-29 (later) — prototype switched to the dump's DB + git status
+- **Wildventure Flask prototype now runs on the dump's data.** Imported `Dump20260622.sql` into local MySQL → DB `species_mgmt_anon` (2,352 species incl. Aardel Antelope); changed the prototype `.env` `MYSQL_DATABASE` → `species_mgmt_anon`; restarted it. Full how-to + gotchas in memory [[wildventure-prototype-db]]. **Acceptance:** open **http://localhost:5002** (restart it if down: `cd "/Users/nitin/Nitin Claude/wildventure-species-mgmt-main"; .venv/bin/python run.py`) → search "Aardel Antelope", it should appear. If not, the app cached the old DB → restart; or `curl -s localhost:5002/api/species | grep "Aardel Antelope"`. Old `strategic_species_management` DB kept as backup.
+- **Git (antz repo):** committed `33077deef`; pushed to `personal` (nitinganjigatti) `main` ✅. `origin` push to **nitinganjigatti029-design** was still **PENDING** (auth mismatch — this Mac's saved login is `nitinganjigatti`; user was finishing via GitHub Desktop or a PAT). Remotes: `origin`=029 personal repo, `personal`=nitinganjigatti repo, `antz`=the real ANTZ company origin. **`git push origin` ≠ ANTZ now.**
+- **Left running intentionally:** the Flask prototype dev server on port 5002 (not a stray — the user is using it).

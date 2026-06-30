@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
-import { useSettings } from 'src/@core/hooks/useSettings'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import toast from 'react-hot-toast'
@@ -11,15 +10,13 @@ import toast from 'react-hot-toast'
 import { getSpeciesReportList } from 'src/lib/api/species-management'
 import { getSpeciesDashboard } from 'src/lib/api/species-management/dashboard'
 import SpeciesListingView, { type AppliedChip, type PostureStats } from 'src/views/pages/species-management/SpeciesListingView'
-import SpeciesManagementFilterDrawer, {
-  type FilterOption
-} from 'src/components/species-management/SpeciesManagementFilterDrawer'
+import { type FilterOption } from 'src/components/species-management/SpeciesManagementFilterDrawer'
 import { type MajorFilterRow } from 'src/views/pages/species-management/SpeciesListMajorFilters'
+import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
 import { buildSpeciesColumns } from 'src/views/pages/species-management/speciesColumns'
 import {
   EMPTY_ANALYSIS,
   EMPTY_FILTERS,
-  MAJOR_FILTER_KEYS,
   MONTH_LABELS,
   POPULATION_BANDS,
   READINESS_OPTIONS,
@@ -113,6 +110,24 @@ const FACET_FIELD: Partial<Record<keyof SpeciesFilters, keyof SpeciesRow>> = {
   Genus: 'genus'
 }
 
+// Section order for the left filter rail (Analysis is prepended in the rail itself).
+const RAIL_KEYS: (keyof SpeciesFilters)[] = [
+  'Category',
+  'Class',
+  'Order',
+  'Family',
+  'Genus',
+  'Population',
+  'Readiness',
+  'Conservation',
+  'CITES',
+  'Sex',
+  'Site'
+]
+
+// Rail-facing section titles (override FACET_LABEL where the rail wording differs).
+const RAIL_LABEL: Partial<Record<keyof SpeciesFilters, string>> = { Sex: 'Gender', Conservation: 'Conservation' }
+
 const popLabel = (key: string) => POPULATION_BANDS.find(b => b.key === key)?.label ?? key
 const readyLabel = (key: string) => READINESS_OPTIONS.find(o => o.key === key)?.label ?? key
 const sexLabel = (key: string) => SEX_OPTIONS.find(o => o.key === key)?.label ?? key
@@ -121,28 +136,20 @@ const SpeciesListingContainer = () => {
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { settings, saveSettings } = useSettings()
-  // The JS settings context types saveSettings as 0-arg; it actually takes the updated settings.
-  const applySettings = saveSettings as unknown as (s: typeof settings) => void
-
-  // Scoped to this page: let the global profile AppBar scroll away (non-sticky) so the species
-  // filter/results controls can be the sticky element instead. Restored on unmount; `appBar` is
-  // not persisted to localStorage, so nothing leaks to other pages.
+  // Module chrome (hide profile bar, full-width, edge gutter) is applied consistently for every
+  // species screen by useSpeciesChrome(). This page additionally needs the sticky filter rail to work.
+  useSpeciesChrome()
   useEffect(() => {
-    const prev = settings.appBar
-    if (prev !== 'static') applySettings({ ...settings, appBar: 'static' })
-
     // `.layout-wrapper` has `overflow-y: auto`, which makes it the sticky containing block even
     // though the window (not the wrapper) is what actually scrolls — that silently breaks
-    // `position: sticky` on the filter controls. Relax it to `visible` while on this page so the
-    // sticky resolves against the window scroll; restored on unmount (content is boxed + the table
-    // scrolls internally, so no horizontal scroll leaks in).
+    // `position: sticky` on the filter rail. Relax it to `visible` while on this page so the sticky
+    // resolves against the window scroll; restored on unmount (the table scrolls internally, so no
+    // horizontal scroll leaks in).
     const wrapper = document.querySelector('.layout-wrapper') as HTMLElement | null
     const prevOverflow = wrapper?.style.overflow ?? ''
     if (wrapper) wrapper.style.overflow = 'visible'
 
     return () => {
-      applySettings({ ...settings, appBar: prev })
       if (wrapper) wrapper.style.overflow = prevOverflow
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,8 +171,6 @@ const SpeciesListingContainer = () => {
   const [searchValue, setSearchValue] = useState('')
   const [query, setQuery] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [filterCount, setFilterCount] = useState(0)
-  const [filterOpen, setFilterOpen] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
   const { data: speciesResponse, isLoading } = useQuery({
@@ -329,8 +334,11 @@ const SpeciesListingContainer = () => {
       species: filteredRows.length,
       totalSpecies: allRows.length,
       animals: filteredRows.reduce((n, r) => n + r.population, 0),
-      singleSex: filteredRows.filter(r => getReadiness(r) === 'single_sex').length,
-      criticallyFew: filteredRows.filter(r => r.population >= 1 && r.population <= 3).length
+      male: filteredRows.reduce((n, r) => n + (r.male || 0), 0),
+      female: filteredRows.reduce((n, r) => n + (r.female || 0), 0),
+      criticallyFew: filteredRows
+        .filter(r => r.population >= 1 && r.population <= 3)
+        .reduce((n, r) => n + r.population, 0)
     }),
     [filteredRows, allRows]
   )
@@ -375,11 +383,11 @@ const SpeciesListingContainer = () => {
         .map(([value, rs]) => ({ value, label: value, count: rs.length, animals: rs.reduce((n, r) => n + r.population, 0) }))
     }
 
-    return MAJOR_FILTER_KEYS.map(key => {
+    return RAIL_KEYS.map(key => {
       const opts = FILTER_ANCESTORS[key] ? buildScoped(key) : filterOptions[key] || []
       const ordered = key === 'Category' || key === 'Class' ? [...opts].sort((a, b) => b.count - a.count) : opts
 
-      return { key, label: FACET_LABEL[key], options: ordered, revealWhenSelected: REVEAL_PARENT[key] }
+      return { key, label: RAIL_LABEL[key] || FACET_LABEL[key], options: ordered, revealWhenSelected: REVEAL_PARENT[key] }
     })
   }, [filterOptions, allRows, appliedFilters])
 
@@ -390,11 +398,6 @@ const SpeciesListingContainer = () => {
 
       return { ...prev, [key]: next }
     })
-    setPaginationModel(prev => ({ ...prev, page: 0 }))
-  }, [])
-
-  const handleClearFacet = useCallback((key: keyof SpeciesFilters) => {
-    setAppliedFilters(prev => ({ ...prev, [key]: [] }))
     setPaginationModel(prev => ({ ...prev, page: 0 }))
   }, [])
 
@@ -475,11 +478,6 @@ const SpeciesListingContainer = () => {
     debouncedSetQuery('')
   }, [debouncedSetQuery])
 
-  const handleApplyFilters = useCallback((filters: SpeciesFilters) => {
-    setAppliedFilters(filters)
-    setPaginationModel(prev => ({ ...prev, page: 0 }))
-  }, [])
-
   const handleCellClick = useCallback(
     (params: { field: string; row: Record<string, unknown> }) => {
       if (params.field === 'sl_no' || params.field === 'species_name') {
@@ -512,49 +510,29 @@ const SpeciesListingContainer = () => {
   }, [isDownloading])
 
   return (
-    <>
-      <SpeciesListingView
-        columns={columns}
-        rows={pageRows}
-        totalCount={filteredRows.length}
-        loading={isLoading}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        onSearchClear={handleSearchClear}
-        paginationModel={paginationModel}
-        onPaginationChange={setPaginationModel}
-        onCellClick={handleCellClick}
-        filterCount={filterCount}
-        onFilterOpen={() => setFilterOpen(true)}
-        onDownload={handleDownload}
-        isDownloading={isDownloading}
-        chips={chips}
-        onResetAll={handleResetAll}
-        posture={posture}
-        majorFilters={majorFilters}
-        appliedFilters={appliedFilters}
-        onToggleFacet={handleToggleFacet}
-        onClearFacet={handleClearFacet}
-        sexOptions={filterOptions.Sex || []}
-        sexSelected={appliedFilters.Sex}
-        siteOptions={filterOptions.Site || []}
-        siteSelected={appliedFilters.Site}
-        readinessOptions={filterOptions.Readiness || []}
-        readinessSelected={appliedFilters.Readiness}
-        analysis={analysis}
-        analysisYears={analysisYears}
-        onAnalysisChange={handleAnalysisChange}
-      />
-
-      <SpeciesManagementFilterDrawer
-        open={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        options={filterOptions}
-        initialFilters={appliedFilters}
-        onApply={handleApplyFilters}
-        setFilterCount={setFilterCount}
-      />
-    </>
+    <SpeciesListingView
+      columns={columns}
+      rows={pageRows}
+      totalCount={filteredRows.length}
+      loading={isLoading}
+      searchValue={searchValue}
+      onSearchChange={handleSearchChange}
+      onSearchClear={handleSearchClear}
+      paginationModel={paginationModel}
+      onPaginationChange={setPaginationModel}
+      onCellClick={handleCellClick}
+      onDownload={handleDownload}
+      isDownloading={isDownloading}
+      chips={chips}
+      onResetAll={handleResetAll}
+      posture={posture}
+      filterSections={majorFilters}
+      appliedFilters={appliedFilters}
+      onToggleFacet={handleToggleFacet}
+      analysis={analysis}
+      analysisYears={analysisYears}
+      onAnalysisChange={handleAnalysisChange}
+    />
   )
 }
 

@@ -19,6 +19,8 @@ interface SpeciesListAnalysisFilterProps {
   /** When true, Lifespan mode shows the same Year/Month period range as Births/Deaths (to scope the
    *  age-at-death window) instead of the species-list min/max lifespan band. */
   periodForLifespan?: boolean
+  /** Stacked layout for the narrow filter rail: hides the inline label and stacks the controls. */
+  vertical?: boolean
 }
 
 const MODES: { key: AnalysisMode; label: string; icon: string }[] = [
@@ -36,7 +38,8 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
   onChange,
   label = 'Analysis',
   alwaysOn = false,
-  periodForLifespan = false
+  periodForLifespan = false,
+  vertical = false
 }) => {
   const theme = useTheme()
   const cc = theme.palette.customColors as Record<string, string>
@@ -88,7 +91,8 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
       onChange={(e: SelectChangeEvent) => onPick(e.target.value === '' ? null : Number(e.target.value))}
       renderValue={v => (v === '' ? anyLabel : items.find(i => String(i.value) === v)?.label ?? String(v))}
       sx={{
-        minWidth: 86,
+        minWidth: vertical ? 0 : 86,
+        flex: vertical ? 1 : 'none',
         bgcolor: theme.palette.background.paper,
         '& .MuiSelect-select': { py: 0.85, color: cc.OnSurfaceVariant, fontSize: '0.875rem' },
         '& .MuiOutlinedInput-notchedOutline': { borderColor: cc.OutlineVariant },
@@ -124,14 +128,67 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
   const monthItems = MONTH_LABELS.map((m, i) => ({ value: i + 1, label: m }))
   const lifeItems = LIFE_BOUNDS.map(y => ({ value: y, label: `${y}y` }))
 
+  // Vertical (rail) version: a from–to pair stacked under its label, selects sharing the width.
+  const verticalRange = (
+    text: string,
+    fromVal: number | null,
+    onFrom: (v: number | null) => void,
+    toVal: number | null,
+    onTo: (v: number | null) => void,
+    items: { value: number; label: string }[],
+    anyLabel: string
+  ) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+      {groupLabel(text)}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {rangeSelect(fromVal, onFrom, items, anyLabel)}
+        {dash}
+        {rangeSelect(toVal, onTo, items, anyLabel)}
+      </Box>
+    </Box>
+  )
+
+  if (vertical) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          {MODES.map(m => {
+            const active = value.mode === m.key
+
+            return (
+              <Box key={m.key} sx={pillSx(active)} onClick={() => setMode(m.key)}>
+                <Icon icon={m.icon} fontSize='1.05rem' />
+                <Typography variant='body2' sx={{ fontWeight: 500, color: 'inherit' }}>
+                  {m.label}
+                </Typography>
+              </Box>
+            )
+          })}
+        </Box>
+
+        {showPeriod && (
+          <>
+            {verticalRange('Years', value.yearFrom, v => onChange({ ...value, yearFrom: v }), value.yearTo, v => onChange({ ...value, yearTo: v }), yearItems, 'All time')}
+            {verticalRange('Months', value.monthFrom, v => onChange({ ...value, monthFrom: v }), value.monthTo, v => onChange({ ...value, monthTo: v }), monthItems, 'All')}
+          </>
+        )}
+
+        {value.mode === 'lifespan' && !periodForLifespan &&
+          verticalRange('Avg adult life', value.lifeMin, v => onChange({ ...value, lifeMin: v }), value.lifeMax, v => onChange({ ...value, lifeMax: v }), lifeItems, 'Any')}
+      </Box>
+    )
+  }
+
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-      <Typography
-        variant='body2'
-        sx={{ color: cc.OnSurfaceVariant, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', width: 92, flexShrink: 0 }}
-      >
-        {label}
-      </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
+      {!vertical && (
+        <Typography
+          variant='body2'
+          sx={{ color: cc.OnSurfaceVariant, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', width: 92, flexShrink: 0 }}
+        >
+          {label}
+        </Typography>
+      )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
         {MODES.map(m => {

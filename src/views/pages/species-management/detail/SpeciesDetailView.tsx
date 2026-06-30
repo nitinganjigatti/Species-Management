@@ -34,6 +34,7 @@ interface SpeciesDetailViewProps {
 }
 
 const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
+  { labelKey: 'Overview', value: 'overview' },
   { labelKey: 'Profile', value: 'profile' },
   { labelKey: 'Pairing', value: 'pairing' },
   { labelKey: 'Housing', value: 'housing' },

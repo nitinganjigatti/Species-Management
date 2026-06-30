@@ -243,7 +243,7 @@ export interface Composition {
 }
 
 /** Donut / pie of nominal segments, clickable to drill, with a counts legend below. */
-const ProportionChart: React.FC<{ segments: CompositionSegment[]; variant: 'donut' | 'pie' }> = ({ segments, variant }) => {
+export const ProportionChart: React.FC<{ segments: CompositionSegment[]; variant: 'donut' | 'pie' }> = ({ segments, variant }) => {
   const theme = useTheme() as any
   const data = segments.filter(s => s.value > 0)
   const colors = chartColors(theme)
@@ -279,7 +279,7 @@ const ProportionChart: React.FC<{ segments: CompositionSegment[]; variant: 'donu
 }
 
 /** Horizontal/vertical bar of ordered categories, clickable to drill. */
-const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizontal: boolean }> = ({ segments, horizontal }) => {
+export const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizontal: boolean }> = ({ segments, horizontal }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
   const data = segments
@@ -318,7 +318,7 @@ const RankedBarChart: React.FC<{ segments: CompositionSegment[]; horizontal: boo
 }
 
 /** Radial (gauge) bars — one ring per segment, % of total. Legend below drills to the list. */
-const RadialChart: React.FC<{ segments: CompositionSegment[] }> = ({ segments }) => {
+export const RadialChart: React.FC<{ segments: CompositionSegment[] }> = ({ segments }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
   const data = segments.filter(s => s.value > 0)

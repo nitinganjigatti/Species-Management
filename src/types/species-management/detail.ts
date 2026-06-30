@@ -504,6 +504,7 @@ export interface SpeciesBreeds {
 /* ------------------------------------------------------------------ Tabs */
 
 export type SpeciesDetailTab =
+  | 'overview'
   | 'profile'
   | 'pairing'
   | 'housing'
