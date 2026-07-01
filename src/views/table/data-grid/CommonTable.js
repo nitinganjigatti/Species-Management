@@ -33,6 +33,8 @@ const CommonTable = ({
   columns,
   paginationModel,
   handleSortModel,
+  sortModel,
+  sortingOrder,
   setPaginationModel,
   pageSizeOptions,
   loading,
@@ -271,6 +273,8 @@ const CommonTable = ({
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel || { page: 0, pageSize: 50 }}
       onSortModelChange={handleSortModel}
+      {...(sortModel ? { sortModel } : {})}
+      {...(sortingOrder ? { sortingOrder } : {})}
       // onPaginationModelChange={setPaginationModel}
       onPaginationModelChange={disablePagination ? undefined : setPaginationModel}
       loading={loading ? loading : null}

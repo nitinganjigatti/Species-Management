@@ -233,7 +233,20 @@ export const DetailTable: React.FC<{
   setPaginationModel: (m: any) => void
   onRowClick?: (params: any) => void
   rowHeight?: number
-}> = ({ columns, rows, total, paginationModel, setPaginationModel, onRowClick, rowHeight = DETAIL_TABLE_ROW_H }) => (
+  /** Enable header sorting: pass a controlled sort model + change handler. Omit for a static table. */
+  sortModel?: { field: string; sort: 'asc' | 'desc' | null | undefined }[]
+  handleSortModel?: (model: any) => void
+}> = ({
+  columns,
+  rows,
+  total,
+  paginationModel,
+  setPaginationModel,
+  onRowClick,
+  rowHeight = DETAIL_TABLE_ROW_H,
+  sortModel,
+  handleSortModel
+}) => (
   <CommonTable
     columns={columns}
     indexedRows={rows}
@@ -241,7 +254,9 @@ export const DetailTable: React.FC<{
     loading={false}
     paginationModel={paginationModel}
     setPaginationModel={setPaginationModel}
-    handleSortModel={() => {}}
+    handleSortModel={handleSortModel ?? (() => {})}
+    sortModel={sortModel}
+    sortingOrder={handleSortModel ? ['desc', 'asc'] : undefined}
     searchValue=''
     getRowHeight={() => rowHeight}
     onRowClick={onRowClick}
@@ -593,6 +608,220 @@ export const SparkBars: React.FC<{ values: number[]; tone?: Tone; height?: numbe
         />
       ))}
     </Box>
+  )
+}
+
+/**
+ * Compact inline line sparkline (SVG, no chart lib) for table trend cells — a thin trend line
+ * with a dot on the latest point. `tone` sets the stroke: up = green, down = orange, flat/info = neutral/teal.
+ * Fixed size so it sits cleanly inside a DataGrid cell; needs ≥2 points.
+ */
+export const Sparkline: React.FC<{ values: number[]; tone?: 'up' | 'down' | 'flat' | 'info'; width?: number; height?: number }> = ({
+  values,
+  tone = 'flat',
+  width = 150,
+  height = 30
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  if (!values || values.length < 2) return null
+  const color =
+    tone === 'up'
+      ? theme.palette.primary.main
+      : tone === 'down'
+        ? c.Tertiary
+        : tone === 'info'
+          ? theme.palette.secondary.main
+          : c.neutralSecondary
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const pad = 4
+  const n = values.length
+  const px = (i: number) => pad + (i / (n - 1)) * (width - 2 * pad)
+  const py = (v: number) => height - pad - ((v - min) / span) * (height - 2 * pad)
+  const pts = values.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ')
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', flexShrink: 0 }}>
+      <polyline points={pts} fill='none' stroke={color} strokeWidth={1.5} strokeLinejoin='round' strokeLinecap='round' />
+      <circle cx={px(n - 1)} cy={py(values[n - 1])} r={2.75} fill={color} />
+    </svg>
+  )
+}
+
+/**
+ * Vertical column histogram (SVG-free, CSS bars) for score/range buckets — colored per-bar by tone,
+ * count label on top, bucket label under, optional legend. Bars are clickable to drill. Attractive +
+ * interactive: hover lifts the bar. Use for numeric distributions (BCS scores, weight ranges).
+ */
+export const VBarChart: React.FC<{
+  bars: { label: string; count: number; tone?: Tone }[]
+  legend?: { label: string; tone: Tone }[]
+  height?: number
+  onSelect?: (label: string) => void
+}> = ({ bars, legend, height = 210, onSelect }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const tones = useTone()
+  if (!bars.length) return null
+  const max = Math.max(1, ...bars.map(b => b.count))
+  const plot = height - 46
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height, borderBottom: `1px solid ${c.SurfaceVariant}` }}>
+        {bars.map(b => {
+          const { fg } = tones(b.tone || 'primary')
+          const h = Math.max(3, (b.count / max) * plot)
+
+          return (
+            <Box
+              key={b.label}
+              onClick={() => onSelect?.(b.label)}
+              sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 0.75, cursor: onSelect ? 'pointer' : 'default', minWidth: 0 }}
+            >
+              <Typography variant='caption' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+                {b.count.toLocaleString()}
+              </Typography>
+              <Tooltip title={`${b.label}: ${b.count.toLocaleString()}`} arrow>
+                <Box
+                  sx={{
+                    width: '68%',
+                    maxWidth: 60,
+                    height: `${h}px`,
+                    backgroundColor: fg,
+                    borderRadius: '6px 6px 0 0',
+                    transition: 'opacity .15s ease, transform .15s ease',
+                    '&:hover': onSelect ? { opacity: 0.82, transform: 'translateY(-3px)' } : undefined
+                  }}
+                />
+              </Tooltip>
+            </Box>
+          )
+        })}
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1.5, mt: 0.75 }}>
+        {bars.map(b => (
+          <Typography key={b.label} variant='caption' sx={{ flex: 1, textAlign: 'center', color: c.neutralSecondary }} noWrap>
+            {b.label}
+          </Typography>
+        ))}
+      </Box>
+      {legend?.length ? (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', mt: 2 }}>
+          {legend.map(l => (
+            <Box key={l.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: tones(l.tone).fg }} />
+              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+                {l.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      ) : null}
+    </Box>
+  )
+}
+
+/** Hand-rolled SVG donut (stroke-dasharray arcs) with centered value. */
+export const Donut: React.FC<{ segments: { label: string; value: number; tone: Tone }[]; centerValue: React.ReactNode; centerSub?: string; centerColor?: string; size?: number }> = ({
+  segments,
+  centerValue,
+  centerSub,
+  centerColor,
+  size = 150
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const tones = useTone()
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1
+  const R = 54
+  const SW = 16
+  const CIRC = 2 * Math.PI * R
+  let acc = 0
+
+  return (
+    <Box sx={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox='0 0 140 140'>
+        <g transform='rotate(-90 70 70)'>
+          <circle cx='70' cy='70' r={R} fill='none' stroke={c.SurfaceVariant} strokeWidth={SW} />
+          {segments.map((s, i) => {
+            const len = (s.value / total) * CIRC
+            const node = (
+              <circle key={i} cx='70' cy='70' r={R} fill='none' stroke={tones(s.tone).fg} strokeWidth={SW} strokeDasharray={`${len} ${CIRC - len}`} strokeDashoffset={-acc} />
+            )
+            acc += len
+
+            return node
+          })}
+        </g>
+      </svg>
+      <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant='h5' sx={{ color: centerColor || cc(theme).OnSurfaceVariant, lineHeight: 1 }}>
+          {centerValue}
+        </Typography>
+        {centerSub && (
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, textTransform: 'uppercase' }}>
+            {centerSub}
+          </Typography>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+/** "Intelligence" card: donut + legend (value + %) + optional insight lines (icon · label · value). */
+export const IntelligenceCard: React.FC<{
+  title: string
+  segments: { label: string; value: number; tone: Tone }[]
+  centerValue: React.ReactNode
+  centerSub?: string
+  centerColor?: string
+  insights?: { icon: string; tone: Tone; label: string; value: React.ReactNode }[]
+}> = ({ title, segments, centerValue, centerSub, centerColor, insights }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const tones = useTone()
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1
+
+  return (
+    <SectionCard title={title}>
+      <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <Donut segments={segments} centerValue={centerValue} centerSub={centerSub} centerColor={centerColor} />
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {segments.map(s => (
+            <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: tones(s.tone).fg, flexShrink: 0 }} />
+              <Typography variant='body2' sx={{ color: c.OnSurfaceVariant, flex: 1 }} noWrap>
+                {s.label}
+              </Typography>
+              <Typography variant='subtitle2' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+                {s.value.toLocaleString()}
+              </Typography>
+              <Typography variant='caption' sx={{ color: c.neutralSecondary, width: 40, textAlign: 'right' }}>
+                {Math.round((s.value / total) * 100)}%
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+      {insights?.length ? (
+        <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${c.SurfaceVariant}`, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {insights.map((it, i) => (
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Icon icon={it.icon} fontSize={16} color={tones(it.tone).fg} />
+              <Typography variant='caption' sx={{ fontWeight: 600, color: tones(it.tone).fg }}>
+                {it.label}
+              </Typography>
+              <Typography variant='caption' sx={{ color: c.OnSurfaceVariant }}>
+                {it.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      ) : null}
+    </SectionCard>
   )
 }
 
