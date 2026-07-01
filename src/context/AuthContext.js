@@ -15,7 +15,7 @@ import authConfig from 'src/configs/auth'
 
 // ** WSO2 Auth Client
 import client from 'src/lib/auth/wso2Client'
-import { isPublicDemo, isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 import { hydrateBackendSession } from 'src/lib/auth/wso2Hydrate'
 import Wso2SessionWatcher from 'src/components/wso-auth/Wso2SessionWatcher'
 
@@ -266,27 +266,7 @@ const AuthProvider = ({ children }) => {
       }
     }
 
-    // Public demo: seed a stub admin session, no backend, no login redirect.
-    const initAuthDemo = () => {
-      const demoUser = { email: 'demo@antz.local', fullName: 'Demo', lastName: 'User', role: 'admin', id: 1, username: 'Demo' }
-      const demoDetails = {
-        token: 'demo-token',
-        user: { user_email: demoUser.email, user_first_name: 'Demo', user_last_name: 'User' },
-        roles: { role_id: 1, role_name: 'admin' },
-        modules: {}
-      }
-      window.localStorage.setItem(authConfig.storageTokenKeyName, 'demo-token')
-      write('userData', demoUser)
-      write('userDetails', demoDetails)
-      write('role', 'admin')
-      setUser({ ...demoUser })
-      setUserData({ ...demoDetails })
-      setLoading(false)
-    }
-
-    if (isPublicDemo()) {
-      initAuthDemo()
-    } else if (isWso2AuthEnabled()) {
+    if (isWso2AuthEnabled()) {
       initAuthWso2()
     } else {
       initAuthLegacy()
