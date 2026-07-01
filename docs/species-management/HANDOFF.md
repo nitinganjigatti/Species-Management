@@ -395,3 +395,26 @@ Director-led UI pass on the detail page. tsc 0 errors; every change screenshot-v
 - `origin`(029) push + Vercel connect still open. Feature gaps unchanged: lineage/pedigree, real Lab/Pharmacy/Surgery, vaccination estimator.
 
 **Working-style memory added:** [[no-sticky-unless-told]] — never apply sticky positioning by default; only on explicit request (the View-2 rail and this sticky header were both explicitly asked for).
+
+---
+
+# 2026-07-01 — Vercel demo login-loop fix (IN PROGRESS — verify on Vercel)
+
+**Problem:** Vercel deploy looped to `/login` endlessly. Root cause: `src/app/(module)/layout.tsx` (lines ~68-75) redirects to `/login/` whenever `!auth.user`, **regardless** of `NEXT_PUBLIC_WSO2_AUTH_ENABLED`. And legacy init (`AuthContext.initAuthLegacy`) calls the backend (`callRefreshToken`) which is unreachable on Vercel → logout → loop. The WSO2=false flag never made pages public; the screenshot harness only worked because it fakes a localStorage session + stubs the backend.
+
+**Fix shipped (commit `915072475`, pushed to `personal`/main):** new **public-demo mode**.
+- `src/lib/auth/authMode.js` → `isPublicDemo()` = `NEXT_PUBLIC_PUBLIC_DEMO === 'true'`.
+- `src/context/AuthContext.js` → `initAuthDemo()` seeds a stub admin session (accessToken/userData/userDetails/role) with **no backend call, no redirect**; branched first in the init effect (before wso2/legacy).
+- `.env` → `NEXT_PUBLIC_PUBLIC_DEMO=true` (`.env` IS git-tracked; only `.env*.local` ignored → Vercel's `next build` reads it and inlines the flag).
+- Default false everywhere else → real ANTZ CI build (env from GitHub Environment vars) never sets it, production auth unaffected.
+
+**Verified LOCALLY (dev restarted to load new .env):** a cold visitor (no localStorage seed, no backend stub) to `/species-management/2150/` now **logs in as demo, no login loop** (harness: `scratchpad/cold-visit.js`). It lands on `/dashboard/` and the app shell renders (avatar + sidebar).
+
+**🔴 OPEN — not yet working on Vercel** (user confirmed Vercel is linked ONLY to `nitinganjigatti/Species-Management`, and it's still not working after the push). Debug next:
+1. Vercel → **Deployments**: did a build for `915072475` actually run? Succeed or fail? Read build logs.
+2. Vercel → **Settings → Environment Variables**: is there a `NEXT_PUBLIC_PUBLIC_DEMO` or `NEXT_PUBLIC_WSO2_AUTH_ENABLED` set in the dashboard that **overrides** the committed `.env`? (Dashboard env can win.) If so, set `NEXT_PUBLIC_PUBLIC_DEMO=true` there and redeploy.
+3. Confirm Vercel **Production Branch = main** (we pushed `antzs-codbase-designteam:main`).
+4. Hard-refresh / check it's not serving a cached old deployment.
+5. Known minor: deep-linking straight to a species URL can bounce to `/dashboard/` (AclGuard redirects `/`→`/dashboard/`; full-reload race). Real path: land → click **Species Management** in sidebar. Fix later if needed (honor deep-link returnUrl).
+
+**Env note:** dev server was restarted with the new `.env` (demo mode ON locally now). To run the app locally WITHOUT demo mode, set `NEXT_PUBLIC_PUBLIC_DEMO=false`.
