@@ -64,16 +64,24 @@ export const SectionCard: React.FC<{
   children: React.ReactNode
   sx?: object
   titleMb?: number
-}> = ({ title, action, children, sx, titleMb = 3 }) => {
+  /** When set, the whole card becomes clickable (pointer + subtle lift on hover). */
+  onClick?: () => void
+}> = ({ title, action, children, sx, titleMb = 3, onClick }) => {
   const theme = useTheme() as any
 
   return (
     <Box
+      onClick={onClick}
       sx={{
         borderRadius: '10px',
         border: `1px solid ${cc(theme).SurfaceVariant}`,
         backgroundColor: theme.palette.background.paper,
         p: 4,
+        ...(onClick && {
+          cursor: 'pointer',
+          transition: 'transform .15s ease, box-shadow .15s ease',
+          '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 16px rgba(31,81,91,0.12)' }
+        }),
         ...sx
       }}
     >

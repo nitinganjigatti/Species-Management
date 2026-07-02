@@ -260,6 +260,74 @@ export function NeedsAttention({
   )
 }
 
+/** Single-species variant of Needs Attention — which alerts THIS species triggers (no bars/percentages,
+ *  since it's one species). Each row → the species' Assessments tab. */
+export interface SpeciesAlertRow {
+  key: string
+  label: string
+  severity: DashboardAlert['severity']
+}
+
+export function SpeciesAlertList({ alerts, onClick }: { alerts: SpeciesAlertRow[]; onClick: () => void }) {
+  const theme = useTheme() as any
+  const cc = theme.palette.customColors
+  const tone = useTone()
+  const sevColor = (s: DashboardAlert['severity']) =>
+    s === 'high' ? cc.Tertiary : s === 'medium' ? theme.palette.warning.main : tone('neutral').fg
+
+  return (
+    <SectionCard
+      title='Needs Attention'
+      sx={{ height: '100%', width: '100%' }}
+      action={
+        <Typography
+          variant='caption'
+          sx={{
+            color: alerts.length ? cc.Tertiary : theme.palette.primary.main,
+            fontWeight: 700,
+            bgcolor: alerts.length ? cc.BgTeritary : cc.OnBackground,
+            px: 1,
+            py: 0.25,
+            borderRadius: 5
+          }}
+        >
+          {alerts.length} active
+        </Typography>
+      }
+    >
+      {alerts.length === 0 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2 }}>
+          <Icon icon='mdi:check-circle-outline' fontSize='1.3rem' color={theme.palette.primary.main} />
+          <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+            Nothing needs attention for this species.
+          </Typography>
+        </Box>
+      )}
+      {alerts.map(a => (
+        <Box
+          key={a.key}
+          onClick={onClick}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            py: 2,
+            borderTop: `1px solid ${cc.Surface}`,
+            cursor: 'pointer',
+            '&:hover': { bgcolor: cc.Surface }
+          }}
+        >
+          <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: sevColor(a.severity), flexShrink: 0 }} />
+          <Typography variant='body2' sx={{ flex: 1, color: cc.OnSurfaceVariant }}>
+            {a.label}
+          </Typography>
+          <Icon icon='mdi:chevron-right' fontSize='1.2rem' color={cc.OutlineVariant} />
+        </Box>
+      ))}
+    </SectionCard>
+  )
+}
+
 export type ChartKind = 'donut' | 'pie' | 'bar-h' | 'bar-v' | 'radial' | 'polar'
 
 export interface CompositionSegment {
@@ -465,8 +533,75 @@ export function ExploreGrid({ compositions }: { compositions: Composition[] }) {
   )
 }
 
-/** Sex composition — M/F/Unsexed donut with Sexed % in the center. */
-export function SexDonut({ animals }: { animals: DashboardData['totals']['animals'] }) {
+/** Single-species mode — replaces the cross-species explore grid (which collapses to one value
+ *  per facet for a single species) with a clickable taxonomy & status chip strip → Profile tab. */
+export interface StatusChip {
+  label: string
+  value: string
+  icon: string
+  onClick?: () => void
+}
+
+export function TaxonomyStatusStrip({ chips }: { chips: StatusChip[] }) {
+  const theme = useTheme() as any
+  const cc = theme.palette.customColors
+
+  return (
+    <SectionCard title='Taxonomy & Status'>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1.75 }}>
+        {chips.map(c => (
+          <Box
+            key={c.label}
+            onClick={c.onClick}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              p: '12px 14px',
+              borderRadius: '10px',
+              border: `1px solid ${cc.SurfaceVariant}`,
+              bgcolor: cc.Surface,
+              minWidth: 0,
+              cursor: c.onClick ? 'pointer' : 'default',
+              transition: 'border-color .15s ease, background-color .15s ease',
+              '&:hover': c.onClick ? { borderColor: theme.palette.primary.main, bgcolor: cc.OnBackground } : undefined
+            }}
+          >
+            <Box
+              sx={{
+                width: 34,
+                height: 34,
+                borderRadius: '8px',
+                bgcolor: 'background.paper',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <Icon icon={c.icon} fontSize='1.25rem' color={cc.Outline} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                variant='caption'
+                sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', lineHeight: 1.3 }}
+              >
+                {c.label}
+              </Typography>
+              <Typography variant='subtitle2' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+                {c.value}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </SectionCard>
+  )
+}
+
+/** Sex composition — M/F/Unsexed donut with Sexed % in the center. In single-species mode the
+ *  whole card is clickable (→ the species' Pairing tab). */
+export function SexDonut({ animals, onClick }: { animals: DashboardData['totals']['animals']; onClick?: () => void }) {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
   const { m, f, u, total } = animals
@@ -507,9 +642,16 @@ export function SexDonut({ animals }: { animals: DashboardData['totals']['animal
   }
 
   return (
-    <SectionCard title='Sex Composition' sx={{ height: '100%', width: '100%' }}>
+    <SectionCard
+      title='Sex Composition'
+      sx={{ height: '100%', width: '100%' }}
+      onClick={onClick}
+      action={onClick ? <Icon icon='mdi:chevron-right' fontSize='1.3rem' color={cc.OutlineVariant} /> : undefined}
+    >
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: 'calc(100% - 32px)' }}>
-        <ReactApexcharts type='donut' height={260} options={options} series={data.map(d => d.value)} />
+        {/* Remount on data change: ApexCharts leaves the donut center "total" label stale when only
+            the series updates (e.g. switching species), so the % wouldn't refresh without a fresh key. */}
+        <ReactApexcharts key={`${m}-${f}-${u}`} type='donut' height={260} options={options} series={data.map(d => d.value)} />
         <ChartLegend data={data} colors={colors} />
       </Box>
     </SectionCard>
@@ -563,8 +705,9 @@ export function ColumnBarChart({
 /** Births & Deaths — two side-by-side column charts (green births · orange deaths),
  *  reusing the same ColumnBarChart as the detail Overview tab. Driven by the dashboard's
  *  monthly trend (respects the date-range filter). */
-export function BirthsDeathsTrend({ trend }: { trend: DashboardData['trend12'] }) {
+export function BirthsDeathsTrend({ trend, onClick }: { trend: DashboardData['trend12']; onClick?: () => void }) {
   const theme = useTheme() as any
+  const cc = theme.palette.customColors
   const fmtMonth = (v: string) => {
     const mm = /^(\d{4})-(\d{2})$/.exec(String(v))
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -572,13 +715,14 @@ export function BirthsDeathsTrend({ trend }: { trend: DashboardData['trend12'] }
     return mm ? `${MONTHS[Number(mm[2]) - 1]} '${mm[1].slice(2)}` : v
   }
   const labels = trend.map(t => fmtMonth(t.label))
+  const chevron = onClick ? <Icon icon='mdi:chevron-right' fontSize='1.3rem' color={cc.OutlineVariant} /> : undefined
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-      <SectionCard title='Births'>
+      <SectionCard title='Births' onClick={onClick} action={chevron}>
         <ColumnBarChart values={trend.map(t => t.births)} labels={labels} color={theme.palette.primary.main} name='Births' height={260} />
       </SectionCard>
-      <SectionCard title='Deaths'>
+      <SectionCard title='Deaths' onClick={onClick} action={chevron}>
         <ColumnBarChart values={trend.map(t => t.deaths)} labels={labels} color={theme.palette.customColors.Tertiary} name='Deaths' height={260} />
       </SectionCard>
     </Box>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Box, CircularProgress } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 
@@ -47,9 +47,28 @@ const SpeciesDetailContainer = () => {
   }, [])
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const id = String((params as Record<string, string>)?.id || '')
 
-  const [tab, setTab] = useState<SpeciesDetailTab>('overview')
+  // Deep-links (e.g. from the dashboard's single-species mode) land on a specific tab via ?tab=.
+  const VALID_TABS: SpeciesDetailTab[] = [
+    'overview',
+    'profile',
+    'pairing',
+    'housing',
+    'circle',
+    'eggs',
+    'assessments',
+    'medical',
+    'identification',
+    'breeds'
+  ]
+  const initialTab = ((): SpeciesDetailTab => {
+    const q = searchParams?.get('tab') as SpeciesDetailTab | null
+
+    return q && VALID_TABS.includes(q) ? q : 'overview'
+  })()
+  const [tab, setTab] = useState<SpeciesDetailTab>(initialTab)
 
   const header = useQuery({
     queryKey: ['sm-detail-header', id],
