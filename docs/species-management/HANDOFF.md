@@ -418,3 +418,24 @@ Director-led UI pass on the detail page. tsc 0 errors; every change screenshot-v
 5. Known minor: deep-linking straight to a species URL can bounce to `/dashboard/` (AclGuard redirects `/`→`/dashboard/`; full-reload race). Real path: land → click **Species Management** in sidebar. Fix later if needed (honor deep-link returnUrl).
 
 **Env note:** dev server was restarted with the new `.env` (demo mode ON locally now). To run the app locally WITHOUT demo mode, set `NEXT_PUBLIC_PUBLIC_DEMO=false`.
+
+---
+
+# 2026-07-02 session — Vercel dropped, `.env.local` local-auth, dashboard + Assessments UI pass (COMMITTED `e01710846`)
+
+## 🔴 GIT/ENV — READ BEFORE ANY COMMIT (this bit us repeatedly)
+- **NEVER `git add`/commit `.env` or `.env.development`.** They are git-TRACKED but hold LOCAL auth config; committing/reverting them overwrites the user's local values → **login loop**. **Never `git add -A`/`git add .`** — stage source files explicitly by name and verify env is unstaged.
+- **Local auth now lives in `.env.local` (gitignored, never committed):** `NEXT_PUBLIC_WSO2_AUTH_ENABLED=true`, `NEXT_PUBLIC_PUBLIC_DEMO=false` → **real WSO2 login → full antz system** locally (not just Species Mgmt). Tracked `.env`/`.env.development` were `git checkout`-restored to committed state (still carry the demo values, but `.env.local` overrides locally). To change local auth, edit `.env.local` only + restart dev.
+- **Vercel is ABANDONED** ("no vercel now onwards"). Ignore the Vercel/public-demo sections above — historical only. (Memory: `never-commit-env-files`, `species-mgmt-personal-repo-vercel`.)
+
+## Shipped this session (all in `e01710846`, tsc 0 errors)
+- **Dashboard VitalStrip → dark-teal panel** (`customColors.chatBubbleSent`, matches the detail header band): bright-green (`PrimaryContainer`) headline **Species/Animals** (larger, no bar), and **Threatened/Breedable/Assessed/Sexed** as **coverage bars** (Threatened/Breedable show count + %; Assessed/Sexed are already %). **Net Change removed**, sub-text removed. Data + `total`/`pct`/`tone` built in `DashboardContainer.tsx`; `VitalSegment` type extended.
+- **Births vs Deaths → two side-by-side column charts** via NEW shared `ColumnBarChart` in `dashboardUi.tsx`; OverviewTab `yearBar` now delegates to it (one implementation). Old area chart retired.
+- **Assessments (`AssessmentsTab.tsx`)**: removed Volatility/Records cols; standard **avatar + name + site** animal cell everywhere (was gender icon); charts **non-clickable**; **label-distribution chart removed** on categorical sub-tabs (table only); **underline `CategoryTabs`** replaced the dark pill bar; **unit abbreviation** (`centimeter→CM`, `abbrevUnit`) + `StatTile` `whiteSpace:nowrap`; **Alerts tab rebuilt into 3 sections** — Physical Health cards · Recent Changes by category · Measurement Outliers (fixed a DataGrid "Maximum update depth" crash caused by a sortModel field with no matching column).
+- **`EntityListDrawer`** (shared, `detailUi.tsx`): rows now standard **avatar + name/site + value(unit)** with more spacing; a per-group `unit` (days/%/records/BCS) threads through. Circle of Life drawers benefit too.
+- **`FallbackSpinner`** (`@core/components/spinner`): collapsed the malformed `style`+duplicate-`sx` node to one inline-style node → fixed an SSR/client **hydration mismatch**.
+
+## State / next
+- Dev server running on **:3000** in WSO2 mode (via `.env.local`). `.superpowers/` still untracked (excluded, as before).
+- Design exploration for the stats strip was done via Artifacts (scratchpad); chosen = "Coverage bars, Version A, dark".
+- Open feature gaps unchanged: lineage/pedigree, real Lab/Pharmacy/Surgery data, vaccination estimator. Alerts "Recent Changes" is numeric-only — categorical value-change tracking (e.g. Sleep Normal→Disturbed) would need a data re-extract.
