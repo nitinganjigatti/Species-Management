@@ -58,37 +58,29 @@ export default function DashboardContainer() {
   const segments: VitalSegment[] = useMemo(() => {
     if (!data) return []
     const t = data.totals
-    const net = windowNet
+    const ratio = (n: number) => (t.species ? Math.round((n / t.species) * 100) : 0)
 
     return [
-      { label: 'Species', value: t.species.toLocaleString(), onClick: () => router.push(LIST) },
-      {
-        label: 'Animals',
-        value: t.animals.total.toLocaleString(),
-        sub: 'individuals across all species',
-        onClick: () => router.push(LIST)
-      },
-      {
-        label: 'Net change',
-        value: `${net >= 0 ? '▲' : '▼'} ${Math.abs(net).toLocaleString()}`,
-        sub: `births − deaths · ${rangeLabel}`
-      },
+      { label: 'Species', value: t.species.toLocaleString(), total: true, tone: 'primary', onClick: () => router.push(LIST) },
+      { label: 'Animals', value: t.animals.total.toLocaleString(), total: true, tone: 'primary', onClick: () => router.push(LIST) },
       {
         label: 'Threatened',
         value: data.threatened.count.toLocaleString(),
-        sub: `CR ${data.threatened.byCode.CR} · EN ${data.threatened.byCode.EN} · VU ${data.threatened.byCode.VU}`,
+        pct: ratio(data.threatened.count),
+        tone: 'tertiary',
         onClick: () => router.push(q({ Conservation: THREATENED_STATUSES }))
       },
       {
         label: 'Breedable',
         value: data.breeding.can_pair.speciesCount.toLocaleString(),
-        sub: 'both sexes present',
+        pct: ratio(data.breeding.can_pair.speciesCount),
+        tone: 'primary',
         onClick: () => router.push(q({ Readiness: 'can_pair' }))
       },
-      { label: 'Assessed', value: `${data.coverage.pct}%`, sub: 'of animals, weight coverage' },
-      { label: 'Sexed', value: `${data.coverage.sexedPct}%`, sub: 'of animals' }
+      { label: 'Assessed', value: `${data.coverage.pct}%`, pct: data.coverage.pct, tone: 'secondary' },
+      { label: 'Sexed', value: `${data.coverage.sexedPct}%`, pct: data.coverage.sexedPct, tone: 'primary' }
     ]
-  }, [data, router, windowNet, rangeLabel])
+  }, [data, router])
 
   const compositions: Composition[] = useMemo(() => {
     if (!data) return []

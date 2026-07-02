@@ -108,54 +108,87 @@ const ChartLegend: React.FC<{
 export interface VitalSegment {
   label: string
   value: string
-  sub?: string
+  /** Species / Animals — a larger green headline number with no bar. */
+  total?: boolean
+  /** Coverage bar fill (0–100) for the ratio metrics. */
+  pct?: number
+  /** Accent for the bar / % label. */
+  tone?: 'primary' | 'secondary' | 'tertiary'
   onClick?: () => void
 }
 
-/** Layer 1 — one bordered instrument strip with internal dividers (NOT cards). Wraps 6→3+3. */
+/** Layer 1 — a single dark-teal instrument panel (matches the detail-header band; NOT per-stat
+ * cards): bright-green headline totals + the ratio metrics as proportional coverage bars. */
 export function VitalStrip({ segments }: { segments: VitalSegment[] }) {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
+  const wLabel = 'rgba(255, 255, 255, 0.62)' // muted label on dark — same pattern as the header band
+  const wTrack = 'rgba(255, 255, 255, 0.13)' // bar track on dark
+  // Accents tuned for the dark ground: bright green / teal / orange.
+  const toneColor = (t?: VitalSegment['tone']) =>
+    t === 'tertiary' ? cc.Tertiary : t === 'secondary' ? theme.palette.secondary.main : cc.PrimaryContainer
 
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        border: `1px solid ${cc.SurfaceVariant}`,
+        display: 'grid',
+        gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
+        columnGap: '28px',
+        rowGap: '22px',
+        bgcolor: 'customColors.chatBubbleSent',
         borderRadius: '10px',
-        bgcolor: 'background.paper',
-        overflow: 'hidden'
+        p: '22px 24px',
+        boxShadow: '0 4px 16px rgba(31,81,91,0.14)'
       }}
     >
-      {segments.map(s => (
-        <Box
-          key={s.label}
-          onClick={s.onClick}
-          sx={{
-            flex: '1 1 150px',
-            minWidth: 150,
-            p: 2,
-            borderRight: `1px solid ${cc.SurfaceVariant}`,
-            borderBottom: `1px solid ${cc.SurfaceVariant}`,
-            cursor: s.onClick ? 'pointer' : 'default',
-            transition: '0.15s',
-            '&:hover': s.onClick ? { bgcolor: cc.Surface } : undefined
-          }}
-        >
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {s.label}
-          </Typography>
-          <Typography variant='h5' sx={{ color: cc.OnSurfaceVariant, mt: 0.25 }}>
-            {s.value}
-          </Typography>
-          {s.sub && (
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block' }}>
-              {s.sub}
+      {segments.map(s => {
+        const acc = toneColor(s.tone)
+        const valIsPct = /%/.test(s.value)
+
+        return (
+          <Box
+            key={s.label}
+            onClick={s.onClick}
+            sx={{
+              minWidth: 0,
+              cursor: s.onClick ? 'pointer' : 'default',
+              transition: 'transform .15s ease',
+              '&:hover': s.onClick ? { transform: 'translateY(-2px)' } : undefined
+            }}
+          >
+            <Typography
+              variant='caption'
+              sx={{ color: wLabel, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, display: 'block' }}
+            >
+              {s.label}
             </Typography>
-          )}
-        </Box>
-      ))}
+
+            {s.total ? (
+              <Typography sx={{ fontSize: '2.15rem', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.01em', color: cc.PrimaryContainer, mt: 0.75 }} noWrap>
+                {s.value}
+              </Typography>
+            ) : (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mt: 0.75 }}>
+                  <Typography sx={{ fontSize: '1.55rem', fontWeight: 800, lineHeight: 1.1, color: 'common.white' }} noWrap>
+                    {s.value}
+                  </Typography>
+                  {!valIsPct && s.pct != null && (
+                    <Typography variant='caption' sx={{ fontWeight: 700, color: acc, flexShrink: 0 }}>
+                      {s.pct}%
+                    </Typography>
+                  )}
+                </Box>
+                {s.pct != null && (
+                  <Box sx={{ mt: 1.25, height: 7, borderRadius: '4px', backgroundColor: wTrack, overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', width: `${Math.min(100, Math.max(0, s.pct))}%`, borderRadius: '4px', backgroundColor: acc }} />
+                  </Box>
+                )}
+              </>
+            )}
+          </Box>
+        )
+      })}
     </Box>
   )
 }
@@ -483,56 +516,71 @@ export function SexDonut({ animals }: { animals: DashboardData['totals']['animal
   )
 }
 
-/** Births vs Deaths — last 12 months, ApexCharts area (two series). */
-export function BirthsDeathsTrend({ trend }: { trend: DashboardData['trend12'] }) {
+/** Single-series column bar chart (green Births / orange Deaths, etc.). One implementation
+ *  shared by the dashboard Births/Deaths cards AND the detail Overview tab. */
+export function ColumnBarChart({
+  values,
+  labels,
+  color,
+  name,
+  height = 280
+}: {
+  values: number[]
+  labels: string[]
+  color: string
+  name: string
+  height?: number
+}) {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
+
+  return (
+    <ReactApexcharts
+      type='bar'
+      height={height}
+      options={{
+        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
+        colors: [color],
+        plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        grid: { borderColor: cc.SurfaceVariant, strokeDashArray: 4 },
+        xaxis: {
+          categories: labels,
+          labels: { style: { colors: cc.neutralSecondary, fontSize: '10px' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
+        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
+        fill: { opacity: 1 }
+      }}
+      series={[{ name, data: values }]}
+    />
+  )
+}
+
+/** Births & Deaths — two side-by-side column charts (green births · orange deaths),
+ *  reusing the same ColumnBarChart as the detail Overview tab. Driven by the dashboard's
+ *  monthly trend (respects the date-range filter). */
+export function BirthsDeathsTrend({ trend }: { trend: DashboardData['trend12'] }) {
+  const theme = useTheme() as any
   const fmtMonth = (v: string) => {
     const mm = /^(\d{4})-(\d{2})$/.exec(String(v))
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     return mm ? `${MONTHS[Number(mm[2]) - 1]} '${mm[1].slice(2)}` : v
   }
-
-  const options = {
-    ...baseChartOptions(theme),
-    colors: [theme.palette.primary.main, theme.palette.customColors.Tertiary],
-    stroke: { curve: 'smooth', width: 2 },
-    fill: { type: 'gradient', gradient: { shadeIntensity: 0.3, opacityFrom: 0.3, opacityTo: 0.02 } },
-    legend: { show: true, position: 'top', horizontalAlign: 'left', labels: { colors: cc.OnSurfaceVariant } },
-    xaxis: {
-      categories: trend.map(t => fmtMonth(t.label)),
-      labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } },
-      axisBorder: { show: false },
-      axisTicks: { show: false }
-    },
-    yaxis: { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
-    tooltip: {
-      enabled: true,
-      shared: true,
-      custom: ({ dataPointIndex }: any) => {
-        const t = trend[dataPointIndex]
-        if (!t) return ''
-
-        return tooltipHTML(theme, fmtMonth(t.label), [
-          { color: theme.palette.primary.main, label: 'Births', value: t.births.toLocaleString() },
-          { color: theme.palette.customColors.Tertiary, label: 'Deaths', value: t.deaths.toLocaleString() }
-        ])
-      }
-    }
-  }
+  const labels = trend.map(t => fmtMonth(t.label))
 
   return (
-    <SectionCard title='Births vs Deaths'>
-      <ReactApexcharts
-        type='area'
-        height={260}
-        options={options}
-        series={[
-          { name: 'Births', data: trend.map(t => t.births) },
-          { name: 'Deaths', data: trend.map(t => t.deaths) }
-        ]}
-      />
-    </SectionCard>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+      <SectionCard title='Births'>
+        <ColumnBarChart values={trend.map(t => t.births)} labels={labels} color={theme.palette.primary.main} name='Births' height={260} />
+      </SectionCard>
+      <SectionCard title='Deaths'>
+        <ColumnBarChart values={trend.map(t => t.deaths)} labels={labels} color={theme.palette.customColors.Tertiary} name='Deaths' height={260} />
+      </SectionCard>
+    </Box>
   )
 }

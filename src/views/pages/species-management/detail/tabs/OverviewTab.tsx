@@ -11,6 +11,7 @@ import {
   SexDonut,
   ProportionChart,
   RankedBarChart,
+  ColumnBarChart,
   type CompositionSegment,
   type Tone
 } from 'src/views/pages/species-management/dashboard/dashboardUi'
@@ -218,28 +219,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     .sort((a, b) => b.value - a.value)
 
   const yearBar = (data: number[], color: string, name: string) => (
-    <ReactApexcharts
-      type='bar'
-      height={280}
-      options={{
-        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
-        colors: [color],
-        plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
-        dataLabels: { enabled: false },
-        legend: { show: false },
-        grid: { borderColor: cc.SurfaceVariant, strokeDashArray: 4 },
-        xaxis: {
-          categories: trend.map(t => t.label),
-          labels: { style: { colors: cc.neutralSecondary, fontSize: '10px' } },
-          axisBorder: { show: false },
-          axisTicks: { show: false }
-        },
-        yaxis: { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
-        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
-        fill: { opacity: 1 }
-      }}
-      series={[{ name, data }]}
-    />
+    <ColumnBarChart values={data} labels={trend.map(t => t.label)} color={color} name={name} height={280} />
   )
 
   return (

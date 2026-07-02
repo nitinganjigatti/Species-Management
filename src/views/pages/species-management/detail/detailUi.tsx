@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography, Tooltip } from '@mui/material'
+import { Avatar, Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -147,7 +147,7 @@ export const StatTile: React.FC<{
       <Typography variant='caption' sx={{ color: cc(theme).neutralSecondary, textTransform: 'uppercase' }}>
         {label}
       </Typography>
-      <Typography variant='h5' sx={{ color: tone === 'neutral' ? cc(theme).OnSurface : fg, mt: 0.5 }}>
+      <Typography variant='h5' sx={{ color: tone === 'neutral' ? cc(theme).OnSurface : fg, mt: 0.5, whiteSpace: 'nowrap' }}>
         {value}
       </Typography>
       {sub != null && (
@@ -411,32 +411,41 @@ export const EntityListDrawer: React.FC<{
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
                   gap: 2,
-                  py: 1.25,
+                  py: 2.75,
                   borderBottom: `1px solid ${c.SurfaceVariant}`,
                   cursor: clickable ? 'pointer' : 'default',
                   '&:hover': clickable ? { backgroundColor: c.Surface } : undefined
                 }}
               >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant='body2' sx={{ color: c.OnSurfaceVariant }} noWrap>
+                <Avatar
+                  src='/images/branding/Antz_logomark_h_color.svg'
+                  sx={{ width: 42, height: 42, flexShrink: 0, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '6px' } }}
+                />
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
                     {it.name || it.id}
                   </Typography>
                   {it.sub && (
-                    <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+                    <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }} noWrap>
                       {it.sub}
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
                   {it.value != null && (
-                    <Typography variant='body2' sx={{ color: c.OnSurface }}>
-                      {it.value}
-                      {unit ? ` ${unit}` : ''}
-                    </Typography>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, color: c.OnSurface, lineHeight: 1.2 }}>
+                        {it.value}
+                      </Typography>
+                      {unit && (
+                        <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }}>
+                          {unit}
+                        </Typography>
+                      )}
+                    </Box>
                   )}
-                  {clickable && <Icon icon='mdi:chevron-right' fontSize={16} color={c.Outline} />}
+                  {clickable && <Icon icon='mdi:chevron-right' fontSize={18} color={c.Outline} />}
                 </Box>
               </Box>
             )

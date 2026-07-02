@@ -1,16 +1,14 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Box, IconButton, Drawer, Typography } from '@mui/material'
+import { Avatar, Box, IconButton, Drawer, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
-import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
 import type { AssessmentAnimal, CatTypeItem, SpeciesAssessments } from 'src/types/species-management/detail'
 import {
   ColumnTrend,
   DetailTable,
-  DistributionBarChart,
   EmptyState,
   EntityListDrawer,
   IntelligenceCard,
@@ -151,19 +149,18 @@ const useCell = () => {
   )
 
   /** Animal identity cell: gender glyph + name (600) over site (caption). */
-  const animalCell = (name?: string, site?: string, gender?: string) => (
+  const animalCell = (name?: string, site?: string) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-      <Icon
-        icon={gender === 'male' ? 'mdi:gender-male' : gender === 'female' ? 'mdi:gender-female' : 'mdi:gender-male-female'}
-        fontSize={18}
-        color={c.Outline}
+      <Avatar
+        src='/images/branding/Antz_logomark_h_color.svg'
+        sx={{ width: 36, height: 36, flexShrink: 0, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '5px' } }}
       />
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
           {name || '—'}
         </Typography>
         {site && (
-          <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }} noWrap>
             {site}
           </Typography>
         )}
@@ -249,18 +246,11 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
       headerName: 'Animal',
       flex: 1,
       minWidth: 210,
-      renderCell: p => animalCell(p.row.name, p.row.site, p.row.gender)
+      renderCell: p => animalCell(p.row.name, p.row.site)
     },
     { field: 'weight', headerName: 'Weight', width: 140, renderCell: p => txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600) },
     { field: 'bcs', headerName: 'BCS', width: 104, renderCell: p => txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600) },
     { field: 'trend', headerName: 'Overall %', width: 160, renderCell: p => trendCell(p.row.trend) },
-    {
-      field: 'vol',
-      headerName: 'Volatility',
-      width: 156,
-      renderCell: p => txt(p.row.vol != null ? `${p.row.vol}%` : '—', p.row.vol != null && p.row.vol > 10 ? c.Tertiary : c.neutralSecondary, p.row.vol != null && p.row.vol > 10 ? 600 : 500)
-    },
-    { field: 'records', headerName: 'Records', width: 140, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.records, c.neutralSecondary) },
     { field: 'lastDate', headerName: 'Last Assessed', width: 190, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
   ]
 
@@ -279,6 +269,15 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
 }
 
 /* ------------------------------------------------------------------ Numeric type panel */
+
+const UNIT_ABBR: Record<string, string> = {
+  centimeter: 'CM', centimeters: 'CM', centimetre: 'CM', centimetres: 'CM', cm: 'CM',
+  millimeter: 'MM', millimeters: 'MM', millimetre: 'MM', millimetres: 'MM', mm: 'MM',
+  meter: 'M', meters: 'M', metre: 'M', metres: 'M', kilometer: 'KM', kilometers: 'KM',
+  kilogram: 'KG', kilograms: 'KG', kg: 'KG', gram: 'G', grams: 'G', percent: '%', percentage: '%'
+}
+/** Short uppercase unit label for compact tiles/headers (centimeter → CM). Unknown units pass through. */
+const abbrevUnit = (u?: string) => (u ? UNIT_ABBR[u.trim().toLowerCase()] || u : '')
 
 const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeric' }>; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({ item, onAnimal, onBucket }) => {
   const { txt, animalCell, trendSparkCell, c, theme } = useCell()
@@ -313,12 +312,12 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
     { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name) },
     {
       field: 'value',
-      headerName: `Trend${item.uom ? ` (${item.uom})` : ''}`,
+      headerName: `Trend${item.uom ? ` (${abbrevUnit(item.uom)})` : ''}`,
       flex: 2,
       minWidth: 280,
       renderCell: p =>
         p.row.spark.length >= 2
-          ? trendSparkCell(p.row.value?.toLocaleString?.() ?? p.row.value, item.uom, p.row.spark, p.row.trendUp ? 'up' : 'down')
+          ? trendSparkCell(p.row.value?.toLocaleString?.() ?? p.row.value, abbrevUnit(item.uom), p.row.spark, p.row.trendUp ? 'up' : 'down')
           : txt(p.row.value?.toLocaleString?.() ?? p.row.value, undefined, 600)
     },
     { field: 'dev', headerName: 'vs Avg', width: 130, renderCell: p => devCell(p.row.dev ?? 0) },
@@ -331,7 +330,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
   const hiN = rankedN[0]
   const loN = rankedN[rankedN.length - 1]
   const buckets = bucketize((item.animals || []).map(an => ({ id: an.id, name: an.name, value: an.value })))
-  const uom = item.uom ? ` ${item.uom}` : ''
+  const uom = item.uom ? ` ${abbrevUnit(item.uom)}` : ''
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -344,13 +343,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {buckets.length > 1 ? (
           <SectionCard title='Distribution'>
-            <VBarChart
-              bars={buckets.map(b => ({ label: b.label, count: b.count, tone: 'info' }))}
-              onSelect={label => {
-                const b = buckets.find(x => x.label === label)
-                onBucket(`${item.type} · ${label}${uom}`, (b?.items || []).map(it => ({ id: it.id, name: it.name, value: it.value })))
-              }}
-            />
+            <VBarChart bars={buckets.map(b => ({ label: b.label, count: b.count, tone: 'info' }))} />
           </SectionCard>
         ) : (
           <SectionCard title='Range' titleMb={2}>
@@ -365,7 +358,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
               { label: 'Below average', value: below.length, tone: 'neutral' }
             ]}
             centerValue={`${item.avg}`}
-            centerSub={item.uom || 'Average'}
+            centerSub={abbrevUnit(item.uom) || 'Average'}
             insights={[
               ...(hiN ? [{ icon: 'mdi:arrow-up', tone: 'info' as const, label: 'Highest:', value: `${hiN.name}  ${hiN.value}${uom}` }] : []),
               ...(loN && loN !== hiN ? [{ icon: 'mdi:arrow-down', tone: 'neutral' as const, label: 'Lowest:', value: `${loN.name}  ${loN.value}${uom}` }] : [])
@@ -432,17 +425,6 @@ const DistributionTypePanel: React.FC<{ item: DistItem; onAnimal: (id: string) =
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {values?.length ? (
-        <SectionCard title='Distribution'>
-          <DistributionBarChart
-            data={values.slice(0, 10).map(v => ({ label: v.label, count: v.count }))}
-            onSelect={label => {
-              const v = values.find(x => x.label === label)
-              onBucket(`${item.type} · ${label}`, (v?.animals || []).map(an => ({ id: an.id, name: an.name })))
-            }}
-          />
-        </SectionCard>
-      ) : null}
       <DetailTable
         columns={columns}
         rows={tbl.rows}
@@ -486,7 +468,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site, p.row.gender) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
     {
       field: 'weight',
       headerName: 'Weight Trend',
@@ -522,13 +504,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {a.weightDistribution?.length ? (
           <SectionCard title='Weight Distribution'>
-            <VBarChart
-              bars={a.weightDistribution.map(b => ({ label: b.label, count: b.count, tone: 'info' }))}
-              onSelect={label => {
-                const b = a.weightDistribution?.find(x => x.label === label)
-                onBucket(`Weight · ${label}`, (b?.items || []).map(it => ({ id: it.id, name: it.name, value: it.value })))
-              }}
-            />
+            <VBarChart bars={a.weightDistribution.map(b => ({ label: b.label, count: b.count, tone: 'info' }))} />
           </SectionCard>
         ) : null}
         {trended > 0 && (
@@ -585,7 +561,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site, p.row.gender) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
     {
       field: 'bcs',
       headerName: 'BCS Trend',
@@ -641,10 +617,6 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
                 { label: 'Ideal (2.5–3.5)', tone: 'success' },
                 { label: 'Over (>3.5)', tone: 'neutral' }
               ]}
-              onSelect={label => {
-                const b = a.bcsDistribution?.find(x => x.label === label)
-                onBucket(`BCS · ${label}`, (b?.items || []).map(it => ({ id: it.id, name: it.name, value: it.value })))
-              }}
             />
           </SectionCard>
         ) : null}
@@ -701,12 +673,12 @@ const Pills: React.FC<{ options: { key: string; label: string }[]; value: string
             onClick={() => onChange(o.key)}
             sx={{
               flexShrink: 0,
-              px: 2,
+              px: '18px',
               py: 1,
               borderRadius: '20px',
               cursor: 'pointer',
               border: `1px solid ${on ? theme.palette.primary.main : c.OutlineVariant}`,
-              backgroundColor: on ? theme.palette.primary.main : 'transparent',
+              backgroundColor: on ? theme.palette.primary.main : theme.palette.background.paper,
               transition: 'all 0.15s ease'
             }}
           >
@@ -772,75 +744,298 @@ interface AlertGroup {
   id: string
   label: string
   tone: 'error' | 'warning' | 'success' | 'neutral'
+  unit?: string
   items: { id: string; name?: string; sub?: string; value?: number }[]
 }
 
-const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup) => void }> = ({ a, onOpenGroup }) => {
+const SectionLabel: React.FC<{ children: React.ReactNode; sub?: React.ReactNode }> = ({ children, sub }) => {
   const theme = useTheme() as any
   const c = cc(theme)
+
+  return (
+    <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap' }}>
+      <Typography variant='caption' sx={{ color: c.neutralSecondary, textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+        {children}
+      </Typography>
+      {sub != null && (
+        <>
+          <Typography variant='caption' sx={{ color: c.OutlineVariant }}>·</Typography>
+          <Typography variant='caption' sx={{ color: c.neutralSecondary }}>{sub}</Typography>
+        </>
+      )}
+    </Box>
+  )
+}
+
+const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup) => void; onAnimal: (id: string) => void }> = ({ a, onOpenGroup, onAnimal }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const { animalCell, txt } = useCell()
   const al = a.alerts || {}
 
   const groups: AlertGroup[] = useMemo(() => {
     const g: AlertGroup[] = []
-    const push = (id: string, label: string, tone: AlertGroup['tone'], arr?: any[], map?: (x: any) => AlertGroup['items'][number]) => {
-      if (arr && arr.length) g.push({ id, label, tone, items: arr.map(map || (x => ({ id: x.antzId, name: x.name, sub: x.site }))) })
+    const push = (id: string, label: string, tone: AlertGroup['tone'], unit: string | undefined, arr?: any[], map?: (x: any) => AlertGroup['items'][number]) => {
+      if (arr && arr.length) g.push({ id, label, tone, unit, items: arr.map(map || (x => ({ id: x.antzId, name: x.name, sub: x.site }))) })
     }
-    push('neverWeighed', 'No Weight Records', 'error', al.neverWeighed)
-    push('overdue', 'Overdue (>6 months)', 'warning', al.overdue, x => ({ id: x.antzId, name: x.name, sub: x.site, value: x.daysSince }))
-    push('wtinc', 'Weight Increasing (>10%)', 'success', al.weightIncreasing, x => ({ id: x.antzId, name: x.name, sub: x.site, value: round1(x.pctChange) }))
-    push('wtdec', 'Weight Decreasing (>10%)', 'error', al.weightDecreasing, x => ({ id: x.antzId, name: x.name, sub: x.site, value: round1(x.pctChange) }))
-    push('undermon', 'Under-Monitored (<5 records)', 'neutral', al.underMonitored, x => ({ id: x.antzId, name: x.name, sub: x.site, value: x.weightCount }))
+    push('neverWeighed', 'No Weight Records', 'error', undefined, al.neverWeighed)
+    push('overdue', 'Overdue (>6 months)', 'warning', 'days', al.overdue, x => ({ id: x.antzId, name: x.name, sub: x.site, value: x.daysSince }))
+    push('wtinc', 'Weight Increasing (>10%)', 'success', '%', al.weightIncreasing, x => ({ id: x.antzId, name: x.name, sub: x.site, value: round1(x.pctChange) }))
+    push('wtdec', 'Weight Decreasing (>10%)', 'error', '%', al.weightDecreasing, x => ({ id: x.antzId, name: x.name, sub: x.site, value: round1(x.pctChange) }))
+    push('undermon', 'Under-Monitored (<5 records)', 'neutral', 'records', al.underMonitored, x => ({ id: x.antzId, name: x.name, sub: x.site, value: x.weightCount }))
 
     // BCS out-of-range, computed from animals
     const bcsUnder = (a.animals || []).filter(an => an.latestBcs != null && Number(an.latestBcs) < 2.5)
     const bcsOver = (a.animals || []).filter(an => an.latestBcs != null && Number(an.latestBcs) > 3.5)
-    if (bcsUnder.length) g.push({ id: 'bcsunder', label: 'Underweight (BCS < 2.5)', tone: 'error', items: bcsUnder.map(an => ({ id: an.antzId, name: an.name, sub: an.site, value: Number(an.latestBcs) })) })
-    if (bcsOver.length) g.push({ id: 'bcsover', label: 'Overweight (BCS > 3.5)', tone: 'neutral', items: bcsOver.map(an => ({ id: an.antzId, name: an.name, sub: an.site, value: Number(an.latestBcs) })) })
+    if (bcsUnder.length) g.push({ id: 'bcsunder', label: 'Underweight (BCS < 2.5)', tone: 'error', unit: 'BCS', items: bcsUnder.map(an => ({ id: an.antzId, name: an.name, sub: an.site, value: Number(an.latestBcs) })) })
+    if (bcsOver.length) g.push({ id: 'bcsover', label: 'Overweight (BCS > 3.5)', tone: 'neutral', unit: 'BCS', items: bcsOver.map(an => ({ id: an.antzId, name: an.name, sub: an.site, value: Number(an.latestBcs) })) })
 
     return g
   }, [a, al])
 
+  // Cross-category numeric "prev → new" changes, grouped by category (matches the prototype's State Changes).
+  const changesByCat = useMemo(() => {
+    const out: { cat: string; items: { id: string; name?: string; metric: string; from: number; to: number; pct: number; date?: string }[] }[] = []
+    for (const [cat, types] of Object.entries(a.catDetail || {})) {
+      const items: { id: string; name?: string; metric: string; from: number; to: number; pct: number; date?: string }[] = []
+      for (const t of types) {
+        if (t.display !== 'numeric') continue
+        for (const ch of t.changes || []) items.push({ id: ch.id, name: ch.name, metric: t.type, from: ch.from, to: ch.to, pct: ch.pct, date: ch.date })
+      }
+      if (items.length) {
+        items.sort((x, y) => Math.abs(y.pct) - Math.abs(x.pct))
+        out.push({ cat, items })
+      }
+    }
+
+    return out
+  }, [a])
+
+  // Measurement outliers: numeric values >30% off the species average, any category.
+  const outlierRows = useMemo(() => {
+    const rows: { antzId: string; name?: string; cat: string; metric: string; value: number; avg: number; dev: number; uom: string; absDev: number }[] = []
+    for (const [cat, types] of Object.entries(a.catDetail || {})) {
+      for (const t of types) {
+        if (t.display !== 'numeric') continue
+        for (const an of t.animals || []) {
+          if (typeof an.pctVsAvg === 'number' && Math.abs(an.pctVsAvg) >= 30 && typeof an.value === 'number') {
+            rows.push({ antzId: an.id, name: an.name, cat, metric: t.type, value: an.value, avg: t.avg, dev: round1(an.pctVsAvg), uom: abbrevUnit(t.uom), absDev: Math.abs(an.pctVsAvg) })
+          }
+        }
+      }
+    }
+
+    return rows
+  }, [a])
+
+  // Sort on the real 'dev' column. A sortModel field with no matching column makes DataGrid
+  // loop onSortModelChange → setState → "Maximum update depth exceeded" (the earlier crash).
+  const outlierTbl = useSortableTable(outlierRows, { field: 'dev', sort: 'desc' })
+
   const toneColor = (tone: AlertGroup['tone']) =>
     tone === 'error' ? c.Tertiary : tone === 'warning' ? c.Tertiary : tone === 'success' ? theme.palette.primary.main : c.neutralSecondary
 
-  if (!groups.length) return <EmptyState message='No alerts for this species' />
+  if (!groups.length && !changesByCat.length && !outlierRows.length) return <EmptyState message='No alerts for this species' />
+
+  const outlierCols: GridColDef[] = [
+    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name) },
+    {
+      field: 'metric',
+      headerName: 'Metric',
+      flex: 1,
+      minWidth: 170,
+      renderCell: p => (
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+            {p.row.metric}
+          </Typography>
+          <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+            {p.row.cat}
+          </Typography>
+        </Box>
+      )
+    },
+    { field: 'value', headerName: 'Value', width: 140, renderCell: p => txt(`${p.row.value?.toLocaleString?.() ?? p.row.value}${p.row.uom ? ` ${p.row.uom}` : ''}`, undefined, 600) },
+    { field: 'avg', headerName: 'Species Avg', width: 140, renderCell: p => txt(p.row.avg?.toLocaleString?.() ?? p.row.avg, c.neutralSecondary) },
+    {
+      field: 'dev',
+      headerName: 'Deviation',
+      width: 140,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => {
+        const up = p.row.dev >= 0
+        const col = up ? theme.palette.primary.main : c.Tertiary
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.25 }}>
+            <Icon icon={up ? 'mdi:arrow-up' : 'mdi:arrow-down'} fontSize={16} color={col} />
+            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: col }}>
+              {up ? '+' : ''}
+              {p.row.dev}%
+            </Typography>
+          </Box>
+        )
+      }
+    }
+  ]
+
+  const changeVal = (from: number, to: number, pct: number) => {
+    const up = pct >= 0
+    const col = up ? theme.palette.primary.main : c.Tertiary
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+        <Typography sx={{ fontSize: '0.85rem', color: c.neutralSecondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          {from} →{' '}
+          <Box component='span' sx={{ color: c.OnSurfaceVariant, fontWeight: 600 }}>
+            {to}
+          </Box>
+        </Typography>
+        <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: col }}>
+          {up ? '+' : ''}
+          {pct}%
+        </Typography>
+      </Box>
+    )
+  }
 
   return (
-    <Box>
-      <Typography variant='caption' sx={{ color: c.neutralSecondary, textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
-        Physical Health
-      </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1.5 }}>
-        {groups.map(g => {
-          const col = toneColor(g.tone)
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      {/* Section 1 — Physical Health alert cards */}
+      {groups.length > 0 && (
+        <Box>
+          <SectionLabel>Physical Health</SectionLabel>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {groups.map(g => {
+              const col = toneColor(g.tone)
 
-          return (
-            <Box
-              key={g.id}
-              onClick={() => onOpenGroup(g)}
-              sx={{
-                flex: '1 1 180px',
-                maxWidth: 260,
-                cursor: 'pointer',
-                borderRadius: '10px',
-                border: `1px solid ${c.SurfaceVariant}`,
-                borderLeft: `3px solid ${col}`,
-                backgroundColor: theme.palette.background.paper,
-                p: 3,
-                transition: 'box-shadow .15s ease',
-                '&:hover': { boxShadow: 2 }
-              }}
-            >
-              <Typography variant='h5' sx={{ color: col }}>
-                {g.items.length}
-              </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
-                {g.label}
-              </Typography>
-            </Box>
-          )
-        })}
-      </Box>
+              return (
+                <Box
+                  key={g.id}
+                  onClick={() => onOpenGroup(g)}
+                  sx={{
+                    flex: '1 1 180px',
+                    maxWidth: 260,
+                    cursor: 'pointer',
+                    borderRadius: '10px',
+                    border: `1px solid ${c.SurfaceVariant}`,
+                    borderLeft: `3px solid ${col}`,
+                    backgroundColor: theme.palette.background.paper,
+                    p: 3,
+                    transition: 'box-shadow .15s ease',
+                    '&:hover': { boxShadow: 2 }
+                  }}
+                >
+                  <Typography variant='h5' sx={{ color: col }}>
+                    {g.items.length}
+                  </Typography>
+                  <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+                    {g.label}
+                  </Typography>
+                </Box>
+              )
+            })}
+          </Box>
+        </Box>
+      )}
+
+      {/* Section 2 — Recent changes, grouped by category */}
+      {changesByCat.length > 0 && (
+        <Box>
+          <SectionLabel sub='Animals whose latest reading moved from the previous one'>Recent Changes</SectionLabel>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            {changesByCat.map(grp => (
+              <Box
+                key={grp.cat}
+                sx={{ borderRadius: '10px', border: `1px solid ${c.SurfaceVariant}`, backgroundColor: theme.palette.background.paper, p: 3 }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    pb: 1.5,
+                    mb: 1,
+                    borderBottom: `1px solid ${c.SurfaceVariant}`
+                  }}
+                >
+                  <Typography variant='subtitle1' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+                    {grp.cat}
+                  </Typography>
+                  <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600 }}>
+                    {grp.items.length} changed
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  {grp.items.slice(0, 5).map((it, i) => (
+                    <Box
+                      key={i}
+                      onClick={() => onAnimal(it.id)}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 2,
+                        py: 1.25,
+                        borderTop: i ? `1px solid ${c.Surface}` : 'none',
+                        cursor: 'pointer',
+                        borderRadius: '6px',
+                        '&:hover': { backgroundColor: c.Surface }
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+                          {it.name || it.id}
+                        </Typography>
+                        <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+                          {it.metric}
+                        </Typography>
+                      </Box>
+                      {changeVal(it.from, it.to, it.pct)}
+                    </Box>
+                  ))}
+                </Box>
+                {grp.items.length > 5 && (
+                  <Typography
+                    onClick={() =>
+                      onOpenGroup({
+                        id: `chg-${grp.cat}`,
+                        label: `${grp.cat} — Recent Changes`,
+                        tone: 'neutral',
+                        unit: '%',
+                        items: grp.items.map(it => ({ id: it.id, name: it.name, sub: `${it.metric}: ${it.from} → ${it.to}`, value: it.pct }))
+                      })
+                    }
+                    variant='caption'
+                    sx={{ color: theme.palette.primary.main, fontWeight: 600, cursor: 'pointer', display: 'inline-block', mt: 1.5 }}
+                  >
+                    View all {grp.items.length} changes →
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Section 3 — Measurement outliers */}
+      {outlierRows.length > 0 && (
+        <Box>
+          <SectionLabel sub={`Values more than 30% from the species average · ${outlierRows.length} flagged`}>Measurement Outliers</SectionLabel>
+          <DetailTable
+            columns={outlierCols}
+            rows={outlierTbl.rows}
+            total={outlierTbl.total}
+            paginationModel={outlierTbl.paginationModel}
+            setPaginationModel={outlierTbl.setPaginationModel}
+            sortModel={outlierTbl.sortModel}
+            handleSortModel={outlierTbl.handleSortModel}
+            onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+          />
+        </Box>
+      )}
     </Box>
   )
 }
@@ -954,6 +1149,90 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
   )
 }
 
+/* ------------------------------------------------------------------ Category tabs — underline rail */
+
+const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; value: string; onChange: (v: string) => void }> = ({
+  options,
+  value,
+  onChange
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        gap: '24px',
+        borderBottom: `1px solid ${c.SurfaceVariant}`,
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' }
+      }}
+    >
+      {options.map(o => {
+        const on = o.value === value
+        const m = o.label.match(/^(.*?)\s*\((\d[\d,]*)\)\s*$/)
+        const name = m ? m[1] : o.label
+        const count = m ? m[2] : null
+
+        return (
+          <Box
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            sx={{
+              position: 'relative',
+              flexShrink: 0,
+              cursor: 'pointer',
+              pt: '10px',
+              pb: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              whiteSpace: 'nowrap',
+              '&::after': on
+                ? {
+                    content: '""',
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: '-1px',
+                    height: '3px',
+                    borderRadius: '3px 3px 0 0',
+                    backgroundColor: theme.palette.primary.main
+                  }
+                : undefined
+            }}
+          >
+            <Typography
+              sx={{ fontSize: '0.9375rem', fontWeight: on ? 700 : 500, color: on ? c.OnSurfaceVariant : c.neutralSecondary }}
+            >
+              {name}
+            </Typography>
+            {count && (
+              <Box
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  lineHeight: 1.7,
+                  px: '7px',
+                  borderRadius: '999px',
+                  fontVariantNumeric: 'tabular-nums',
+                  backgroundColor: on ? c.OnBackground : c.Surface,
+                  color: on ? theme.palette.primary.dark : c.Outline,
+                  border: `1px solid ${on ? c.OnBackground : c.SurfaceVariant}`
+                }}
+              >
+                {count}
+              </Box>
+            )}
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
 /* ------------------------------------------------------------------ Tab root */
 
 const POPULATION = '__population__'
@@ -963,7 +1242,7 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
   const a = assessments
   const [sub, setSub] = useState<string>(POPULATION)
   const [animalDrill, setAnimalDrill] = useState<AssessmentAnimal | null>(null)
-  const [bucket, setBucket] = useState<{ title: string; subtitle?: string; items?: any[] } | null>(null)
+  const [bucket, setBucket] = useState<{ title: string; subtitle?: string; items?: any[]; unit?: string } | null>(null)
 
   const animalById = useMemo(() => {
     const m = new Map<string, AssessmentAnimal>()
@@ -1011,14 +1290,12 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ overflowX: 'auto', pb: 1, '& .MuiToggleButtonGroup-root .MuiToggleButton-root': { px: 4 } }}>
-        <CustomSwitchTabs options={options} value={sub} onChange={(_e: React.SyntheticEvent, v: string | null) => v && setSub(v)} />
-      </Box>
+      <CategoryTabs options={options} value={sub} onChange={setSub} />
 
       {sub === POPULATION ? (
         <PopulationTable animals={a.animals || []} onAnimal={openAnimal} />
       ) : sub === ALERTS ? (
-        <AlertsPanel a={a} onOpenGroup={g => setBucket({ title: g.label, subtitle: `${g.items.length} animals`, items: g.items })} />
+        <AlertsPanel a={a} onAnimal={openAnimal} onOpenGroup={g => setBucket({ title: g.label, subtitle: `${g.items.length} animals`, items: g.items, unit: g.unit })} />
       ) : (
         <CategoryPanel a={a} category={sub} onAnimal={openAnimal} onBucket={(title, subtitle, items) => setBucket({ title, subtitle, items })} />
       )}
@@ -1034,6 +1311,7 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
         open={!!bucket}
         title={bucket?.title}
         subtitle={bucket?.subtitle}
+        unit={bucket?.unit}
         items={bucket?.items}
         isClickable={(id: string) => animalById.has(id)}
         onItemClick={(id: string) => {
