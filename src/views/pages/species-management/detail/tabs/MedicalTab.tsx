@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import type { PreventiveProgram, PreventiveRecord, PreventiveSite, SpeciesPreventive } from 'src/lib/api/species-management/detail'
-import type { ClinicalProgram, SpeciesClinical } from 'src/lib/api/species-management/detail'
+import type { ClinicalProgram, ClinicalRecord, SpeciesClinical } from 'src/lib/api/species-management/detail'
 import {
   ColumnTrend,
   DetailTable,
@@ -42,12 +42,17 @@ const useWindow = (range: RangeSelection) => {
 }
 
 /** Count occurrences of `key` across rows → [{ name, count }] sorted desc. */
-const rankBy = (rows: any[], key: string): { name: string; count: number }[] => {
-  const m: Record<string, number> = {}
-  for (const r of rows) m[r[key]] = (m[r[key]] || 0) + 1
+const rankBy = (rows: any[], key: string, idKey = 'aid'): { name: string; count: number; animals: number }[] => {
+  const m: Record<string, { count: number; animals: Set<string> }> = {}
+  for (const r of rows) {
+    const k = r[key]
+    if (!m[k]) m[k] = { count: 0, animals: new Set() }
+    m[k].count++
+    m[k].animals.add(r[idKey])
+  }
 
   return Object.entries(m)
-    .map(([name, count]) => ({ name, count }))
+    .map(([name, v]) => ({ name, count: v.count, animals: v.animals.size }))
     .sort((a, b) => b.count - a.count)
 }
 
@@ -248,7 +253,12 @@ const matchesQuery = (r: any, q: string) => {
 }
 
 /** Number-first ranked list (rank badge · label · count · chevron) — replaces ranked bar charts. */
-const RankedList: React.FC<{ items: { label: string; count: number }[]; onItem?: (label: string) => void; limit?: number }> = ({ items, onItem, limit }) => {
+const RankedList: React.FC<{
+  items: { label: string; count: number; animals?: number }[]
+  onItem?: (label: string) => void
+  limit?: number
+  showAnimals?: boolean
+}> = ({ items, onItem, limit, showAnimals }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const shown = limit ? items.slice(0, limit) : items
@@ -293,9 +303,18 @@ const RankedList: React.FC<{ items: { label: string; count: number }[]; onItem?:
           <Typography variant='body2' sx={{ flex: 1, minWidth: 0, fontWeight: 500 }} noWrap>
             {it.label}
           </Typography>
-          <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, color: c.Tertiary, fontVariantNumeric: 'tabular-nums' }}>
-            {it.count.toLocaleString()}
-          </Typography>
+          {showAnimals ? (
+            <Typography variant='body2' sx={{ color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              <Box component='span' sx={{ fontSize: '1.05rem', fontWeight: 700, color: c.Tertiary, fontVariantNumeric: 'tabular-nums' }}>
+                {it.count.toLocaleString()}
+              </Box>{' '}
+              rec · {(it.animals ?? 0).toLocaleString()} animals
+            </Typography>
+          ) : (
+            <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, color: c.Tertiary, fontVariantNumeric: 'tabular-nums' }}>
+              {it.count.toLocaleString()}
+            </Typography>
+          )}
           {onItem && <Icon icon='mdi:chevron-right' fontSize={18} color={c.OutlineVariant} />}
         </Box>
       ))}
@@ -1132,12 +1151,82 @@ const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram }> = ({ t
   )
 }
 
+/**
+ * Type list for the stat-tile side sheet, rendered with the standard antz DetailTable (DataGrid):
+ * Symptom · Records · Animals · Recurrence, sortable headers, standard row height/colours.
+ * Every row is clickable → filters the animal table.
+ */
+const TypeTable: React.FC<{
+  items: { name: string; count: number; animals: number }[]
+  noun: string
+  onPick: (name: string) => void
+}> = ({ items, noun, onPick }) => {
+  const { txt, c, theme } = useCells()
+  const rows = useMemo(
+    () => items.map((d, i) => ({ id: i, order: i, name: d.name, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
+    [items]
+  )
+  const tbl = useSortableTable(rows, { field: 'order', sort: 'asc' })
+
+  const columns: GridColDef[] = [
+    { field: 'name', headerName: noun === 'symptoms' ? 'Symptom' : 'Assessment', flex: 1, minWidth: 200, renderCell: p => txt(p.row.name, undefined, 600) },
+    {
+      field: 'count',
+      headerName: 'Records',
+      width: 120,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => txt(p.row.count.toLocaleString(), undefined, 700)
+    },
+    {
+      field: 'animals',
+      headerName: 'Animals',
+      width: 120,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => txt(p.row.animals.toLocaleString(), c.neutralSecondary, 600)
+    },
+    {
+      field: 'ratio',
+      headerName: 'Recurrence',
+      width: 140,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => txt(`${p.row.ratio.toFixed(1)}×`, theme.palette.primary.dark, 700)
+    }
+  ]
+
+  if (!items.length) {
+    return (
+      <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+        No {noun} in this group.
+      </Typography>
+    )
+  }
+
+  return (
+    <DetailTable
+      columns={columns}
+      rows={tbl.rows}
+      total={tbl.total}
+      paginationModel={tbl.paginationModel}
+      setPaginationModel={tbl.setPaginationModel}
+      sortModel={tbl.sortModel}
+      handleSortModel={tbl.handleSortModel}
+      onRowClick={p => onPick(p.row.name)}
+    />
+  )
+}
+
 /* ═══════════════════════════════════════════════ Clinical panel (symptoms/diagnosis) */
-const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: RangeSelection }> = ({ tab, prog, range }) => {
+const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: RangeSelection; animalCount?: number }> = ({ tab, prog, range, animalCount = 0 }) => {
   const { txt, animalCell, c, theme } = useCells()
   const [typeFilter, setTypeFilter] = useState<string | null>(null)
-  const [allOpen, setAllOpen] = useState(false)
+  const [monthFilter, setMonthFilter] = useState<{ idx: number; y: number; m: number; label: string } | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'active' | 'longopen' | null>(null)
+  const [drawerScope, setDrawerScope] = useState<'all' | 'active' | 'longopen' | 'recurring' | null>(null)
   const [view, setView] = useState<'animal' | 'record'>('animal')
+  const tableRef = useRef<HTMLDivElement>(null)
   const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
   const [q, setQ] = useState('')
   const inWin = useWindow(range)
@@ -1171,16 +1260,90 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
         .filter(p => p.count > 0)
   const trend = all ? prog.trend : monthlyTrend(windowed, new Date())
 
-  const rows = useMemo(() => {
-    const scoped = typeFilter ? windowed.filter(r => r.type === typeFilter) : windowed
+  // ── Symptom-tab management metrics ──────────────────────────────────────────
+  // "Most common" = breadth (affects the most distinct animals); "Most recurring" = intensity
+  // (episodes per animal) — a genuinely different, chronic-care signal. "Long-open" = neglect.
+  const commonTypes = isDiag ? topTypes : [...topTypes].sort((a, b) => (b.animals ?? b.count) - (a.animals ?? a.count))
+  const mostRecurring = isDiag
+    ? null
+    : topTypes
+        .filter(t => (t.animals ?? 0) >= 2)
+        .map(t => ({ name: t.name, animals: t.animals ?? 0, ratio: t.count / (t.animals ?? 1) }))
+        .sort((a, b) => b.ratio - a.ratio)[0] ?? null
+  const longOpen = activeRecs.filter(r => r.durationDays > 30).length
+  const prevalencePct = animalCount ? Math.round((s.animalsAffected / animalCount) * 100) : 0
+  const newThisMonth = trend.length ? trend[trend.length - 1].value : 0
+  const prevMonth = trend.length > 1 ? trend[trend.length - 2].value : 0
+  const monthDelta = newThisMonth - prevMonth
 
-    return q.trim() ? scoped.filter(r => matchesQuery(r, q)) : scoped
-  }, [windowed, typeFilter, q])
+  // Trend bars = trailing 12 months. Clicking one filters the list to that calendar month;
+  // clicking the active bar clears it. Bars are dimmed except the selected one.
+  const onTrendBar = (i: number) => {
+    const now = new Date()
+    const monthsAgo = trend.length - 1 - i
+    const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
+    setMonthFilter(prev =>
+      prev && prev.idx === i ? null : { idx: i, y: d.getFullYear(), m: d.getMonth(), label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
+    )
+  }
+  const inMonth = (dateStr: string) => {
+    if (!monthFilter) return true
+    const d = new Date(dateStr)
+
+    return d.getFullYear() === monthFilter.y && d.getMonth() === monthFilter.m
+  }
+  const inStatus = (r: ClinicalRecord) =>
+    !statusFilter || (statusFilter === 'active' ? r.status === 'active' : r.status === 'active' && r.durationDays > 30)
+
+  // Records after the status/type/month scoping (drives both the record table and the animal grouping).
+  const scopedRecords = useMemo(() => {
+    let s = statusFilter ? windowed.filter(inStatus) : windowed
+    if (typeFilter) s = s.filter(r => r.type === typeFilter)
+    if (monthFilter) s = s.filter(r => inMonth(r.date))
+
+    return s
+  }, [windowed, statusFilter, typeFilter, monthFilter])
+
+  const rows = useMemo(() => (q.trim() ? scopedRecords.filter(r => matchesQuery(r, q)) : scopedRecords), [scopedRecords, q])
   const animalRows = useMemo(() => {
-    const grouped = groupByAnimal(typeFilter ? windowed.filter(r => r.type === typeFilter) : windowed, 'date', 'active')
+    const grouped = groupByAnimal(scopedRecords, 'date', 'active')
 
     return q.trim() ? grouped.filter(g => matchesQuery(g, q)) : grouped
-  }, [windowed, typeFilter, q])
+  }, [scopedRecords, q])
+
+  // Side-sheet contents for a clicked stat tile: symptom types within that tile's population.
+  const STATUS_META = { active: 'active over 12 months', longopen: 'active over 30 days', recurring: 'ranked by recurrence', all: '' } as const
+  const drawerData = useMemo(() => {
+    if (!drawerScope) return null
+    const recs =
+      drawerScope === 'active'
+        ? windowed.filter(r => r.status === 'active')
+        : drawerScope === 'longopen'
+        ? windowed.filter(r => r.status === 'active' && r.durationDays > 30)
+        : windowed
+    let ranked = rankBy(recs, 'type')
+    if (drawerScope === 'recurring') ranked = [...ranked].sort((a, b) => b.count / Math.max(1, b.animals) - a.count / Math.max(1, a.animals))
+    else if (drawerScope === 'all') ranked = [...ranked].sort((a, b) => b.animals - a.animals)
+    const title =
+      drawerScope === 'active'
+        ? `Active ${noun}`
+        : drawerScope === 'longopen'
+        ? `Long-open ${noun}`
+        : drawerScope === 'recurring'
+        ? `${isDiag ? 'Clinical assessments' : 'Symptoms'} by recurrence`
+        : `All ${noun}`
+
+    return { title, ranked, hint: STATUS_META[drawerScope], scope: drawerScope }
+  }, [drawerScope, windowed, isDiag, noun])
+
+  // Clicking a symptom in a tile's side sheet → filter the animal table (type + the tile's status
+  // scope), close the sheet, and scroll down to the table.
+  const pickFromDrawer = (label: string) => {
+    setTypeFilter(label)
+    setStatusFilter(drawerScope === 'active' ? 'active' : drawerScope === 'longopen' ? 'longopen' : null)
+    setDrawerScope(null)
+    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
   const tbl = useSortableTable(rows, { field: 'date', sort: 'desc' })
   const atbl = useSortableTable(animalRows, { field: 'active', sort: 'desc' })
   const onQ = (v: string) => {
@@ -1245,26 +1408,46 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {/* Row 1 · stats */}
       <StatsRow cols={isDiag ? 5 : 4}>
-        <StatTile label={`${typeCol} Types`} value={s.types} tone='neutral' />
-        <StatTile label='Active' value={s.active.toLocaleString()} tone='error' />
-        <StatTile label='Resolved (12 mo)' value={s.resolved.toLocaleString()} tone='success' />
-        {isDiag && <StatTile label='Avg Resolution' value={`${s.avgResolutionDays ?? 0}d`} tone='info' />}
-        <StatTile label='Animals Affected' value={s.animalsAffected.toLocaleString()} tone='neutral' />
+        {isDiag ? (
+          <>
+            <StatTile label={`${typeCol} Types`} value={s.types} tone='neutral' />
+            <StatTile label='Active' value={s.active.toLocaleString()} tone='error' />
+            <StatTile label='Resolved (12 mo)' value={s.resolved.toLocaleString()} tone='success' />
+            <StatTile label='Avg Resolution' value={`${s.avgResolutionDays ?? 0}d`} tone='info' />
+            <StatTile label='Animals Affected' value={s.animalsAffected.toLocaleString()} tone='neutral' />
+          </>
+        ) : (
+          <>
+            <StatTile label='Active' value={s.active.toLocaleString()} tone='error' onClick={() => setDrawerScope('active')} />
+            <StatTile label='Animals Affected' value={s.animalsAffected.toLocaleString()} tone='neutral' onClick={() => setDrawerScope('all')} />
+            <StatTile
+              label='Most Recurring'
+              value={
+                <Box component='span' sx={{ display: 'inline-block', fontSize: '1.15rem', fontWeight: 600, lineHeight: 1.25, whiteSpace: 'normal' }}>
+                  {mostRecurring?.name ?? '—'}
+                </Box>
+              }
+              tone='warning'
+              onClick={() => setDrawerScope('recurring')}
+            />
+            <StatTile label='Long-open Cases' value={longOpen.toLocaleString()} tone='error' onClick={() => setDrawerScope('longopen')} />
+          </>
+        )}
       </StatsRow>
 
       {/* Row 2 · charts */}
       <ChartsRow md='repeat(3, 1fr)'>
-        <SectionCard title={`Most common ${noun}`} titleMb={2}>
-          {topTypes.length ? (
+        <SectionCard title={isDiag ? `Most common ${noun}` : 'Most widespread symptoms'} titleMb={2}>
+          {commonTypes.length ? (
             <>
-              <RankedList items={topTypes.map(t => ({ label: t.name, count: t.count }))} onItem={setTypeFilter} limit={5} />
-              {topTypes.length > 5 && (
+              <RankedList items={commonTypes.map(t => ({ label: t.name, count: isDiag ? t.count : t.animals ?? t.count }))} onItem={setTypeFilter} limit={5} />
+              {commonTypes.length > 5 && (
                 <Box
-                  onClick={() => setAllOpen(true)}
+                  onClick={() => setDrawerScope('all')}
                   sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
                 >
                   <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                    View all {topTypes.length} {noun}
+                    View all {commonTypes.length} {noun}
                   </Typography>
                   <Icon icon='mdi:chevron-right' fontSize={16} />
                 </Box>
@@ -1283,7 +1466,7 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
               segments={donutSegments}
               centerValue={donutTotal.toLocaleString()}
               centerSub={isDiag ? 'open' : 'records'}
-              size={132}
+              size={188}
             />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {donutSegments.map(seg => (
@@ -1309,22 +1492,31 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
         </SectionCard>
 
         <SectionCard title={`${isDiag ? 'Clinical Assessments' : 'Reports'} over time`} titleMb={2}>
-          <ColumnTrend data={trend} tone='info' height={130} />
+          <ColumnTrend data={trend} tone='info' height={195} showValues onBarClick={onTrendBar} activeIndex={monthFilter?.idx ?? null} />
         </SectionCard>
       </ChartsRow>
 
       {/* Row 3 · standard DataGrid */}
+      <Box ref={tableRef}>
       <SectionCard
         title={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
               {view === 'animal' ? `Animals · ${animalRows.length.toLocaleString()}` : `Records · ${rows.length.toLocaleString()}`}
             </Typography>
+            {statusFilter && (
+              <FilterChip label={statusFilter === 'active' ? 'Active' : 'Long-open (>30d)'} onClear={() => setStatusFilter(null)} />
+            )}
             {typeFilter && <FilterChip label={typeFilter} onClear={() => setTypeFilter(null)} />}
-            {typeFilter && (
+            {monthFilter && <FilterChip label={monthFilter.label} onClear={() => setMonthFilter(null)} />}
+            {(typeFilter || monthFilter || statusFilter) && (
               <Typography
                 variant='caption'
-                onClick={() => setTypeFilter(null)}
+                onClick={() => {
+                  setTypeFilter(null)
+                  setMonthFilter(null)
+                  setStatusFilter(null)
+                }}
                 sx={{ color: theme.palette.secondary.main, cursor: 'pointer', fontWeight: 600 }}
               >
                 Clear
@@ -1363,35 +1555,34 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
           />
         )}
       </SectionCard>
+      </Box>
 
       <AnimalRecordsDrawer group={animalDrill} onClose={() => setAnimalDrill(null)} mode='clinical' isDiag={isDiag} />
 
-      {/* side sheet · all types */}
-      <Drawer anchor='right' open={allOpen} onClose={() => setAllOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 460 }, maxWidth: '100%' } }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box sx={{ p: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap>
-                All {noun}
-              </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
-                {topTypes.length} types · click to filter the list
-              </Typography>
+      {/* side sheet · symptom types for the clicked stat tile (scoped) */}
+      <Drawer
+        anchor='right'
+        open={!!drawerData}
+        onClose={() => setDrawerScope(null)}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 620 }, maxWidth: '100%' } }}
+      >
+        {drawerData && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ px: 5, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
+                  {drawerData.title}
+                </Typography>
+              </Box>
+              <IconButton onClick={() => setDrawerScope(null)} size='small'>
+                <Icon icon='mdi:close' />
+              </IconButton>
             </Box>
-            <IconButton onClick={() => setAllOpen(false)} size='small'>
-              <Icon icon='mdi:close' />
-            </IconButton>
+            <Box sx={{ flex: 1, overflowY: 'auto', px: 4, py: 3 }}>
+              <TypeTable items={drawerData.ranked} noun={noun} onPick={pickFromDrawer} />
+            </Box>
           </Box>
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
-            <RankedList
-              items={topTypes.map(t => ({ label: t.name, count: t.count }))}
-              onItem={label => {
-                setTypeFilter(label)
-                setAllOpen(false)
-              }}
-            />
-          </Box>
-        </Box>
+        )}
       </Drawer>
     </Box>
   )
@@ -1443,7 +1634,7 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
       const prog = clinical?.programs?.[tab]
       if (!prog || (!prog.records.length && !prog.summary.animalsAffected)) return <EmptyState message={`No ${tab} data for this species`} />
 
-      return <ClinicalPanel key={tab} tab={tab} prog={prog} range={range} />
+      return <ClinicalPanel key={tab} tab={tab} prog={prog} range={range} animalCount={clinical?.animalCount ?? 0} />
     }
 
     const prog = preventive?.programs?.[tab]

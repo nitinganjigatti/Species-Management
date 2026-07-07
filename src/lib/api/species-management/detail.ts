@@ -199,7 +199,7 @@ export interface ClinicalRecord {
 export interface ClinicalProgram {
   kind: 'type'
   summary: { types: number; active: number; resolved: number; animalsAffected: number; avgResolutionDays?: number }
-  topTypes: { name: string; count: number }[]
+  topTypes: { name: string; count: number; animals?: number }[]
   statusMix: { active: number; resolved: number }
   prognosisMix?: { name: string; count: number }[]
   trend: { label: string; value: number }[]

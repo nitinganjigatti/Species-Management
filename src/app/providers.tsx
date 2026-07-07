@@ -2,8 +2,11 @@
 
 import { ReactNode, useEffect } from 'react'
 
-// ** Emotion Imports
-import { CacheProvider } from '@emotion/react'
+// ** Emotion SSR registry (App Router) — supplies the Emotion cache AND flushes inserted
+// styles into <head> via useServerInsertedHTML. Without it, Emotion renders <style> tags
+// inline in the tree during SSR (compat mode) but not on the client → hydration mismatch
+// (the FallbackSpinner "css-global" error). ThemeRegistry replaces the bare CacheProvider.
+import ThemeRegistry from './ThemeRegistry'
 
 // ** Third Party Import
 import { Toaster } from 'react-hot-toast'
@@ -48,7 +51,6 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 
 // Shared instances (same as Page Router)
 import { queryClient } from 'src/lib/shared/queryClient'
-import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
 import { LanguageProvider } from 'src/context/LanguageContext'
 
 // Single mount point for the @antzsoft/chat-core lifecycle (socket connect /
@@ -84,7 +86,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
-        <CacheProvider value={clientSideEmotionCache}>
+        <ThemeRegistry>
           <HospitalProvider>
             <NecropsyProvider>
               <PariveshProvider>
@@ -130,7 +132,7 @@ export function Providers({ children }: ProvidersProps) {
               </PariveshProvider>
             </NecropsyProvider>
           </HospitalProvider>
-        </CacheProvider>
+        </ThemeRegistry>
       </Provider>
     </QueryClientProvider>
   )

@@ -1,6 +1,5 @@
 // ** MUI Imports
 import { useEffect } from 'react'
-import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useTheme } from '@mui/material/styles'
 import NProgress from 'nprogress'
@@ -19,10 +18,10 @@ const FallbackSpinner = ({ sx }) => {
     }
   }, [])
   return (
-    <Box
-      // Single inline-style object so this node is byte-identical on server and client
-      // (no Emotion class here). Fixes the hydration mismatch the old style + duplicate-sx
-      // mix caused, and still avoids the "logo flashes at top-left then centers" artifact.
+    // Native <div> (not MUI Box) so this node carries NO Emotion class/insertion — that Emotion
+    // `css-0` insertion was mismatching between server and client and throwing a hydration error.
+    // A plain div with one inline-style object is byte-identical on server and client.
+    <div
       style={{
         position: 'fixed',
         top: 0,
@@ -116,7 +115,7 @@ const FallbackSpinner = ({ sx }) => {
 </defs>
 </svg> */}
       <CircularProgress disableShrink sx={{ mt: 6 }} />
-    </Box>
+    </div>
   )
 }
 export default FallbackSpinner

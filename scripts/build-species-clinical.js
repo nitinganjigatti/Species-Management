@@ -58,6 +58,18 @@ const SYMPTOMS_BY_CLASS = {
 }
 const DEFAULT_SYMPTOMS = ['Lethargy', 'Inappetence', 'Skin lesion', 'Wound', 'Swelling']
 
+// Chronic / recurring symptoms — conditions that realistically flare repeatedly on the SAME
+// animal (arthritis, dermatitis, bumblefoot, shedding problems…). Recurrers get several episodes
+// of one of these, so "most recurring symptom" is a real signal, distinct from "most common".
+const CHRONIC_SYMPTOMS_BY_CLASS = {
+  Mammalia: ['Lameness', 'Skin lesion'],
+  Aves: ['Lameness', 'Feather loss'],
+  Reptilia: ['Skin shedding issue', 'Mouth rot'],
+  Amphibia: ['Skin lesion', 'Discolouration'],
+  Actinopterygii: ['Fin rot', 'Skin lesion']
+}
+const DEFAULT_CHRONIC_SYMPTOMS = ['Skin lesion', 'Lethargy']
+
 const DIAGNOSES_BY_CLASS = {
   Mammalia: ['Enteritis', 'Pododermatitis', 'Pneumonia', 'Parasitism', 'Arthritis', 'Dermatitis', 'Abscess', 'Colic'],
   Aves: ['Aspergillosis', 'Bumblefoot', 'Enteritis', 'Parasitism', 'Feather cyst', 'Air sacculitis'],
@@ -115,8 +127,9 @@ function monthlyTrend(records) {
 
 // ── generate one clinical program (symptoms / diagnosis) ────────────────────
 function genProgram(rng, animals, catalog, opts) {
-  const { affectedP, withPrognosis, withSeverity, activeP, maxPerAnimal } = opts
+  const { affectedP, withPrognosis, withSeverity, activeP, maxPerAnimal, chronicTypes, recurP = 0 } = opts
   const perType = {}
+  const perTypeAnimals = {} // type -> Set of aids (distinct breadth)
   const affected = new Set()
   let active = 0
   let resolved = 0
@@ -124,43 +137,56 @@ function genProgram(rng, animals, catalog, opts) {
   const prognosisOpen = {}
   const records = []
 
+  // One case/episode of `type` for animal `a`.
+  const emit = (a, type) => {
+    perType[type] = (perType[type] || 0) + 1
+    ;(perTypeAnimals[type] = perTypeAnimals[type] || new Set()).add(a.aid)
+    // Decide open/closed first; open cases get a recent report date so duration stays realistic.
+    const isActive = rng() < activeP
+    // Active cases skew recent (most just reported); a stubborn minority drags past 30 days →
+    // the "long-open" management signal is a real subset of active, not ~all of it.
+    const ageDays = isActive ? 1 + Math.floor(Math.pow(rng(), 2.2) * 110) : 1 + Math.floor(rng() * 720)
+    const reported = addDays(TODAY, -ageDays)
+    let durationDays
+    if (isActive) {
+      active++
+      durationDays = ageDays
+    } else {
+      resolved++
+      durationDays = 2 + Math.floor(rng() * 28)
+      resolvedDaysSum += durationDays
+    }
+    const rec = {
+      aid: a.aid,
+      name: a.name,
+      site: a.site,
+      enclosure: a.enclosure,
+      type,
+      date: iso(reported),
+      durationDays,
+      status: isActive ? 'active' : 'resolved'
+    }
+    if (withPrognosis) {
+      const prog = pickWeighted(rng, PROGNOSES)
+      rec.prognosis = prog
+      if (isActive) prognosisOpen[prog] = (prognosisOpen[prog] || 0) + 1
+    }
+    if (withSeverity) rec.severity = pickWeighted(rng, SEVERITIES)
+    if (records.length < RECORD_CAP) records.push(rec)
+  }
+
   for (const a of animals) {
     if (rng() >= affectedP) continue
     affected.add(a.aid)
-    const n = 1 + Math.floor(rng() * maxPerAnimal)
-    for (let j = 0; j < n; j++) {
-      const type = pick(rng, catalog)
-      perType[type] = (perType[type] || 0) + 1
-      // Decide open/closed first; open cases get a recent report date so duration stays realistic.
-      const isActive = rng() < activeP
-      const ageDays = isActive ? 1 + Math.floor(rng() * 90) : 1 + Math.floor(rng() * 720)
-      const reported = addDays(TODAY, -ageDays)
-      let durationDays
-      if (isActive) {
-        active++
-        durationDays = ageDays
-      } else {
-        resolved++
-        durationDays = 2 + Math.floor(rng() * 28)
-        resolvedDaysSum += durationDays
-      }
-      const rec = {
-        aid: a.aid,
-        name: a.name,
-        site: a.site,
-        enclosure: a.enclosure,
-        type,
-        date: iso(reported),
-        durationDays,
-        status: isActive ? 'active' : 'resolved'
-      }
-      if (withPrognosis) {
-        const prog = pickWeighted(rng, PROGNOSES)
-        rec.prognosis = prog
-        if (isActive) prognosisOpen[prog] = (prognosisOpen[prog] || 0) + 1
-      }
-      if (withSeverity) rec.severity = pickWeighted(rng, SEVERITIES)
-      if (records.length < RECORD_CAP) records.push(rec)
+    // A share of affected animals are chronic "recurrers": several flare-ups of ONE chronic
+    // condition → real recurrence intensity. The rest get 1..maxPerAnimal one-off symptoms.
+    if (chronicTypes && chronicTypes.length && rng() < recurP) {
+      const type = pick(rng, chronicTypes)
+      const episodes = 2 + Math.floor(rng() * 3) // 2–4 recurrences of the same condition
+      for (let j = 0; j < episodes; j++) emit(a, type)
+    } else {
+      const n = 1 + Math.floor(rng() * maxPerAnimal)
+      for (let j = 0; j < n; j++) emit(a, pick(rng, catalog))
     }
   }
 
@@ -178,7 +204,7 @@ function genProgram(rng, animals, catalog, opts) {
     kind: 'type',
     summary,
     topTypes: Object.entries(perType)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => ({ name, count, animals: (perTypeAnimals[name] || new Set()).size }))
       .sort((a, b) => b.count - a.count),
     statusMix: { active, resolved },
     trend: monthlyTrend(records),
@@ -213,12 +239,21 @@ function main() {
     }
 
     const symptoms = SYMPTOMS_BY_CLASS[sp.class_name] || DEFAULT_SYMPTOMS
+    const chronicSymptoms = CHRONIC_SYMPTOMS_BY_CLASS[sp.class_name] || DEFAULT_CHRONIC_SYMPTOMS
     const diagnoses = DIAGNOSES_BY_CLASS[sp.class_name] || DEFAULT_DIAGNOSES
     const out = {
       tsnId: id,
       animalCount: animals.length,
       programs: {
-        symptoms: genProgram(rng, animals, symptoms, { affectedP: 0.07, withPrognosis: false, withSeverity: true, activeP: 0.2, maxPerAnimal: 3 }),
+        symptoms: genProgram(rng, animals, symptoms, {
+          affectedP: 0.07,
+          withPrognosis: false,
+          withSeverity: true,
+          activeP: 0.2,
+          maxPerAnimal: 3,
+          chronicTypes: chronicSymptoms,
+          recurP: 0.35
+        }),
         diagnosis: genProgram(rng, animals, diagnoses, { affectedP: 0.05, withPrognosis: true, activeP: 0.28, maxPerAnimal: 2 })
       }
     }

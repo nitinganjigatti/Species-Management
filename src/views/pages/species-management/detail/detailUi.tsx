@@ -519,33 +519,62 @@ export const ColumnTrend: React.FC<{
   tone?: Tone
   height?: number
   baseline?: number
-}> = ({ data, tone = 'primary', height = 120, baseline }) => {
+  /** When provided, bars become clickable (cursor + hover highlight) and fire with the bar index. */
+  onBarClick?: (index: number) => void
+  /** Index of the currently selected bar — others dim so the active month reads at a glance. */
+  activeIndex?: number | null
+  /** Print the value above each bar so the chart is legible without hovering. */
+  showValues?: boolean
+}> = ({ data, tone = 'primary', height = 120, baseline, onBarClick, activeIndex = null, showValues }) => {
   const theme = useTheme() as any
   const tones = useTone()
   const { fg } = tones(tone)
   const max = Math.max(1, ...data.map(d => d.value))
   const base = baseline != null ? baseline : 0
   const denom = Math.max(1, max - base)
+  const clickable = !!onBarClick
+  const plotH = height - 24 - (showValues ? 14 : 0)
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, height, overflowX: 'auto', pb: 1 }}>
-      {data.map((d, i) => (
-        <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24, flex: 1 }}>
-          <Tooltip title={`${d.label}: ${d.value.toLocaleString()}`} arrow>
-            <Box
-              sx={{
-                width: '70%',
-                height: `${Math.max(2, (Math.max(0, d.value - base) / denom) * (height - 24))}px`,
-                backgroundColor: fg,
-                borderRadius: '3px 3px 0 0'
-              }}
-            />
-          </Tooltip>
-          <Typography variant='caption' sx={{ color: cc(theme).neutralSecondary, mt: 0.5, fontSize: 10 }} noWrap>
-            {d.label}
-          </Typography>
-        </Box>
-      ))}
+      {data.map((d, i) => {
+        const isActive = activeIndex === i
+        const dim = activeIndex != null && !isActive
+
+        return (
+          <Box
+            key={i}
+            onClick={clickable ? () => onBarClick!(i) : undefined}
+            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24, flex: 1, cursor: clickable ? 'pointer' : 'default' }}
+          >
+            {showValues && (
+              <Typography variant='caption' sx={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: cc(theme).neutralSecondary, mb: 0.5, height: 14 }}>
+                {d.value || ''}
+              </Typography>
+            )}
+            <Tooltip title={`${d.label}: ${d.value.toLocaleString()}`} arrow>
+              <Box
+                sx={{
+                  width: '70%',
+                  height: `${Math.max(2, (Math.max(0, d.value - base) / denom) * plotH)}px`,
+                  backgroundColor: fg,
+                  opacity: dim ? 0.32 : 1,
+                  borderRadius: '3px 3px 0 0',
+                  transition: 'opacity .15s ease, filter .15s ease',
+                  ...(clickable ? { '&:hover': { filter: 'brightness(0.88)', opacity: 1 } } : {})
+                }}
+              />
+            </Tooltip>
+            <Typography
+              variant='caption'
+              sx={{ color: isActive ? fg : cc(theme).neutralSecondary, fontWeight: isActive ? 700 : 400, mt: 0.5, fontSize: 10 }}
+              noWrap
+            >
+              {d.label}
+            </Typography>
+          </Box>
+        )
+      })}
     </Box>
   )
 }

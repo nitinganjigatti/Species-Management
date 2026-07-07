@@ -100,7 +100,9 @@ export const fetchUserProfile = createAsyncThunk<ProfileUserType | null, { fallb
 
       return profile
     } catch (err) {
-      console.error('[chat] fetchUserProfile failed:', err)
+      // Handled, non-fatal: chat is unreachable (e.g. WSO2 signing key not fetchable in local
+      // dev) → degrade to no profile. warn, not error, so it doesn't trip the dev error overlay.
+      console.warn('[chat] fetchUserProfile unavailable — skipping:', err)
 
       return null
     }
@@ -150,7 +152,9 @@ export const fetchChatsContacts = createAsyncThunk<{
 
     return { chatsContacts, contacts }
   } catch (err) {
-    console.error('[chat] fetchChatsContacts failed:', err)
+    // Handled, non-fatal: chat backend unreachable (e.g. WSO2 auth unavailable locally) →
+    // empty list. warn, not error, so it doesn't trip the dev error overlay.
+    console.warn('[chat] fetchChatsContacts unavailable — skipping:', err)
 
     return { chatsContacts: [], contacts: [] }
   }

@@ -9,6 +9,8 @@ const pkg = require('./package.json')
 
 module.exports = {
   transpilePackages: ['@antzsoft/wso2-auth-web'],
+  // Isolated build dir for a throwaway QA server (defaults to .next → no-op in normal use).
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // Single source of truth for the app version: package.json. The sidebar
   // and the X-Client-Version request header read process.env.NEXT_PUBLIC_APP_VERSION;
   // injecting it here means a `npm version` bump (or a manual edit of
