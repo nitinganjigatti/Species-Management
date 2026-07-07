@@ -1159,14 +1159,17 @@ const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram }> = ({ t
 const TypeTable: React.FC<{
   items: { name: string; count: number; animals: number }[]
   noun: string
+  // MUST reference a real column field below — a sortModel field with no matching column throws
+  // DataGrid's "Maximum update depth exceeded" crash.
+  initialSort?: { field: 'count' | 'animals' | 'ratio' | 'name'; sort: 'asc' | 'desc' }
   onPick: (name: string) => void
-}> = ({ items, noun, onPick }) => {
+}> = ({ items, noun, initialSort = { field: 'count', sort: 'desc' }, onPick }) => {
   const { txt, c, theme } = useCells()
   const rows = useMemo(
-    () => items.map((d, i) => ({ id: i, order: i, name: d.name, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
+    () => items.map((d, i) => ({ id: i, name: d.name, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
     [items]
   )
-  const tbl = useSortableTable(rows, { field: 'order', sort: 'asc' })
+  const tbl = useSortableTable(rows, initialSort)
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: noun === 'symptoms' ? 'Symptom' : 'Assessment', flex: 1, minWidth: 200, renderCell: p => txt(p.row.name, undefined, 600) },
@@ -1579,7 +1582,18 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
               </IconButton>
             </Box>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 4, py: 3 }}>
-              <TypeTable items={drawerData.ranked} noun={noun} onPick={pickFromDrawer} />
+              <TypeTable
+                items={drawerData.ranked}
+                noun={noun}
+                initialSort={
+                  drawerData.scope === 'recurring'
+                    ? { field: 'ratio', sort: 'desc' }
+                    : drawerData.scope === 'all'
+                    ? { field: 'animals', sort: 'desc' }
+                    : { field: 'count', sort: 'desc' }
+                }
+                onPick={pickFromDrawer}
+              />
             </Box>
           </Box>
         )}

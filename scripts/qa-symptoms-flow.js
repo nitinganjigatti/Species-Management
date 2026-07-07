@@ -83,38 +83,59 @@ async function main() {
     return false
   }
 
+  const findings = []
   console.log('▶ opening mammal 2150 detail')
   await page.goto(`${BASE}/2150/`, { waitUntil: 'domcontentloaded' })
   await settle()
 
+  // Detail tabs are a vertical sidebar (NOT ARIA tabs) → click by exact text.
   console.log('▶ Medical tab')
-  await clickByText(/^Medical$/, 'tab'); await settle()
+  const medical = page.getByText('Medical', { exact: true }).first()
+  if (!(await medical.count())) { console.log('  ✗ Medical tab not found'); findings.push('Medical tab NOT FOUND') }
+  await medical.click().catch(() => {})
+  await settle()
+
   console.log('▶ Symptoms sub-tab')
-  await clickByText(/^Symptoms$/); await settle()
+  const symptoms = page.getByText('Symptoms', { exact: true }).first()
+  await symptoms.click().catch(() => {})
+  await settle()
   await page.screenshot({ path: path.join(OUT, 'symptoms-tab.png'), fullPage: true })
 
-  // Click each stat tile → drawer → first symptom row → verify a filter chip appeared → close.
-  for (const tile of ['Active', 'Animals Affected', 'Most Recurring', 'Long-open Cases']) {
+  const TILES = ['Active', 'Animals Affected', 'Most Recurring', 'Long-open Cases']
+  for (const tile of TILES) {
     console.log(`▶ tile: ${tile}`)
-    const opened = await clickByText(new RegExp('^' + tile + '$', 'i'))
-    await sleep(700)
-    if (opened) {
-      await page.screenshot({ path: path.join(OUT, `drawer-${tile.replace(/\s+/g, '-').toLowerCase()}.png`) })
-      // click first DataGrid row inside the drawer
-      const row = page.locator('.MuiDrawer-paper .MuiDataGrid-row').first()
-      if (await row.count()) { await row.click().catch(() => {}); await settle() }
-      // clear any filter chip for a clean next run
-      const clear = page.getByText(/^Clear$/).first()
-      if (await clear.count()) { await clear.click().catch(() => {}); await sleep(300) }
-    } else {
-      console.log(`  ⚠ could not find tile "${tile}"`)
+    const label = page.getByText(tile, { exact: true }).first()
+    if (!(await label.count())) { findings.push(`${tile}: label NOT FOUND on Symptoms tab`); continue }
+    await label.click().catch(() => {})
+    await sleep(900)
+
+    const paper = page.locator('.MuiDrawer-paper').last()
+    const drawerVisible = (await paper.count()) > 0 && (await paper.isVisible().catch(() => false))
+    if (!drawerVisible) { findings.push(`${tile}: click did NOT open a side sheet`); continue }
+
+    const title = (await paper.locator('h1,h2,h3,h4,h5,h6,[class*="MuiTypography"]').first().innerText().catch(() => '')).trim()
+    const rowCount = await paper.locator('.MuiDataGrid-row').count()
+    await page.screenshot({ path: path.join(OUT, `drawer-${tile.replace(/\s+/g, '-').toLowerCase()}.png`) })
+
+    // click first row → should close drawer, filter the table, scroll to it
+    let filtered = false
+    if (rowCount > 0) {
+      await paper.locator('.MuiDataGrid-row').first().click().catch(() => {})
+      await settle()
+      filtered = (await page.getByText('Clear', { exact: true }).count()) > 0
     }
-    // ensure drawer closed
+    findings.push(`${tile}: drawer OPEN ✓  title="${title}"  rows=${rowCount}  rowClick→filter=${rowCount > 0 ? (filtered ? 'YES ✓' : 'NO ✗') : 'n/a (0 rows)'}`)
+
+    // reset for next tile
+    const clear = page.getByText('Clear', { exact: true }).first()
+    if (await clear.count()) { await clear.click().catch(() => {}); await sleep(300) }
     await page.keyboard.press('Escape').catch(() => {})
-    await sleep(300)
+    await sleep(400)
   }
 
   await browser.close()
+  console.log('\n──────── TILE LINK CHECK ────────')
+  findings.forEach(f => console.log('  • ' + f))
 
   const species = errors.filter(e => SPECIES_RE.test(e.text) || SPECIES_RE.test(e.loc))
   const other = errors.filter(e => !species.includes(e))
