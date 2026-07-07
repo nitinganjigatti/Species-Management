@@ -1267,12 +1267,12 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
   // "Most common" = breadth (affects the most distinct animals); "Most recurring" = intensity
   // (episodes per animal) — a genuinely different, chronic-care signal. "Long-open" = neglect.
   const commonTypes = isDiag ? topTypes : [...topTypes].sort((a, b) => (b.animals ?? b.count) - (a.animals ?? a.count))
-  const mostRecurring = isDiag
-    ? null
+  const recurringList = isDiag
+    ? []
     : topTypes
-        .filter(t => (t.animals ?? 0) >= 2)
-        .map(t => ({ name: t.name, animals: t.animals ?? 0, ratio: t.count / (t.animals ?? 1) }))
-        .sort((a, b) => b.ratio - a.ratio)[0] ?? null
+        .map(t => ({ name: t.name, animals: t.animals ?? 0, count: t.count, ratio: t.count / Math.max(1, t.animals ?? 1) }))
+        .sort((a, b) => b.ratio - a.ratio || b.count - a.count)
+  const mostRecurring = recurringList.find(t => t.animals >= 2) ?? recurringList[0] ?? null
   const longOpen = activeRecs.filter(r => r.durationDays > 30).length
   const prevalencePct = animalCount ? Math.round((s.animalsAffected / animalCount) * 100) : 0
   const newThisMonth = trend.length ? trend[trend.length - 1].value : 0
@@ -1345,6 +1345,11 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
     setTypeFilter(label)
     setStatusFilter(drawerScope === 'active' ? 'active' : drawerScope === 'longopen' ? 'longopen' : null)
     setDrawerScope(null)
+    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
+  // Clicking a symptom in the widespread/recurring panels → filter the table + scroll to it.
+  const filterAndScroll = (name: string) => {
+    setTypeFilter(name)
     setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
   }
   const tbl = useSortableTable(rows, { field: 'date', sort: 'desc' })
@@ -1439,65 +1444,118 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
       </StatsRow>
 
       {/* Row 2 · charts */}
-      <ChartsRow md='repeat(3, 1fr)'>
-        <SectionCard title={isDiag ? `Most common ${noun}` : 'Most widespread symptoms'} titleMb={2}>
-          {commonTypes.length ? (
-            <>
-              <RankedList items={commonTypes.map(t => ({ label: t.name, count: isDiag ? t.count : t.animals ?? t.count }))} onItem={setTypeFilter} limit={5} />
-              {commonTypes.length > 5 && (
-                <Box
-                  onClick={() => setDrawerScope('all')}
-                  sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
-                >
-                  <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                    View all {commonTypes.length} {noun}
-                  </Typography>
-                  <Icon icon='mdi:chevron-right' fontSize={16} />
-                </Box>
-              )}
-            </>
-          ) : (
-            <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-              No records.
-            </Typography>
-          )}
-        </SectionCard>
-
-        <SectionCard title={isDiag ? 'Prognosis mix' : 'Active vs resolved'} titleMb={2}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-            <Donut
-              segments={donutSegments}
-              centerValue={donutTotal.toLocaleString()}
-              centerSub={isDiag ? 'open' : 'records'}
-              size={188}
-            />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {donutSegments.map(seg => (
-                <Box key={seg.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {isDiag ? (
+        <ChartsRow md='repeat(3, 1fr)'>
+          <SectionCard title={`Most common ${noun}`} titleMb={2}>
+            {commonTypes.length ? (
+              <>
+                <RankedList items={commonTypes.map(t => ({ label: t.name, count: t.count }))} onItem={filterAndScroll} limit={5} />
+                {commonTypes.length > 5 && (
                   <Box
-                    sx={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '3px',
-                      bgcolor: seg.tone === 'success' ? theme.palette.primary.main : c.Tertiary
-                    }}
-                  />
-                  <Typography variant='body2'>
-                    {seg.label}{' '}
-                    <Box component='span' sx={{ fontWeight: 700 }}>
-                      {seg.value.toLocaleString()}
-                    </Box>
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </SectionCard>
+                    onClick={() => setDrawerScope('all')}
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
+                  >
+                    <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
+                      View all {commonTypes.length} {noun}
+                    </Typography>
+                    <Icon icon='mdi:chevron-right' fontSize={16} />
+                  </Box>
+                )}
+              </>
+            ) : (
+              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+                No records.
+              </Typography>
+            )}
+          </SectionCard>
 
-        <SectionCard title={`${isDiag ? 'Clinical Assessments' : 'Reports'} over time`} titleMb={2}>
-          <ColumnTrend data={trend} tone='info' height={195} showValues onBarClick={onTrendBar} activeIndex={monthFilter?.idx ?? null} />
-        </SectionCard>
-      </ChartsRow>
+          <SectionCard title='Prognosis mix' titleMb={2}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+              <Donut segments={donutSegments} centerValue={donutTotal.toLocaleString()} centerSub='open' size={188} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {donutSegments.map(seg => (
+                  <Box key={seg.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: seg.tone === 'success' ? theme.palette.primary.main : c.Tertiary }} />
+                    <Typography variant='body2'>
+                      {seg.label} <Box component='span' sx={{ fontWeight: 700 }}>{seg.value.toLocaleString()}</Box>
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </SectionCard>
+
+          <SectionCard title={`${noun[0].toUpperCase()}${noun.slice(1)} over time`} titleMb={2}>
+            <ColumnTrend data={trend} tone='info' height={195} showValues onBarClick={onTrendBar} activeIndex={monthFilter?.idx ?? null} />
+          </SectionCard>
+        </ChartsRow>
+      ) : (
+        <ChartsRow md='repeat(2, 1fr)'>
+          <SectionCard title='Most widespread symptoms' titleMb={2}>
+            {commonTypes.length ? (
+              <>
+                <RankedList items={commonTypes.map(t => ({ label: t.name, count: t.animals ?? t.count }))} onItem={filterAndScroll} limit={5} />
+                {commonTypes.length > 5 && (
+                  <Box
+                    onClick={() => setDrawerScope('all')}
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
+                  >
+                    <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
+                      View all {commonTypes.length} symptoms
+                    </Typography>
+                    <Icon icon='mdi:chevron-right' fontSize={16} />
+                  </Box>
+                )}
+              </>
+            ) : (
+              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+                No records.
+              </Typography>
+            )}
+          </SectionCard>
+
+          <SectionCard title='Most recurring symptoms' titleMb={2}>
+            {recurringList.length ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                {recurringList.map(t => (
+                  <Box
+                    key={t.name}
+                    onClick={() => filterAndScroll(t.name)}
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      pl: 2,
+                      pr: 1.5,
+                      py: 1,
+                      borderRadius: '999px',
+                      border: `1px solid ${c.SurfaceVariant}`,
+                      backgroundColor: c.Surface,
+                      cursor: 'pointer',
+                      transition: 'border-color .15s ease, background .15s ease',
+                      '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper }
+                    }}
+                  >
+                    <Typography variant='body2' sx={{ fontWeight: 500, color: c.OnSurfaceVariant }}>
+                      {t.name}
+                    </Typography>
+                    <Box
+                      component='span'
+                      sx={{ fontSize: '0.92rem', fontWeight: 700, color: theme.palette.primary.dark, fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {t.ratio.toFixed(1)}×
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+                No records.
+              </Typography>
+            )}
+          </SectionCard>
+        </ChartsRow>
+      )}
 
       {/* Row 3 · standard DataGrid */}
       <Box ref={tableRef}>
