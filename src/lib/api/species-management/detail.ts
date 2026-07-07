@@ -125,3 +125,104 @@ export const getSpeciesLifecycle = (id: number | string): Promise<SpeciesLifecyc
 
   return lifecycleCache.get(k) as Promise<SpeciesLifecycle | null>
 }
+
+// --- Preventive care (Vaccination / Deworming / Supplements) — dummy data, separate lazy sidecar ---
+export interface PreventiveRecord {
+  aid: string
+  name: string
+  site: string
+  enclosure: string
+  gender?: string
+  age?: string
+  weight?: string
+  type: string
+  lastGiven: string
+  due: string
+  status: 'overdue' | 'upcoming'
+  days: number
+}
+export interface PreventiveSite {
+  site: string
+  animals: number
+  enclosures: number
+  coveragePct: number
+  overdue: number
+  aging: { d0_30: number; d30_90: number; d90plus: number }
+  topGap: { name: string; count: number } | null
+  trendPct: number
+  spark: number[]
+}
+export interface PreventiveProgram {
+  kind: 'schedule' | 'ongoing'
+  summary: { coveragePct: number; coverageTrendPct: number; overdue: number; dueIn30: number; never: number; animalsTracked: number }
+  topOverdue: { name: string; count: number }[]
+  aging: { d0_30: number; d30_90: number; d90plus: number }
+  bySite: { site: string; count: number }[]
+  sites?: PreventiveSite[]
+  records: PreventiveRecord[]
+}
+export interface SpeciesPreventive {
+  tsnId: number
+  animalCount: number
+  programs: { vaccination?: PreventiveProgram; deworming?: PreventiveProgram; supplements?: PreventiveProgram }
+}
+
+const preventiveCache = new Map<string, Promise<SpeciesPreventive | null>>()
+
+export const getSpeciesPreventive = (id: number | string): Promise<SpeciesPreventive | null> => {
+  const k = String(id)
+  if (!preventiveCache.has(k)) {
+    preventiveCache.set(
+      k,
+      fetch(`/species-data/preventive/${k}.json`)
+        .then(r => (r.ok ? r.json() : null))
+        .catch(() => null)
+    )
+  }
+
+  return preventiveCache.get(k) as Promise<SpeciesPreventive | null>
+}
+
+// --- Clinical (Symptoms / Diagnosis) — dummy data, separate lazy sidecar ---
+export interface ClinicalRecord {
+  aid: string
+  name: string
+  site: string
+  enclosure: string
+  type: string
+  date: string
+  durationDays: number
+  status: 'active' | 'resolved'
+  prognosis?: 'Favourable' | 'Guarded' | 'Doubtful' | 'Poor' | 'Grave'
+  severity?: 'Low' | 'Medium' | 'High'
+}
+export interface ClinicalProgram {
+  kind: 'type'
+  summary: { types: number; active: number; resolved: number; animalsAffected: number; avgResolutionDays?: number }
+  topTypes: { name: string; count: number }[]
+  statusMix: { active: number; resolved: number }
+  prognosisMix?: { name: string; count: number }[]
+  trend: { label: string; value: number }[]
+  records: ClinicalRecord[]
+}
+export interface SpeciesClinical {
+  tsnId: number
+  animalCount: number
+  programs: { symptoms?: ClinicalProgram; diagnosis?: ClinicalProgram }
+}
+
+const clinicalCache = new Map<string, Promise<SpeciesClinical | null>>()
+
+export const getSpeciesClinical = (id: number | string): Promise<SpeciesClinical | null> => {
+  const k = String(id)
+  if (!clinicalCache.has(k)) {
+    clinicalCache.set(
+      k,
+      fetch(`/species-data/clinical/${k}.json`)
+        .then(r => (r.ok ? r.json() : null))
+        .catch(() => null)
+    )
+  }
+
+  return clinicalCache.get(k) as Promise<SpeciesClinical | null>
+}

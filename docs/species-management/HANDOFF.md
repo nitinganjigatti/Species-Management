@@ -461,3 +461,97 @@ The user was (rightly) angry that I burned tokens/time standing up that throwawa
 
 ## Perf note (user complaint)
 Per-turn latency climbs as a session's context grows (this session was heavy: big handoff + 4 screenshots + a large config-schema dump). Levers: `/fast` (Opus faster output, no quality loss), `/clear` between unrelated tasks (resets context without leaving the session), keep sessions short. My part: fewer tool calls per turn, don't read giant files/screenshots unless needed.
+
+---
+
+# 2026-07-03 session — Circle-of-Life chart polish + Medical→Preventive-Care build (dummy data). UNCOMMITTED, tsc 0 errors.
+
+## Committed this session
+- `7f0603c8b` FEAT: Dashboard single-species filter (the prior handoff's pending 6 files). `b0c394dbf` DOCS handoff.
+
+## Uncommitted work (5 modified + new script/data)
+**Circle of Life** (`detail/tabs/CircleOfLifeTab.tsx`, `dashboard/dashboardUi.tsx`):
+- Births/Deaths/Lifespan sub-tabs → **underline tabs** (were filled pills); counts now **filter-responsive** (from filteredBirths/filteredDeaths). Per-view **stat-tile rows removed** (redundant). Tab `gap: 8`.
+- **Births Over Time** → new **`SmoothAreaChart`** (ApexCharts smooth area + dots + value labels + axes). **Seasonal Pattern** → renamed **Seasonal Breeding Pattern** → **`ColumnBarChart`** (value labels, no y-axis) + "Peak: <month>". `ColumnBarChart` gained `showValues`/`hideYAxis`; `SmoothAreaChart` NEW — both in `dashboardUi.tsx`. Retired broken `TrendAreaChart` here.
+- Trade-off: Deaths lost "Avg Survival"; Lifespan lost "Longest/Avg-age/Records" (only lived in the removed stat rows) — fold into chart-card subtitles if wanted.
+
+**Medical tab → Preventive Care** (the big one):
+- **Dummy data generated** (dump has no usable vacc/deworm, no supplements): `scripts/build-species-preventive.js` → `public/species-data/preventive/<id>.json` (2350 sidecars, 36MB, lazy like `lifecycle/`). Deterministic (seed per tsn_id, fixed TODAY=2026-07-03), taxon-appropriate catalogs, ~70-90% coverage. 3 programs: vaccination, deworming, supplements (`kind:'ongoing'`). Re-run: `node --max-old-space-size=2048 scripts/build-species-preventive.js`.
+- **Data layer:** `getSpeciesPreventive()` + types `SpeciesPreventive/PreventiveProgram/PreventiveRecord` in `lib/api/species-management/detail.ts`. Container now loads one `sm-preventive` query (replaced 8 old medical queries).
+- **UI:** `detail/tabs/MedicalTab.tsx` REWRITTEN → monitoring view: underline sub-tabs Vaccination/Deworming/Supplements → 4 tiles (Coverage/Overdue/Due-30/Never) → Top-overdue ranked bars → aging + by-site → searchable drill drawer. Supplements relabels to On-Schedule/Lapsed.
+- ⚠️ Medical tab **no longer shows** the old sample lab/pharmacy/surgery/complaints/diagnosis (loaders still in detail.ts, unused).
+
+## 🔴 DO NEXT (user's explicit direction)
+1. **The built Preventive layout is "not good" per user — WIREFRAME FIRST, do NOT build UI until approved.** Rethink: management audience, **impactful/eye-catchy like the Assessments tab** (mix donut/gauge + bars, not all-horizontal-bars), **NOT cluttery**, scale to **1000+ animals** (aggregate + drill-to-paginated, never inline).
+2. **Add Symptoms/Complaints + Diagnosis** to the design (prototype = type-first: summary tiles → common types ranked → active/closed donut → drill). **No clinical dummy data yet** — needs a generator like preventive (dump HAS complaints/diagnosis tables; or synthesize).
+3. Wireframes this session (Artifacts, reference): 4-options medical concept · prototype-faithful Variant B · monitoring-first preventive care. Iterate fresh.
+
+## Design decisions locked
+- Monitoring stats: Coverage% (+trend) · Animals Overdue · Top 5-7 vaccines overdue (ranked+counts) · overdue **aging** (0-30/30-90/90+) · overdue **by site** · Due-in-30. Overdue = next_due passed & not administered. Supplements = on/lapsed (ongoing).
+- Every figure → paginated/searchable/filterable drill; never inline.
+- Prototype medical = medicine-first (vacc/deworm) + type-first (complaints/diagnosis): `ANTZ_REBUILD_REFERENCE.md` B7/B8.
+- **Hospital ("Patient") module fully mapped** this session (12 tabs) as clinical reference: Symptoms=complaints, Clinical Assessment=diagnosis, Prescription=24h grid, Surgery/Anesthesia=record-pills, Medical Summary=timeline; **Lab is a SEPARATE `src/app/(module)/lab/` module, not a hospital tab.**
+
+## 🟠 EFFORT / LATENCY (config fixed; matters on restart)
+- Slow turns root cause: **`CLAUDE_EFFORT=xhigh` env var** set by the launching shell (NOT in any config — clean-env test confirmed empty). Overrides settings.json. Fixed `~/.claude/settings.json` → `effortLevel: "high"`. **Relaunch from a FRESH terminal** (no CLAUDE_EFFORT) to get fast turns. 2nd factor: heavy session context → `/clear` or fresh session. Memory: [[claude-effort-env-var]].
+
+## Memory added
+- `species-vaccination-deworming-supplements` (project) · `claude-effort-env-var` (reference).
+
+---
+
+# 2026-07-03 (session 2) — Medical tab fully built + reshaped to "Site Matrix". UNCOMMITTED, tsc 0 errors.
+
+Whole **Medical tab** built/iterated in one file (`detail/tabs/MedicalTab.tsx`). Final structure = **6 flat sub-tabs**: `Overview · Symptoms · Diagnosis · Vaccination · Deworming · Supplements` (Preventive/Health-Profile grouping dropped per user). Every tab: stat row → charts → standard antz DataGrid. Shared **date-range dropdown** reused from Circle of Life (`DashboardDateRange`); **Animal-wise/Record-wise toggle** + per-animal timeline drill on domain tables (reuses CoL pill toggle + `TableSearch`, not reinvented); search on every table.
+
+**Preventive (Vacc/Deworm/Suppl) = "Site Matrix" (Jack's Direction 3).** After the user rejected all-bars + 4 alt encodings ("nothing is good" / "looks cheap"), ran the **jack-sparrow** agent for deep research → 4 directions (artifacts in scratchpad: `medical-direction-1..4.html`); user picked **D3**. UI = coverage stat strip (tinted cell, delta chip, sublines) + **"<Program> status by site" matrix** (per site: coverage micro-ring, overdue number, 3-cell aging heat [orange = alpha of Tertiary], top-gap chip, 90-day sparkline) + dynamic footer insight; row → **site drill drawer** (searchable animal list). Deworming/Supplements inherit (Supplements → On-Schedule/Lapsed/Due-to-renew).
+
+**Data (all synthetic, all regenerated this session):**
+- `scripts/build-species-preventive.js` — ADDED per-site `sites[]` rollup (coverage/aging/topGap/trendPct/spark; site-name-seeded rng → existing counts byte-stable). Regenerated 2352 sidecars. Type `PreventiveSite` + `sites?` on `PreventiveProgram` in `detail.ts`.
+- NEW `scripts/build-species-clinical.js` → `public/species-data/clinical/<id>.json` (2350 sidecars: symptoms + diagnosis; active/resolved, prognosis, monthly trend). `getSpeciesClinical` + `SpeciesClinical/ClinicalProgram/ClinicalRecord` in `detail.ts`. Re-run either: `node --max-old-space-size=2048 scripts/build-species-<preventive|clinical>.js`.
+- Container (`SpeciesDetailContainer.tsx`) loads `sm-clinical` alongside `sm-preventive` on the medical tab.
+
+**Overview tab** = cross-domain roll-up (join clinical+preventive by AID; site can differ between the two files — took either, counts are correct): stats (Animals/Fell Sick/Currently Sick/Recovered%/Overdue Preventive/Healthy), health donut, "where the load is" ranked list (→ tab), animals-needing-attention table → combined per-animal timeline drawer.
+
+## 🔴 DO FIRST next session
+1. **User reported the 3 preventive tabs "empty" at close.** VERIFIED not a data problem: 2352 files on disk, 2150 = 247 tracked + 4 sites, dev serves 200 with `sites`, `tsc` 0 errors, data-access simulated clean, and there's **no error boundary** (a real throw would white-screen, not empty). Conclusion: **stale dev bundle after the large refactor** → **restart `next dev` (`rm -rf .next && npm run dev`) + hard-refresh.** (I was blocked from restarting by the token-burn guard.) If STILL empty after a clean restart → get the browser console/Next-overlay error; that's the only way to pinpoint a runtime issue I can't see.
+2. Decide the **date-range dropdown** on preventive tabs: it currently does nothing there (coverage/overdue are "as of today") — hide it on those tabs or wire it to rescope the matrix.
+3. Offered but NOT applied: `cache:'no-store'` on the preventive/clinical fetches (insurance vs stale JSON).
+
+## Pending / next
+- Give **Symptoms & Diagnosis** the analogous **condition-matrix** (flip site→condition) per Jack's note, for consistency.
+- **COMMIT** (kept uncommitted all session). Stage source + `scripts/build-species-{preventive,clinical}.js` + the `public/species-data/{preventive,clinical}/` sidecars explicitly by name — **NEVER `git add -A`; env files must stay unstaged** ([[never-commit-env-files]]).
+- All feature data is **synthetic**; real dump extraction (complaints/diagnosis tables exist) is a later swap behind the same JSON shape.
+
+## Working-style note
+User explicitly summoned **jack-sparrow** ("hey Jack, think in depth, research, give variants") when quick iterations kept missing — the research-backed multi-direction pass landed. Reach for that agent when taste/direction is the blocker, not more guesses.
+
+---
+
+# 2026-07-06 session — Medical tab polish + per-animal card redesign (Figma-driven). UNCOMMITTED, tsc 0 errors throughout.
+
+Director-led UI pass on the **Medical tab** (`detail/tabs/MedicalTab.tsx` — nearly all changes here). No dev server / screenshots (token-burn guard); verified by code + `tsc` + handing diffs to the user's browser.
+
+## Shipped (acceptance checks — hard-refresh; **restart `next dev` — data files changed**)
+- **Consistency fixes:** every animal identity now uses the shared **AnimalCard / Assessments-style cell** (36–40px logo avatar + name + site). Removed all initials avatars in Medical.
+- **Site Matrix (Vacc/Deworm/Suppl) restyled to the standard table header** (uppercase + 0.17px letter-spacing + `customTableHeaderBg`, 56px header), 88px rows, 48px column gap; **removed the "Top gap" column**; **2-line "AGEING" header** with 0–30/30–90/90+ labels aligned over 42px boxes (16px gaps); darker/larger site name.
+- **Diagnosis → "Clinical Assessment"** across all user-facing strings (internal `diagnosis` key kept; date verbs "Diagnosed" left alone).
+- **Header clipping fixed globally** — `DetailTable` (`detailUi.tsx`) + Circle-of-Life table now **wrap** header titles instead of clipping ("OVER…").
+- **Overview stats trimmed to 4:** Animals · Currently Sick · Overdue Preventive · Healthy.
+- **Per-animal timeline drawer (`OverviewAnimalDrawer`) rebuilt to the user's Figma design (node 2:3):** teal icon chip (`displaybgPrimary`/`OnPrimaryContainer`), **name-top / category-below**, pill top-right, **date beneath pill on preventive rows only**, **active-only** filter. Pill = severity (Symptom) / prognosis (Clinical Assessment) / Overdue|Upcoming (preventive), in **exact Figma tag colors** (new `medTag*` tokens in `UserThemeOptions.js`).
+- **Preventive tabs got a Site-wise / Animal-wise toggle** (generic `ViewToggle`, reused not rebuilt). Animal-wise = standard `DetailTable` (No · Animal · Overdue · Upcoming · Next Due, flex columns) + **searchable Site Autocomplete** (same pattern as the dashboard species picker) + animal search. Toggle anchored right; content `minHeight:560` + header `nowrap` so toggling doesn't jump; **16px header→table gap** in both views (zeroed CommonTable's built-in `mt:5`).
+- **Site-drill drawer decluttered:** removed medicine names; "Overdue"/"Upcoming" tags with **no day count**; "Due <date>" line.
+
+## Data / types (regenerated this session)
+- `scripts/build-species-preventive.js` — synthetic **gender/age/weight** per animal (class-aware weight, per-animal side-seed → existing counts byte-stable). `PreventiveRecord` type extended. Re-run: `node --max-old-space-size=2048 scripts/build-species-preventive.js`.
+- `scripts/build-species-clinical.js` — symptom **severity** (Low/Med/High) + **5-level prognosis** (Favourable/Guarded/Doubtful/Poor/Grave). `ClinicalRecord` type extended. Re-run: `node --max-old-space-size=2048 scripts/build-species-clinical.js`.
+
+## Figma
+Added the chosen **Variant-01 card** to the user's `Species-Management-Claude` file; user then refined it into node **2:3** (the canonical spec). My draft container was deleted. Exact spec + tag hex ramp saved to memory [[species-vaccination-deworming-supplements]].
+
+## Pending / open
+- **COMMIT** (whole module still uncommitted, by the project's convention — stage source + `scripts/build-species-{preventive,clinical}.js` + `public/species-data/{preventive,clinical}/` **explicitly by name**; env files stay unstaged — [[never-commit-env-files]]).
+- **Confirm severity levels:** built with **3** (Low/Med/High) per user; Figma tag file has a 4th ("Extreme").
+- **Preventive Overdue/Upcoming pill colors** not defined in Figma — used orange/teal.
+- Other per-animal drawers (clinical `AnimalRecordsDrawer`) not yet restyled to the 2:3 card.
+- All feature data is **synthetic**; real dump extraction is a later swap behind the same JSON shape.

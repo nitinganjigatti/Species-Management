@@ -271,7 +271,9 @@ export const DetailTable: React.FC<{
     externalTableStyle={{
       '& .MuiDataGrid-cell': { paddingLeft: '20px !important', paddingRight: '16px !important', display: 'flex', alignItems: 'center', fontSize: '1rem' },
       '& .MuiDataGrid-columnHeader': { paddingLeft: '20px !important', paddingRight: '16px !important' },
-      '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem' },
+      // Never clip a header — let it wrap to two lines instead of showing "OVER…".
+      '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
+      '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
       ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {})
     }}
   />

@@ -76,6 +76,19 @@ const UserThemeOptions = () => {
         // the scattered hardcoded '#1F515B').
         chatBubbleSent: '#1F515B',
 
+        // Medical timeline tag palette — prognosis / severity / schedule pills
+        // (sourced from the Hospital-Module Figma tag styles).
+        medTagTealBg: '#E8F4F2',
+        medTagTealBorder: '#00AFD6',
+        medTagYellowBg: 'rgba(252,244,174,0.7)',
+        medTagYellowBorder: '#E4B819',
+        medTagOrangeBg: 'rgba(255,189,168,0.15)',
+        medTagOrangeBorder: '#FA6140',
+        medTagRedBg: 'rgba(255,211,211,0.4)',
+        medTagRedBorder: '#E93353',
+        medTagMaroonBg: 'rgba(74,4,21,0.1)',
+        medTagMaroonBorder: '#4A0415',
+
         // *** name required
 
         atnzS: '#7A8684',

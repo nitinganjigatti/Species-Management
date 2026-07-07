@@ -665,7 +665,62 @@ export function ColumnBarChart({
   labels,
   color,
   name,
-  height = 280
+  height = 280,
+  showValues = false,
+  hideYAxis = false
+}: {
+  values: number[]
+  labels: string[]
+  color: string
+  name: string
+  height?: number
+  showValues?: boolean
+  hideYAxis?: boolean
+}) {
+  const theme = useTheme() as any
+  const cc = theme.palette.customColors
+
+  return (
+    <ReactApexcharts
+      type='bar'
+      height={height}
+      options={{
+        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
+        colors: [color],
+        plotOptions: { bar: { columnWidth: '55%', borderRadius: 4, dataLabels: { position: 'top' } } },
+        dataLabels: showValues
+          ? {
+              enabled: true,
+              offsetY: -20,
+              formatter: (v: number) => (v ? v.toLocaleString() : ''),
+              style: { fontSize: '11px', fontWeight: 700, colors: [color] }
+            }
+          : { enabled: false },
+        legend: { show: false },
+        grid: { show: !hideYAxis, borderColor: cc.SurfaceVariant, strokeDashArray: 4, padding: { top: showValues ? 20 : 0 } },
+        xaxis: {
+          categories: labels,
+          labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: hideYAxis ? { show: false } : { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
+        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
+        fill: { opacity: 1 }
+      }}
+      series={[{ name, data: values }]}
+    />
+  )
+}
+
+/** Smooth-edge area line — curved stroke, soft gradient fill, dots + value labels at each point.
+ *  Axes + dashed horizontal gridlines. Used for the detail "Births Over Time" trend. */
+export function SmoothAreaChart({
+  values,
+  labels,
+  color,
+  name,
+  height = 260
 }: {
   values: number[]
   labels: string[]
@@ -678,24 +733,40 @@ export function ColumnBarChart({
 
   return (
     <ReactApexcharts
-      type='bar'
+      type='area'
       height={height}
       options={{
         chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
         colors: [color],
-        plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
-        dataLabels: { enabled: false },
-        legend: { show: false },
-        grid: { borderColor: cc.SurfaceVariant, strokeDashArray: 4 },
+        stroke: { curve: 'smooth', width: 3 },
+        dataLabels: {
+          enabled: true,
+          formatter: (v: number) => (v ? v.toLocaleString() : ''),
+          offsetY: -5,
+          style: { fontSize: '11px', fontWeight: 700, colors: [color] },
+          background: { enabled: false }
+        },
+        markers: { size: 4, colors: [color], strokeColors: theme.palette.common.white, strokeWidth: 1.5, hover: { sizeOffset: 2 } },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.28, opacityTo: 0, stops: [0, 100] } },
+        grid: {
+          borderColor: cc.SurfaceVariant,
+          strokeDashArray: 4,
+          xaxis: { lines: { show: false } },
+          yaxis: { lines: { show: true } },
+          padding: { top: 16, right: 12 }
+        },
         xaxis: {
           categories: labels,
-          labels: { style: { colors: cc.neutralSecondary, fontSize: '10px' } },
+          labels: { style: { colors: cc.neutralSecondary, fontSize: '10px' }, hideOverlappingLabels: true, rotate: 0 },
           axisBorder: { show: false },
-          axisTicks: { show: false }
+          axisTicks: { show: false },
+          tooltip: { enabled: false }
         },
-        yaxis: { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
-        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
-        fill: { opacity: 1 }
+        yaxis: {
+          tickAmount: 4,
+          labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' }, formatter: (v: number) => Math.round(v).toLocaleString() }
+        },
+        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } }
       }}
       series={[{ name, data: values }]}
     />

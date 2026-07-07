@@ -117,14 +117,8 @@ const SpeciesDetailContainer = () => {
   const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle' || tab === 'overview')
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
-  const vaccination = useTabQuery(['sm-vaccination', id], () => detailApi.getSpeciesVaccination(id), tab === 'medical')
-  const deworming = useTabQuery(['sm-deworming', id], () => detailApi.getSpeciesDeworming(id), tab === 'medical')
-  const complaints = useTabQuery(['sm-complaints', id], () => detailApi.getSpeciesComplaints(id), tab === 'medical')
-  const diagnosis = useTabQuery(['sm-diagnosis', id], () => detailApi.getSpeciesDiagnosis(id), tab === 'medical')
-  const lab = useTabQuery(['sm-lab', id], () => detailApi.getSpeciesLab(id), tab === 'medical')
-  const surgery = useTabQuery(['sm-surgery', id], () => detailApi.getSpeciesSurgery(id), tab === 'medical')
-  const anaesthesia = useTabQuery(['sm-anaesthesia', id], () => detailApi.getSpeciesAnaesthesia(id), tab === 'medical')
-  const pharmacy = useTabQuery(['sm-pharmacy', id], () => detailApi.getSpeciesPharmacy(id), tab === 'medical')
+  const preventive = useTabQuery(['sm-preventive', id], () => detailApi.getSpeciesPreventive(id), tab === 'medical')
+  const clinical = useTabQuery(['sm-clinical', id], () => detailApi.getSpeciesClinical(id), tab === 'medical')
   const identification = useTabQuery(['sm-identification', id], () => detailApi.getSpeciesIdentification(id), tab === 'identification')
   const breeds = useTabQuery(['sm-breeds', id], () => detailApi.getSpeciesBreeds(id), tab === 'breeds')
 
@@ -159,20 +153,7 @@ const SpeciesDetailContainer = () => {
       case 'assessments':
         return assessments.isLoading ? <Loading /> : <AssessmentsTab assessments={assessments.data} />
       case 'medical':
-        return vaccination.isLoading || deworming.isLoading || complaints.isLoading || diagnosis.isLoading ? (
-          <Loading />
-        ) : (
-          <MedicalTab
-            vaccination={vaccination.data}
-            deworming={deworming.data}
-            complaints={complaints.data}
-            diagnosis={diagnosis.data}
-            lab={lab.data}
-            surgery={surgery.data}
-            anaesthesia={anaesthesia.data}
-            pharmacy={pharmacy.data}
-          />
-        )
+        return preventive.isLoading || clinical.isLoading ? <Loading /> : <MedicalTab preventive={preventive.data} clinical={clinical.data} />
       case 'identification':
         return identification.isLoading ? <Loading /> : <IdentificationTab ident={identification.data} />
       case 'breeds':

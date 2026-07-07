@@ -20,11 +20,9 @@ import type {
 import {
   EmptyState,
   EntityListDrawer,
-  SectionCard,
-  StatTile,
-  TrendAreaChart,
-  TileGrid
+  SectionCard
 } from 'src/views/pages/species-management/detail/detailUi'
+import { ColumnBarChart, SmoothAreaChart } from 'src/views/pages/species-management/dashboard/dashboardUi'
 import DashboardDateRange, {
   resolveRange,
   type RangeSelection
@@ -78,16 +76,6 @@ const GenderPie: React.FC<{ male: number; female: number; other: number; otherLa
     </SectionCard>
   )
 }
-
-// Male / Female / Unsexed stat tiles — shared by all three sub-tabs (Births · Deaths · Lifespan).
-// Neutral (white fill, dark numbers) so the stats recede; colour lives on the tabs + charts.
-const SexTiles: React.FC<{ male: number; female: number; unsexed: number }> = ({ male, female, unsexed }) => (
-  <>
-    <StatTile label='Male' value={male.toLocaleString()} />
-    <StatTile label='Female' value={female.toLocaleString()} />
-    <StatTile label='Unsexed' value={unsexed.toLocaleString()} />
-  </>
-)
 
 // Gender filter dropdown — mirrors the species-list Gender facet (Male / Female / Unsexed; all = cleared).
 const GENDER_OPTS = [
@@ -237,42 +225,47 @@ export const MoreFiltersDrawer: React.FC<{
   )
 }
 
-const BirthsView: React.FC<{ births: SpeciesBirths }> = ({ births }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <TileGrid>
-      <StatTile label='Total Births' value={births.total} />
-      <StatTile label='Sites' value={births.bySite?.length || 0} />
-      {typeof births.sexedPct === 'number' && <StatTile label='Sexed' value={`${births.sexedPct}%`} />}
-      <SexTiles
-        male={births.byGender?.male || 0}
-        female={births.byGender?.female || 0}
-        unsexed={births.byGender?.undetermined || 0}
-      />
-    </TileGrid>
+const BirthsView: React.FC<{ births: SpeciesBirths }> = ({ births }) => {
+  const theme = useTheme() as any
+  const green = theme.palette.primary.main
+  const peak = (births.seasonal || []).reduce(
+    (best, d) => (d.value > (best?.value ?? -1) ? d : best),
+    null as null | { label: string; value: number }
+  )
 
-    {births.byYearMonth?.length > 0 && (
-      <SectionCard title='Births Over Time'>
-        <TrendAreaChart data={births.byYearMonth} tone='success' />
-      </SectionCard>
-    )}
-
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
-      <GenderPie
-        title='Gender'
-        male={births.byGender?.male || 0}
-        female={births.byGender?.female || 0}
-        other={births.byGender?.undetermined || 0}
-        otherLabel='Undetermined'
-      />
-      {births.seasonal?.length > 0 && (
-        <SectionCard title='Seasonal Pattern'>
-          <TrendAreaChart data={births.seasonal} tone='success' height={110} />
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {births.byYearMonth?.length > 0 && (
+        <SectionCard title='Births Over Time'>
+          <SmoothAreaChart values={births.byYearMonth.map(d => d.value)} labels={births.byYearMonth.map(d => d.label)} color={green} name='Births' />
         </SectionCard>
       )}
-    </Box>
 
-  </Box>
-)
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+        <GenderPie
+          title='Gender'
+          male={births.byGender?.male || 0}
+          female={births.byGender?.female || 0}
+          other={births.byGender?.undetermined || 0}
+          otherLabel='Undetermined'
+        />
+        {births.seasonal?.length > 0 && (
+          <SectionCard title='Seasonal Breeding Pattern'>
+            <ColumnBarChart values={births.seasonal.map(d => d.value)} labels={births.seasonal.map(d => d.label)} color={green} name='Births' height={220} showValues hideYAxis />
+            {peak && (
+              <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
+                Peak:{' '}
+                <Box component='span' sx={{ color: 'primary.main', fontWeight: 700 }}>
+                  {peak.label}
+                </Box>
+              </Typography>
+            )}
+          </SectionCard>
+        )}
+      </Box>
+    </Box>
+  )
+}
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const monthOf = (s?: string) => Number(String(s || '').slice(5, 7)) // "YYYY-MM..." → 1-12
@@ -337,28 +330,6 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <TileGrid>
-        <StatTile label='Total Deaths' value={deaths.total} />
-        <StatTile label='Sites' value={deaths.bySite?.length || 0} />
-        {typeof deaths.avgSurvivalDays === 'number' && (
-          <StatTile label='Avg Survival' value={`${deaths.avgSurvivalDays}`} sub='days' />
-        )}
-        {(deaths as any).ageAtDeath?.count > 0 && (
-          <StatTile
-            label='Avg Age at Death'
-            value={`${((deaths as any).ageAtDeath.avg / 365).toFixed(1)} yrs`}
-            sub={`${(deaths as any).ageAtDeath.count} animals`}
-          />
-        )}
-        {(deaths as any).byGender && (
-          <SexTiles
-            male={(deaths as any).byGender.male || 0}
-            female={(deaths as any).byGender.female || 0}
-            unsexed={(deaths as any).byGender.unsexed || 0}
-          />
-        )}
-      </TileGrid>
-
       {byMonth.some(m => m.count > 0) && (
         <SectionCard title='Mortality by Month (all years)'>
           <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
@@ -633,14 +604,6 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <TileGrid>
-        <StatTile label='Avg Adult Lifespan' value={stats.avgAdult != null ? `${stats.avgAdult.toFixed(1)} yrs` : '—'} sub='excl. < 1y' />
-        <StatTile label='Longest Observed' value={`${stats.max.toFixed(1)} yrs`} />
-        <StatTile label='Avg Age at Death' value={`${stats.avgAll.toFixed(1)} yrs`} sub='all records' />
-        <StatTile label='Records' value={stats.count} sub='with known age' />
-        <SexTiles male={stats.sex.male} female={stats.sex.female} unsexed={stats.sex.unsexed} />
-      </TileGrid>
-
       <SectionCard title='Age at Death Distribution'>
         <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
           How long animals of this species lived · click a band for the animals
@@ -699,21 +662,22 @@ const ViewTab: React.FC<{
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1.5,
-        px: 3.5,
-        py: 1.75,
-        borderRadius: '10px',
+        gap: 1.25,
+        px: 1,
+        py: 1.5,
+        mb: '-1px',
+        borderBottom: '2.5px solid',
+        borderColor: active ? accent : 'transparent',
         cursor: 'pointer',
-        bgcolor: active ? accent : theme.palette.grey[100],
         transition: 'all 0.15s ease',
-        '&:hover': { bgcolor: active ? accent : theme.palette.grey[200] }
+        '&:hover': { borderColor: active ? accent : cc.OutlineVariant }
       }}
     >
-      <Icon icon={icon} fontSize='1.5rem' color={active ? theme.palette.common.white : accent} />
-      <Typography variant='body1' sx={{ fontWeight: 600, color: active ? theme.palette.common.white : cc.OnSurfaceVariant, whiteSpace: 'nowrap' }}>
+      <Icon icon={icon} fontSize='1.375rem' color={active ? accent : cc.Outline} />
+      <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : cc.neutralSecondary, whiteSpace: 'nowrap' }}>
         {label}
       </Typography>
-      <Typography variant='body1' sx={{ fontWeight: 700, color: active ? theme.palette.common.white : accent, whiteSpace: 'nowrap' }}>
+      <Typography variant='body1' sx={{ fontWeight: 700, color: active ? accent : cc.Outline, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </Typography>
     </Box>
@@ -1127,6 +1091,9 @@ const AnimalEventsTable: React.FC<{
         onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : () => {}}
         externalTableStyle={{
           '& .MuiDataGrid-cell': { py: 2, px: 3, display: 'flex', alignItems: 'center' },
+          // Never clip a header — wrap to two lines instead.
+          '& .MuiDataGrid-columnHeaderTitle': { whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
+          '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
           ...(isSite ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
           '& .MuiDataGrid-cell[data-field="sl_no"]': { position: 'sticky', left: 0, zIndex: 3, backgroundColor: theme.palette.background.paper },
           '& .MuiDataGrid-columnHeader[data-field="sl_no"]': { position: 'sticky', left: 0, zIndex: 5, backgroundColor: cc.customTableHeaderBg },
@@ -1170,16 +1137,6 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
     return Array.from(set).filter(Number.isFinite).sort((a, b) => b - a)
   }, [birthEvents, deathEvents])
 
-  // All-time headline metrics shown inside the tab cards.
-  const headline = useMemo(() => {
-    const totalBirths = birthEvents.reduce((s, e) => s + (e.k || 1), 0)
-    const totalDeaths = deathEvents.reduce((s, e) => s + (e.k || 1), 0)
-    const adult = deathEvents.filter(e => typeof e.a === 'number' && (e.a as number) >= 1).map(e => e.a as number)
-    const avgAdult = adult.length ? adult.reduce((a, b) => a + b, 0) / adult.length : null
-
-    return { totalBirths, totalDeaths, avgAdult }
-  }, [birthEvents, deathEvents])
-
   // "Other Filters" facet options, built from the events (Site/Enclosure shared; Cause for deaths, Breed for births).
   const tally = (arr: { [k: string]: any }[], get: (e: any) => string | undefined) => {
     const m = new Map<string, number>()
@@ -1215,6 +1172,16 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
     () => deathEvents.filter(e => matcher(e.d) && gMatch(e.g) && inExtra('Site', e.s) && inExtra('Enclosure', e.e) && inExtra('Manner', e.m)),
     [deathEvents, matcher, genders, extra]
   )
+
+  // Headline metrics shown in the tabs — recomputed from the FILTERED events so the counts track the period / gender / other filters.
+  const headline = useMemo(() => {
+    const totalBirths = filteredBirths.reduce((s, e) => s + (e.k || 1), 0)
+    const totalDeaths = filteredDeaths.reduce((s, e) => s + (e.k || 1), 0)
+    const adult = filteredDeaths.filter(e => typeof e.a === 'number' && (e.a as number) >= 1).map(e => e.a as number)
+    const avgAdult = adult.length ? adult.reduce((a, b) => a + b, 0) / adult.length : null
+
+    return { totalBirths, totalDeaths, avgAdult }
+  }, [filteredBirths, filteredDeaths])
 
   if (!births && !deaths && !hasEvents) return <EmptyState message='No lifecycle data available' />
 
@@ -1262,14 +1229,12 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           gap: 3
         }}
       >
-        {/* slim segmented sub-tab strip — active = accent, inactive = very light grey */}
-        <Box sx={{ display: 'inline-flex', alignSelf: 'flex-start', flexWrap: 'wrap', gap: 1.25 }}>
+        {/* underline sub-tab bar — active tab gets its accent underline + coloured text/count */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 8, borderBottom: `1px solid ${cc.SurfaceVariant}` }}>
           <ViewTab active={sub === 'births'} icon='mdi:egg-outline' label='Births' value={headline.totalBirths.toLocaleString()} tone='success' onClick={() => setMode('births')} />
           <ViewTab active={sub === 'deaths'} icon='mdi:grave-stone' label='Deaths' value={headline.totalDeaths.toLocaleString()} tone='error' onClick={() => setMode('deaths')} />
           <ViewTab active={sub === 'lifespan'} icon='mdi:timer-sand' label='Lifespan' value={headline.avgAdult != null ? `${headline.avgAdult.toFixed(1)}y` : '—'} tone='secondary' onClick={() => setMode('lifespan')} />
         </Box>
-
-        <Divider sx={{ borderColor: cc.SurfaceVariant }} />
 
         {/* Period controls. One picker at a time via the Quick / By month·year toggle. */}
         <Box
