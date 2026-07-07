@@ -1151,6 +1151,43 @@ const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram }> = ({ t
   )
 }
 
+/** Rounded pill: symptom name + a metric value. Used by the widespread / recurring panels. */
+const ChipTag: React.FC<{ label: string; value: React.ReactNode; valueColor: string; onClick?: () => void }> = ({
+  label,
+  value,
+  valueColor,
+  onClick
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 1.25,
+        px: 4,
+        py: 1.25,
+        borderRadius: '999px',
+        border: `1px solid ${c.SurfaceVariant}`,
+        backgroundColor: c.Surface,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'border-color .15s ease, background .15s ease',
+        '&:hover': onClick ? { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper } : undefined
+      }}
+    >
+      <Typography variant='body2' sx={{ fontWeight: 500, color: c.OnSurfaceVariant }}>
+        {label}
+      </Typography>
+      <Box component='span' sx={{ fontSize: '0.95rem', fontWeight: 700, color: valueColor, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </Box>
+    </Box>
+  )
+}
+
 /**
  * Type list for the stat-tile side sheet, rendered with the standard antz DetailTable (DataGrid):
  * Symptom · Records · Animals · Recurrence, sortable headers, standard row height/colours.
@@ -1493,20 +1530,17 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
         <ChartsRow md='repeat(2, 1fr)'>
           <SectionCard title='Most widespread symptoms' titleMb={2}>
             {commonTypes.length ? (
-              <>
-                <RankedList items={commonTypes.map(t => ({ label: t.name, count: t.animals ?? t.count }))} onItem={filterAndScroll} limit={5} />
-                {commonTypes.length > 5 && (
-                  <Box
-                    onClick={() => setDrawerScope('all')}
-                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
-                  >
-                    <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                      View all {commonTypes.length} symptoms
-                    </Typography>
-                    <Icon icon='mdi:chevron-right' fontSize={16} />
-                  </Box>
-                )}
-              </>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                {commonTypes.map(t => (
+                  <ChipTag
+                    key={t.name}
+                    label={t.name}
+                    value={(t.animals ?? t.count).toLocaleString()}
+                    valueColor={c.OnSurfaceVariant}
+                    onClick={() => filterAndScroll(t.name)}
+                  />
+                ))}
+              </Box>
             ) : (
               <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
                 No records.
@@ -1518,34 +1552,13 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
             {recurringList.length ? (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                 {recurringList.map(t => (
-                  <Box
+                  <ChipTag
                     key={t.name}
+                    label={t.name}
+                    value={`${t.ratio.toFixed(1)}×`}
+                    valueColor={theme.palette.primary.dark}
                     onClick={() => filterAndScroll(t.name)}
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      pl: 2,
-                      pr: 1.5,
-                      py: 1,
-                      borderRadius: '999px',
-                      border: `1px solid ${c.SurfaceVariant}`,
-                      backgroundColor: c.Surface,
-                      cursor: 'pointer',
-                      transition: 'border-color .15s ease, background .15s ease',
-                      '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper }
-                    }}
-                  >
-                    <Typography variant='body2' sx={{ fontWeight: 500, color: c.OnSurfaceVariant }}>
-                      {t.name}
-                    </Typography>
-                    <Box
-                      component='span'
-                      sx={{ fontSize: '0.92rem', fontWeight: 700, color: theme.palette.primary.dark, fontVariantNumeric: 'tabular-nums' }}
-                    >
-                      {t.ratio.toFixed(1)}×
-                    </Box>
-                  </Box>
+                  />
                 ))}
               </Box>
             ) : (
