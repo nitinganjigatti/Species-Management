@@ -49,7 +49,7 @@ const tooltipHTML = (theme: any, title: string, rows: { color: string; label: st
     )
     .join('')
 
-  return `<div style="font-size:12px;font-family:inherit;">${head}${body}</div>`
+  return `<div style="font-size:12px;font-family:inherit;background:${theme.palette.background.paper};">${head}${body}</div>`
 }
 
 /** Tooltip for the facet charts (bar/donut/pie/polar/radial): "Species: N species · M animals". */
@@ -61,6 +61,7 @@ const facetTooltip = (
   valueFn?: (d: { label: string; value: number; animalCount?: number }) => string
 ) => ({
   enabled: true,
+  fillSeriesColor: false, // pie/donut/polar default the tooltip bg to the slice color — keep it neutral
   custom: ({ seriesIndex, dataPointIndex }: any) => {
     const i = dataPointIndex != null && dataPointIndex >= 0 ? dataPointIndex : seriesIndex
     const d = data[i]
@@ -705,7 +706,12 @@ export function ColumnBarChart({
           axisTicks: { show: false }
         },
         yaxis: hideYAxis ? { show: false } : { labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' } } },
-        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } },
+        tooltip: {
+          custom: ({ series, seriesIndex, dataPointIndex }: any) =>
+            tooltipHTML(theme, labels[dataPointIndex] ?? '', [
+              { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+            ])
+        },
         fill: { opacity: 1 }
       }}
       series={[{ name, data: values }]}
@@ -766,7 +772,12 @@ export function SmoothAreaChart({
           tickAmount: 4,
           labels: { style: { colors: cc.neutralSecondary, fontSize: '11px' }, formatter: (v: number) => Math.round(v).toLocaleString() }
         },
-        tooltip: { y: { formatter: (v: number) => v.toLocaleString() } }
+        tooltip: {
+          custom: ({ series, seriesIndex, dataPointIndex }: any) =>
+            tooltipHTML(theme, labels[dataPointIndex] ?? '', [
+              { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+            ])
+        }
       }}
       series={[{ name, data: values }]}
     />
