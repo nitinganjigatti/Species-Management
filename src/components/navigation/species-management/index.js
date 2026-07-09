@@ -9,6 +9,11 @@ const composeSpeciesManagementNavigation = () => {
         icon: 'mdi:view-dashboard-outline'
       },
       {
+        title: 'Dashboard 2',
+        path: '/species-management/dashboard-2',
+        icon: 'mdi:view-dashboard-variant-outline'
+      },
+      {
         title: 'Species List',
         path: '/species-management/list',
         icon: 'mdi:format-list-bulleted',
