@@ -18,6 +18,12 @@ const composeSpeciesManagementNavigation = () => {
         path: '/species-management/list',
         icon: 'mdi:format-list-bulleted',
         activeWhen: ['/species-management/list']
+      },
+      {
+        title: 'Species List 2',
+        path: '/species-management/list-2',
+        icon: 'mdi:format-list-bulleted-square',
+        activeWhen: ['/species-management/list-2']
       }
     ]
   }

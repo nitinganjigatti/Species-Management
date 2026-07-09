@@ -266,7 +266,7 @@ export default function Dashboard2Container() {
       speciesOptions={speciesOptions}
       selectedId={selectedId}
       onSelectSpecies={setSelectedId}
-      onOpenSpecies={(id, tab) => router.push(`/species-management/${id}/${tab ? `?tab=${tab}` : ''}`)}
+      onOpenSpecies={(id, tab) => router.push(`/species-management/list-2/${id}/${tab ? `?tab=${tab}` : ''}`)}
     />
   )
 }

@@ -575,3 +575,19 @@ If a fresh session opens next, here's where we are.
 **Rule change:** jack-* skills/agent are BANNED until the user explicitly re-allows (memory: match-effort-to-task-size). Work directly.
 
 **Still open (unchanged):** WSO2 dev account fix → then browser-verify everything; whole module uncommitted (stage by name, never `git add -A`).
+
+# 2026-07-09 session handoff
+
+**Entire 07-08 backlog COMMITTED + PUSHED** to `personal`/main (nitinganjigatti/Species-Management), 8 commits `30ed5a22a..abd43858f`: CoL survival analysis + lifecycle regen · Assessments strip tables + **prototype per-type routing fix** (ALL non-numeric types in any category — Physical Health, "Musth Behavior" spelling — now get the chip-timeline; `DistributionTypePanel` deleted, `StripTypeTable` extracted) · Medical symptom drill · auth demo-token purge · **unified chart tooltips** (custom HTML everywhere, `fillSeriesColor:false`) · **Dashboard 2** · **CoL Births/Deaths Over Time** charts with 1Y·2Y·3Y·All header tabs two-way-synced to the period filter (`TrendRangeTabs`/`pickTrendRange`; month labels via `fmtYm`; new `last_3y` preset in `DashboardDateRange`).
+
+**Dashboard 2** (`/species-management/dashboard-2/`, nav item beside old dashboard): species-level management rethink — dark verdict band (Species·Animals·Net change·Declining, green/white only — **user rule: no orange on dark**), 4 pure stat "fire" tiles (Crisis ≤3 left · Death spikes · Declining · Breeding stalled) → de-chipped drill drawer, chart-header totals, trajectory bar + obligations statement, and a species picker → **single-species mode** (status-check tiles deep-linking via `?tab=`). All real list.json data; `analyzeRow()` in `Dashboard2Container` holds the signal thresholds.
+
+**UNCOMMITTED: the v2 fork.** "Species List 2" nav → `/list-2/` (full list copy: `SpeciesListing2Container`, `views/.../list2/`) → `/list-2/[id]/` (full detail copy: `SpeciesDetail2Container`, `views/.../detail2/` incl. all 10 tabs + detailUi + useSortableTable). Dashboard 2 species links rewired to `/list-2/<id>/`. tsc 0 errors; routes 200 (old + new). Only v1 files touched: NONE (nav + Dashboard2Container are the only modified files).
+
+**🔴 HARD RULE (memory `species-v2-only-changes`):** from now on ALL Species-Mgmt changes go to v2 files only (dashboard2/list2/detail2); v1 frozen unless the user explicitly says "v1"/"old". Shared-foundation edits (dashboardUi, DashboardDateRange, data layer, nav) leak into v1 — fork or flag first.
+
+**Acceptance checks:** (1) Sidebar shows "Species List 2" → identical list, row → `/list-2/<id>/` detail with all tabs, back arrow → List 2; if 404, the `list-2/` route folders didn't land. (2) Dashboard-2 drawer rows / obligation pills / "Open full profile" land on `/list-2/…`. (3) Assessments → Physical Health → "General Examination" pill shows the chip timeline, not a 4-column table; elephant species show a working Musth Behavior tab. (4) CoL Births/Deaths charts: 1Y/2Y/3Y/All tabs top-right, month-name x-labels ("Jan '46"), clicking 2Y flips the top Quick preset to "Last 2 years". (5) Dashboard hover: every chart shows the white tooltip w/ tinted title band — incl. pie/donut/polar.
+
+**Env note:** "require is not defined" on any route = stale Turbopack dev cache (server had run since Jul 1 under a week of changes + a new route folder). Fix: kill `next dev` + `next-server`, `rm -rf .next`, `npm run dev`. Dev server currently running fresh on :3000. Next 16.2.6/Turbopack now (CLAUDE.md's "Next 15" is outdated).
+
+**Open:** commit+push the v2 fork (+ this handoff) · WSO2 dev account fix (user-side) → browser-verify everything (all of today is tsc-clean + route-200 only) · Nutrition's 4 whitelisted-out types (Weight Changes/Regurgitation/Supplement Use/Feeding Accessibility) — unhide as chip timelines or keep hidden.
