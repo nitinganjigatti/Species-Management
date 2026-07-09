@@ -555,3 +555,23 @@ Added the chosen **Variant-01 card** to the user's `Species-Management-Claude` f
 - **Preventive Overdue/Upcoming pill colors** not defined in Figma — used orange/teal.
 - Other per-animal drawers (clinical `AnimalRecordsDrawer`) not yet restyled to the 2:3 card.
 - All feature data is **synthetic**; real dump extraction is a later swap behind the same JSON shape.
+
+# 2026-07-08 (late) session handoff
+
+If a fresh session opens next, here's where we are.
+
+**Shipped (all uncommitted on `antzs-codbase-designteam`):** (1) Assessments → Nutrition now routes to the per-animal StripPanel with exactly 5 whitelisted pills — **Water intake -Trunk count (1st, kept as its original aggregate NumericTypePanel via `LEGACY_PANEL_TYPES`), Hydration Status, Appetite, Food Preferences, Feeding** (numeric grams → neutral `25 G` chips). Other Nutrition types deliberately hidden. (2) Login fix in `AuthContext.js`: purges stale public-demo `demo-token` from localStorage before real auth (it was poisoning the session bootstrap → 401 loop).
+
+**Acceptance checks:**
+- *Nutrition:* open any species → Assessments → Nutrition. You should see 5 pills, Water intake first showing the old stats/distribution panel, the other four as chip timelines. If Water intake shows a chip strip instead, `LEGACY_PANEL_TYPES` isn't matching the type string.
+- *Login:* reload localhost:3000 and sign in. You should reach the dashboard. **Currently NOT testable** — WSO2 itself rejects `nidhin@mailinator.com` (`authFailure=true`, captured via headed browser; never reaches /callback). Account is wrong-password / reset / possibly locked. **Single most important next move: fix the WSO2 dev account (admin or password reset), then verify login + browser-verify all of today's UI (still only tsc-clean).**
+
+# 2026-07-08 (session 3) — Assessments strip tables: h-scroll + entries filter. UNCOMMITTED, tsc 0 errors.
+
+**Shipped:** (1) `DetailTable` (`detail/detailUi.tsx`) gained optional `stickyField` prop — species-list sticky-column CSS (pinned cell+header, OutlineVariant divider, Surface hover, customTableHeaderBg). (2) `StripPanel` (`AssessmentsTab.tsx`) uses it: Animal column pinned, strip column `minWidth` grows with longest visible timeline (chip cap 60, then `+N`) → horizontal scroll; 5-chip truncation removed. (3) Entries filter Select beside search — Last 10/20 entries · week/1 m/6 m/1 y/2 y/All (time presets reuse `resolveRange` from `DashboardDateRange`); default **Last 10**; time presets drop animals with no readings in window. Water-intake legacy aggregate panel deliberately untouched.
+
+**Acceptance:** species → Assessments → Behaviour/Environment/Endoscopy/Nutrition pill → pick "All entries": table should scroll sideways under a fixed Animal column, up to 60 chips per row. If the Animal column scrolls away, `stickyField='name'` isn't reaching CommonTable's `externalTableStyle`. If chips still cap at ~5, the dropdown state isn't feeding `allRows`.
+
+**Rule change:** jack-* skills/agent are BANNED until the user explicitly re-allows (memory: match-effort-to-task-size). Work directly.
+
+**Still open (unchanged):** WSO2 dev account fix → then browser-verify everything; whole module uncommitted (stage by name, never `git add -A`).
