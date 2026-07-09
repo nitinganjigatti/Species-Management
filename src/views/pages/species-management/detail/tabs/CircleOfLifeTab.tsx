@@ -291,6 +291,20 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
     [deaths.byYearMonth]
   )
 
+  // Survival Analysis — accession → death, bucketed (mirrors the prototype's 5-band chart).
+  const sb = deaths.survivalBuckets
+  const SURV_BANDS: { key: keyof NonNullable<typeof sb>; label: string; desc: string; opacity: number }[] = [
+    { key: 'd7', label: '0–7d', desc: 'Died within first week', opacity: 1 },
+    { key: 'd30', label: '8–30d', desc: 'Died within first month', opacity: 0.82 },
+    { key: 'd90', label: '31–90d', desc: 'Died within 3 months', opacity: 0.64 },
+    { key: 'd365', label: '91–365d', desc: 'Died within first year', opacity: 0.46 },
+    { key: 'over365', label: '365+d', desc: 'Survived over a year', opacity: 0.32 }
+  ]
+  const survTotal = sb ? SURV_BANDS.reduce((s, b) => s + (sb[b.key] || 0), 0) : 0
+
+  const age = deaths.ageAtDeath
+  const fmtYrs = (y?: number) => (y == null ? '—' : `${(+y).toFixed(1)} yrs`)
+
   const causeSummary = (records: typeof recent) => {
     const m = new Map<string, number>()
     records.forEach(r => m.set(r.manner || 'Unknown', (m.get(r.manner || 'Unknown') || 0) + 1))
@@ -331,7 +345,7 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {byMonth.some(m => m.count > 0) && (
-        <SectionCard title='Mortality by Month (all years)'>
+        <SectionCard title='Seasonal Mortality Pattern'>
           <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
             Deaths per calendar month, summed across all years · click a month for its detail
           </Typography>
@@ -379,48 +393,52 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
         </SectionCard>
       )}
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
-        {deaths.byManner?.length > 0 &&
-          (() => {
-            const all = deaths.byManner.map(m => ({ label: m.manner, count: m.count })).sort((a, b) => b.count - a.count)
-            const data = showAllCauses ? all : all.slice(0, 5)
-            const max = Math.max(1, ...all.map(d => d.count))
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+        {sb && survTotal > 0 && (
+          <SectionCard title='Survival Analysis'>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
+              Time from accession to death
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, px: 1 }}>
+              {(() => {
+                const max = Math.max(1, ...SURV_BANDS.map(b => sb[b.key] || 0))
 
-            return (
-              <SectionCard
-                title='Cause of Death'
-                action={
-                  all.length > 5 ? (
-                    <Typography
-                      variant='caption'
-                      onClick={() => setShowAllCauses(v => !v)}
-                      sx={{ cursor: 'pointer', fontWeight: 600, color: theme.palette.primary.main }}
-                    >
-                      {showAllCauses ? 'View less' : `View more (${all.length - 5})`}
-                    </Typography>
-                  ) : undefined
-                }
-              >
-                {data.map(d => (
-                  <Box
-                    key={d.label}
-                    onClick={() => openCause(d.label)}
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75, cursor: 'pointer', '&:hover': { opacity: 0.85 } }}
-                  >
-                    <Typography variant='body2' noWrap sx={{ width: 150, flexShrink: 0, color: cc.OnSurfaceVariant }}>
-                      {d.label}
-                    </Typography>
-                    <Box sx={{ flex: 1, height: 10, bgcolor: cc.Surface, borderRadius: 5, overflow: 'hidden', minWidth: 0 }}>
-                      <Box sx={{ width: `${(d.count / max) * 100}%`, height: '100%', bgcolor: cc.Tertiary, borderRadius: 5 }} />
+                return SURV_BANDS.map(b => {
+                  const v = sb[b.key] || 0
+                  const pct = survTotal ? Math.round((v / survTotal) * 1000) / 10 : 0
+                  const bh = v > 0 ? Math.max(6, Math.round((v / max) * 120)) : 0
+
+                  return (
+                    <Box key={b.key} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Typography variant='subtitle2' sx={{ fontWeight: 700, color: cc.Tertiary, opacity: v ? 1 : 0.4 }}>
+                        {v || '–'}
+                      </Typography>
+                      <Typography variant='caption' sx={{ color: cc.neutralSecondary, mb: 0.5, visibility: v > 0 ? 'visible' : 'hidden' }}>
+                        {pct}%
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: '100%',
+                          maxWidth: 56,
+                          height: bh,
+                          bgcolor: cc.Tertiary,
+                          opacity: b.opacity,
+                          borderRadius: '4px 4px 0 0'
+                        }}
+                      />
+                      <Typography variant='caption' sx={{ fontWeight: 700, color: cc.Tertiary, mt: 0.75, whiteSpace: 'nowrap' }}>
+                        {b.label}
+                      </Typography>
+                      <Typography variant='caption' sx={{ color: cc.neutralSecondary, textAlign: 'center', lineHeight: 1.2, mt: 0.25, minHeight: 32 }}>
+                        {b.desc}
+                      </Typography>
                     </Box>
-                    <Typography variant='subtitle2' sx={{ width: 36, textAlign: 'right', fontWeight: 700 }}>
-                      {d.count}
-                    </Typography>
-                  </Box>
-                ))}
-              </SectionCard>
-            )
-          })()}
+                  )
+                })
+              })()}
+            </Box>
+          </SectionCard>
+        )}
         {(deaths as any).byGender && (
           <GenderPie
             title='Deaths by Gender'
@@ -429,6 +447,81 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
             other={(deaths as any).byGender.unsexed || 0}
           />
         )}
+      </Box>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+        {age && (age.count || 0) > 0 && (
+          <SectionCard title='Age at Death'>
+            <Box sx={{ display: 'flex', gap: 12, rowGap: 4, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Average', value: fmtYrs(age.avg), color: cc.OnSurfaceVariant },
+                { label: 'Youngest', value: fmtYrs(age.min), color: theme.palette.secondary.main },
+                { label: 'Oldest', value: fmtYrs(age.max), color: theme.palette.primary.main },
+                { label: 'Records', value: `${age.count}`, color: cc.neutralSecondary }
+              ].map(m => (
+                <Box key={m.label}>
+                  <Typography variant='h5' sx={{ fontWeight: 700, color: m.color }}>
+                    {m.value}
+                  </Typography>
+                  <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+                    {m.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </SectionCard>
+        )}
+        {deaths.byManner?.length > 0 &&
+          (() => {
+            const all = deaths.byManner.map(m => ({ label: m.manner, count: m.count })).sort((a, b) => b.count - a.count)
+            const data = showAllCauses ? all : all.slice(0, 8)
+
+            return (
+              <SectionCard
+                title='Cause of Death'
+                action={
+                  all.length > 8 ? (
+                    <Typography
+                      variant='caption'
+                      onClick={() => setShowAllCauses(v => !v)}
+                      sx={{ cursor: 'pointer', fontWeight: 600, color: theme.palette.primary.main }}
+                    >
+                      {showAllCauses ? 'View less' : `View more (${all.length - 8})`}
+                    </Typography>
+                  ) : undefined
+                }
+              >
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                  {data.map(d => (
+                    <Box
+                      key={d.label}
+                      onClick={() => openCause(d.label)}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 1.25,
+                        px: 4,
+                        py: 1.25,
+                        borderRadius: '999px',
+                        border: `1px solid ${cc.SurfaceVariant}`,
+                        backgroundColor: cc.Surface,
+                        cursor: 'pointer',
+                        transition: 'border-color .15s ease, background .15s ease',
+                        '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper }
+                      }}
+                    >
+                      <Typography variant='body2' sx={{ fontWeight: 500, color: cc.OnSurfaceVariant }}>
+                        {d.label}
+                      </Typography>
+                      <Box component='span' sx={{ fontSize: '0.95rem', fontWeight: 700, color: cc.Tertiary, fontVariantNumeric: 'tabular-nums' }}>
+                        {d.count}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </SectionCard>
+            )
+          })()}
       </Box>
 
       <EntityListDrawer
@@ -517,8 +610,9 @@ function buildDeaths(evs: LifecycleDeath[]): SpeciesDeaths {
   const carcass: Record<string, number> = {}
   const gender = { male: 0, female: 0, unsexed: 0 }
   const sites = new Map<string, { count: number; male: number; female: number; unsexed: number }>()
-  let ageSumDays = 0
-  let ageCount = 0
+  const ages: number[] = [] // age-at-death in years, one entry per animal
+  const survDays: number[] = [] // survival days (accession → death), expanded by count
+  const survBuckets = { d7: 0, d30: 0, d90: 0, d365: 0, over365: 0 }
   for (const e of evs) {
     const k = kOf(e)
     ym.set(e.d.slice(0, 7), (ym.get(e.d.slice(0, 7)) || 0) + k)
@@ -532,11 +626,33 @@ function buildDeaths(evs: LifecycleDeath[]): SpeciesDeaths {
       row.count += k
       sites.set(e.s, row)
     }
-    if (typeof e.a === 'number') {
-      ageSumDays += e.a * 365
-      ageCount += 1
+    if (typeof e.a === 'number') ages.push(e.a)
+    if (typeof e.sv === 'number') {
+      const days = e.sv
+      for (let i = 0; i < k; i++) survDays.push(days)
+      if (days <= 7) survBuckets.d7 += k
+      else if (days <= 30) survBuckets.d30 += k
+      else if (days <= 90) survBuckets.d90 += k
+      else if (days <= 365) survBuckets.d365 += k
+      else survBuckets.over365 += k
     }
   }
+
+  // Age-at-death summary (years) — avg/min/max/count for the 4-metric card.
+  const ageAtDeath = ages.length
+    ? {
+        avg: Math.round((ages.reduce((s, a) => s + a, 0) / ages.length) * 10) / 10,
+        min: Math.min(...ages),
+        max: Math.max(...ages),
+        count: ages.length
+      }
+    : undefined
+
+  // Survival stats (days) — avg + median over the count-expanded list.
+  const survTotal = survDays.length
+  const sortedSurv = [...survDays].sort((a, b) => a - b)
+  const avgSurvivalDays = survTotal ? Math.round(survDays.reduce((s, d) => s + d, 0) / survTotal) : undefined
+  const medianSurvivalDays = survTotal ? sortedSurv[Math.floor(survTotal / 2)] : undefined
 
   return {
     total,
@@ -545,7 +661,10 @@ function buildDeaths(evs: LifecycleDeath[]): SpeciesDeaths {
     seasonal: [],
     carcassCondition: carcass,
     byGender: gender,
-    ageAtDeath: ageCount ? { avg: Math.round(ageSumDays / ageCount), count: ageCount } : undefined,
+    ageAtDeath,
+    survivalBuckets: survTotal ? survBuckets : undefined,
+    avgSurvivalDays,
+    medianSurvivalDays,
     bySite: Array.from(sites.entries()).sort((a, b) => b[1].count - a[1].count).map(([site, r]) => ({ site, ...r })),
     recent: evs.slice(0, 50).map(e => ({ date: e.d, site: e.s, enclosure: e.e, manner: e.m, necropsy: e.y }))
   } as SpeciesDeaths

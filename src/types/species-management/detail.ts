@@ -543,6 +543,7 @@ export interface LifecycleDeath {
   c?: string // carcass condition
   y?: string // necropsy status (Pending | Completed | NA)
   a?: number // age at death (years); omitted when no usable birth date
+  sv?: number // survival days (accession → death); omitted when no usable accession date
   k?: number // died count (omitted when 1)
 }
 export interface SpeciesLifecycle {

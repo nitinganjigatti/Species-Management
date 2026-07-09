@@ -8,7 +8,7 @@
    Shape (compact keys to keep files small):
      {
        births: [ { d:"YYYY-MM-DD", g, s, e, b, k } ],   // g gender, s site, e enclosure, b breed, k count
-       deaths: [ { d, g, s, e, m, c, y, a, k } ]         // m manner, c carcass, y necropsy, a age-years|null
+       deaths: [ { d, g, s, e, m, c, y, a, sv, k } ]     // m manner, c carcass, y necropsy, a age-years|null, sv survival-days (accession→death)
      }
 
    Only species present in list.json (matched by scientific_name → tsn_id) get a file; species
@@ -82,6 +82,7 @@ const keyOf = s => norm(s).toLowerCase().replace(/\s+/g, ' ')
 const isoDate = v => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(norm(v)); return m ? `${m[1]}-${m[2]}-${m[3]}` : null }
 const dayMs = v => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(norm(v)); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null }
 const MS_PER_YEAR = 365.25 * 24 * 3600 * 1000
+const MS_PER_DAY = 24 * 3600 * 1000
 const clean = v => (v == null || v === '' ? undefined : String(v).trim())
 // Identifier fields arrive as the literal "''" when empty — normalise those to undefined.
 const cleanId = v => {
@@ -111,7 +112,7 @@ const resolveSpecies = (sci, com) => {
 }
 
 // column indices
-const AID = 0, SCI = 1, COMMON = 2, GENDER = 3, ID_TYPE = 4, ID_VAL = 5, SITE = 6, ENCL = 8, BREED = 11, BIRTH = 15, COUNT = 18
+const AID = 0, SCI = 1, COMMON = 2, GENDER = 3, ID_TYPE = 4, ID_VAL = 5, SITE = 6, ENCL = 8, BREED = 11, ACCESSION = 13, BIRTH = 15, COUNT = 18
 const DIED = 23, MORT = 24, MANNER = 27, CARCASS = 29, NECROPSY = 31
 
 const events = new Map() // id -> { births: [], deaths: [] }
@@ -141,6 +142,12 @@ async function main() {
       if (birth != null && death != null) {
         const yrs = (death - birth) / MS_PER_YEAR
         if (yrs >= 0 && yrs <= 120) ev.a = Math.round(yrs * 10) / 10
+      }
+      // survival days: accession → death (mirrors the prototype's Survival Analysis)
+      const accession = dayMs(row[ACCESSION])
+      if (accession != null && death != null) {
+        const days = Math.round((death - accession) / MS_PER_DAY)
+        if (days >= 0) ev.sv = days
       }
       bucket(id).deaths.push(ev)
     }
