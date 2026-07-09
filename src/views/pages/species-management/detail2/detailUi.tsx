@@ -5,6 +5,7 @@ import { Avatar, Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
+import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -229,6 +230,14 @@ export const AnimalCardList: React.FC<{ cards: any[]; onClick?: (index: number) 
 export const DETAIL_TABLE_ROW_H = 64
 
 /**
+ * THE single padding source for every v2 DataGrid. Spread into BOTH the `.MuiDataGrid-cell`
+ * AND `.MuiDataGrid-columnHeader` rules of any table style. The antz theme pads cells and
+ * headers through different nested selectors, so a table that overrides one side alone gets
+ * values misaligned from their column titles. Never hand-write grid paddings again.
+ */
+export const GRID_CELL_PAD = { paddingLeft: '20px !important', paddingRight: '16px !important' }
+
+/**
  * The standard data table for the detail module. Wraps CommonTable with consistent tall rows,
  * aligned padding and header. USE THIS for every table here (and any new one) so they all match.
  * Pass already-indexed rows (each with `id` + `sl_no`).
@@ -296,8 +305,8 @@ export const DetailTable: React.FC<{
       getRowHeight={() => rowHeight}
       onRowClick={onRowClick}
       externalTableStyle={{
-        '& .MuiDataGrid-cell': { paddingLeft: '20px !important', paddingRight: '16px !important', display: 'flex', alignItems: 'center', fontSize: '1rem' },
-        '& .MuiDataGrid-columnHeader': { paddingLeft: '20px !important', paddingRight: '16px !important' },
+        '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '1rem' },
+        '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
         // Never clip a header — let it wrap to two lines instead of showing "OVER…".
         '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
         '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
@@ -1039,27 +1048,6 @@ const SvgTrend: React.FC<{ labels: string[]; series: TrendSeries[]; height: numb
   )
 }
 
-/** Clean filled single-series trend (hand-rolled SVG — see SvgTrend). */
-export const TrendAreaChart: React.FC<{ data: { label: string; value: number }[]; tone?: Tone; height?: number }> = ({
-  data,
-  tone = 'primary',
-  height = 140
-}) => {
-  const tones = useTone()
-  const { fg } = tones(tone)
-  if (!data.length) return null
-
-  return (
-    <Box>
-      <SvgTrend
-        labels={data.map(d => d.label)}
-        series={[{ values: data.map(d => d.value), color: fg, gradId: `trend-${tone}` }]}
-        height={height}
-      />
-    </Box>
-  )
-}
-
 export const EmptyState: React.FC<{ message?: string }> = ({ message = 'No data available' }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 6 }}>
     <NoDataFound />
@@ -1075,3 +1063,209 @@ export const TileGrid: React.FC<{ children: React.ReactNode }> = ({ children }) 
     {children}
   </Box>
 )
+
+// ── Trend area chart (v2 Circle of Life "Over Time" charts) ─────────────────────
+// Fork of the dashboard SmoothAreaChart with the prototype's calmer axis: the x-axis
+// thins to at most ~12 ticks, each a two-line month-over-year label ("Jan" / "46"),
+// and the point value labels follow the same rhythm so dense ranges stay readable.
+
+// Same tooltip HTML as the dashboard charts (kept v2-local so v1 files stay untouched).
+const trendTooltipHTML = (theme: any, title: string, rows: { color: string; label: string; value: string }[]) => {
+  const c = cc(theme)
+  const head = `<div style="padding:7px 12px;background:${c.Surface};border-bottom:1px solid ${c.SurfaceVariant};font-weight:600;color:${c.OnSurfaceVariant};">${title}</div>`
+  const body = rows
+    .map(
+      r => `<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${r.color};display:inline-block;flex:none;"></span>
+        <span style="color:${c.neutralSecondary};">${r.label}:</span>
+        <span style="font-weight:700;color:${c.OnSurfaceVariant};">${r.value}</span>
+      </div>`
+    )
+    .join('')
+
+  return `<div style="font-size:12px;font-family:inherit;background:${theme.palette.background.paper};">${head}${body}</div>`
+}
+
+export function TrendAreaChart({
+  values,
+  labels,
+  color,
+  name,
+  height = 260
+}: {
+  values: number[]
+  labels: string[]
+  color: string
+  name: string
+  height?: number
+}) {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const n = values.length
+
+  // Show at most ~12 x ticks; value labels thin to the same indices.
+  const every = Math.max(1, Math.ceil(n / 12))
+  const categories = labels.map((l, i) => {
+    if (i % every !== 0) return ''
+    const m = /^([A-Za-z]{3})\s*'?(\d{2})$/.exec(l.trim())
+
+    return m ? [m[1], m[2]] : l
+  })
+
+  // Integer y ticks — capping at the series max avoids duplicate rounded labels (e.g. "1 1 2 2").
+  const yMax = Math.max(0, ...values)
+  const yTicks = Math.max(1, Math.min(4, yMax))
+
+  return (
+    <ReactApexcharts
+      type='area'
+      height={height}
+      options={{
+        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
+        colors: [color],
+        stroke: { curve: 'smooth', width: 3 },
+        dataLabels: {
+          enabled: true,
+          formatter: (v: number, opts: any) => (v && opts.dataPointIndex % every === 0 ? v.toLocaleString() : ''),
+          offsetY: -5,
+          style: { fontSize: '11px', fontWeight: 700, colors: [color] },
+          background: { enabled: false }
+        },
+        markers: {
+          // Dense series: hide the per-point dots — 100+ markers overlap the stroke and the
+          // line reads as dotted. Hover still shows a marker.
+          size: n > 24 ? 0 : 4,
+          colors: [color],
+          strokeColors: theme.palette.common.white,
+          strokeWidth: 1.5,
+          hover: { size: 6 }
+        },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.28, opacityTo: 0, stops: [0, 100] } },
+        grid: {
+          borderColor: c.SurfaceVariant,
+          strokeDashArray: 4,
+          xaxis: { lines: { show: false } },
+          yaxis: { lines: { show: true } },
+          // Symmetric side padding so first/last points (and their value labels) don't clip
+          // against the plot edges.
+          padding: { top: 16, left: 20, right: 20 }
+        },
+        xaxis: {
+          categories,
+          labels: {
+            style: { colors: c.neutralSecondary, fontSize: '11px' },
+            rotate: 0,
+            hideOverlappingLabels: false,
+            trim: false,
+            // Pin the axis reserve to a FIXED height (min = max) instead of letting Apex measure
+            // it from the data — measurement is data-shape-dependent and made the side-by-side
+            // Births/Deaths plots come out different heights. 44px fits the two-line labels.
+            minHeight: 44,
+            maxHeight: 44
+          },
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          tooltip: { enabled: false }
+        },
+        yaxis: {
+          min: 0,
+          tickAmount: yTicks,
+          labels: {
+            style: { colors: c.neutralSecondary, fontSize: '11px' },
+            formatter: (v: number) => Math.round(v).toLocaleString(),
+            // Same gutter width on every trend chart so side-by-side plots align.
+            minWidth: 26,
+            // Pull the tick column flush with the card heading (Apex parks it ~32px in);
+            // -28 lands ~4px which reads flush without clipping the widest label.
+            align: 'left',
+            offsetX: -28
+          }
+        },
+        tooltip: {
+          custom: ({ series, seriesIndex, dataPointIndex }: any) =>
+            trendTooltipHTML(theme, labels[dataPointIndex] ?? '', [
+              { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+            ])
+        }
+      }}
+      series={[{ name, data: values }]}
+    />
+  )
+}
+
+/** Seasonal 12-month column chart — one look for Breeding AND Mortality so the side-by-side
+ *  cards align; optional per-month click (mortality month drill). */
+export function SeasonalColumnChart({
+  values,
+  labels,
+  color,
+  name,
+  height = 220,
+  onBarClick
+}: {
+  values: number[]
+  labels: string[]
+  color: string
+  name: string
+  height?: number
+  onBarClick?: (label: string) => void
+}) {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={onBarClick ? { '& .apexcharts-bar-area': { cursor: 'pointer' } } : undefined}>
+      <ReactApexcharts
+        type='bar'
+        height={height}
+        options={{
+          chart: {
+            toolbar: { show: false },
+            animations: { enabled: false },
+            fontFamily: 'inherit',
+            // Only add the key when a handler exists — an explicit `events: undefined`
+            // wipes Apex's internal event defaults and the chart silently renders empty.
+            ...(onBarClick
+              ? {
+                  events: {
+                    dataPointSelection: (_e: any, _ctx: any, cfg: any) => {
+                      const i = cfg?.dataPointIndex
+                      if (i != null && i >= 0 && values[i]) onBarClick(labels[i])
+                    }
+                  }
+                }
+              : {})
+          },
+          states: { active: { filter: { type: 'none' } } },
+          colors: [color],
+          plotOptions: { bar: { columnWidth: '55%', borderRadius: 4, dataLabels: { position: 'top' } } },
+          dataLabels: {
+            enabled: true,
+            offsetY: -20,
+            formatter: (v: number) => (v ? v.toLocaleString() : ''),
+            style: { fontSize: '11px', fontWeight: 700, colors: [color] }
+          },
+          legend: { show: false },
+          // Negative left padding pulls the first bar flush with the card heading —
+          // with the y-axis hidden Apex still indents the plot ~22px for nothing.
+          grid: { show: false, padding: { top: 20, left: -22 } },
+          xaxis: {
+            categories: labels,
+            labels: { style: { colors: c.neutralSecondary, fontSize: '11px' } },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+          },
+          yaxis: { show: false },
+          tooltip: {
+            custom: ({ series, seriesIndex, dataPointIndex }: any) =>
+              trendTooltipHTML(theme, labels[dataPointIndex] ?? '', [
+                { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+              ])
+          },
+          fill: { opacity: 1 }
+        }}
+        series={[{ name, data: values }]}
+      />
+    </Box>
+  )
+}

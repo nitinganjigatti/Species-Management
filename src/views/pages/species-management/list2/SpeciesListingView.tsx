@@ -9,6 +9,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { GRID_CELL_PAD } from 'src/views/pages/species-management/detail2/detailUi'
 import SpeciesListFilterRail from 'src/views/pages/species-management/list2/SpeciesListFilterRail'
 import { type MajorFilterRow } from 'src/views/pages/species-management/list2/SpeciesListMajorFilters'
 import { type AnalysisFilter, type SpeciesFilters } from 'src/views/pages/species-management/list2/speciesListing.utils'
@@ -288,9 +289,9 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                   onRowClick={() => {}}
                   onCellClick={onCellClick}
                   externalTableStyle={{
-                    '& .MuiDataGrid-cell': { py: 2.5, px: 3, display: 'flex', alignItems: 'center' },
+                    '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2.5, display: 'flex', alignItems: 'center' },
                     '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                    '& .MuiDataGrid-columnHeader': { px: 3 },
+                    '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
                     '& .MuiDataGrid-cell[data-field="sl_no"]': {
                       position: 'sticky',
                       left: 0,

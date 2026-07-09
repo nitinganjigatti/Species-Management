@@ -591,3 +591,55 @@ If a fresh session opens next, here's where we are.
 **Env note:** "require is not defined" on any route = stale Turbopack dev cache (server had run since Jul 1 under a week of changes + a new route folder). Fix: kill `next dev` + `next-server`, `rm -rf .next`, `npm run dev`. Dev server currently running fresh on :3000. Next 16.2.6/Turbopack now (CLAUDE.md's "Next 15" is outdated).
 
 **Open:** commit+push the v2 fork (+ this handoff) · WSO2 dev account fix (user-side) → browser-verify everything (all of today is tsc-clean + route-200 only) · Nutrition's 4 whitelisted-out types (Weight Changes/Regurgitation/Supplement Use/Feeding Accessibility) — unhide as chip timelines or keep hidden.
+
+# 2026-07-09 (session 2) — Circle of Life v2 merged one-page + chart/table standards. COMMITTED.
+
+All v2-only (detail2/list2). tsc 0 errors throughout; charts verified via headless-Chrome repros
+(`chrome --headless --screenshot` on static files w/ the app's apexcharts bundle — no dev server,
+guard-compliant; pattern in memory [[v2-chart-standards]]).
+
+## Shipped (acceptance — hard-refresh `/species-management/list-2/2150/` → Circle of Life)
+- **One-page merge (user-approved mockup).** No more Births/Deaths/Lifespan content tabs. Order:
+  control band (Period/Gender/Other Filters only) → BIRTHS VS DEATHS (trend pair w/ ONE shared
+  1Y·2Y·3Y·All control, still two-way-synced to Quick preset) → seasonal pair → gender donuts →
+  DEATHS—DETAIL (Survival | Age-at-Death + Cause, cause card stretches to bottom-align) →
+  LIFESPAN → one table. If you still see 3 sub-tabs, stale build.
+- **Trend charts:** ≤12 two-line month/year ticks ("Jan" over "46"), 11px labels, value labels
+  thinned to tick rhythm, dense series = solid line (no dots), y from 0, side padding so edge
+  labels don't clip. **Axis heights PINNED (minHeight=maxHeight 44)** — Apex's measured heights
+  differed per data shape (births 68 months vs deaths 11 → 14px plot mismatch, proven w/ real
+  2150 data). Both plots must sit on identical baselines.
+- **Seasonal pair unified:** one `SeasonalColumnChart` (apex) for Breeding AND Mortality — same
+  bars/fonts, Peak line on BOTH, mortality subtext removed, month click-drill kept. Gotcha fixed:
+  passing `events: undefined` into apex chart config KILLS the chart (blank render) — only spread
+  the key when a handler exists.
+- **Gender donuts:** Births all-green / Deaths all-orange (domain hue), gender = opacity ramp
+  (M 100% · F 80% `CC` · U 50% `80`), center total in domain color, key-remount on data change.
+- **Lifespan = Variant A** (user picked from artifact explorations): Longevity card (Avg adult ·
+  Longest · Records, teal) + Age-at-Death Distribution as teal columns (SeasonalColumnChart),
+  bucket click-drill kept. Horizontal bars gone.
+- **Table:** "Animals · N" heading removed → LEFT underline tabs Births/Deaths/Lifespan w/ live
+  counts in domain colors (green/orange/teal); right = single Animal/Site pill + search. Values
+  align under headers via **GRID_CELL_PAD** (detail2/detailUi, spread into BOTH cell+header rules;
+  DetailTable + CoL table + list2 table all use it — never hand-write grid paddings).
+- **Chart-heading alignment:** y-axis tick column flush with card title (`align:'left',
+  offsetX:-28` — -32 clips), hidden-axis bars `grid.padding.left:-22`. Measured, not eyeballed.
+
+## Consistency standards (memory-enforced — [[v2-chart-standards]], [[v2-datagrid-padding-standard]])
+User was rightly angry the same classes of bug (axis mismatch → table padding → heading
+alignment) recurred per-surface. Standards now live at component level + memory; apply to every
+new chart/table WITHOUT being told.
+
+## Queued (do NOT build until user says)
+- **Clinical merge (Medical tab):** Symptoms + Clinical Assessment → one "Clinical" tab.
+  Wireframe APPROVED: https://claude.ai/code/artifact/c6af7a93-450b-4568-85ca-c3209e4d2d5d —
+  stat band, Top symptoms | Top conditions side-by-side w/ searchable Category dropdowns + type
+  search ("View all N"), ONE combined table (All/Symptoms/Assessments left tabs + Category col).
+  PREREQ: regen `build-species-clinical.js` w/ `category` per type. Details:
+  memory [[clinical-merge-approved-ui]].
+- **Breeding & Egg NEW-module idea** (user, remind ~Tue 2026-07-14): females→laid→hatched funnel
+  + hatch %, clutch-wise egg counts per female, monthly egg graphs per animal; mirror for
+  live-birth breeding. Memory [[breeding-egg-module-idea]].
+
+## Still open (unchanged)
+WSO2 dev account fix (user-side) → real browser verification; Nutrition's 4 whitelisted-out types.
