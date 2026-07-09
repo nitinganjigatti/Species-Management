@@ -244,6 +244,8 @@ export const DetailTable: React.FC<{
   /** Enable header sorting: pass a controlled sort model + change handler. Omit for a static table. */
   sortModel?: { field: string; sort: 'asc' | 'desc' | null | undefined }[]
   handleSortModel?: (model: any) => void
+  /** Pin this column to the left while the rest scrolls horizontally (species-list pattern). */
+  stickyField?: string
 }> = ({
   columns,
   rows,
@@ -253,31 +255,58 @@ export const DetailTable: React.FC<{
   onRowClick,
   rowHeight = DETAIL_TABLE_ROW_H,
   sortModel,
-  handleSortModel
-}) => (
-  <CommonTable
-    columns={columns}
-    indexedRows={rows}
-    total={total}
-    loading={false}
-    paginationModel={paginationModel}
-    setPaginationModel={setPaginationModel}
-    handleSortModel={handleSortModel ?? (() => {})}
-    sortModel={sortModel}
-    sortingOrder={handleSortModel ? ['desc', 'asc'] : undefined}
-    searchValue=''
-    getRowHeight={() => rowHeight}
-    onRowClick={onRowClick}
-    externalTableStyle={{
-      '& .MuiDataGrid-cell': { paddingLeft: '20px !important', paddingRight: '16px !important', display: 'flex', alignItems: 'center', fontSize: '1rem' },
-      '& .MuiDataGrid-columnHeader': { paddingLeft: '20px !important', paddingRight: '16px !important' },
-      // Never clip a header — let it wrap to two lines instead of showing "OVER…".
-      '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
-      '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
-      ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {})
-    }}
-  />
-)
+  handleSortModel,
+  stickyField
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  const stickyStyle = stickyField
+    ? {
+        [`& .MuiDataGrid-cell[data-field="${stickyField}"]`]: {
+          position: 'sticky',
+          left: 0,
+          zIndex: 3,
+          backgroundColor: theme.palette.background.paper,
+          borderRight: `1px solid ${c.OutlineVariant}`
+        },
+        [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: {
+          position: 'sticky',
+          left: 0,
+          zIndex: 5,
+          backgroundColor: c.customTableHeaderBg,
+          borderRight: `1px solid ${c.OutlineVariant}`
+        },
+        [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: c.Surface }
+      }
+    : {}
+
+  return (
+    <CommonTable
+      columns={columns}
+      indexedRows={rows}
+      total={total}
+      loading={false}
+      paginationModel={paginationModel}
+      setPaginationModel={setPaginationModel}
+      handleSortModel={handleSortModel ?? (() => {})}
+      sortModel={sortModel}
+      sortingOrder={handleSortModel ? ['desc', 'asc'] : undefined}
+      searchValue=''
+      getRowHeight={() => rowHeight}
+      onRowClick={onRowClick}
+      externalTableStyle={{
+        '& .MuiDataGrid-cell': { paddingLeft: '20px !important', paddingRight: '16px !important', display: 'flex', alignItems: 'center', fontSize: '1rem' },
+        '& .MuiDataGrid-columnHeader': { paddingLeft: '20px !important', paddingRight: '16px !important' },
+        // Never clip a header — let it wrap to two lines instead of showing "OVER…".
+        '& .MuiDataGrid-columnHeaderTitle': { fontSize: '0.95rem', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
+        '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
+        ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
+        ...stickyStyle
+      }}
+    />
+  )
+}
 
 /** Pill used for taxonomy / link badges. */
 export const Pill: React.FC<{ label: React.ReactNode; onClick?: () => void; icon?: string }> = ({

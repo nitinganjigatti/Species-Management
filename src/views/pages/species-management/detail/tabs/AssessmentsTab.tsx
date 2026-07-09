@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import { Avatar, Box, IconButton, Drawer, Typography } from '@mui/material'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Avatar, Box, IconButton, Drawer, MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -20,6 +20,7 @@ import {
   VBarChart
 } from 'src/views/pages/species-management/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/detail/useSortableTable'
+import { resolveRange, type RangePreset } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -380,65 +381,6 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
   )
 }
 
-/* ------------------------------------------------------------------ Distribution / text type panel */
-
-type DistItem = Extract<CatTypeItem, { display: 'distribution' }> | Extract<CatTypeItem, { display: 'text' }>
-
-const DistributionTypePanel: React.FC<{ item: DistItem; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({
-  item,
-  onAnimal,
-  onBucket
-}) => {
-  const { txt, animalCell, c } = useCell()
-  const values = item.display === 'distribution' ? item.values : item.top
-
-  // Invert per-value animal lists → one row per animal (latest value + reading count).
-  const data = useMemo(() => {
-    const byAnimal = new Map<string, { name?: string; label: string; date: string; count: number }>()
-    for (const v of values || []) {
-      for (const an of v.animals || []) {
-        const prev = byAnimal.get(an.id)
-        const date = an.date || ''
-        if (!prev) byAnimal.set(an.id, { name: an.name, label: v.label, date, count: 1 })
-        else {
-          prev.count += 1
-          if (date > prev.date) {
-            prev.label = v.label
-            prev.date = date
-          }
-        }
-      }
-    }
-
-    return Array.from(byAnimal.entries()).map(([id, r]) => ({ antzId: id, name: r.name || id, value: r.label, readings: r.count, lastDate: r.date }))
-  }, [values])
-
-  const tbl = useSortableTable(data, { field: 'lastDate', sort: 'desc' })
-
-  const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', width: 200, renderCell: p => animalCell(p.row.name) },
-    { field: 'value', headerName: 'Latest Value', flex: 1, minWidth: 220, renderCell: p => txt(p.row.value, undefined, 500) },
-    { field: 'readings', headerName: 'Readings', width: 140, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.readings, c.neutralSecondary) },
-    { field: 'lastDate', headerName: 'Last Assessed', width: 190, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
-  ]
-
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <DetailTable
-        columns={columns}
-        rows={tbl.rows}
-        total={tbl.total}
-        paginationModel={tbl.paginationModel}
-        setPaginationModel={tbl.setPaginationModel}
-        sortModel={tbl.sortModel}
-        handleSortModel={tbl.handleSortModel}
-        onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-      />
-    </Box>
-  )
-}
-
 /* ------------------------------------------------------------------ Weight & BCS synthetic panels */
 
 const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({ a, onAnimal, onBucket }) => {
@@ -727,13 +669,288 @@ const CategoryPanel: React.FC<{
     if (!item) return <EmptyState message='No data for this type' />
     if (item.display === 'numeric') return <NumericTypePanel item={item} onAnimal={onAnimal} onBucket={bucket} />
 
-    return <DistributionTypePanel item={item} onAnimal={onAnimal} onBucket={bucket} />
+    // Prototype rule: any non-numeric type shows the per-animal pill-history timeline.
+    return <StripTypeTable key={item.type} a={a} category={category} item={item} onAnimal={onAnimal} />
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {options.length > 1 && <Pills options={options} value={current} onChange={setSel} />}
       {renderPanel()}
+    </Box>
+  )
+}
+
+/* ------------------------------------------------------------------ Strip panel (per-animal reading timeline) */
+
+// Categorical value → sentiment, ported from the WildVenture prototype's good/bad word lists.
+const GOOD_VALS = new Set([
+  'Normal', 'Good', 'Engaged', 'Social', 'Frequent', 'Adequate', 'Present', 'Appropriate', 'Suitable',
+  'Content', 'Relaxed', 'Playful', 'Stable', 'Gaining', 'High', 'Quiet', 'Ideal Range', 'Good response', 'Lively', 'Sociable'
+])
+const BAD_VALS = new Set([
+  'Reduced', 'Poor', 'No Activity', 'Absent', 'Anorexic', 'Aggressive Interactions', 'Aggression', 'Isolated',
+  'Dehydrated', 'Inadequate', 'Losing', 'Pacing', 'Disturbed', 'No response', 'Poor response', 'Self-Mutilation',
+  'Destructive', 'Refusing Food', 'Lethargic', 'Lethargy', 'Loss of Appetite', 'Insufficient', 'Very Loud',
+  'Tense/Fearful', 'Frustrated', 'Stressed', 'Fearful', 'Wary', 'Tense', 'Uncomfortable', 'Dull', 'Abnormal', 'Apathetic', 'Depressed'
+])
+const valSentiment = (v: string): 'good' | 'bad' | 'neutral' => (GOOD_VALS.has(v) ? 'good' : BAD_VALS.has(v) ? 'bad' : 'neutral')
+
+// Nutrition shows only these five user-facing types, in this order; other categories show all their types.
+const NUTRITION_STRIP_TYPES = ['Water intake -Trunk count', 'Hydration Status', 'Appetite', 'Food Preferences', 'Feeding']
+
+// Types that keep their original aggregate panel (per user) instead of the per-animal strip.
+const LEGACY_PANEL_TYPES = new Set(['Water intake -Trunk count'])
+
+interface StripReading {
+  v: string
+  d: string
+  u?: string
+}
+
+// Entries filter for the strip tables — count-based caps + the dashboard's time presets.
+type EntriesFilter = 'n10' | 'n20' | 'last_week' | 'last_30' | 'last_6m' | 'last_1y' | 'last_2y' | 'all'
+
+const ENTRIES_FILTERS: { key: EntriesFilter; label: string }[] = [
+  { key: 'n10', label: 'Last 10 entries' },
+  { key: 'n20', label: 'Last 20 entries' },
+  { key: 'last_week', label: 'Last week' },
+  { key: 'last_30', label: 'Last 1 month' },
+  { key: 'last_6m', label: 'Last 6 months' },
+  { key: 'last_1y', label: 'Last 1 year' },
+  { key: 'last_2y', label: 'Last 2 years' },
+  { key: 'all', label: 'All entries' }
+]
+
+/** Local YYYY-MM-DD (record dates are local-day ISO strings, so compare in local time). */
+const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/** Hard cap on chips rendered per strip row; anything beyond shows as "+N". */
+const MAX_STRIP_READINGS = 60
+
+/** Per-animal reading timeline table for ONE assessment type — the prototype's categorical
+ * pill-history table (value chips + dates, horizontal scroll under a pinned Animal column).
+ * Used by StripPanel for its categories and by CategoryPanel for every non-numeric type. */
+const StripTypeTable: React.FC<{
+  a: SpeciesAssessments
+  category: string
+  item: CatTypeItem
+  onAnimal: (id: string) => void
+}> = ({ a, category, item, onAnimal }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const { animalCell } = useCell()
+
+  const [q, setQ] = useState('')
+  const [entries, setEntries] = useState<EntriesFilter>('n10')
+
+  const isText = item.display === 'text'
+  const isNumeric = item.display === 'numeric'
+
+  // Per-animal readings for this type, newest first, scoped by the entries filter;
+  // animals with no reading in scope are dropped.
+  const allRows = useMemo(() => {
+    const cap = entries === 'n10' ? 10 : entries === 'n20' ? 20 : Infinity
+    const from =
+      entries === 'n10' || entries === 'n20' || entries === 'all'
+        ? null
+        : resolveRange({ preset: entries as RangePreset, start: null, end: null }, new Date()).from
+    const cutoff = from ? isoDay(from) : null
+
+    return (a.animals || [])
+      .map(an => {
+        let readings = (an.records || [])
+          .filter(r => r.c === category && r.t === item.type)
+          .map(r => ({ v: r.v, d: r.d, u: r.u }))
+          .sort((x, y) => (x.d < y.d ? 1 : x.d > y.d ? -1 : 0))
+        if (cutoff) readings = readings.filter(r => r.d >= cutoff)
+        if (readings.length > cap) readings = readings.slice(0, cap)
+
+        return { id: an.antzId, name: an.name, site: an.site, readings, latest: readings[0]?.d || '' }
+      })
+      .filter(r => r.readings.length > 0)
+  }, [a, category, item, entries])
+
+  const changed = useMemo(
+    () => allRows.filter(r => r.readings.length >= 2 && r.readings[0].v !== r.readings[1].v).length,
+    [allRows]
+  )
+
+  const filtered = useMemo(() => {
+    const query = q.trim().toLowerCase()
+    if (!query) return allRows
+
+    return allRows.filter(r => `${r.name || ''} ${r.site || ''}`.toLowerCase().includes(query))
+  }, [allRows, q])
+
+  const tbl = useSortableTable(filtered, { field: 'latest', sort: 'desc' })
+
+  // Search or entries-filter changes must not strand the view on an out-of-range page.
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [q, entries]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const chip = (label: string, sentiment: 'good' | 'bad' | 'neutral', text?: boolean) => {
+    const bg = sentiment === 'good' ? c.OnBackground : sentiment === 'bad' ? c.BgTeritary : c.SurfaceVariant
+    const fg = sentiment === 'good' ? theme.palette.primary.dark : sentiment === 'bad' ? c.Tertiary : c.OnSurfaceVariant
+
+    return (
+      <Box sx={{ px: '11px', py: '3px', borderRadius: '14px', bgcolor: bg, maxWidth: text ? 180 : 'none' }}>
+        <Typography sx={{ fontSize: '0.8rem', fontWeight: text ? 500 : 700, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {label}
+        </Typography>
+      </Box>
+    )
+  }
+
+  const stripCell = (readings: StripReading[]) => (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+      {readings.slice(0, MAX_STRIP_READINGS).map((r, i) => (
+        <Box
+          key={i}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: isText ? 'flex-start' : 'center',
+            px: '14px',
+            borderLeft: i ? `1px solid ${c.SurfaceVariant}` : 'none'
+          }}
+        >
+          {chip(
+            isNumeric ? `${r.v}${r.u ? ` ${abbrevUnit(r.u)}` : ''}` : r.v,
+            isText || isNumeric ? 'neutral' : valSentiment(r.v),
+            isText
+          )}
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, mt: '4px', whiteSpace: 'nowrap' }}>
+            {fmtDate(r.d)}
+          </Typography>
+        </Box>
+      ))}
+      {readings.length > MAX_STRIP_READINGS && (
+        <Typography variant='caption' sx={{ color: c.Outline, alignSelf: 'center', pl: '10px' }}>
+          +{readings.length - MAX_STRIP_READINGS}
+        </Typography>
+      )}
+    </Box>
+  )
+
+  // Widen the strip column to fit the longest visible timeline — the flex column's minWidth
+  // pushes past the container so the table scrolls horizontally under the pinned Animal column.
+  const maxShown = useMemo(
+    () => allRows.reduce((m, r) => Math.max(m, Math.min(r.readings.length, MAX_STRIP_READINGS)), 1),
+    [allRows]
+  )
+  const perReadingW = isText ? 230 : 170
+
+  const columns: GridColDef[] = [
+    { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
+    {
+      field: 'latest',
+      headerName: `${item.type} assessment`,
+      flex: 1,
+      minWidth: Math.max(440, maxShown * perReadingW),
+      renderCell: p => stripCell(p.row.readings)
+    }
+  ]
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {changed > 0 && (
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, alignSelf: 'flex-start', px: 2, py: 1, borderRadius: '10px', bgcolor: c.BgTeritary }}>
+          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: c.Tertiary }}>{changed}</Typography>
+          <Typography variant='body2' sx={{ color: c.OnSurfaceVariant }}>
+            animal{changed === 1 ? '' : 's'} changed since previous assessment
+          </Typography>
+        </Box>
+      )}
+
+      <SectionCard
+        title={
+          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+            {tbl.total.toLocaleString()} animal{tbl.total === 1 ? '' : 's'}
+          </Typography>
+        }
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Select
+              size='small'
+              value={entries}
+              onChange={e => setEntries(e.target.value as EntriesFilter)}
+              sx={{ minWidth: 160, bgcolor: 'background.paper', '& .MuiOutlinedInput-notchedOutline': { borderColor: c.SurfaceVariant } }}
+            >
+              {ENTRIES_FILTERS.map(f => (
+                <MenuItem key={f.key} value={f.key}>
+                  {f.label}
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              size='small'
+              placeholder='Search animal…'
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              sx={{ width: 240, maxWidth: '100%', '& .MuiInputBase-root': { bgcolor: theme.palette.background.paper } }}
+              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
+            />
+          </Box>
+        }
+        titleMb={2}
+      >
+        {tbl.total ? (
+          <DetailTable
+            columns={columns}
+            rows={tbl.rows}
+            total={tbl.total}
+            paginationModel={tbl.paginationModel}
+            setPaginationModel={tbl.setPaginationModel}
+            rowHeight={84}
+            onRowClick={p => onAnimal(p.row.id)}
+            stickyField='name'
+          />
+        ) : (
+          <EmptyState message='No matching animals' />
+        )}
+      </SectionCard>
+    </Box>
+  )
+}
+
+/** Whole-category strip view (Behaviour, Endoscopy, Environment, Nutrition, Musth Behavior):
+ * type pills → per-animal strip for every type, except the legacy aggregate types. */
+const StripPanel: React.FC<{
+  a: SpeciesAssessments
+  category: string
+  onAnimal: (id: string) => void
+  onBucket?: (label: string, subtitle?: string, items?: any[]) => void
+}> = ({ a, category, onAnimal, onBucket }) => {
+  const types = useMemo(() => {
+    const all = a.catDetail?.[category] || []
+    if (!/nutrition/i.test(category)) return all
+
+    return NUTRITION_STRIP_TYPES.map(n => all.find(t => t.type === n)).filter((t): t is CatTypeItem => !!t)
+  }, [a, category])
+
+  const [selIdx, setSelIdx] = useState(0)
+  const options = useMemo(() => types.map((t, i) => ({ key: `t${i}`, label: t.type })), [types])
+  const idx = selIdx < types.length ? selIdx : 0
+  const current = types[idx]
+
+  if (!types.length || !current) return <EmptyState message='No assessment types recorded for this category' />
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {options.length > 1 && (
+        <Pills options={options} value={options[idx].key} onChange={k => setSelIdx(Number(k.replace('t', '')))} />
+      )}
+
+      {current.display === 'numeric' && LEGACY_PANEL_TYPES.has(current.type) ? (
+        // Water intake keeps its original aggregate numeric panel (stats, distribution, per-animal drill).
+        <NumericTypePanel
+          item={current}
+          onAnimal={onAnimal}
+          onBucket={(title, items) => onBucket?.(title, items && items.length ? `${items.length} animals` : undefined, items)}
+        />
+      ) : (
+        <StripTypeTable key={current.type} a={a} category={category} item={current} onAnimal={onAnimal} />
+      )}
     </Box>
   )
 }
@@ -1296,6 +1513,8 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
         <PopulationTable animals={a.animals || []} onAnimal={openAnimal} />
       ) : sub === ALERTS ? (
         <AlertsPanel a={a} onAnimal={openAnimal} onOpenGroup={g => setBucket({ title: g.label, subtitle: `${g.items.length} animals`, items: g.items, unit: g.unit })} />
+      ) : /behaviou?r|endoscopy|environment|nutrition/i.test(sub) ? (
+        <StripPanel a={a} category={sub} onAnimal={openAnimal} onBucket={(title, subtitle, items) => setBucket({ title, subtitle, items })} />
       ) : (
         <CategoryPanel a={a} category={sub} onAnimal={openAnimal} onBucket={(title, subtitle, items) => setBucket({ title, subtitle, items })} />
       )}
