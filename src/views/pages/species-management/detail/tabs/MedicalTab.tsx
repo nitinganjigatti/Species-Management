@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography } from '@mui/material'
+import { Autocomplete, Avatar, Box, Drawer, IconButton, MenuItem, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -25,6 +25,10 @@ import DashboardDateRange, { resolveRange, type RangeSelection } from 'src/views
 type TabKey = 'overview' | 'symptoms' | 'diagnosis' | 'vaccination' | 'deworming' | 'supplements'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// At-risk prognoses, ordered mildest → gravest. Drives the "Highest-risk conditions" filter.
+const RISK_LEVELS = ['Doubtful', 'Poor', 'Grave'] as const
+type RiskLevel = 'all' | (typeof RISK_LEVELS)[number]
 
 /** Date-in-window test for the selected range. `from === null` (All time) passes everything. */
 const useWindow = (range: RangeSelection) => {
@@ -72,6 +76,36 @@ const monthlyTrend = (rows: { date: string }[], now: Date) => {
   }
 
   return buckets
+}
+
+/** Distinct animals per month over the trailing 12 months — drives the per-symptom graph sheet. */
+const monthlyAnimals = (rows: ClinicalRecord[], now: Date) => {
+  const buckets: { label: string; value: number }[] = []
+  const sets: Record<string, Set<string>> = {}
+  const idx: Record<string, number> = {}
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const k = `${d.getFullYear()}-${d.getMonth()}`
+    idx[k] = buckets.length
+    sets[k] = new Set()
+    buckets.push({ label: MONTHS[d.getMonth()], value: 0 })
+  }
+  for (const r of rows) {
+    const d = new Date(r.date)
+    const k = `${d.getFullYear()}-${d.getMonth()}`
+    if (idx[k] != null) sets[k].add(r.aid)
+  }
+  for (const k in idx) buckets[idx[k]].value = sets[k].size
+
+  return buckets
+}
+
+/** Bar index (0 = 11 months ago … len-1 = current) → the calendar month it represents. */
+const monthForBar = (i: number, len: number, now: Date) => {
+  const monthsAgo = len - 1 - i
+  const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
+
+  return { y: d.getFullYear(), m: d.getMonth(), label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
 }
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -1265,6 +1299,8 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
   const [monthFilter, setMonthFilter] = useState<{ idx: number; y: number; m: number; label: string } | null>(null)
   const [statusFilter, setStatusFilter] = useState<'active' | 'longopen' | null>(null)
   const [drawerScope, setDrawerScope] = useState<'all' | 'active' | 'longopen' | 'recurring' | null>(null)
+  const [riskLevel, setRiskLevel] = useState<RiskLevel>('all')
+  const [typeSheet, setTypeSheet] = useState<string | null>(null)
   const [view, setView] = useState<'animal' | 'record'>('animal')
   const tableRef = useRef<HTMLDivElement>(null)
   const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
@@ -1292,12 +1328,6 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
         })()
       }
   const topTypes = all ? prog.topTypes : rankBy(windowed, 'type')
-  const statusMix = { active: s.active, resolved: s.resolved }
-  const prognosisMix = all
-    ? prog.prognosisMix
-    : ['Favourable', 'Guarded', 'Poor']
-        .map(name => ({ name, count: activeRecs.filter(r => r.prognosis === name).length }))
-        .filter(p => p.count > 0)
   const trend = all ? prog.trend : monthlyTrend(windowed, new Date())
 
   // ── Symptom-tab management metrics ──────────────────────────────────────────
@@ -1311,21 +1341,26 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
         .sort((a, b) => b.ratio - a.ratio || b.count - a.count)
   const mostRecurring = recurringList.find(t => t.animals >= 2) ?? recurringList[0] ?? null
   const longOpen = activeRecs.filter(r => r.durationDays > 30).length
+
+  // "Highest-risk conditions" (clinical assessment only): rank types by distinct animals whose
+  // prognosis is at the selected risk level ('all' = any non-favourable outcome).
+  const riskTypes = useMemo(() => {
+    if (!isDiag) return []
+    const levels: readonly string[] = riskLevel === 'all' ? RISK_LEVELS : [riskLevel]
+    const byType: Record<string, Set<string>> = {}
+    for (const r of windowed) {
+      if (r.prognosis && levels.includes(r.prognosis)) (byType[r.type] ??= new Set()).add(r.aid)
+    }
+
+    return Object.entries(byType)
+      .map(([name, animals]) => ({ name, value: animals.size }))
+      .sort((a, b) => b.value - a.value)
+  }, [isDiag, windowed, riskLevel])
   const prevalencePct = animalCount ? Math.round((s.animalsAffected / animalCount) * 100) : 0
   const newThisMonth = trend.length ? trend[trend.length - 1].value : 0
   const prevMonth = trend.length > 1 ? trend[trend.length - 2].value : 0
   const monthDelta = newThisMonth - prevMonth
 
-  // Trend bars = trailing 12 months. Clicking one filters the list to that calendar month;
-  // clicking the active bar clears it. Bars are dimmed except the selected one.
-  const onTrendBar = (i: number) => {
-    const now = new Date()
-    const monthsAgo = trend.length - 1 - i
-    const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
-    setMonthFilter(prev =>
-      prev && prev.idx === i ? null : { idx: i, y: d.getFullYear(), m: d.getMonth(), label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
-    )
-  }
   const inMonth = (dateStr: string) => {
     if (!monthFilter) return true
     const d = new Date(dateStr)
@@ -1384,9 +1419,40 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
     setDrawerScope(null)
     setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
   }
-  // Clicking a symptom in the widespread/recurring panels → filter the table + scroll to it.
-  const filterAndScroll = (name: string) => {
-    setTypeFilter(name)
+  // Per-symptom 12-month graph sheet: distinct animals affected per month + one-line summary.
+  const sheetSeries = useMemo(() => {
+    if (!typeSheet) return null
+    const now = new Date()
+    const recs = windowed.filter(r => r.type === typeSheet)
+    const series = monthlyAnimals(recs, now)
+    const peakIdx = series.reduce((mx, b, i) => (b.value > series[mx].value ? i : mx), 0)
+
+    return {
+      series,
+      totalAnimals: new Set(recs.map(r => r.aid)).size,
+      totalEpisodes: recs.length,
+      peakLabel: series[peakIdx]?.value ? monthForBar(peakIdx, series.length, now).label : '—'
+    }
+  }, [typeSheet, windowed])
+
+  // Clicking a bar in the symptom sheet → close it, filter table by symptom + that month,
+  // switch to Record-wise (per-record Reported dates read best under a month filter), and scroll to it.
+  const onSheetBar = (i: number) => {
+    if (!sheetSeries) return
+    const mf = monthForBar(i, sheetSeries.series.length, new Date())
+    setTypeFilter(typeSheet)
+    setStatusFilter(null)
+    setMonthFilter({ idx: i, y: mf.y, m: mf.m, label: mf.label })
+    setView('record')
+    setTypeSheet(null)
+    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
+  // "View all months" → symptom-only filter, no month.
+  const onSheetViewAll = () => {
+    setTypeFilter(typeSheet)
+    setMonthFilter(null)
+    setStatusFilter(null)
+    setTypeSheet(null)
     setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
   }
   const tbl = useSortableTable(rows, { field: 'date', sort: 'desc' })
@@ -1441,14 +1507,6 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
     }
   ]
 
-  const donutSegments = isDiag && prognosisMix?.length
-    ? prognosisMix.map(p => ({ label: p.name, value: p.count, tone: (p.name === 'Favourable' ? 'success' : 'error') as any }))
-    : [
-        { label: 'Resolved', value: statusMix.resolved, tone: 'success' as const },
-        { label: 'Active', value: statusMix.active, tone: 'error' as const }
-      ]
-  const donutTotal = donutSegments.reduce((a, b) => a + b.value, 0)
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {/* Row 1 · stats */}
@@ -1482,23 +1540,20 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
 
       {/* Row 2 · charts */}
       {isDiag ? (
-        <ChartsRow md='repeat(3, 1fr)'>
+        <ChartsRow md='repeat(2, 1fr)'>
           <SectionCard title={`Most common ${noun}`} titleMb={2}>
             {commonTypes.length ? (
-              <>
-                <RankedList items={commonTypes.map(t => ({ label: t.name, count: t.count }))} onItem={filterAndScroll} limit={5} />
-                {commonTypes.length > 5 && (
-                  <Box
-                    onClick={() => setDrawerScope('all')}
-                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.5, cursor: 'pointer', color: theme.palette.secondary.main }}
-                  >
-                    <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                      View all {commonTypes.length} {noun}
-                    </Typography>
-                    <Icon icon='mdi:chevron-right' fontSize={16} />
-                  </Box>
-                )}
-              </>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                {commonTypes.map(t => (
+                  <ChipTag
+                    key={t.name}
+                    label={t.name}
+                    value={(t.animals ?? t.count).toLocaleString()}
+                    valueColor={c.OnSurfaceVariant}
+                    onClick={() => setTypeSheet(t.name)}
+                  />
+                ))}
+              </Box>
             ) : (
               <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
                 No records.
@@ -1506,24 +1561,37 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
             )}
           </SectionCard>
 
-          <SectionCard title='Prognosis mix' titleMb={2}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              <Donut segments={donutSegments} centerValue={donutTotal.toLocaleString()} centerSub='open' size={188} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {donutSegments.map(seg => (
-                  <Box key={seg.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: seg.tone === 'success' ? theme.palette.primary.main : c.Tertiary }} />
-                    <Typography variant='body2'>
-                      {seg.label} <Box component='span' sx={{ fontWeight: 700 }}>{seg.value.toLocaleString()}</Box>
-                    </Typography>
-                  </Box>
+          <SectionCard
+            title='Highest-risk conditions'
+            titleMb={2}
+            action={
+              <TextField
+                select
+                size='small'
+                value={riskLevel}
+                onChange={e => setRiskLevel(e.target.value as RiskLevel)}
+                sx={{ minWidth: 150, '& .MuiInputBase-root': { height: 36, bgcolor: theme.palette.background.paper } }}
+              >
+                <MenuItem value='all'>All at-risk</MenuItem>
+                {RISK_LEVELS.map(l => (
+                  <MenuItem key={l} value={l}>
+                    {l}
+                  </MenuItem>
+                ))}
+              </TextField>
+            }
+          >
+            {riskTypes.length ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                {riskTypes.map(t => (
+                  <ChipTag key={t.name} label={t.name} value={t.value.toLocaleString()} valueColor={c.Tertiary} onClick={() => setTypeSheet(t.name)} />
                 ))}
               </Box>
-            </Box>
-          </SectionCard>
-
-          <SectionCard title={`${noun[0].toUpperCase()}${noun.slice(1)} over time`} titleMb={2}>
-            <ColumnTrend data={trend} tone='info' height={195} showValues onBarClick={onTrendBar} activeIndex={monthFilter?.idx ?? null} />
+            ) : (
+              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+                No {riskLevel === 'all' ? 'at-risk' : riskLevel.toLowerCase()} cases.
+              </Typography>
+            )}
           </SectionCard>
         </ChartsRow>
       ) : (
@@ -1537,7 +1605,7 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
                     label={t.name}
                     value={(t.animals ?? t.count).toLocaleString()}
                     valueColor={c.OnSurfaceVariant}
-                    onClick={() => filterAndScroll(t.name)}
+                    onClick={() => setTypeSheet(t.name)}
                   />
                 ))}
               </Box>
@@ -1557,7 +1625,7 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
                     label={t.name}
                     value={`${t.ratio.toFixed(1)}×`}
                     valueColor={theme.palette.primary.dark}
-                    onClick={() => filterAndScroll(t.name)}
+                    onClick={() => setTypeSheet(t.name)}
                   />
                 ))}
               </Box>
@@ -1665,6 +1733,63 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
                 }
                 onPick={pickFromDrawer}
               />
+            </Box>
+          </Box>
+        )}
+      </Drawer>
+
+      {/* wide side sheet · per-symptom 12-month graph (distinct animals affected) */}
+      <Drawer
+        anchor='right'
+        open={!!typeSheet}
+        onClose={() => setTypeSheet(null)}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 760 }, maxWidth: '100%' } }}
+      >
+        {typeSheet && sheetSeries && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ px: 5, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
+                  {typeCol} · last 12 months
+                </Typography>
+                <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
+                  {typeSheet}
+                </Typography>
+              </Box>
+              <IconButton onClick={() => setTypeSheet(null)} size='small'>
+                <Icon icon='mdi:close' />
+              </IconButton>
+            </Box>
+            <Box sx={{ flex: 1, overflowY: 'auto', px: 5, py: 4 }}>
+              <Typography variant='body2' sx={{ color: c.neutralSecondary, mb: 3 }}>
+                Animals affected per month. Click a bar to see those animals in the table below.
+              </Typography>
+              <ColumnTrend data={sheetSeries.series} tone='info' height={240} showValues onBarClick={onSheetBar} />
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 6, mt: 4, pt: 3, borderTop: `1px solid ${c.SurfaceVariant}` }}>
+                {[
+                  { label: 'Animals affected', value: sheetSeries.totalAnimals.toLocaleString() },
+                  { label: 'Total episodes', value: sheetSeries.totalEpisodes.toLocaleString() },
+                  { label: 'Peak month', value: sheetSeries.peakLabel }
+                ].map(stat => (
+                  <Box key={stat.label}>
+                    <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }}>
+                      {stat.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: c.OnSurfaceVariant }}>
+                      {stat.value}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+              <Box
+                onClick={onSheetViewAll}
+                sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 4, cursor: 'pointer', color: theme.palette.secondary.main }}
+              >
+                <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
+                  View all months in table
+                </Typography>
+                <Icon icon='mdi:chevron-right' fontSize={16} />
+              </Box>
             </Box>
           </Box>
         )}
