@@ -17,6 +17,7 @@ export type RangePreset =
   | 'last_6m'
   | 'last_1y'
   | 'last_2y'
+  | 'last_3y'
   | 'all'
   | 'custom'
 
@@ -34,6 +35,7 @@ export const PRESETS: { key: RangePreset; label: string }[] = [
   { key: 'last_6m', label: 'Last 6 months' },
   { key: 'last_1y', label: 'Last 1 year' },
   { key: 'last_2y', label: 'Last 2 years' },
+  { key: 'last_3y', label: 'Last 3 years' },
   { key: 'all', label: 'All time' },
   { key: 'custom', label: 'Custom range' }
 ]
@@ -64,6 +66,8 @@ export function resolveRange(sel: RangeSelection, now: Date): { from: Date | nul
       return { from: new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()), to }
     case 'last_2y':
       return { from: new Date(now.getFullYear() - 2, now.getMonth(), now.getDate()), to }
+    case 'last_3y':
+      return { from: new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()), to }
     case 'all':
       return { from: null, to }
     case 'custom':

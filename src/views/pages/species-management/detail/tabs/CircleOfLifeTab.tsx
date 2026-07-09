@@ -25,6 +25,7 @@ import {
 import { ColumnBarChart, SmoothAreaChart } from 'src/views/pages/species-management/dashboard/dashboardUi'
 import DashboardDateRange, {
   resolveRange,
+  type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-management/speciesListing.utils'
@@ -225,19 +226,90 @@ export const MoreFiltersDrawer: React.FC<{
   )
 }
 
-const BirthsView: React.FC<{ births: SpeciesBirths }> = ({ births }) => {
+/** "YYYY-MM" → "Jan '46" (the prototype's month labels on the trend charts). */
+const fmtYm = (k: string) => {
+  const mm = /^(\d{4})-(\d{2})$/.exec(k)
+
+  return mm ? `${MONTHS[+mm[2] - 1]} '${mm[1].slice(2)}` : k
+}
+
+// The prototype's 1Y·2Y·3Y·All underline tabs on the trend-chart header. Picking one
+// drives the SHARED period filter, so the top Quick preset changes with it.
+const TREND_RANGES: { key: RangePreset; label: string }[] = [
+  { key: 'last_1y', label: '1Y' },
+  { key: 'last_2y', label: '2Y' },
+  { key: 'last_3y', label: '3Y' },
+  { key: 'all', label: 'All' }
+]
+
+const TrendRangeTabs: React.FC<{ value: RangePreset; onPick: (p: RangePreset) => void; color: string }> = ({ value, onPick, color }) => {
+  const theme = useTheme() as any
+  const cc = theme.palette.customColors
+
+  return (
+    <Box sx={{ display: 'flex', borderBottom: `2px solid ${cc.SurfaceVariant}` }}>
+      {TREND_RANGES.map(r => {
+        const active = value === r.key
+
+        return (
+          <Box
+            key={r.key}
+            onClick={() => onPick(r.key)}
+            sx={{
+              px: '14px',
+              py: '4px',
+              cursor: 'pointer',
+              mb: '-2px',
+              borderBottom: `2.5px solid ${active ? color : 'transparent'}`,
+              transition: 'all .15s ease'
+            }}
+          >
+            <Typography variant='caption' sx={{ fontWeight: 700, color: active ? color : cc.neutralSecondary }}>
+              {r.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
+/** Trend series for the chart: bounded year-presets get a contiguous zero-filled month
+ *  window (prototype's _buildLastNMonths); everything else shows the months that have data. */
+const trendMonths = (byYearMonth: { label: string; value: number }[], preset: RangePreset) => {
+  const n = preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : preset === 'last_3y' ? 36 : null
+  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value }))
+
+  const map = new Map(byYearMonth.map(d => [d.label, d.value]))
+  const now = new Date()
+  const out: { label: string; value: number }[] = []
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    out.push({ label: fmtYm(k), value: map.get(k) || 0 })
+  }
+
+  return out
+}
+
+const BirthsView: React.FC<{ births: SpeciesBirths; rangePreset: RangePreset; onPickRange: (p: RangePreset) => void }> = ({
+  births,
+  rangePreset,
+  onPickRange
+}) => {
   const theme = useTheme() as any
   const green = theme.palette.primary.main
   const peak = (births.seasonal || []).reduce(
     (best, d) => (d.value > (best?.value ?? -1) ? d : best),
     null as null | { label: string; value: number }
   )
+  const trend = useMemo(() => trendMonths(births.byYearMonth || [], rangePreset), [births.byYearMonth, rangePreset])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {births.byYearMonth?.length > 0 && (
-        <SectionCard title='Births Over Time'>
-          <SmoothAreaChart values={births.byYearMonth.map(d => d.value)} labels={births.byYearMonth.map(d => d.label)} color={green} name='Births' />
+      {trend.length > 0 && (
+        <SectionCard title='Births Over Time' action={<TrendRangeTabs value={rangePreset} onPick={onPickRange} color={green} />}>
+          <SmoothAreaChart values={trend.map(d => d.value)} labels={trend.map(d => d.label)} color={green} name='Births' />
         </SectionCard>
       )}
 
@@ -272,12 +344,19 @@ const monthOf = (s?: string) => Number(String(s || '').slice(5, 7)) // "YYYY-MM.
 
 type Drill = { title: string; subtitle: string; items: { id: string; name: string; sub?: string }[] }
 
-const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
+const DeathsView: React.FC<{ deaths: SpeciesDeaths; rangePreset: RangePreset; onPickRange: (p: RangePreset) => void }> = ({
+  deaths,
+  rangePreset,
+  onPickRange
+}) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const recent = deaths.recent || []
   const [drill, setDrill] = useState<Drill | null>(null)
   const [showAllCauses, setShowAllCauses] = useState(false)
+
+  // Deaths over time — same trend chart + 1Y/2Y/3Y/All control as Births (prototype parity).
+  const trend = useMemo(() => trendMonths(deaths.byYearMonth || [], rangePreset), [deaths.byYearMonth, rangePreset])
 
   // Mortality pattern: cumulative deaths per calendar month, summed across all years (Jan = every January).
   const byMonth = useMemo(
@@ -344,6 +423,12 @@ const DeathsView: React.FC<{ deaths: SpeciesDeaths }> = ({ deaths }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {trend.length > 0 && (
+        <SectionCard title='Deaths Over Time' action={<TrendRangeTabs value={rangePreset} onPick={onPickRange} color={cc.Tertiary} />}>
+          <SmoothAreaChart values={trend.map(d => d.value)} labels={trend.map(d => d.label)} color={cc.Tertiary} name='Deaths' />
+        </SectionCard>
+      )}
+
       {byMonth.some(m => m.count > 0) && (
         <SectionCard title='Seasonal Mortality Pattern'>
           <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
@@ -1319,12 +1404,32 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const yearItems = years.map(y => ({ value: y, label: String(y) }))
   const monthItems = MONTHS.map((m, i) => ({ value: i + 1, label: m }))
 
+  // Chart-level 1Y/2Y/3Y/All tabs drive the SAME period state as the top Quick picker:
+  // force quick mode (clearing any by-month/year window) and set the preset.
+  const pickTrendRange = (p: RangePreset) => {
+    setAnalysis(a => ({ ...a, yearFrom: null, yearTo: null, monthFrom: null, monthTo: null }))
+    setPeriodModeState('quick')
+    setRange({ preset: p, start: null, end: null })
+  }
+
   const renderView = () => {
     if (sub === 'lifespan') return <LifespanView deaths={hasEvents ? filteredDeaths : []} />
     if (sub === 'births')
-      return birthEvents.length ? <BirthsView births={buildBirths(filteredBirths)} /> : births ? <BirthsView births={births} /> : <EmptyState message='No birth data available' />
+      return birthEvents.length ? (
+        <BirthsView births={buildBirths(filteredBirths)} rangePreset={range.preset} onPickRange={pickTrendRange} />
+      ) : births ? (
+        <BirthsView births={births} rangePreset={range.preset} onPickRange={pickTrendRange} />
+      ) : (
+        <EmptyState message='No birth data available' />
+      )
 
-    return deathEvents.length ? <DeathsView deaths={buildDeaths(filteredDeaths)} /> : deaths ? <DeathsView deaths={deaths} /> : <EmptyState message='No death data available' />
+    return deathEvents.length ? (
+      <DeathsView deaths={buildDeaths(filteredDeaths)} rangePreset={range.preset} onPickRange={pickTrendRange} />
+    ) : deaths ? (
+      <DeathsView deaths={deaths} rangePreset={range.preset} onPickRange={pickTrendRange} />
+    ) : (
+      <EmptyState message='No death data available' />
+    )
   }
 
   const groupLabel = (text: string) => (
