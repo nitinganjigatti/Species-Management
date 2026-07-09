@@ -284,12 +284,35 @@ const AuthProvider = ({ children }) => {
       setLoading(false)
     }
 
+    // The public-demo stub (initAuthDemo) seeds userDetails.token = 'demo-token'.
+    // If demo mode is later turned off that stub must not leak into real auth:
+    // GetAPIHeader prefers userDetails.token over the WSO2 access token, so the
+    // session bootstrap sends 'Bearer demo-token', the backend 401s, and login
+    // loops forever (WSO2 login OK → hydrate 401 → client.logout() → /login).
+    const purgeStaleDemoSession = () => {
+      let stale = window.localStorage.getItem(authConfig.storageTokenKeyName) === 'demo-token'
+      try {
+        stale = stale || read('userDetails')?.token === 'demo-token'
+      } catch {
+        /* malformed userDetails — leave it to the normal flow */
+      }
+      if (stale) {
+        window.localStorage.removeItem(authConfig.storageTokenKeyName)
+        window.localStorage.removeItem('userData')
+        window.localStorage.removeItem('userDetails')
+        window.localStorage.removeItem('role')
+      }
+    }
+
     if (isPublicDemo()) {
       initAuthDemo()
-    } else if (isWso2AuthEnabled()) {
-      initAuthWso2()
     } else {
-      initAuthLegacy()
+      purgeStaleDemoSession()
+      if (isWso2AuthEnabled()) {
+        initAuthWso2()
+      } else {
+        initAuthLegacy()
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
 
