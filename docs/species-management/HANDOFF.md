@@ -1,6 +1,6 @@
 # Species Management — Session Handoff
 
-_Last updated: 2026-06-22. Read this first when resuming._
+_Last updated: 2026-07-15. Read this first when resuming._
 
 ## TL;DR
 Building a **new Species Management module** in antz, recreated **from the wildventure prototype**,
@@ -798,3 +798,105 @@ are hospital-scoped (ZooId + selectedHospital), not species-scoped.
 
 **Open (unchanged):** WSO2 fix → browser verify · mammal Breeding module · Nutrition's 4
 whitelisted-out types · 128MB preventive folder size watch.
+
+---
+
+# 2026-07-15 (session 2) — DIET & KITCHEN fully mapped ("Antz Kitchen" UAT microservice, for future Species-Mgmt integration)
+
+**PURPOSE: user wants Diet & Kitchen surfaced INSIDE Species Management v2 from the MANAGEMENT-USER
+point of view** (aggregate/analytical tab, like Medical/CoL/Eggs/Hospital-planned — not the kitchen
+operator's workflow). Full detail in memory `diet-kitchen-uat-microservice`; essentials below.
+
+## What it is
+**"Antz Kitchen — Admin"** at https://uatmicroservice.antz.ril.com/ — a NEW standalone diet &
+kitchen microservice (Next.js App Router frontend + NestJS API at `/api/v1`, F5 WAF in front).
+**Separate from — and a full-generation ahead of — this repo's old `/diet` module** (feed types →
+ingredients → recipes/combos → meal groups → Excel reports, on the PHP-style `diet/listing` API).
+The new service adds plan versioning, time-band scheduling, USDA nutrition, demand forecasting,
+procurement, real inventory, and kiosk scan execution.
+
+## Access recipe (verified working 2026-07-15)
+- `POST /api/v1/auth/login` `{email, password}` → `data.accessToken` (JWT, **15-min expiry**;
+  `data.refreshToken` → `/auth/refresh`). UAT test creds: keerthana@lifesciencetrust.com / games123
+  (ADMIN + PROCUREMENT_MANAGER; zoos 2 "Test Zoo", 4 "Dhanush Zoo").
+- Every call needs `Authorization: Bearer <token>` **AND `X-Zoo-Id: 2`** (without the header the
+  backend assumes zoo 1 → "Account does not have access to zoo 1" 401).
+- No Swagger (WAF blocks it). Endpoint surface was recovered by grepping the app's
+  `/_next/static/chunks/*.js` for route strings — repeatable trick for any of their microservices.
+
+## Sidebar IA (exact, from the layout chunk)
+Dashboard · **Diet**: Diet by Species / Diet Items Forecast / Prep Sheet / Diet Changes / Diet
+Directory / Import Diet(super) · **Inventory**: Goods Received / Stock / Reports · **Kitchen**:
+Packing Stations / Prep Sheet · **Operations(Procurement)**: Dashboard / Weekly Plans / Monthly
+Plans · **Admin**: Masters / Users / Roles / Audit Reports / Scan Kiosks / Kiosk Logs ·
+**System(super)**: Settings / Deploy / Peek / Reset Diet Data.
+
+## Domain model — 4 clusters (all zoo-scoped; 35 audited entity types)
+1. **Diet planning (the heart).** `DietPlan`: keyed to species by ITIS `tsn`, `scopeLevel`
+   site|section|enclosure|animal (+species), optional per-sex, `validFrom/validTo`, `recurring`,
+   `quantityMode` standard|banded, **lineage versioning** (`lineageId`/`previousPlanId`/
+   `restoredFromPlanId`/`changeReason` → powers "Diet Changes" history). Plan → **timeBands**
+   (07:00–09:30 style feeding windows) → **items**: dietItem XOR dietMix + preparation + cutSize +
+   unit + **dayOfWeekMask bitmask** + cadence weekly|interval|monthly + dailyAmount (+ separate
+   male/female/undetermined amounts) + `choiceGroupKey` (feed A *or* B alternatives) + bandQtys.
+   Test Zoo: 161 plans / 140 species. Key GETs: `diet-plans/by-species/{tsn}`,
+   `diet-plans/effective/animal/{id}`, `diet-plans/directory`, `diet-plans/lookups`,
+   `diet-plans/changes`, `diet-by-species/species` (list w/ animalCount, enclosures, mealGroups).
+2. **Nutrition-aware food masters.** `diet-items` carry a full nutrient panel (energyKcal, protein,
+   fat, carb, fiber, moisture, Ca, P, vit A/D/E/C) **auto-synced from USDA FoodData Central**
+   (`nutrientSource: fdc_auto|curated`, confidence score). `diet-mixes` (kind mix|recipe,
+   compositionMode percent|absolute) have own computed nutrition. Also: diet-categories
+   (codePrefix → item codes like GEN-BG-0001), diet-item-types, mix-categories, preparations,
+   cut-sizes (weight-per-piece drives forecast), time-bands, units (dimension + factorToBase).
+3. **Forecast engine (bridge diet → procurement).** `/forecast/status|refresh|rebuild-logs|
+   diet-items?from&to|procurement-items?|prep-breakdown?` — precomputed horizon rollup of all
+   active plans × animal counts → projected qty per diet item, each with per-plan contribution
+   drill-down (viaMix, scopePath, skips in-transit animals). Drives Prep Sheet + procurement
+   forecast via diet-item→SKU mappings (mapping gaps surfaced, `mapping-stats` endpoints).
+4. **Procurement + inventory + kiosk execution.** procurement-items (SKUs) w/ brands/vendors/
+   locations/storage-conditions; weekly/monthly `procurement/plans`; `procurement/dashboard`
+   (KPIs + item/brand/vendor/category/location mixes + coverage gaps). Chain: GoodsReceipt
+   (vendor, dcNumber, warehouse) → InventoryBatch (B26-xxxx, expiry) → Containers (QR labels,
+   seqNo, room) → scan movements (receive/move/issue/release_out/waste) → ageing/expiry/
+   stock-by-location reports. **Kitchens** (type WAREHOUSE) → packing-stations. **Kiosks** =
+   registered scan devices bound to room+warehouse (`/inventory/kiosk/*` returns 403 unless the
+   request comes from a kiosk); kiosk logs report. `antz-db/*` bridge mirrors sites/sections/
+   enclosures/animals (157 sites in zoo 2).
+
+## Management-user integration angles (NOT yet designed — brainstorm first)
+Per-species: current effective diet ("what does this species eat") rendered as time-band ×
+day-of-week schedule · diet change history (lineage + changeReason — management loves "why did the
+diet change") · nutrition profile of the effective diet (computed panel vs species) · daily/weekly
+food cost & quantity (forecast contribution for that species) · feeding compliance once kiosk issue
+data links back · plan coverage gaps (animals w/o plan, sex-banded vs not). NOTE: species v2 is
+static-JSON — a Diet tab needs synthetic sidecars (egg-style) or a one-off pull from this UAT API
+(the access recipe above makes a real-data extract feasible); real APIs are zoo-scoped + tsn-keyed,
+which matches our species pages (tsn ≈ species id mapping needed).
+
+## Where the raw research lives
+Memory `diet-kitchen-uat-microservice` (durable). Session scratchpad had full JSON payloads of
+every endpoint (`uat_api/*.json`) — gone next session; re-pull with the access recipe if needed.
+
+## Open (unchanged)
+WSO2 fix → browser verify · mammal Breeding module · Nutrition's 4 whitelisted-out types ·
+128MB preventive folder size watch.
+
+---
+
+# 2026-07-15 (session 3) — detail2 header IUCN/CITES chips enlarged. Committed.
+
+Tiny UI pass: `StatusChip` (`detail2/detailUi.tsx`) gained an opt-in `size='medium'`
+(caption→body2, px 1.5→2.5, py 0.5→1, radius 8px); the header IUCN + CITES chips in
+`detail2/SpeciesDetailView.tsx` use it. All other StatusChips unchanged (default `small`).
+tsc 0 errors. NOTE: this change rode along in commit `ab73cd806` (the parallel session's
+Medical v2 commit staged it) — already pushed to personal/main.
+
+**Acceptance:** open `/species-management/list-2/2150/` → header IUCN/CITES chips read at
+14px with roomier padding. If they're still tiny, stale bundle — hard-refresh.
+
+**Session-close state:** working tree clean except this handoff (committed now) and the
+untracked `.superpowers/` (deliberately excluded, as always). All 2026-07-14/15 work
+(Clinical merge · vaccine-wise preventive · Eggs tab · hospital + Diet&Kitchen research)
+is committed and pushed to personal/main. Open items unchanged: WSO2 fix → browser verify ·
+mammal Breeding module · Nutrition's 4 whitelisted-out types · 128MB preventive folder watch ·
+Diet tab integration (brainstorm first — see the Diet & Kitchen section above).
