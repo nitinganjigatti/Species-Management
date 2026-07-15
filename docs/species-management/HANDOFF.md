@@ -736,3 +736,65 @@ mammal shows it, the class gate broke. If you're on `/list/` (v1) you'll never s
 gauges (GD/MK/Nₑ — were in standalone, dropped when it became a tab; add if wanted) · mammal
 "Breeding" = separate future module. Memory: [[breeding-egg-module-idea]], [[breeding-egg-research]],
 [[egg-module-map]].
+
+# 2026-07-15 session — commits pushed + HOSPITAL module fully mapped (for future Species-Mgmt integration)
+
+## Housekeeping
+Both 2026-07-14 sessions committed+pushed to `personal/main` (Vercel repo): `ab73cd806` Medical v2
+(Clinical merge + vaccine-wise preventive + 3,911 data sidecars), `39f44e38d` Eggs breeding tab,
+`674dbbae9` handoff. tsc 0 errors. Browser verification still blocked on WSO2 account (user-side).
+
+## Hospital module map — swept 2026-07-15 (4 parallel explorers, ~250 files)
+**PURPOSE: user wants hospital data surfaced INSIDE Species Management v2 from the MANAGEMENT-USER
+point of view** (aggregate/analytical, like the Medical/CoL/Eggs tabs — NOT the clinician's
+record-entry workflow). Full detail in memory `hospital-module-map`; essentials below.
+
+**Layers:** routes `src/app/(module)/hospital/` · `src/components/hospital/` (119 files) ·
+`src/views/pages/hospital/` (51) · `src/lib/api/hospital/` (19) · `src/types/hospital/` (57) ·
+`src/store/slices/hospital/` (scratchpad slice) · nav `src/components/navigation/hospital/index.tsx`
+· endpoints `src/constants/ApiConstant.js:634-950` · scoping via `src/context/HospitalContext.tsx`
+(selectedHospital + bed stats; module gated on `roles.settings.add_hospital`).
+
+**Two spine facts.** (1) An admission IS a transfer (`module:'hospital_transfer'`): Incoming =
+`v1/get-transfer-list`; Add Patient = self-transfer `v1/transfer/create`; admit/reject both POST
+`v1/hospital/admit`. (2) A hospital case rides the medical-record spine: `hospital_case_id` ↔
+`medical_record_id`; symptoms(=complaints)/assessments(=diagnoses)/notes all read the SAME endpoint
+`medical/v2/{animalId}/get-medical-common-data-v2` — i.e. the same records our Species v2 Clinical
+tab already visualizes; hospital is where they're ENTERED.
+
+**Lifecycle:** incoming (pending|rejected) → admit (treatment_type inpatient|opd; chief vet from
+chief-doctor flag; bed pick auto-fills room) → inpatient/outpatient → Discharge tab (radio:
+TransferEnclosure → discharged (+followup list if follow_up_required) | Mortality → mortality).
+Lists are endpoint/param-driven (`patient_category: inpatient|outpatient|discharge` on
+`v1/hospital/get-hospital-patients`; mortality/followup own endpoints), NOT one status enum.
+Health status stable|critical is orthogonal. TransferHospital discharge = orphaned dead code.
+
+**Detail:** ONE shared `PatientDetails.tsx` for all 5 segments (category prop), 12 lazy `?tab=`
+tabs: Overview · Symptoms · Clinical Assessment · Prescription (date-nav dose GRID w/ administer/
+skip/stop/undo) · Clinical Notes · Other Treatments · Monitoring (parameter×date readings grid,
+per-hospital templates) · Medical Summary (housing journal-log GroupedTimeline) · Anesthesia ·
+Surgery · Media · Discharge. NO charts anywhere in the module — all slot grids/tables. Sub-routes
+under every segment are thin wrappers (single shared impls); the 5 LIST screens are ~600-line
+near-copies. Mega-forms: prescription scheduler 2.4k lines, anesthesia 2.5k (6 accordions incl.
+vital time-slot grid), surgery 2.3k (requires linked anesthesia record).
+
+**Masters/staff:** Hospital (an `entity_type` record, site-tied) → Room (floor) → Bed (UI
+"Cage/Stall/Enclosure", leaf). Occupied units can't deactivate. Anesthesia + Monitoring masters =
+`<div>` stubs; Surgery master live (delete commented out). Staff = read-only listing + chief-doctor
+toggle feeding the admit form; AddStaffsDrawer dead.
+
+**Data quirks:** GET/POST only (deletes = multipart POSTs, 3 literal GETs); Incoming uses React
+Query, the other 5 lists useEffect+useState; 9 invalidateQueries sites total; `hospitalSlice` =
+key-value scratchpad (discharge medicine hand-off + `medical_record_data` that forms depend on —
+deep-links break without visiting detail first).
+
+**Management-user integration angles (NOT yet designed — brainstorm first):** per-species
+hospitalization pressure (admissions/visits over time, `getAnimalTotalHospitalVisits` exists
+per-animal), currently-hospitalized roster for a species, visit-type mix (checkup/emergency/opd/
+follow_up/planned), outcomes (discharged vs mortality-in-hospital vs followup-overdue), length-of-
+stay, surgery/anesthesia counts, bed occupancy by species. NOTE: our species v2 is static-JSON —
+any hospital tab would need synthetic sidecars (egg-style) or a new build script; the real APIs
+are hospital-scoped (ZooId + selectedHospital), not species-scoped.
+
+**Open (unchanged):** WSO2 fix → browser verify · mammal Breeding module · Nutrition's 4
+whitelisted-out types · 128MB preventive folder size watch.
