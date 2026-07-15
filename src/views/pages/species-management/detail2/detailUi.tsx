@@ -9,6 +9,7 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import type { RangePreset } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 
 /**
  * Shared, on-system UI primitives for the Species Management detail tabs.
@@ -169,7 +170,12 @@ export const StatTile: React.FC<{
 }
 
 /** Status / category chip in a semantic tone. */
-export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone; fg?: string }> = ({ label, tone = 'neutral', fg: fgOverride }) => {
+export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone; fg?: string; size?: 'small' | 'medium' }> = ({
+  label,
+  tone = 'neutral',
+  fg: fgOverride,
+  size = 'small'
+}) => {
   const tones = useTone()
   const { bg, fg } = tones(tone)
 
@@ -178,13 +184,13 @@ export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone; fg?: st
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        px: 1.5,
-        py: 0.5,
-        borderRadius: '6px',
+        px: size === 'medium' ? 2.5 : 1.5,
+        py: size === 'medium' ? 1 : 0.5,
+        borderRadius: size === 'medium' ? '8px' : '6px',
         backgroundColor: bg
       }}
     >
-      <Typography variant='caption' sx={{ fontWeight: 600, color: fgOverride || fg }}>
+      <Typography variant={size === 'medium' ? 'body2' : 'caption'} sx={{ fontWeight: 600, color: fgOverride || fg }}>
         {label}
       </Typography>
     </Box>
@@ -552,6 +558,46 @@ export const StackedBar: React.FC<{ segments: { label: string; value: number; to
 
 /** Vertical column trend (year-month / seasonal). `baseline` lifts the floor so small
  * variations read clearly (e.g. weight trend anchored at the species minimum). */
+/** The 1Y·2Y·3Y·All underline range tabs used on trend-chart headers (Circle of Life, Clinical sheets). */
+export const TREND_RANGES: { key: RangePreset; label: string }[] = [
+  { key: 'last_1y', label: '1Y' },
+  { key: 'last_2y', label: '2Y' },
+  { key: 'last_3y', label: '3Y' },
+  { key: 'all', label: 'All' }
+]
+
+export const TrendRangeTabs: React.FC<{ value: RangePreset; onPick: (p: RangePreset) => void; color: string }> = ({ value, onPick, color }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ display: 'flex', borderBottom: `2px solid ${c.SurfaceVariant}` }}>
+      {TREND_RANGES.map(r => {
+        const active = value === r.key
+
+        return (
+          <Box
+            key={r.key}
+            onClick={() => onPick(r.key)}
+            sx={{
+              px: '14px',
+              py: '4px',
+              cursor: 'pointer',
+              mb: '-2px',
+              borderBottom: `2.5px solid ${active ? color : 'transparent'}`,
+              transition: 'all .15s ease'
+            }}
+          >
+            <Typography variant='caption' sx={{ fontWeight: 700, color: active ? color : c.neutralSecondary }}>
+              {r.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
 export const ColumnTrend: React.FC<{
   data: { label: string; value: number }[]
   tone?: Tone
@@ -563,7 +609,9 @@ export const ColumnTrend: React.FC<{
   activeIndex?: number | null
   /** Print the value above each bar so the chart is legible without hovering. */
   showValues?: boolean
-}> = ({ data, tone = 'primary', height = 120, baseline, onBarClick, activeIndex = null, showValues }) => {
+  /** Show only every Nth axis caption (long series); tooltips keep the full label. */
+  labelEvery?: number
+}> = ({ data, tone = 'primary', height = 120, baseline, onBarClick, activeIndex = null, showValues, labelEvery = 1 }) => {
   const theme = useTheme() as any
   const tones = useTone()
   const { fg } = tones(tone)
@@ -608,7 +656,7 @@ export const ColumnTrend: React.FC<{
               sx={{ color: isActive ? fg : cc(theme).neutralSecondary, fontWeight: isActive ? 700 : 400, mt: 0.5, fontSize: 10 }}
               noWrap
             >
-              {d.label}
+              {isActive || i % labelEvery === 0 ? d.label : ' '}
             </Typography>
           </Box>
         )
@@ -1201,7 +1249,9 @@ export function SeasonalColumnChart({
   color,
   name,
   height = 220,
-  onBarClick
+  onBarClick,
+  tooltipLabels,
+  padLeft = -22
 }: {
   values: number[]
   labels: string[]
@@ -1209,9 +1259,26 @@ export function SeasonalColumnChart({
   name: string
   height?: number
   onBarClick?: (label: string) => void
+  /** Full labels for tooltips when `labels` is thinned (long series show every Nth caption). */
+  tooltipLabels?: string[]
+  /** Plot left padding. Default -22 = flush-left, measured for SHORT month labels ("Jan");
+   *  wide labels ("Aug '25") overhang further — pass 0 (headless-Chrome verified 2026-07-14). */
+  padLeft?: number
 }) {
   const theme = useTheme() as any
   const c = cc(theme)
+  const tipLabels = tooltipLabels ?? labels
+
+  // "Aug '25"-style labels render as two lines (month over year) — same treatment as
+  // TrendAreaChart so a side-by-side pair reads as one system. Plain "Jan" passes through.
+  let hasTwoLine = false
+  const categories = labels.map(l => {
+    const m = /^([A-Za-z]{3})\s*'?(\d{2})$/.exec(String(l).trim())
+    if (!m) return l
+    hasTwoLine = true
+
+    return [m[1], m[2]]
+  })
 
   return (
     <Box sx={onBarClick ? { '& .apexcharts-bar-area': { cursor: 'pointer' } } : undefined}>
@@ -1248,17 +1315,25 @@ export function SeasonalColumnChart({
           legend: { show: false },
           // Negative left padding pulls the first bar flush with the card heading —
           // with the y-axis hidden Apex still indents the plot ~22px for nothing.
-          grid: { show: false, padding: { top: 20, left: -22 } },
+          grid: { show: false, padding: { top: 20, left: padLeft } },
           xaxis: {
-            categories: labels,
-            labels: { style: { colors: c.neutralSecondary, fontSize: '11px' } },
+            categories,
+            labels: {
+              style: { colors: c.neutralSecondary, fontSize: '11px' },
+              rotate: 0,
+              hideOverlappingLabels: false,
+              trim: false,
+              // Two-line labels get the same PINNED axis reserve as TrendAreaChart (44px) so
+              // side-by-side pairs share a baseline; single-line labels keep Apex's measure.
+              ...(hasTwoLine ? { minHeight: 44, maxHeight: 44 } : {})
+            },
             axisBorder: { show: false },
             axisTicks: { show: false }
           },
           yaxis: { show: false },
           tooltip: {
             custom: ({ series, seriesIndex, dataPointIndex }: any) =>
-              trendTooltipHTML(theme, labels[dataPointIndex] ?? '', [
+              trendTooltipHTML(theme, tipLabels[dataPointIndex] ?? '', [
                 { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
               ])
           },

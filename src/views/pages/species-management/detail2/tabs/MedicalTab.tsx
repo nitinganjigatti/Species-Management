@@ -1,12 +1,18 @@
 'use client'
 
 import React, { useMemo, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Drawer, IconButton, MenuItem, TextField, Typography } from '@mui/material'
+import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
-import AnimalCard from 'src/views/utility/AnimalCard'
-import type { PreventiveProgram, PreventiveRecord, PreventiveSite, SpeciesPreventive } from 'src/lib/api/species-management/detail'
+import type {
+  PreventiveProgram,
+  PreventiveType,
+  PreventiveTypeAnimal,
+  PreventiveTypeSite,
+  PreventiveTypeStatus,
+  SpeciesPreventive
+} from 'src/lib/api/species-management/detail'
 import type { ClinicalProgram, ClinicalRecord, SpeciesClinical } from 'src/lib/api/species-management/detail'
 import {
   ColumnTrend,
@@ -14,21 +20,39 @@ import {
   Donut,
   EmptyState,
   Pill,
+  SeasonalColumnChart,
   SectionCard,
-  Sparkline,
   StatTile,
-  StatusChip
+  StatusChip,
+  TrendAreaChart,
+  TrendRangeTabs
 } from 'src/views/pages/species-management/detail2/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/detail2/useSortableTable'
-import DashboardDateRange, { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import DashboardDateRange, {
+  resolveRange,
+  type RangePreset,
+  type RangeSelection
+} from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 
-type TabKey = 'overview' | 'symptoms' | 'diagnosis' | 'vaccination' | 'deworming' | 'supplements'
+type TabKey = 'overview' | 'clinical' | 'vaccination' | 'deworming' | 'supplements'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-// At-risk prognoses, ordered mildest → gravest. Drives the "Highest-risk conditions" filter.
-const RISK_LEVELS = ['Doubtful', 'Poor', 'Grave'] as const
-type RiskLevel = 'all' | (typeof RISK_LEVELS)[number]
+/* ── merged Clinical domain model (Symptoms + Clinical Assessment in one tab) ── */
+type Domain = 'symptom' | 'assessment'
+type DomainTab = 'all' | Domain
+interface MergedRec extends ClinicalRecord {
+  domain: Domain
+}
+
+const DOMAIN_META: Record<Domain, { label: string; icon: string }> = {
+  symptom: { label: 'Symptom', icon: 'mdi:emoticon-sad-outline' },
+  assessment: { label: 'Assessment', icon: 'mdi:stethoscope' }
+}
+
+// Gravest first — index 0 wins when picking a condition's "worst active prognosis" dot.
+const PROGNOSIS_ORDER = ['Grave', 'Poor', 'Doubtful', 'Guarded', 'Favourable']
+const SEVERITY_ORDER = ['High', 'Medium', 'Low']
 
 /** Date-in-window test for the selected range. `from === null` (All time) passes everything. */
 const useWindow = (range: RangeSelection) => {
@@ -45,50 +69,17 @@ const useWindow = (range: RangeSelection) => {
   }
 }
 
-/** Count occurrences of `key` across rows → [{ name, count }] sorted desc. */
-const rankBy = (rows: any[], key: string, idKey = 'aid'): { name: string; count: number; animals: number }[] => {
-  const m: Record<string, { count: number; animals: Set<string> }> = {}
-  for (const r of rows) {
-    const k = r[key]
-    if (!m[k]) m[k] = { count: 0, animals: new Set() }
-    m[k].count++
-    m[k].animals.add(r[idKey])
-  }
-
-  return Object.entries(m)
-    .map(([name, v]) => ({ name, count: v.count, animals: v.animals.size }))
-    .sort((a, b) => b.count - a.count)
-}
-
-/** Monthly counts over the trailing 12 months (for the clinical trend when a window is applied). */
-const monthlyTrend = (rows: { date: string }[], now: Date) => {
-  const buckets: { label: string; value: number }[] = []
-  const idx: Record<string, number> = {}
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    idx[`${d.getFullYear()}-${d.getMonth()}`] = buckets.length
-    buckets.push({ label: MONTHS[d.getMonth()], value: 0 })
-  }
-  for (const r of rows) {
-    const d = new Date(r.date)
-    const k = `${d.getFullYear()}-${d.getMonth()}`
-    if (idx[k] != null) buckets[idx[k]].value++
-  }
-
-  return buckets
-}
-
-/** Distinct animals per month over the trailing 12 months — drives the per-symptom graph sheet. */
-const monthlyAnimals = (rows: ClinicalRecord[], now: Date) => {
+/** Distinct animals per month over the trailing `months` — drives the per-type graph sheet. */
+const monthlyAnimals = (rows: ClinicalRecord[], now: Date, months = 12) => {
   const buckets: { label: string; value: number }[] = []
   const sets: Record<string, Set<string>> = {}
   const idx: Record<string, number> = {}
-  for (let i = 11; i >= 0; i--) {
+  for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const k = `${d.getFullYear()}-${d.getMonth()}`
     idx[k] = buckets.length
     sets[k] = new Set()
-    buckets.push({ label: MONTHS[d.getMonth()], value: 0 })
+    buckets.push({ label: `${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`, value: 0 })
   }
   for (const r of rows) {
     const d = new Date(r.date)
@@ -110,14 +101,105 @@ const monthForBar = (i: number, len: number, now: Date) => {
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'symptoms', label: 'Symptoms' },
-  { key: 'diagnosis', label: 'Clinical Assessment' },
+  { key: 'clinical', label: 'Clinical' },
   { key: 'vaccination', label: 'Vaccination' },
   { key: 'deworming', label: 'Deworming' },
   { key: 'supplements', label: 'Supplements' }
 ]
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
+
+// pill/dot label → [bg, border] from the medical-tag theme tokens (the Figma tag ramp).
+const medTagMap = (c: Record<string, string>): Record<string, [string, string]> => ({
+  Favourable: [c.medTagYellowBg, c.medTagYellowBorder],
+  Guarded: [c.medTagTealBg, c.medTagTealBorder],
+  Doubtful: [c.medTagOrangeBg, c.medTagOrangeBorder],
+  Poor: [c.medTagRedBg, c.medTagRedBorder],
+  Grave: [c.medTagMaroonBg, c.medTagMaroonBorder],
+  Low: [c.medTagTealBg, c.medTagTealBorder],
+  Medium: [c.medTagYellowBg, c.medTagYellowBorder],
+  High: [c.medTagOrangeBg, c.medTagOrangeBorder],
+  Overdue: [c.medTagOrangeBg, c.medTagOrangeBorder],
+  Upcoming: [c.medTagTealBg, c.medTagTealBorder]
+})
+
+/** Severity/prognosis tag pill in the exact Figma medTag colours (shared by drawers + the Clinical table). */
+const MedTagPill: React.FC<{ label: string }> = ({ label }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [bg, border] = medTagMap(c)[label] || [c.Surface, c.OutlineVariant]
+  const text = label === 'Grave' ? c.medTagMaroonBorder : theme.palette.common.black
+
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', px: '10px', py: '4px', borderRadius: 999, backgroundColor: bg, border: `0.5px solid ${border}`, whiteSpace: 'nowrap' }}>
+      <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: text }}>{label}</Typography>
+    </Box>
+  )
+}
+
+/**
+ * Condition tag: medTag colour = the record's severity (symptom) / prognosis (assessment),
+ * domain icon inside the tag, tooltip spells it out ("Symptom · High"). No separate level column.
+ */
+const MedTagChip: React.FC<{ name: string; domain: Domain; level?: string }> = ({ name, domain, level }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [bg, border] = (level && medTagMap(c)[level]) || [c.Surface, c.OutlineVariant]
+  const text = level === 'Grave' ? c.medTagMaroonBorder : theme.palette.common.black
+  const meta = DOMAIN_META[domain]
+
+  return (
+    <Tooltip title={`${meta.label}${level ? ' · ' + level : ''}`} arrow>
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: '10px', py: '4px', borderRadius: 999, backgroundColor: bg, border: `0.5px solid ${border}`, whiteSpace: 'nowrap' }}>
+        <Icon icon={meta.icon} fontSize='0.95rem' color={text} />
+        <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: text }}>{name}</Typography>
+      </Box>
+    </Tooltip>
+  )
+}
+
+/** Distinct condition tags for one animal in one domain, each at its worst ACTIVE level (fallback: worst ever). */
+const worstOf = (recs: MergedRec[], domain: Domain): { name: string; level?: string }[] => {
+  const order = domain === 'symptom' ? SEVERITY_ORDER : PROGNOSIS_ORDER
+  const act: Record<string, number> = {}
+  const any: Record<string, number> = {}
+  const names: string[] = []
+  for (const r of recs) {
+    if (r.domain !== domain) continue
+    if (!names.includes(r.type)) names.push(r.type)
+    const lvl = domain === 'symptom' ? r.severity : r.prognosis
+    const rk = lvl ? order.indexOf(lvl) : -1
+    if (rk < 0) continue
+    if (any[r.type] == null || rk < any[r.type]) any[r.type] = rk
+    if (r.status === 'active' && (act[r.type] == null || rk < act[r.type])) act[r.type] = rk
+  }
+
+  return names.map(n => {
+    const rk = act[n] ?? any[n]
+
+    return { name: n, level: rk == null ? undefined : order[rk] }
+  })
+}
+
+/** First `max` condition tags (≤2 rows worst case) + "+N more" for an animal-wise cell. */
+const ChipsCell: React.FC<{ chips: { name: string; level?: string }[]; domain: Domain; max?: number }> = ({ chips, domain, max = 2 }) => {
+  const c = cc(useTheme() as any)
+  const shown = chips.slice(0, max)
+  const extra = chips.length - shown.length
+
+  return (
+    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', py: 1 }}>
+      {shown.map(t => (
+        <MedTagChip key={t.name} name={t.name} domain={domain} level={t.level} />
+      ))}
+      {extra > 0 && (
+        <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600, whiteSpace: 'nowrap' }}>
+          +{extra} more
+        </Typography>
+      )}
+    </Box>
+  )
+}
 
 // Same branding mark the other detail tables use for the animal identity cell.
 const ANTZ_LOGO = '/images/branding/Antz_logomark_h_color.svg'
@@ -220,11 +302,6 @@ const VIEW_OPTIONS: { key: 'animal' | 'record'; label: string; icon: string }[] 
   { key: 'animal', label: 'Animal-wise', icon: 'mdi:paw' },
   { key: 'record', label: 'Record-wise', icon: 'mdi:format-list-bulleted' }
 ]
-const MATRIX_VIEW_OPTIONS: { key: 'site' | 'animal'; label: string; icon: string }[] = [
-  { key: 'site', label: 'Site-wise', icon: 'mdi:map-marker-outline' },
-  { key: 'animal', label: 'Animal-wise', icon: 'mdi:paw' }
-]
-
 /** Segmented toggle — same pill styling as the Circle-of-Life table toggle. Generic over the option keys. */
 function ViewToggle<T extends string>({
   view,
@@ -261,7 +338,13 @@ function ViewToggle<T extends string>({
 }
 
 /** Table search box — same styling/behaviour as the Circle-of-Life table search. */
-const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string }> = ({ value, onChange, placeholder = 'Search…' }) => {
+const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number }> = ({
+  value,
+  onChange,
+  placeholder = 'Search…',
+  width = 240,
+  height = TABLE_CTRL_H
+}) => {
   const theme = useTheme() as any
   const c = cc(theme)
 
@@ -271,8 +354,51 @@ const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; plac
       placeholder={placeholder}
       value={value}
       onChange={e => onChange(e.target.value)}
-      sx={{ width: 240, maxWidth: '100%', '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: theme.palette.background.paper } }}
+      sx={{ width, maxWidth: '100%', '& .MuiInputBase-root': { height, bgcolor: theme.palette.background.paper } }}
       InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
+    />
+  )
+}
+
+/** Searchable facet dropdown — the site-picker Autocomplete pattern (in-menu search, nothing new). */
+const CategoryFilter: React.FC<{
+  options: string[]
+  value: string | null
+  onChange: (v: string | null) => void
+  width?: number
+  height?: number
+  placeholder?: string
+  icon?: string
+}> = ({ options, value, onChange, width = 210, height = TABLE_CTRL_H, placeholder = 'All categories', icon = 'mdi:shape-outline' }) => {
+  const c = cc(useTheme() as any)
+
+  return (
+    <Autocomplete
+      size='small'
+      options={options}
+      value={value}
+      onChange={(_e, v) => onChange(v)}
+      sx={{ width }}
+      renderInput={params => (
+        <TextField
+          {...params}
+          placeholder={placeholder}
+          InputProps={{
+            ...params.InputProps,
+            startAdornment: (
+              <Box sx={{ display: 'flex', alignItems: 'center', pl: 0.5, color: c.Outline }}>
+                <Icon icon={icon} fontSize='1.15rem' />
+              </Box>
+            )
+          }}
+          sx={{
+            bgcolor: 'background.paper',
+            borderRadius: '8px',
+            '& .MuiInputBase-root': { height },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: c.SurfaceVariant }
+          }}
+        />
+      )}
     />
   )
 }
@@ -376,18 +502,14 @@ const TypeChips: React.FC<{ types: string[] }> = ({ types }) => {
   )
 }
 
-/** Per-animal side sheet: that animal's full event timeline for the current program. */
+/** Per-animal side sheet: that animal's full clinical timeline (symptoms + assessments). */
 const AnimalRecordsDrawer: React.FC<{
   group: AniGroup | null
   onClose: () => void
-  mode: 'clinical' | 'preventive'
-  isDiag?: boolean
-  overdueWord?: string
-}> = ({ group, onClose, mode, isDiag, overdueWord = 'overdue' }) => {
+}> = ({ group, onClose }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const activeWord = mode === 'preventive' ? overdueWord : 'active'
-  const sorted = group ? [...group.records].sort((a, b) => ((a.date || a.due) < (b.date || b.due) ? 1 : -1)) : []
+  const sorted = group ? [...group.records].sort((a, b) => (a.date < b.date ? 1 : -1)) : []
 
   return (
     <Drawer anchor='right' open={!!group} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 480 }, maxWidth: '100%' } }}>
@@ -411,31 +533,43 @@ const AnimalRecordsDrawer: React.FC<{
           </Box>
           <Box sx={{ px: 3, py: 2, borderBottom: `1px solid ${c.Surface}` }}>
             <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
-              {group.count} records · {group.active} {activeWord}
+              {group.count} records · {group.active} active
             </Typography>
           </Box>
           <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 3 }}>
-            {sorted.map((r, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75, borderBottom: `1px solid ${c.Surface}` }}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant='body2' sx={{ fontWeight: 600 }} noWrap>
-                    {r.type}
-                  </Typography>
-                  <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
-                    {mode === 'clinical'
-                      ? `${isDiag ? 'Diagnosed' : 'Reported'} ${fmtDate(r.date)}${isDiag && r.prognosis ? ' · ' + r.prognosis : ''}`
-                      : `Last given ${fmtDate(r.lastGiven)} · due ${fmtDate(r.due)}`}
-                  </Typography>
+            {/* Standard side-sheet list card (Figma node 2:3): icon chip · name-top/label-below · pill right. */}
+            {sorted.map((r, i) => {
+              const meta = DOMAIN_META[r.domain as Domain]
+              const level = r.domain === 'assessment' ? r.prognosis : r.severity
+
+              return (
+                <Box
+                  key={i}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4, borderBottom: i < sorted.length - 1 ? `0.5px solid ${c.OutlineVariant}` : 'none' }}
+                >
+                  <Box sx={{ width: 40, height: 40, flexShrink: 0, borderRadius: '8px', backgroundColor: c.displaybgPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon icon={meta?.icon || 'mdi:medical-bag'} fontSize={20} color={c.OnPrimaryContainer} />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+                      {r.type}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
+                      noWrap
+                    >
+                      {fmtDate(r.date)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75, flexShrink: 0 }}>
+                    {level && <MedTagPill label={level} />}
+                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: r.status === 'active' ? c.Tertiary : theme.palette.primary.dark }}>
+                      {r.status === 'active' ? 'Active' : 'Resolved'}
+                    </Typography>
+                  </Box>
                 </Box>
-                {mode === 'clinical' ? (
-                  <StatusChip label={r.status === 'active' ? 'Active' : 'Resolved'} tone={r.status === 'active' ? 'error' : 'success'} />
-                ) : r.status === 'overdue' ? (
-                  <StatusChip label={`${overdueWord} ${r.days}d`} tone='error' />
-                ) : (
-                  <StatusChip label={`in ${r.days}d`} tone='info' />
-                )}
-              </Box>
-            ))}
+              )
+            })}
           </Box>
         </Box>
       )}
@@ -539,33 +673,10 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
     'Clinical Assessment': { icon: 'mdi:stethoscope', preventive: false },
     Symptom: { icon: 'mdi:emoticon-sad-outline', preventive: false }
   }
-  // pill label → [bg, border] from the medical-tag theme tokens
-  const TAG: Record<string, [string, string]> = {
-    Favourable: [c.medTagYellowBg, c.medTagYellowBorder],
-    Guarded: [c.medTagTealBg, c.medTagTealBorder],
-    Doubtful: [c.medTagOrangeBg, c.medTagOrangeBorder],
-    Poor: [c.medTagRedBg, c.medTagRedBorder],
-    Grave: [c.medTagMaroonBg, c.medTagMaroonBorder],
-    Low: [c.medTagTealBg, c.medTagTealBorder],
-    Medium: [c.medTagYellowBg, c.medTagYellowBorder],
-    High: [c.medTagOrangeBg, c.medTagOrangeBorder],
-    Overdue: [c.medTagOrangeBg, c.medTagOrangeBorder],
-    Upcoming: [c.medTagTealBg, c.medTagTealBorder]
-  }
   const pillFor = (e: OviAnimal['events'][number]): string | null => {
     if (META[e.domain]?.preventive) return e.status === 'overdue' ? 'Overdue' : 'Upcoming'
     if (e.domain === 'Symptom') return e.severity || null // severity: Low/Medium/High
     return e.prognosis || null // Clinical Assessment → prognosis
-  }
-  const Pill: React.FC<{ label: string }> = ({ label }) => {
-    const [bg, border] = TAG[label] || [c.Surface, c.OutlineVariant]
-    const text = label === 'Grave' ? c.medTagMaroonBorder : theme.palette.common.black
-
-    return (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', px: '10px', py: '4px', borderRadius: 999, backgroundColor: bg, border: `0.5px solid ${border}`, whiteSpace: 'nowrap' }}>
-        <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: text }}>{label}</Typography>
-      </Box>
-    )
   }
   // Only ACTIVE items belong here: active clinical/symptom, and all preventive (overdue/upcoming).
   const shown = events.filter(e => META[e.domain]?.preventive || e.status === 'active')
@@ -618,7 +729,7 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-                    {label && <Pill label={label} />}
+                    {label && <MedTagPill label={label} />}
                     {m?.preventive && (
                       <Typography sx={{ fontSize: '12px', color: c.Outline }}>{fmtDate(e.date)}</Typography>
                     )}
@@ -658,8 +769,8 @@ const OverviewPanel: React.FC<{
   const healthy = Math.max(0, total - affected)
 
   const load = [
-    { label: 'Active symptoms', value: countBy(clinical?.programs?.symptoms, 'active', 'date', inWin), tab: 'symptoms' as TabKey },
-    { label: 'Active clinical assessments', value: countBy(clinical?.programs?.diagnosis, 'active', 'date', inWin), tab: 'diagnosis' as TabKey },
+    { label: 'Active symptoms', value: countBy(clinical?.programs?.symptoms, 'active', 'date', inWin), tab: 'clinical' as TabKey },
+    { label: 'Active clinical assessments', value: countBy(clinical?.programs?.diagnosis, 'active', 'date', inWin), tab: 'clinical' as TabKey },
     { label: 'Overdue vaccination', value: countBy(preventive?.programs?.vaccination, 'overdue', 'due', inWin), tab: 'vaccination' as TabKey },
     { label: 'Overdue deworming', value: countBy(preventive?.programs?.deworming, 'overdue', 'due', inWin), tab: 'deworming' as TabKey },
     { label: 'Overdue supplements', value: countBy(preventive?.programs?.supplements, 'overdue', 'due', inWin), tab: 'supplements' as TabKey }
@@ -791,7 +902,7 @@ const OverviewPanel: React.FC<{
   )
 }
 
-/* ═══════════════════════════════════════════════ Preventive panel (vacc/deworm/supp) */
+/* ═══════════════════════════════════════════════ Preventive panel — vaccine-wise (index → detail) */
 const wordingFor = (key: TabKey, kind: string) => {
   const ongoing = kind === 'ongoing'
 
@@ -799,136 +910,18 @@ const wordingFor = (key: TabKey, kind: string) => {
     coverageLabel: ongoing ? 'On Schedule' : 'Coverage',
     overdueLabel: ongoing ? 'Lapsed' : 'Overdue',
     overdueWord: ongoing ? 'lapsed' : 'overdue',
-    dueLabel: ongoing ? 'Due to Renew' : 'Due in 30 Days',
+    // "due"/"due on" is BANNED for future items — future = "upcoming" (user rule 2026-07-14)
+    dueLabel: ongoing ? 'Upcoming Renewals' : 'Upcoming in 30 Days',
+    dueWord: ongoing ? 'renewals upcoming' : 'upcoming',
+    doseNoun: ongoing ? 'Renewals' : 'Doses given',
+    statusLabels: (ongoing
+      ? { covered: 'On schedule', due: 'Upcoming renewal', overdue: 'Lapsed', never: 'Never started' }
+      : { covered: 'Covered', due: 'Upcoming', overdue: 'Overdue', never: 'Never' }) as Record<PreventiveTypeStatus, string>,
     typeNoun: key === 'vaccination' ? 'vaccines' : key === 'deworming' ? 'dewormers' : 'supplements',
     typeCol: key === 'vaccination' ? 'Vaccine' : key === 'deworming' ? 'Dewormer' : 'Supplement'
   }
 }
-
-// ── Site-matrix pieces (Direction 3) ────────────────────────────────────────
-const CovRing: React.FC<{ pct: number }> = ({ pct }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const R = 13
-  const C = 2 * Math.PI * R
-
-  return (
-    <svg width={34} height={34} viewBox='0 0 34 34'>
-      <circle cx={17} cy={17} r={R} fill='none' stroke={c.SurfaceVariant} strokeWidth={4} />
-      <circle cx={17} cy={17} r={R} fill='none' stroke={theme.palette.primary.main} strokeWidth={4} strokeLinecap='round' strokeDasharray={C} strokeDashoffset={C * (1 - pct / 100)} transform='rotate(-90 17 17)' />
-    </svg>
-  )
-}
-
-/** Three overdue-aging cells (0-30 / 30-90 / 90+); orange intensity = alpha of Tertiary. */
-const AgeCells: React.FC<{ aging: { d0_30: number; d30_90: number; d90plus: number } }> = ({ aging }) => {
-  const c = cc(useTheme() as any)
-  const O = c.Tertiary
-  const defs = [
-    { v: aging.d0_30, bg: `${O}30`, fg: O },
-    { v: aging.d30_90, bg: `${O}85`, fg: '#fff' },
-    { v: aging.d90plus, bg: O, fg: '#fff' }
-  ]
-
-  return (
-    <Box sx={{ display: 'flex', gap: '16px' }}>
-      {defs.map((d, i) => (
-        <Box
-          key={i}
-          sx={{
-            width: 42,
-            height: 42,
-            flexShrink: 0,
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: d.v > 0 ? d.bg : 'transparent',
-            border: d.v > 0 ? 'none' : `1px solid ${c.SurfaceVariant}`
-          }}
-        >
-          <Typography variant='caption' sx={{ fontWeight: 700, color: d.v > 0 ? d.fg : c.OutlineVariant }}>
-            {d.v}
-          </Typography>
-        </Box>
-      ))}
-    </Box>
-  )
-}
-
-const MATRIX_COLS = 'minmax(200px, 1fr) 116px 78px 190px 116px'
-
-const SiteMatrix: React.FC<{ sites: PreventiveSite[]; overdueLabel: string; onRow: (site: string) => void }> = ({ sites, overdueLabel, onRow }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  // Header cell styled like the standard DetailTable header (customHeadingTextColor, weight 500, 0.95rem — not uppercase).
-  const H: React.FC<{ children: React.ReactNode; align?: 'left' | 'right' }> = ({ children, align = 'left' }) => (
-    <Typography sx={{ fontSize: '0.95rem', fontWeight: 500, color: c.customHeadingTextColor, textTransform: 'uppercase', letterSpacing: '0.17px', textAlign: align }} noWrap>
-      {children}
-    </Typography>
-  )
-
-  return (
-    <Box sx={{ overflowX: 'auto', border: `1px solid ${c.SurfaceVariant}`, borderRadius: '8px' }}>
-      <Box sx={{ minWidth: 900 }}>
-        {/* Header row — matches the standard antz DataGrid header (bg + 56px height + 20/16px padding). */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: MATRIX_COLS, columnGap: '48px', alignItems: 'center', pl: '20px', pr: '16px', minHeight: 56, borderRadius: '8px 8px 0 0', backgroundColor: c.customTableHeaderBg }}>
-          <H>Site</H>
-          <H>Coverage</H>
-          <H>{overdueLabel}</H>
-          <Box>
-            <Typography sx={{ fontSize: '0.95rem', fontWeight: 500, color: c.customHeadingTextColor, textTransform: 'uppercase', letterSpacing: '0.17px', lineHeight: 1.25 }} noWrap>
-              Ageing
-            </Typography>
-            {/* Same 42px slots + 16px gap as the AgeCells boxes so each range sits over its box. */}
-            <Box sx={{ display: 'flex', gap: '16px', mt: 0.5 }}>
-              {['0–30', '30–90', '90+'].map(l => (
-                <Typography key={l} variant='caption' sx={{ width: 42, flexShrink: 0, textAlign: 'center', fontWeight: 500, color: c.OnSurfaceVariant }} noWrap>
-                  {l}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-          <H align='right'>90-day trend</H>
-        </Box>
-        {sites.map(st => (
-          <Box
-            key={st.site}
-            onClick={() => onRow(st.site)}
-            // Taller than the 64px standard rows — this content is heavier and needs breathing space.
-            sx={{ display: 'grid', gridTemplateColumns: MATRIX_COLS, columnGap: '48px', alignItems: 'center', pl: '20px', pr: '16px', minHeight: 88, py: 2, borderTop: `1px solid ${c.SurfaceVariant}`, cursor: 'pointer', transition: 'background .15s ease', '&:hover': { backgroundColor: c.Surface } }}
-          >
-            <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
-                {st.site}
-              </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
-                {st.animals.toLocaleString()} animals · {st.enclosures} enclosure{st.enclosures === 1 ? '' : 's'}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-              <CovRing pct={st.coveragePct} />
-              <Typography variant='body2' sx={{ fontWeight: 600 }}>
-                {st.coveragePct}%
-              </Typography>
-            </Box>
-            <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: st.overdue ? c.Tertiary : c.neutralSecondary, fontVariantNumeric: 'tabular-nums' }}>
-              {st.overdue}
-            </Typography>
-            <AgeCells aging={st.aging} />
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-              <Sparkline values={st.spark} tone={st.trendPct >= 0 ? 'up' : 'down'} width={58} height={24} />
-              <Typography variant='caption' sx={{ fontWeight: 700, color: st.trendPct >= 0 ? theme.palette.primary.dark : c.Tertiary }}>
-                {st.trendPct >= 0 ? '+' : ''}
-                {st.trendPct}%
-              </Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  )
-}
+const PROGRAM_ICON: Record<string, string> = { vaccination: 'mdi:needle', deworming: 'mdi:pill', supplements: 'mdi:water' }
 
 /** The 4-cell coverage/overdue/due/never strip (one card, dividers, tinted coverage cell). */
 const PreventiveStatStrip: React.FC<{ s: PreventiveProgram['summary']; programLabel: string; w: ReturnType<typeof wordingFor>; nSites: number }> = ({ s, programLabel, w, nSites }) => {
@@ -979,74 +972,245 @@ const PreventiveStatStrip: React.FC<{ s: PreventiveProgram['summary']; programLa
   )
 }
 
-/** Row-click drill: the actionable animals at one site (searchable). */
-const SiteDrillDrawer: React.FC<{ site: string | null; records: PreventiveRecord[]; overdueWord: string; onClose: () => void }> = ({ site, records, overdueWord, onClose }) => {
+/** Coverage bar + % for a vaccine index row (bar goes orange under 70%). */
+const CoverageCell: React.FC<{ pct: number }> = ({ pct }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const [q, setQ] = useState('')
-  const rows = site
-    ? records.filter(r => r.site === site && (!q.trim() || matchesQuery(r, q))).sort((a, b) => (a.due < b.due ? -1 : 1))
-    : []
+  const low = pct < 70
+  const fill = low ? c.Tertiary : theme.palette.primary.main
 
   return (
-    <Drawer anchor='right' open={!!site} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 500 }, maxWidth: '100%' } }}>
-      {site && (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+      <Box sx={{ width: 120, height: 8, flexShrink: 0, borderRadius: 999, backgroundColor: c.SurfaceVariant, overflow: 'hidden' }}>
+        <Box sx={{ width: `${pct}%`, height: '100%', borderRadius: 999, backgroundColor: fill }} />
+      </Box>
+      <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: low ? c.Tertiary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums' }}>
+        {pct}%
+      </Typography>
+    </Box>
+  )
+}
+
+/** Screen 1 — the vaccine index: stat strip + one row per medicine, worst coverage first. */
+const PreventiveIndex: React.FC<{
+  prog: PreventiveProgram
+  w: ReturnType<typeof wordingFor>
+  programLabel: string
+  onPick: (name: string) => void
+}> = ({ prog, w, programLabel, onPick }) => {
+  const { txt, c } = useCells()
+  const [q, setQ] = useState('')
+  const types = prog.types ?? []
+
+  const rows = useMemo(() => {
+    const query = q.trim().toLowerCase()
+    const list = query ? types.filter(t => t.name.toLowerCase().includes(query)) : types
+
+    return list.map(t => ({ id: t.name, ...t }))
+  }, [types, q])
+  const tbl = useSortableTable(rows, { field: 'coveragePct', sort: 'asc' })
+
+  const columns: GridColDef[] = [
+    {
+      field: 'name',
+      headerName: w.typeCol,
+      flex: 1.2,
+      minWidth: 250,
+      renderCell: p => (
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+            {p.row.name}
+          </Typography>
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }} noWrap>
+            {p.row.schedule}
+          </Typography>
+        </Box>
+      )
+    },
+    { field: 'coveragePct', headerName: w.coverageLabel, width: 230, renderCell: p => <CoverageCell pct={p.row.coveragePct} /> },
+    {
+      field: 'overdue',
+      headerName: 'Pending',
+      width: 250,
+      renderCell: p => (
+        <Typography variant='body2' sx={{ color: c.neutralSecondary }} noWrap>
+          <Box component='span' sx={{ fontSize: '1.05rem', fontWeight: 700, color: p.row.overdue ? c.Tertiary : c.neutralSecondary, fontVariantNumeric: 'tabular-nums' }}>
+            {p.row.overdue}
+          </Box>{' '}
+          {w.overdueWord} · {p.row.due} {w.dueWord}
+        </Typography>
+      )
+    },
+    {
+      field: 'sitesAffected',
+      headerName: 'Sites Affected',
+      width: 210,
+      renderCell: p => txt(`${p.row.sitesAffected} of ${p.row.sitesTotal} site${p.row.sitesTotal === 1 ? '' : 's'}`, c.neutralSecondary)
+    }
+  ]
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <PreventiveStatStrip s={prog.summary} programLabel={programLabel} w={w} nSites={prog.sites?.length ?? 0} />
+      <SectionCard
+        title={
+          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+            {w.typeCol}s{' '}
+            <Box component='span' sx={{ fontSize: '0.8rem', fontWeight: 500, color: c.neutralSecondary }}>
+              · {types.length}
+            </Box>
+          </Typography>
+        }
+        action={<TableSearch value={q} onChange={setQ} placeholder={`Search ${w.typeNoun}…`} />}
+        titleMb={3}
+      >
+        {rows.length ? (
+          <DetailTable
+            columns={columns}
+            rows={tbl.rows}
+            total={tbl.total}
+            paginationModel={tbl.paginationModel}
+            setPaginationModel={tbl.setPaginationModel}
+            sortModel={tbl.sortModel}
+            handleSortModel={tbl.handleSortModel}
+            onRowClick={(p: { row: PreventiveType }) => onPick(p.row.name)}
+            rowHeight={72}
+          />
+        ) : (
+          <EmptyState message={`No ${w.typeNoun} match this search`} />
+        )}
+      </SectionCard>
+    </Box>
+  )
+}
+
+/** Per-site chips — stats AND the site filter in one. Sorted worst coverage first. */
+const SiteChips: React.FC<{
+  sites: PreventiveTypeSite[]
+  tracked: number
+  value: string | null
+  onChange: (v: string | null) => void
+  overdueWord: string
+}> = ({ sites, tracked, value, onChange, overdueWord }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  const chip = (selected: boolean, onClick: () => void, top: React.ReactNode, bottom: React.ReactNode, key: string) => (
+    <Box
+      key={key}
+      onClick={onClick}
+      sx={{
+        flex: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+        px: 4,
+        py: 2.5,
+        minWidth: 130,
+        borderRadius: '10px',
+        border: `1px solid ${selected ? theme.palette.primary.main : c.SurfaceVariant}`,
+        // Inset ring (not an outer shadow) — outer shadows clip against the scroll container's edge.
+        boxShadow: selected ? `inset 0 0 0 1px ${theme.palette.primary.main}` : 'none',
+        backgroundColor: selected ? theme.palette.background.paper : c.Surface,
+        cursor: 'pointer',
+        transition: 'all .15s ease',
+        '&:hover': { borderColor: theme.palette.primary.main }
+      }}
+    >
+      <Typography variant='body2' sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+        {top}
+      </Typography>
+      <Typography variant='caption' sx={{ color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+        {bottom}
+      </Typography>
+    </Box>
+  )
+
+  return (
+    <Box sx={{ display: 'flex', gap: 2.5, overflowX: 'auto', py: 0.5, pb: 1.5 }}>
+      {chip(value == null, () => onChange(null), 'All sites', `${tracked.toLocaleString()} animals`, '__all')}
+      {sites.map(s =>
+        chip(
+          value === s.site,
+          () => onChange(value === s.site ? null : s.site),
+          s.site,
+          <>
+            <Box component='span' sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{s.coveragePct}%</Box>
+            {' · '}
+            <Box component='span' sx={{ color: s.overdue ? c.Tertiary : c.neutralSecondary, fontWeight: s.overdue ? 700 : 400 }}>
+              {s.overdue} {overdueWord}
+            </Box>
+          </>,
+          s.site
+        )
+      )}
+    </Box>
+  )
+}
+
+/** Per-animal dose history for ONE medicine — standard side-sheet card list. */
+const DoseHistoryDrawer: React.FC<{
+  animal: PreventiveTypeAnimal | null
+  typeName: string
+  icon: string
+  w: ReturnType<typeof wordingFor>
+  onClose: () => void
+}> = ({ animal, typeName, icon, w, onClose }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const statusTone: Record<PreventiveTypeStatus, string> = { covered: theme.palette.primary.dark, due: theme.palette.secondary.main, overdue: c.Tertiary, never: c.neutralSecondary }
+
+  return (
+    <Drawer anchor='right' open={!!animal} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 480 }, maxWidth: '100%' } }}>
+      {animal && (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ p: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap>
-                {site}
-              </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
-                {rows.length.toLocaleString()} actionable animals
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+              <Avatar src={ANTZ_LOGO} alt='' sx={{ width: 40, height: 40, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '5px' } }} />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap>
+                  {animal.name}
+                </Typography>
+                <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+                  {animal.aid} · {animal.site}
+                </Typography>
+              </Box>
             </Box>
             <IconButton onClick={onClose} size='small'>
               <Icon icon='mdi:close' />
             </IconButton>
           </Box>
-          <Box sx={{ p: 3, pb: 2 }}>
-            <TextField
-              fullWidth
-              size='small'
-              placeholder='Search animal…'
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
-            />
+          <Box sx={{ px: 3, py: 2, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant='body2' sx={{ fontWeight: 600 }}>{typeName}</Typography>
+            <Typography variant='caption' sx={{ fontWeight: 700, color: statusTone[animal.status] }}>
+              {w.statusLabels[animal.status]}
+            </Typography>
+            {animal.nextDue && (
+              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+                · upcoming {fmtDate(animal.nextDue)}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 3 }}>
-            {rows.map((r, i) => (
-              <Box
-                key={i}
-                sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, py: 4, borderBottom: i < rows.length - 1 ? `1px solid ${c.SurfaceVariant}` : 'none' }}
-              >
-                {/* Shared AnimalCard — same identity block as every other side sheet (site omitted; the drawer is already scoped to one site). */}
-                <AnimalCard
-                  data={{
-                    default_icon: ANTZ_LOGO,
-                    local_identifier_name: 'ID',
-                    local_identifier_value: r.name,
-                    animal_id: r.aid,
-                    gender: r.gender,
-                    age: r.age,
-                    weight: r.weight,
-                    user_enclosure_name: r.enclosure
-                  }}
-                />
-                <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                  <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mb: 0.75 }} noWrap>
-                    Due {fmtDate(r.due)}
-                  </Typography>
-                  {r.status === 'overdue'
-                    ? <StatusChip label={overdueWord.charAt(0).toUpperCase() + overdueWord.slice(1)} tone='error' />
-                    : <StatusChip label='Upcoming' tone='info' />}
+            {animal.doses.map((d, i) => (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4, borderBottom: i < animal.doses.length - 1 ? `0.5px solid ${c.OutlineVariant}` : 'none' }}>
+                <Box sx={{ width: 40, height: 40, flexShrink: 0, borderRadius: '8px', backgroundColor: c.displaybgPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon icon={icon} fontSize={20} color={c.OnPrimaryContainer} />
                 </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+                    {fmtDate(d)}
+                  </Typography>
+                  <Typography sx={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }} noWrap>
+                    {typeName}
+                  </Typography>
+                </Box>
+                {i === 0 && <StatusChip label='Latest' tone='info' />}
               </Box>
             ))}
-            {rows.length === 0 && (
+            {animal.doses.length === 0 && (
               <Typography variant='body2' sx={{ color: c.neutralSecondary, textAlign: 'center', mt: 4 }}>
-                No actionable animals at this site.
+                No doses recorded for this animal.
               </Typography>
             )}
           </Box>
@@ -1056,140 +1220,224 @@ const SiteDrillDrawer: React.FC<{ site: string | null; records: PreventiveRecord
   )
 }
 
-const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram }> = ({ tab, prog }) => {
+/** Screen 2 — per-vaccine detail: header, trend pair, site chips, status-tab animal table. */
+const PreventiveDetail: React.FC<{
+  type: PreventiveType
+  months: string[]
+  w: ReturnType<typeof wordingFor>
+  icon: string
+  onBack: () => void
+}> = ({ type, months, w, icon, onBack }) => {
   const { txt, animalCell, c, theme } = useCells()
-  const [siteDrill, setSiteDrill] = useState<string | null>(null)
-  const [matrixView, setMatrixView] = useState<'site' | 'animal'>('site')
-  const [matrixQ, setMatrixQ] = useState('')
-  const [animalQ, setAnimalQ] = useState('')
+  const [covRange, setCovRange] = useState<RangePreset>('last_1y')
+  const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
+  const [statusTab, setStatusTab] = useState<'all' | PreventiveTypeStatus>('all')
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
-  const [pm, setPm] = useState({ page: 0, pageSize: 10 })
-  const s = prog.summary
-  const w = wordingFor(tab, prog.kind)
-  const programLabel = TABS.find(t => t.key === tab)?.label ?? ''
-  const sites = prog.sites ?? []
-  const matrixSites = matrixQ.trim() ? sites.filter(x => x.site.toLowerCase().includes(matrixQ.trim().toLowerCase())) : sites
-  const worst = sites[0]
-  const insightTail = worst
-    ? ` has the most ${w.overdueWord} (${worst.overdue})${worst.aging.d90plus ? ` and ${worst.aging.d90plus} critical (90+ day) case${worst.aging.d90plus > 1 ? 's' : ''}` : ''} — prioritise it. Click any row for the animal list.`
-    : ''
+  const [siteQ, setSiteQ] = useState('')
+  const [q, setQ] = useState('')
+  const [drill, setDrill] = useState<PreventiveTypeAnimal | null>(null)
 
-  // Animal-wise rollup: one row per animal, its overdue/upcoming counts + next due date.
-  const animalRows = useMemo(() => {
-    const m = new Map<string, { id: string; name: string; site: string; enclosure: string; overdue: number; upcoming: number; nextDue: string }>()
-    for (const r of prog.records) {
-      let g = m.get(r.aid)
-      if (!g) {
-        g = { id: r.aid, name: r.name, site: r.site, enclosure: r.enclosure, overdue: 0, upcoming: 0, nextDue: '' }
-        m.set(r.aid, g)
-      }
-      if (r.status === 'overdue') g.overdue++
-      else g.upcoming++
-      if (!g.nextDue || r.due < g.nextDue) g.nextDue = r.due
-    }
+  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : months.length || 36)
+  const slice = (arr: number[], preset: RangePreset) => arr.slice(-monthsOf(preset))
+  const sliceLabels = (preset: RangePreset) => months.slice(-monthsOf(preset))
+  // >12 columns: thin the axis captions but keep full labels for tooltips
+  const thin = (labels: string[]) => {
+    const every = Math.max(1, Math.ceil(labels.length / 12))
 
-    return [...m.values()]
-  }, [prog.records])
-  const siteOptions = useMemo(() => Array.from(new Set(animalRows.map(a => a.site))).sort(), [animalRows])
-  const filteredAnimals = useMemo(() => {
-    const q = animalQ.trim().toLowerCase()
+    return labels.map((l, i) => (i % every === 0 ? l : ''))
+  }
 
-    return animalRows.filter(a => (!siteFilter || a.site === siteFilter) && (!q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)))
-  }, [animalRows, siteFilter, animalQ])
-  const start = pm.page * pm.pageSize
-  const pageRows = filteredAnimals.slice(start, start + pm.pageSize).map((a, i) => ({ ...a, sl_no: start + i + 1 }))
-  const animalColumns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
-    { field: 'name', headerName: 'Animal', width: 300, renderCell: p => animalCell(p.row.name, p.row.site) },
-    { field: 'overdue', headerName: w.overdueLabel, flex: 1, minWidth: 160, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.overdue, p.row.overdue ? c.Tertiary : c.neutralSecondary, 700) },
-    { field: 'upcoming', headerName: 'Upcoming', flex: 1, minWidth: 160, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.upcoming, c.neutralSecondary) },
-    { field: 'nextDue', headerName: 'Next Due', flex: 1, minWidth: 170, renderCell: p => txt(fmtDate(p.row.nextDue), c.neutralSecondary) }
+  const counts: Record<'all' | PreventiveTypeStatus, number> = {
+    all: type.tracked,
+    covered: type.covered,
+    due: type.due,
+    overdue: type.overdue,
+    never: type.never
+  }
+  const STATUS_TABS: { key: 'all' | PreventiveTypeStatus; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'covered', label: w.statusLabels.covered },
+    { key: 'due', label: w.statusLabels.due },
+    { key: 'overdue', label: w.statusLabels.overdue },
+    { key: 'never', label: w.statusLabels.never }
   ]
+  const accents: Record<'all' | PreventiveTypeStatus, string> = {
+    all: c.OnSurfaceVariant,
+    covered: theme.palette.primary.dark,
+    due: theme.palette.secondary.main,
+    overdue: c.Tertiary,
+    never: c.neutralSecondary
+  }
+
+  const rows = useMemo(() => {
+    const query = q.trim().toLowerCase()
+
+    return type.animals
+      .filter(a => (statusTab === 'all' || a.status === statusTab) && (!siteFilter || a.site === siteFilter) && (!query || `${a.name} ${a.aid} ${a.site}`.toLowerCase().includes(query)))
+      .map(a => ({ id: a.aid, ...a }))
+  }, [type.animals, statusTab, siteFilter, q])
+  const tbl = useSortableTable(rows, { field: 'nextDue', sort: 'asc' })
+  const onQ = (v: string) => {
+    setQ(v)
+    tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+  }
+
+  const statusPill = (a: PreventiveTypeAnimal) => {
+    const label =
+      a.status === 'overdue'
+        ? `${w.statusLabels.overdue} ${a.days ?? 0}d`
+        : a.status === 'due'
+        ? `${w.coverageLabel === 'On Schedule' ? 'Renew in' : 'in'} ${a.days ?? 0}d`
+        : w.statusLabels[a.status]
+    const tone = a.status === 'covered' ? 'success' : a.status === 'due' ? 'info' : a.status === 'overdue' ? 'error' : 'neutral'
+
+    return <StatusChip label={label} tone={tone as any} />
+  }
+
+  const columns: GridColDef[] = [
+    { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
+    { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name) },
+    { field: 'site', headerName: 'Site', flex: 1, minWidth: 200, renderCell: p => txt(p.row.site, c.neutralSecondary) },
+    { field: 'lastGiven', headerName: 'Last Given', width: 170, renderCell: p => txt(p.row.lastGiven ? fmtDate(p.row.lastGiven) : '—', c.neutralSecondary) },
+    {
+      field: 'nextDue',
+      headerName: 'Upcoming On',
+      width: 170,
+      renderCell: p => txt(p.row.nextDue ? fmtDate(p.row.nextDue) : '—', p.row.status === 'overdue' ? c.Tertiary : c.neutralSecondary, p.row.status === 'overdue' ? 600 : 400)
+    },
+    { field: 'status', headerName: 'Status', width: 190, align: 'right', headerAlign: 'right', renderCell: p => statusPill(p.row) }
+  ]
+
+  const statusTabs = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      {STATUS_TABS.map(m => {
+        const active = statusTab === m.key
+        const accent = accents[m.key]
+
+        return (
+          <Box
+            key={m.key}
+            onClick={() => {
+              setStatusTab(m.key)
+              tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+            }}
+            role='tab'
+            aria-selected={active}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, borderBottom: '2.5px solid', borderColor: active ? accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? accent : c.OutlineVariant } }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {m.label}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? accent : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+              {counts[m.key].toLocaleString()}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <PreventiveStatStrip s={s} programLabel={programLabel} w={w} nSites={sites.length} />
-
-      <SectionCard
-        title={matrixView === 'site' ? `${programLabel} status by site` : `${programLabel} · ${filteredAnimals.length.toLocaleString()} animals`}
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
-            {matrixView === 'site' ? (
-              <TableSearch value={matrixQ} onChange={setMatrixQ} placeholder='Search site…' />
-            ) : (
-              <>
-                <Autocomplete
-                  size='small'
-                  options={siteOptions}
-                  value={siteFilter}
-                  onChange={(_e, v) => {
-                    setSiteFilter(v)
-                    setPm(p => ({ ...p, page: 0 }))
-                  }}
-                  sx={{ width: 220 }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      placeholder='All sites'
-                      InputProps={{
-                        ...params.InputProps,
-                        startAdornment: (
-                          <Box sx={{ display: 'flex', alignItems: 'center', pl: 0.5, color: c.Outline }}>
-                            <Icon icon='mdi:map-marker-outline' fontSize='1.15rem' />
-                          </Box>
-                        )
-                      }}
-                      sx={{ bgcolor: 'background.paper', borderRadius: '8px', '& .MuiOutlinedInput-notchedOutline': { borderColor: c.SurfaceVariant } }}
-                    />
-                  )}
-                />
-                <TableSearch value={animalQ} onChange={setAnimalQ} placeholder='Search animal…' />
-              </>
-            )}
-            <ViewToggle view={matrixView} onChange={setMatrixView} options={MATRIX_VIEW_OPTIONS} />
-          </Box>
-        }
-        titleMb={4}
-      >
-        {/* Stable height so switching Site-wise ⇄ Animal-wise doesn't make the card jump. */}
-        <Box sx={{ minHeight: 560 }}>
-          {matrixView === 'site' ? (
-            matrixSites.length ? (
-              <>
-                <SiteMatrix sites={matrixSites} overdueLabel={w.overdueLabel} onRow={setSiteDrill} />
-                {worst && (
-                  <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mt: 2 }}>
-                    <Box component='span' sx={{ color: c.Tertiary, fontWeight: 700 }}>
-                      {worst.site}
-                    </Box>
-                    {insightTail}
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <EmptyState message='No site data for this species' />
-            )
-          ) : filteredAnimals.length ? (
-            // CommonTable carries a built-in mt:5; zero it so the only top gap is the 16px titleMb (matches the matrix).
-            <Box sx={{ '& .MuiDataGrid-root': { marginTop: '0 !important' } }}>
-              <DetailTable columns={animalColumns} rows={pageRows} total={filteredAnimals.length} paginationModel={pm} setPaginationModel={setPm} />
-            </Box>
-          ) : (
-            <EmptyState message='No animals for this filter' />
-          )}
+      {/* header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+        <IconButton onClick={onBack} sx={{ width: 40, height: 40, borderRadius: '8px', border: `1px solid ${c.OutlineVariant}` }}>
+          <Icon icon='mdi:arrow-left' fontSize='1.25rem' />
+        </IconButton>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant='h5' sx={{ fontWeight: 600 }} noWrap>
+            {type.name}
+          </Typography>
+          <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+            {type.coveragePct}% {w.coverageLabel.toLowerCase()} ·{' '}
+            <Box component='span' sx={{ color: type.overdue ? c.Tertiary : c.neutralSecondary, fontWeight: type.overdue ? 700 : 400 }}>
+              {type.overdue} {w.overdueWord}
+            </Box>{' '}
+            · {type.due} {w.dueWord} · {type.never} {w.statusLabels.never.toLowerCase()} · {type.tracked.toLocaleString()} animals tracked · {type.schedule}
+          </Typography>
         </Box>
+      </Box>
+
+      {/* trend pair */}
+      <ChartsRow md='repeat(2, 1fr)'>
+        <SectionCard title={`${w.coverageLabel} over time`} action={<TrendRangeTabs value={covRange} onPick={setCovRange} color={theme.palette.primary.main} />} titleMb={3}>
+          <TrendAreaChart values={slice(type.coverageTrend, covRange)} labels={sliceLabels(covRange)} color={theme.palette.primary.main} name={`${w.coverageLabel} %`} height={230} />
+        </SectionCard>
+        <SectionCard title={`${w.doseNoun} per month`} action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={theme.palette.secondary.main} />} titleMb={3}>
+          <SeasonalColumnChart values={slice(type.dosesPerMonth, doseRange)} labels={thin(sliceLabels(doseRange))} tooltipLabels={sliceLabels(doseRange)} color={theme.palette.secondary.main} name={w.doseNoun} height={230} padLeft={0} />
+        </SectionCard>
+      </ChartsRow>
+
+      {/* site chips — stats + filter in one (searchable; chips scroll sideways past ~6 sites) */}
+      <SectionCard
+        title={
+          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+            Sites{' '}
+            <Box component='span' sx={{ fontSize: '0.8rem', fontWeight: 500, color: c.neutralSecondary }}>
+              · {type.sitesTotal}
+            </Box>
+          </Typography>
+        }
+        action={<TableSearch value={siteQ} onChange={setSiteQ} placeholder='Search sites…' width={200} height={36} />}
+        titleMb={3}
+      >
+        <SiteChips
+          sites={siteQ.trim() ? type.sites.filter(s => s.site.toLowerCase().includes(siteQ.trim().toLowerCase())) : type.sites}
+          tracked={type.tracked}
+          value={siteFilter}
+          onChange={v => {
+            setSiteFilter(v)
+            tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+          }}
+          overdueWord={w.overdueWord}
+        />
       </SectionCard>
 
-      <SiteDrillDrawer site={siteDrill} records={prog.records} overdueWord={w.overdueWord} onClose={() => setSiteDrill(null)} />
+      {/* animal table */}
+      <SectionCard title={statusTabs} action={<TableSearch value={q} onChange={onQ} placeholder='Search animals…' />} titleMb={2}>
+        {rows.length ? (
+          <DetailTable
+            columns={columns}
+            rows={tbl.rows}
+            total={tbl.total}
+            paginationModel={tbl.paginationModel}
+            setPaginationModel={tbl.setPaginationModel}
+            sortModel={tbl.sortModel}
+            handleSortModel={tbl.handleSortModel}
+            onRowClick={(p: { row: PreventiveTypeAnimal }) => setDrill(p.row)}
+          />
+        ) : (
+          <EmptyState message='No animals for this filter' />
+        )}
+      </SectionCard>
+
+      <DoseHistoryDrawer animal={drill} typeName={type.name} icon={icon} w={w} onClose={() => setDrill(null)} />
     </Box>
   )
 }
 
-/** Rounded pill: symptom name + a metric value. Used by the widespread / recurring panels. */
-const ChipTag: React.FC<{ label: string; value: React.ReactNode; valueColor: string; onClick?: () => void }> = ({
+const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram; months: string[] }> = ({ tab, prog, months }) => {
+  const [selected, setSelected] = useState<string | null>(null)
+  const w = wordingFor(tab, prog.kind)
+  const programLabel = TABS.find(t => t.key === tab)?.label ?? ''
+  const icon = PROGRAM_ICON[tab] ?? 'mdi:medical-bag'
+  const sel = (prog.types ?? []).find(t => t.name === selected)
+
+  if (!prog.types?.length) return <EmptyState message={`No ${w.typeNoun} data for this species`} />
+
+  return sel ? (
+    <PreventiveDetail key={sel.name} type={sel} months={months} w={w} icon={icon} onBack={() => setSelected(null)} />
+  ) : (
+    <PreventiveIndex prog={prog} w={w} programLabel={programLabel} onPick={setSelected} />
+  )
+}
+
+/** Rounded pill: type name + a metric value. Optional `dot` = worst-active-prognosis marker. */
+const ChipTag: React.FC<{ label: string; value: React.ReactNode; valueColor: string; dot?: string; onClick?: () => void }> = ({
   label,
   value,
   valueColor,
+  dot,
   onClick
 }) => {
   const theme = useTheme() as any
@@ -1212,6 +1460,7 @@ const ChipTag: React.FC<{ label: string; value: React.ReactNode; valueColor: str
         '&:hover': onClick ? { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper } : undefined
       }}
     >
+      {dot && <Box sx={{ width: 9, height: 9, flexShrink: 0, borderRadius: '50%', backgroundColor: dot }} />}
       <Typography variant='body2' sx={{ fontWeight: 500, color: c.OnSurfaceVariant }}>
         {label}
       </Typography>
@@ -1228,7 +1477,7 @@ const ChipTag: React.FC<{ label: string; value: React.ReactNode; valueColor: str
  * Every row is clickable → filters the animal table.
  */
 const TypeTable: React.FC<{
-  items: { name: string; count: number; animals: number }[]
+  items: { name: string; count: number; animals: number; category?: string }[]
   noun: string
   // MUST reference a real column field below — a sortModel field with no matching column throws
   // DataGrid's "Maximum update depth exceeded" crash.
@@ -1237,13 +1486,25 @@ const TypeTable: React.FC<{
 }> = ({ items, noun, initialSort = { field: 'count', sort: 'desc' }, onPick }) => {
   const { txt, c, theme } = useCells()
   const rows = useMemo(
-    () => items.map((d, i) => ({ id: i, name: d.name, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
+    () =>
+      items.map((d, i) => ({ id: i, name: d.name, category: d.category, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
     [items]
   )
   const tbl = useSortableTable(rows, initialSort)
+  const hasCategory = items.some(d => d.category)
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: noun === 'symptoms' ? 'Symptom' : 'Assessment', flex: 1, minWidth: 200, renderCell: p => txt(p.row.name, undefined, 600) },
+    ...(hasCategory
+      ? [
+          {
+            field: 'category',
+            headerName: 'Category',
+            width: 170,
+            renderCell: (p: any) => txt(p.row.category || '—', c.neutralSecondary)
+          } as GridColDef
+        ]
+      : []),
     {
       field: 'count',
       headerName: 'Records',
@@ -1292,74 +1553,131 @@ const TypeTable: React.FC<{
   )
 }
 
-/* ═══════════════════════════════════════════════ Clinical panel (symptoms/diagnosis) */
-const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: RangeSelection; animalCount?: number }> = ({ tab, prog, range, animalCount = 0 }) => {
+/* ═══════════════════════════════════════════════ Clinical panel (merged Symptoms + Clinical Assessment) */
+const ClinicalMergedPanel: React.FC<{
+  symptoms?: ClinicalProgram
+  diagnosis?: ClinicalProgram
+  range: RangeSelection
+}> = ({ symptoms, diagnosis, range }) => {
   const { txt, animalCell, c, theme } = useCells()
-  const [typeFilter, setTypeFilter] = useState<string | null>(null)
+  const tagColors = medTagMap(c)
+
+  // table scoping
+  const [domainTab, setDomainTab] = useState<DomainTab>('all')
+  const [typeFilter, setTypeFilter] = useState<{ domain: Domain; name: string } | null>(null)
   const [monthFilter, setMonthFilter] = useState<{ idx: number; y: number; m: number; label: string } | null>(null)
-  const [statusFilter, setStatusFilter] = useState<'active' | 'longopen' | null>(null)
-  const [drawerScope, setDrawerScope] = useState<'all' | 'active' | 'longopen' | 'recurring' | null>(null)
-  const [riskLevel, setRiskLevel] = useState<RiskLevel>('all')
-  const [typeSheet, setTypeSheet] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'active' | 'resolved' | null>(null)
+  const [sevFilter, setSevFilter] = useState<string | null>(null)
+  const [progFilter, setProgFilter] = useState<string | null>(null)
   const [view, setView] = useState<'animal' | 'record'>('animal')
-  const tableRef = useRef<HTMLDivElement>(null)
-  const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
   const [q, setQ] = useState('')
+  // ranked panels (Top symptoms | Top conditions)
+  const [symCat, setSymCat] = useState<string | null>(null)
+  const [symQ, setSymQ] = useState('')
+  const [condCat, setCondCat] = useState<string | null>(null)
+  const [condQ, setCondQ] = useState('')
+  const [viewAll, setViewAll] = useState<Domain | null>(null)
+  // sheets / drawers
+  const [typeSheet, setTypeSheet] = useState<{ domain: Domain; name: string } | null>(null)
+  const [sheetRange, setSheetRange] = useState<RangePreset>('last_1y')
+  const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
+
   const inWin = useWindow(range)
   const all = range.preset === 'all'
-  const isDiag = tab === 'diagnosis'
-  const noun = isDiag ? 'clinical assessments' : 'symptoms'
-  const typeCol = isDiag ? 'Clinical Assessment' : 'Symptom'
 
-  // Window records by report/diagnosis date; 'All time' keeps the precomputed aggregates.
-  const windowed = useMemo(() => (all ? prog.records : prog.records.filter(r => inWin(r.date))), [prog.records, all, range])
-  const activeRecs = windowed.filter(r => r.status === 'active')
-  const s = all
-    ? prog.summary
-    : {
-        types: new Set(windowed.map(r => r.type)).size,
-        active: activeRecs.length,
-        resolved: windowed.length - activeRecs.length,
-        animalsAffected: new Set(windowed.map(r => r.aid)).size,
-        avgResolutionDays: (() => {
-          const res = windowed.filter(r => r.status === 'resolved')
+  // One merged, windowed record set with a domain marker.
+  const windowed = useMemo(() => {
+    const out: MergedRec[] = []
+    const push = (prog: ClinicalProgram | undefined, domain: Domain) => {
+      for (const r of prog?.records ?? []) if (all || inWin(r.date)) out.push({ ...r, domain })
+    }
+    push(symptoms, 'symptom')
+    push(diagnosis, 'assessment')
 
-          return res.length ? Math.round(res.reduce((a, r) => a + r.durationDays, 0) / res.length) : 0
-        })()
-      }
-  const topTypes = all ? prog.topTypes : rankBy(windowed, 'type')
-  const trend = all ? prog.trend : monthlyTrend(windowed, new Date())
+    return out
+  }, [symptoms, diagnosis, all, range])
 
-  // ── Symptom-tab management metrics ──────────────────────────────────────────
-  // "Most common" = breadth (affects the most distinct animals); "Most recurring" = intensity
-  // (episodes per animal) — a genuinely different, chronic-care signal. "Long-open" = neglect.
-  const commonTypes = isDiag ? topTypes : [...topTypes].sort((a, b) => (b.animals ?? b.count) - (a.animals ?? a.count))
-  const recurringList = isDiag
-    ? []
-    : topTypes
-        .map(t => ({ name: t.name, animals: t.animals ?? 0, count: t.count, ratio: t.count / Math.max(1, t.animals ?? 1) }))
-        .sort((a, b) => b.ratio - a.ratio || b.count - a.count)
-  const mostRecurring = recurringList.find(t => t.animals >= 2) ?? recurringList[0] ?? null
-  const longOpen = activeRecs.filter(r => r.durationDays > 30).length
+  // ── stat band (both domains; 'All time' trusts the precomputed summaries) ──
+  const symActive = all ? symptoms?.summary.active ?? 0 : windowed.filter(r => r.domain === 'symptom' && r.status === 'active').length
+  const diagActive = all ? diagnosis?.summary.active ?? 0 : windowed.filter(r => r.domain === 'assessment' && r.status === 'active').length
+  const affected = new Set(windowed.map(r => r.aid)).size
+  const totalCases = all
+    ? (symptoms?.summary.active ?? 0) + (symptoms?.summary.resolved ?? 0) + (diagnosis?.summary.active ?? 0) + (diagnosis?.summary.resolved ?? 0)
+    : windowed.length
+  const totalResolved = all
+    ? (symptoms?.summary.resolved ?? 0) + (diagnosis?.summary.resolved ?? 0)
+    : windowed.filter(r => r.status === 'resolved').length
+  const recoveredPct = totalCases ? Math.round((totalResolved / totalCases) * 100) : 0
 
-  // "Highest-risk conditions" (clinical assessment only): rank types by distinct animals whose
-  // prognosis is at the selected risk level ('all' = any non-favourable outcome).
-  const riskTypes = useMemo(() => {
-    if (!isDiag) return []
-    const levels: readonly string[] = riskLevel === 'all' ? RISK_LEVELS : [riskLevel]
-    const byType: Record<string, Set<string>> = {}
+  // ── ranked types per domain (windowed), each carrying its category ──
+  const rankTypes = (domain: Domain, prog?: ClinicalProgram) => {
+    if (all && prog) return prog.topTypes.map(t => ({ name: t.name, count: t.count, animals: t.animals ?? 0, category: t.category || 'General' }))
+    const m: Record<string, { count: number; animals: Set<string>; category: string }> = {}
     for (const r of windowed) {
-      if (r.prognosis && levels.includes(r.prognosis)) (byType[r.type] ??= new Set()).add(r.aid)
+      if (r.domain !== domain) continue
+      const g = (m[r.type] ??= { count: 0, animals: new Set(), category: r.category || 'General' })
+      g.count++
+      g.animals.add(r.aid)
     }
 
-    return Object.entries(byType)
-      .map(([name, animals]) => ({ name, value: animals.size }))
-      .sort((a, b) => b.value - a.value)
-  }, [isDiag, windowed, riskLevel])
-  const prevalencePct = animalCount ? Math.round((s.animalsAffected / animalCount) * 100) : 0
-  const newThisMonth = trend.length ? trend[trend.length - 1].value : 0
-  const prevMonth = trend.length > 1 ? trend[trend.length - 2].value : 0
-  const monthDelta = newThisMonth - prevMonth
+    return Object.entries(m)
+      .map(([name, v]) => ({ name, count: v.count, animals: v.animals.size, category: v.category }))
+      .sort((a, b) => b.count - a.count)
+  }
+  const symTypes = useMemo(() => rankTypes('symptom', symptoms), [windowed, all, symptoms])
+  const condTypes = useMemo(() => rankTypes('assessment', diagnosis), [windowed, all, diagnosis])
+
+  // Worst ACTIVE prognosis per condition type (falls back to worst overall) → the pill dot colour.
+  const worstProg = useMemo(() => {
+    const act: Record<string, number> = {}
+    const any: Record<string, number> = {}
+    for (const r of windowed) {
+      if (r.domain !== 'assessment' || !r.prognosis) continue
+      const rk = PROGNOSIS_ORDER.indexOf(r.prognosis)
+      if (rk < 0) continue
+      if (any[r.type] == null || rk < any[r.type]) any[r.type] = rk
+      if (r.status === 'active' && (act[r.type] == null || rk < act[r.type])) act[r.type] = rk
+    }
+
+    return (type: string): string | undefined => {
+      const rk = act[type] ?? any[type]
+
+      return rk == null ? undefined : tagColors[PROGNOSIS_ORDER[rk]]?.[1]
+    }
+  }, [windowed])
+
+  const catsOf = (list: { category: string }[]) => Array.from(new Set(list.map(t => t.category))).sort()
+  const symCats = useMemo(() => catsOf(symTypes), [symTypes])
+  const condCats = useMemo(() => catsOf(condTypes), [condTypes])
+
+  const filterTypes = <T extends { name: string; category: string }>(list: T[], cat: string | null, tq: string): T[] =>
+    list.filter(t => (!cat || t.category === cat) && (!tq.trim() || t.name.toLowerCase().includes(tq.trim().toLowerCase())))
+  const symShown = useMemo(() => filterTypes(symTypes, symCat, symQ), [symTypes, symCat, symQ])
+  const condShown = useMemo(() => filterTypes(condTypes, condCat, condQ), [condTypes, condCat, condQ])
+
+  const PILL_LIMIT = 12
+
+  const scrollToTable = () => setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+
+  // Pill click → scope the table to that type + open the graph sheet (fresh at 1Y).
+  const pickType = (domain: Domain, name: string) => {
+    setDomainTab(domain)
+    setTypeFilter({ domain, name })
+    setStatusFilter(null)
+    setMonthFilter(null)
+    setSheetRange('last_1y')
+    setTypeSheet({ domain, name })
+  }
+
+  // Stat-tile click → scope the table below (kept behaviour).
+  const scopeTable = (domain: DomainTab, status: 'active' | 'resolved' | null) => {
+    setDomainTab(domain)
+    setStatusFilter(status)
+    setTypeFilter(null)
+    setMonthFilter(null)
+    scrollToTable()
+  }
 
   const inMonth = (dateStr: string) => {
     if (!monthFilter) return true
@@ -1367,378 +1685,437 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
 
     return d.getFullYear() === monthFilter.y && d.getMonth() === monthFilter.m
   }
-  const inStatus = (r: ClinicalRecord) =>
-    !statusFilter || (statusFilter === 'active' ? r.status === 'active' : r.status === 'active' && r.durationDays > 30)
 
-  // Records after the status/type/month scoping (drives both the record table and the animal grouping).
-  const scopedRecords = useMemo(() => {
-    let s = statusFilter ? windowed.filter(inStatus) : windowed
-    if (typeFilter) s = s.filter(r => r.type === typeFilter)
+  // ── combined table scoping (status/type/month/category apply before the domain tabs count) ──
+  // Severity/prognosis each scope only their OWN domain's records: Severity=High keeps High
+  // symptoms while assessments stay intact (unless the prognosis filter is also set).
+  const base = useMemo(() => {
+    let s = windowed
+    if (statusFilter) s = s.filter(r => r.status === statusFilter)
+    if (typeFilter) s = s.filter(r => r.domain === typeFilter.domain && r.type === typeFilter.name)
     if (monthFilter) s = s.filter(r => inMonth(r.date))
+    if (sevFilter) s = s.filter(r => r.domain !== 'symptom' || r.severity === sevFilter)
+    if (progFilter) s = s.filter(r => r.domain !== 'assessment' || r.prognosis === progFilter)
 
     return s
-  }, [windowed, statusFilter, typeFilter, monthFilter])
+  }, [windowed, statusFilter, typeFilter, monthFilter, sevFilter, progFilter])
+  const searched = useMemo(() => (q.trim() ? base.filter(r => matchesQuery(r, q)) : base), [base, q])
+  const counts: Record<DomainTab, number> = useMemo(
+    () => ({
+      all: searched.length,
+      symptom: searched.filter(r => r.domain === 'symptom').length,
+      assessment: searched.filter(r => r.domain === 'assessment').length
+    }),
+    [searched]
+  )
+  const scoped = useMemo(() => (domainTab === 'all' ? searched : searched.filter(r => r.domain === domainTab)), [searched, domainTab])
+  const scopedNoQ = useMemo(() => (domainTab === 'all' ? base : base.filter(r => r.domain === domainTab)), [base, domainTab])
 
-  const rows = useMemo(() => (q.trim() ? scopedRecords.filter(r => matchesQuery(r, q)) : scopedRecords), [scopedRecords, q])
+  const recordRows = useMemo(() => scoped.map((r, i) => ({ ...r, id: i })), [scoped])
+  // Animal-wise groups keep the animal's FULL record set; the search then matches whole groups.
+  // Each group gets per-domain condition tags at their worst active severity/prognosis.
   const animalRows = useMemo(() => {
-    const grouped = groupByAnimal(scopedRecords, 'date', 'active')
+    const grouped = groupByAnimal(scopedNoQ, 'date', 'active').map(g => ({
+      ...g,
+      symChips: worstOf(g.records as MergedRec[], 'symptom'),
+      asmChips: worstOf(g.records as MergedRec[], 'assessment')
+    }))
 
     return q.trim() ? grouped.filter(g => matchesQuery(g, q)) : grouped
-  }, [scopedRecords, q])
+  }, [scopedNoQ, q])
 
-  // Side-sheet contents for a clicked stat tile: symptom types within that tile's population.
-  const STATUS_META = { active: 'active over 12 months', longopen: 'active over 30 days', recurring: 'ranked by recurrence', all: '' } as const
-  const drawerData = useMemo(() => {
-    if (!drawerScope) return null
-    const recs =
-      drawerScope === 'active'
-        ? windowed.filter(r => r.status === 'active')
-        : drawerScope === 'longopen'
-        ? windowed.filter(r => r.status === 'active' && r.durationDays > 30)
-        : windowed
-    let ranked = rankBy(recs, 'type')
-    if (drawerScope === 'recurring') ranked = [...ranked].sort((a, b) => b.count / Math.max(1, b.animals) - a.count / Math.max(1, a.animals))
-    else if (drawerScope === 'all') ranked = [...ranked].sort((a, b) => b.animals - a.animals)
-    const title =
-      drawerScope === 'active'
-        ? `Active ${noun}`
-        : drawerScope === 'longopen'
-        ? `Long-open ${noun}`
-        : drawerScope === 'recurring'
-        ? `${isDiag ? 'Clinical assessments' : 'Symptoms'} by recurrence`
-        : `All ${noun}`
-
-    return { title, ranked, hint: STATUS_META[drawerScope], scope: drawerScope }
-  }, [drawerScope, windowed, isDiag, noun])
-
-  // Clicking a symptom in a tile's side sheet → filter the animal table (type + the tile's status
-  // scope), close the sheet, and scroll down to the table.
-  const pickFromDrawer = (label: string) => {
-    setTypeFilter(label)
-    setStatusFilter(drawerScope === 'active' ? 'active' : drawerScope === 'longopen' ? 'longopen' : null)
-    setDrawerScope(null)
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
-  }
-  // Per-symptom 12-month graph sheet: distinct animals affected per month + one-line summary.
-  const sheetSeries = useMemo(() => {
-    if (!typeSheet) return null
-    const now = new Date()
-    const recs = windowed.filter(r => r.type === typeSheet)
-    const series = monthlyAnimals(recs, now)
-    const peakIdx = series.reduce((mx, b, i) => (b.value > series[mx].value ? i : mx), 0)
-
-    return {
-      series,
-      totalAnimals: new Set(recs.map(r => r.aid)).size,
-      totalEpisodes: recs.length,
-      peakLabel: series[peakIdx]?.value ? monthForBar(peakIdx, series.length, now).label : '—'
-    }
-  }, [typeSheet, windowed])
-
-  // Clicking a bar in the symptom sheet → close it, filter table by symptom + that month,
-  // switch to Record-wise (per-record Reported dates read best under a month filter), and scroll to it.
-  const onSheetBar = (i: number) => {
-    if (!sheetSeries) return
-    const mf = monthForBar(i, sheetSeries.series.length, new Date())
-    setTypeFilter(typeSheet)
-    setStatusFilter(null)
-    setMonthFilter({ idx: i, y: mf.y, m: mf.m, label: mf.label })
-    setView('record')
-    setTypeSheet(null)
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
-  }
-  // "View all months" → symptom-only filter, no month.
-  const onSheetViewAll = () => {
-    setTypeFilter(typeSheet)
-    setMonthFilter(null)
-    setStatusFilter(null)
-    setTypeSheet(null)
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
-  }
-  const tbl = useSortableTable(rows, { field: 'date', sort: 'desc' })
+  const tbl = useSortableTable(recordRows, { field: 'date', sort: 'desc' })
   const atbl = useSortableTable(animalRows, { field: 'active', sort: 'desc' })
   const onQ = (v: string) => {
     setQ(v)
     tbl.setPaginationModel(p => ({ ...p, page: 0 }))
     atbl.setPaginationModel(p => ({ ...p, page: 0 }))
   }
+  const resetPages = () => {
+    tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+    atbl.setPaginationModel(p => ({ ...p, page: 0 }))
+  }
+  const onSev = (v: string | null) => {
+    setSevFilter(v)
+    resetPages()
+  }
+  const onProg = (v: string | null) => {
+    setProgFilter(v)
+    resetPages()
+  }
 
-  const progColor = (p?: string) =>
-    p === 'Favourable' ? theme.palette.primary.dark : p === 'Guarded' ? c.Tertiary : p === 'Poor' ? c.Tertiary : c.neutralSecondary
+  // Per-type graph sheet: distinct animals affected per month. The sheet has its own
+  // 1Y·2Y·3Y·All range tabs, so it reads the RAW program records, not the page window.
+  const sheetSeries = useMemo(() => {
+    if (!typeSheet) return null
+    const now = new Date()
+    const src = (typeSheet.domain === 'symptom' ? symptoms : diagnosis)?.records ?? []
+    const recs = src.filter(r => r.type === typeSheet.name)
+    let n = sheetRange === 'last_2y' ? 24 : sheetRange === 'last_3y' ? 36 : 12
+    if (sheetRange === 'all' && recs.length) {
+      const earliest = recs.reduce((min, r) => (r.date < min ? r.date : min), recs[0].date)
+      const ed = new Date(earliest)
+      n = Math.max(12, (now.getFullYear() - ed.getFullYear()) * 12 + (now.getMonth() - ed.getMonth()) + 1)
+    }
+    const winStart = new Date(now.getFullYear(), now.getMonth() - (n - 1), 1)
+    const inRange = recs.filter(r => new Date(r.date) >= winStart)
+    const series = monthlyAnimals(inRange, now, n)
+    const peakIdx = series.reduce((mx, b, i) => (b.value > series[mx].value ? i : mx), 0)
 
+    return {
+      series,
+      labelEvery: Math.ceil(n / 12),
+      totalAnimals: new Set(inRange.map(r => r.aid)).size,
+      totalEpisodes: inRange.length,
+      peakLabel: series[peakIdx]?.value ? monthForBar(peakIdx, series.length, now).label : '—'
+    }
+  }, [typeSheet, symptoms, diagnosis, sheetRange])
+
+  // Bar click → close the sheet, filter table by type + that month, Record-wise, scroll to it.
+  const onSheetBar = (i: number) => {
+    if (!sheetSeries || !typeSheet) return
+    const mf = monthForBar(i, sheetSeries.series.length, new Date())
+    setDomainTab(typeSheet.domain)
+    setTypeFilter(typeSheet)
+    setStatusFilter(null)
+    setMonthFilter({ idx: i, y: mf.y, m: mf.m, label: mf.label })
+    setView('record')
+    setTypeSheet(null)
+    scrollToTable()
+  }
+  const onSheetViewAll = () => {
+    if (!typeSheet) return
+    setDomainTab(typeSheet.domain)
+    setTypeFilter(typeSheet)
+    setMonthFilter(null)
+    setStatusFilter(null)
+    setTypeSheet(null)
+    scrollToTable()
+  }
+
+  /* ── cells / columns ── */
+  const domainCell = (domain: Domain) => {
+    const meta = DOMAIN_META[domain]
+    const color = domain === 'symptom' ? c.Tertiary : theme.palette.secondary.main
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Icon icon={meta.icon} fontSize='1.1rem' color={color} />
+        <Typography variant='body2' sx={{ fontWeight: 600, color }}>
+          {meta.label}
+        </Typography>
+      </Box>
+    )
+  }
+
+  // Record-wise: the Type cell IS the colored tag (severity/prognosis + domain icon) — no
+  // separate level column. Domain column only on the All tab (redundant on a single-domain tab).
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
-    { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
-    { field: 'type', headerName: typeCol, flex: 1, minWidth: 220, renderCell: p => txt(p.row.type, undefined, 500) },
-    ...(isDiag
-      ? [
-          {
-            field: 'prognosis',
-            headerName: 'Prognosis',
-            width: 140,
-            renderCell: (p: any) => txt(p.row.prognosis || '—', progColor(p.row.prognosis), 600)
-          } as GridColDef
-        ]
+    { field: 'name', headerName: 'Animal', width: 240, renderCell: p => animalCell(p.row.name, p.row.site) },
+    ...(domainTab === 'all'
+      ? [{ field: 'domain', headerName: 'Domain', width: 160, renderCell: (p: any) => domainCell(p.row.domain) } as GridColDef]
       : []),
-    { field: 'date', headerName: isDiag ? 'Diagnosed' : 'Reported', width: 150, renderCell: p => txt(fmtDate(p.row.date), c.neutralSecondary) },
-    { field: 'durationDays', headerName: 'Duration', width: 140, renderCell: p => txt(`${p.row.durationDays}d`, c.neutralSecondary) },
+    {
+      field: 'type',
+      headerName: 'Type',
+      flex: 1,
+      minWidth: 220,
+      renderCell: p => <MedTagChip name={p.row.type} domain={p.row.domain} level={p.row.domain === 'symptom' ? p.row.severity : p.row.prognosis} />
+    },
+    { field: 'category', headerName: 'Category', width: 170, renderCell: p => txt(p.row.category || '—', c.neutralSecondary) },
     {
       field: 'status',
       headerName: 'Status',
       width: 140,
-      align: 'right',
-      headerAlign: 'right',
       renderCell: p => <StatusChip label={p.row.status === 'active' ? 'Active' : 'Resolved'} tone={p.row.status === 'active' ? 'error' : 'success'} />
-    }
+    },
+    { field: 'durationDays', headerName: 'Duration', width: 145, renderCell: p => txt(`${p.row.durationDays}d`, c.neutralSecondary) },
+    { field: 'date', headerName: 'Date', width: 150, renderCell: p => txt(fmtDate(p.row.date), c.neutralSecondary) }
   ]
 
+  // Animal-wise: separate Symptoms / Clinical Assessments tag columns on All; a single-domain
+  // tab drops the other column. Widths sized so NO header ever truncates.
+  const chipCol = (field: 'symChips' | 'asmChips', headerName: string, domain: Domain): GridColDef => ({
+    field,
+    headerName,
+    flex: 1,
+    minWidth: 250,
+    sortable: false,
+    renderCell: p => (p.row[field].length ? <ChipsCell chips={p.row[field]} domain={domain} /> : txt('—', c.neutralSecondary))
+  })
   const animalColumns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
     { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
-    { field: 'types', headerName: 'Conditions', flex: 1, minWidth: 240, sortable: false, renderCell: p => <TypeChips types={p.row.types} /> },
-    { field: 'active', headerName: 'Active', width: 120, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.active, p.row.active ? c.Tertiary : c.neutralSecondary, 700) },
+    ...(domainTab !== 'assessment' ? [chipCol('symChips', 'Symptoms', 'symptom')] : []),
+    ...(domainTab !== 'symptom' ? [chipCol('asmChips', 'Clinical Assessments', 'assessment')] : []),
+    { field: 'count', headerName: 'Records', width: 160, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.count, c.neutralSecondary) },
+    { field: 'active', headerName: 'Active', width: 140, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.active, p.row.active ? c.Tertiary : c.neutralSecondary, 700) },
     {
       field: 'status',
       headerName: 'Status',
-      width: 140,
+      width: 150,
       align: 'right',
       headerAlign: 'right',
       renderCell: p => (p.row.active ? <StatusChip label='Active' tone='error' /> : <StatusChip label='Recovered' tone='success' />)
     }
   ]
 
+  /* ── table header: left domain tabs (CoL table-tab pattern) + active filter chips ── */
+  const DOMAIN_TABS: { key: DomainTab; label: string; icon: string }[] = [
+    { key: 'all', label: 'All', icon: 'mdi:format-list-bulleted' },
+    { key: 'symptom', label: 'Symptoms', icon: DOMAIN_META.symptom.icon },
+    { key: 'assessment', label: 'Assessments', icon: DOMAIN_META.assessment.icon }
+  ]
+  const accents: Record<DomainTab, string> = { all: c.OnSurfaceVariant, symptom: c.Tertiary, assessment: theme.palette.secondary.main }
+  const domainTabs = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      {DOMAIN_TABS.map(m => {
+        const active = domainTab === m.key
+        const accent = accents[m.key]
+
+        return (
+          <Box
+            key={m.key}
+            onClick={() => {
+              setDomainTab(m.key)
+              if (m.key === 'all') setView('animal') // All has no view toggle — Animal-wise only
+            }}
+            role='tab'
+            aria-selected={active}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              py: 0.5,
+              borderBottom: '2.5px solid',
+              borderColor: active ? accent : 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: active ? accent : c.OutlineVariant }
+            }}
+          >
+            <Icon icon={m.icon} fontSize='1.25rem' color={active ? accent : c.Outline} />
+            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {m.label}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? accent : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+              {counts[m.key].toLocaleString()}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+
+  // Active-filter chips live in their own row UNDER the tabs header, never beside the tabs.
+  const filterChipsRow = (typeFilter || monthFilter || statusFilter || sevFilter || progFilter) && (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+      {statusFilter && <FilterChip label={statusFilter === 'active' ? 'Active' : 'Resolved'} onClear={() => setStatusFilter(null)} />}
+      {typeFilter && <FilterChip label={typeFilter.name} onClear={() => setTypeFilter(null)} />}
+      {monthFilter && <FilterChip label={monthFilter.label} onClear={() => setMonthFilter(null)} />}
+      {sevFilter && <FilterChip label={`Severity: ${sevFilter}`} onClear={() => setSevFilter(null)} />}
+      {progFilter && <FilterChip label={`Prognosis: ${progFilter}`} onClear={() => setProgFilter(null)} />}
+      <Typography
+        variant='caption'
+        onClick={() => {
+          setTypeFilter(null)
+          setMonthFilter(null)
+          setStatusFilter(null)
+          setSevFilter(null)
+          setProgFilter(null)
+        }}
+        sx={{ color: theme.palette.secondary.main, cursor: 'pointer', fontWeight: 600 }}
+      >
+        Clear
+      </Typography>
+    </Box>
+  )
+
+  // All tab: Animal-wise only, no dropdowns — just search. Symptoms tab: Severity dropdown;
+  // Assessments tab: Prognosis dropdown; both domain tabs keep the Animal/Record toggle.
+  const tableAction = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      {domainTab === 'symptom' && (
+        <CategoryFilter
+          options={SEVERITY_ORDER}
+          value={sevFilter}
+          onChange={onSev}
+          width={165}
+          placeholder='Severity'
+          icon={DOMAIN_META.symptom.icon}
+        />
+      )}
+      {domainTab === 'assessment' && (
+        <CategoryFilter
+          options={[...PROGNOSIS_ORDER].reverse()}
+          value={progFilter}
+          onChange={onProg}
+          width={180}
+          placeholder='Prognosis'
+          icon={DOMAIN_META.assessment.icon}
+        />
+      )}
+      {domainTab !== 'all' && <ViewToggle view={view} onChange={setView} />}
+      <TableSearch value={q} onChange={onQ} placeholder='Search animal, site…' />
+    </Box>
+  )
+
+  /* ── one ranked-types panel (heading + Category dropdown + search share the row) ── */
+  const typePanel = (
+    domain: Domain,
+    title: string,
+    types: { name: string; count: number; animals: number; category: string }[],
+    shown: { name: string; count: number; animals: number; category: string }[],
+    cat: string | null,
+    setCat: (v: string | null) => void,
+    cats: string[],
+    tq: string,
+    setTq: (v: string) => void
+  ) => (
+    <SectionCard
+      title={
+        <Typography variant='subtitle1' sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+          {title}{' '}
+          <Box component='span' sx={{ fontSize: '0.8rem', fontWeight: 500, color: c.neutralSecondary }}>
+            · {types.length} types
+          </Box>
+        </Typography>
+      }
+      action={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>
+          <CategoryFilter options={cats} value={cat} onChange={setCat} width={185} height={36} />
+          <TableSearch value={tq} onChange={setTq} placeholder='Search…' width={150} height={36} />
+        </Box>
+      }
+      titleMb={3}
+    >
+      {shown.length ? (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+          {shown.slice(0, PILL_LIMIT).map(t => (
+            <ChipTag
+              key={t.name}
+              label={t.name}
+              value={t.animals.toLocaleString()}
+              valueColor={c.OnSurfaceVariant}
+              dot={domain === 'assessment' ? worstProg(t.name) : undefined}
+              onClick={() => pickType(domain, t.name)}
+            />
+          ))}
+          {shown.length > PILL_LIMIT && (
+            <Box
+              onClick={() => setViewAll(domain)}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 4,
+                py: 1.25,
+                borderRadius: '999px',
+                border: `1px dashed ${c.Outline}`,
+                cursor: 'pointer',
+                transition: 'border-color .15s ease',
+                '&:hover': { borderColor: theme.palette.primary.main }
+              }}
+            >
+              <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.primary.dark }}>
+                View all {shown.length}
+              </Typography>
+              <Icon icon='mdi:chevron-down' fontSize={16} color={theme.palette.primary.dark} />
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
+          No records.
+        </Typography>
+      )}
+    </SectionCard>
+  )
+
+  const sheetTypeCol = typeSheet?.domain === 'assessment' ? 'Clinical Assessment' : 'Symptom'
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Row 1 · stats */}
-      <StatsRow cols={isDiag ? 5 : 4}>
-        {isDiag ? (
-          <>
-            <StatTile label={`${typeCol} Types`} value={s.types} tone='neutral' />
-            <StatTile label='Active' value={s.active.toLocaleString()} tone='error' />
-            <StatTile label='Resolved (12 mo)' value={s.resolved.toLocaleString()} tone='success' />
-            <StatTile label='Avg Resolution' value={`${s.avgResolutionDays ?? 0}d`} tone='info' />
-            <StatTile label='Animals Affected' value={s.animalsAffected.toLocaleString()} tone='neutral' />
-          </>
-        ) : (
-          <>
-            <StatTile label='Active' value={s.active.toLocaleString()} tone='error' onClick={() => setDrawerScope('active')} />
-            <StatTile label='Animals Affected' value={s.animalsAffected.toLocaleString()} tone='neutral' onClick={() => setDrawerScope('all')} />
-            <StatTile
-              label='Most Recurring'
-              value={
-                <Box component='span' sx={{ display: 'inline-block', fontSize: '1.15rem', fontWeight: 600, lineHeight: 1.25, whiteSpace: 'normal' }}>
-                  {mostRecurring?.name ?? '—'}
-                </Box>
-              }
-              tone='warning'
-              onClick={() => setDrawerScope('recurring')}
-            />
-            <StatTile label='Long-open Cases' value={longOpen.toLocaleString()} tone='error' onClick={() => setDrawerScope('longopen')} />
-          </>
-        )}
+      {/* Row 1 · ONE stat band across both domains — tiles scope the table below */}
+      <StatsRow cols={4}>
+        <StatTile label='Animals Affected' value={affected.toLocaleString()} tone='neutral' onClick={() => scopeTable('all', null)} />
+        <StatTile label='Active Symptoms' value={symActive.toLocaleString()} tone='error' onClick={() => scopeTable('symptom', 'active')} />
+        <StatTile label='Active Assessments' value={diagActive.toLocaleString()} tone='error' onClick={() => scopeTable('assessment', 'active')} />
+        <StatTile label='Recovered' value={`${recoveredPct}%`} tone='success' onClick={() => scopeTable('all', 'resolved')} />
       </StatsRow>
 
-      {/* Row 2 · charts */}
-      {isDiag ? (
-        <ChartsRow md='repeat(2, 1fr)'>
-          <SectionCard title={`Most common ${noun}`} titleMb={2}>
-            {commonTypes.length ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {commonTypes.map(t => (
-                  <ChipTag
-                    key={t.name}
-                    label={t.name}
-                    value={(t.animals ?? t.count).toLocaleString()}
-                    valueColor={c.OnSurfaceVariant}
-                    onClick={() => setTypeSheet(t.name)}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-                No records.
-              </Typography>
-            )}
-          </SectionCard>
+      {/* Row 2 · Top symptoms | Top conditions side by side */}
+      <ChartsRow md='repeat(2, 1fr)'>
+        {typePanel('symptom', 'Top symptoms', symTypes, symShown, symCat, setSymCat, symCats, symQ, setSymQ)}
+        {typePanel('assessment', 'Top conditions', condTypes, condShown, condCat, setCondCat, condCats, condQ, setCondQ)}
+      </ChartsRow>
 
-          <SectionCard
-            title='Highest-risk conditions'
-            titleMb={2}
-            action={
-              <TextField
-                select
-                size='small'
-                value={riskLevel}
-                onChange={e => setRiskLevel(e.target.value as RiskLevel)}
-                sx={{ minWidth: 150, '& .MuiInputBase-root': { height: 36, bgcolor: theme.palette.background.paper } }}
-              >
-                <MenuItem value='all'>All at-risk</MenuItem>
-                {RISK_LEVELS.map(l => (
-                  <MenuItem key={l} value={l}>
-                    {l}
-                  </MenuItem>
-                ))}
-              </TextField>
-            }
-          >
-            {riskTypes.length ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {riskTypes.map(t => (
-                  <ChipTag key={t.name} label={t.name} value={t.value.toLocaleString()} valueColor={c.Tertiary} onClick={() => setTypeSheet(t.name)} />
-                ))}
-              </Box>
-            ) : (
-              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-                No {riskLevel === 'all' ? 'at-risk' : riskLevel.toLowerCase()} cases.
-              </Typography>
-            )}
-          </SectionCard>
-        </ChartsRow>
-      ) : (
-        <ChartsRow md='repeat(2, 1fr)'>
-          <SectionCard title='Most widespread symptoms' titleMb={2}>
-            {commonTypes.length ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {commonTypes.map(t => (
-                  <ChipTag
-                    key={t.name}
-                    label={t.name}
-                    value={(t.animals ?? t.count).toLocaleString()}
-                    valueColor={c.OnSurfaceVariant}
-                    onClick={() => setTypeSheet(t.name)}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-                No records.
-              </Typography>
-            )}
-          </SectionCard>
-
-          <SectionCard title='Most recurring symptoms' titleMb={2}>
-            {recurringList.length ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                {recurringList.map(t => (
-                  <ChipTag
-                    key={t.name}
-                    label={t.name}
-                    value={`${t.ratio.toFixed(1)}×`}
-                    valueColor={theme.palette.primary.dark}
-                    onClick={() => setTypeSheet(t.name)}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-                No records.
-              </Typography>
-            )}
-          </SectionCard>
-        </ChartsRow>
-      )}
-
-      {/* Row 3 · standard DataGrid */}
+      {/* Row 3 · ONE combined table */}
       <Box ref={tableRef}>
-      <SectionCard
-        title={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
-              {view === 'animal' ? `Animals · ${animalRows.length.toLocaleString()}` : `Records · ${rows.length.toLocaleString()}`}
-            </Typography>
-            {statusFilter && (
-              <FilterChip label={statusFilter === 'active' ? 'Active' : 'Long-open (>30d)'} onClear={() => setStatusFilter(null)} />
-            )}
-            {typeFilter && <FilterChip label={typeFilter} onClear={() => setTypeFilter(null)} />}
-            {monthFilter && <FilterChip label={monthFilter.label} onClear={() => setMonthFilter(null)} />}
-            {(typeFilter || monthFilter || statusFilter) && (
-              <Typography
-                variant='caption'
-                onClick={() => {
-                  setTypeFilter(null)
-                  setMonthFilter(null)
-                  setStatusFilter(null)
-                }}
-                sx={{ color: theme.palette.secondary.main, cursor: 'pointer', fontWeight: 600 }}
-              >
-                Clear
-              </Typography>
-            )}
-          </Box>
-        }
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <ViewToggle view={view} onChange={setView} />
-            <TableSearch value={q} onChange={onQ} placeholder='Search animal, site…' />
-          </Box>
-        }
-        titleMb={2}
-      >
-        {view === 'animal' ? (
-          <DetailTable
-            columns={animalColumns}
-            rows={atbl.rows}
-            total={atbl.total}
-            paginationModel={atbl.paginationModel}
-            setPaginationModel={atbl.setPaginationModel}
-            sortModel={atbl.sortModel}
-            handleSortModel={atbl.handleSortModel}
-            onRowClick={(p: { row: AniGroup }) => setAnimalDrill(p.row)}
-          />
-        ) : (
-          <DetailTable
-            columns={columns}
-            rows={tbl.rows}
-            total={tbl.total}
-            paginationModel={tbl.paginationModel}
-            setPaginationModel={tbl.setPaginationModel}
-            sortModel={tbl.sortModel}
-            handleSortModel={tbl.handleSortModel}
-          />
-        )}
-      </SectionCard>
+        <SectionCard title={domainTabs} action={tableAction} titleMb={2}>
+          {filterChipsRow}
+          {view === 'animal' ? (
+            <DetailTable
+              columns={animalColumns}
+              rows={atbl.rows}
+              total={atbl.total}
+              paginationModel={atbl.paginationModel}
+              setPaginationModel={atbl.setPaginationModel}
+              sortModel={atbl.sortModel}
+              handleSortModel={atbl.handleSortModel}
+              onRowClick={(p: { row: AniGroup }) => setAnimalDrill(p.row)}
+              rowHeight={88}
+            />
+          ) : (
+            <DetailTable
+              columns={columns}
+              rows={tbl.rows}
+              total={tbl.total}
+              paginationModel={tbl.paginationModel}
+              setPaginationModel={tbl.setPaginationModel}
+              sortModel={tbl.sortModel}
+              handleSortModel={tbl.handleSortModel}
+            />
+          )}
+        </SectionCard>
       </Box>
 
-      <AnimalRecordsDrawer group={animalDrill} onClose={() => setAnimalDrill(null)} mode='clinical' isDiag={isDiag} />
+      <AnimalRecordsDrawer group={animalDrill} onClose={() => setAnimalDrill(null)} />
 
-      {/* side sheet · symptom types for the clicked stat tile (scoped) */}
+      {/* side sheet · full type list for a panel ("View all N") */}
       <Drawer
         anchor='right'
-        open={!!drawerData}
-        onClose={() => setDrawerScope(null)}
-        PaperProps={{ sx: { width: { xs: '100%', sm: 620 }, maxWidth: '100%' } }}
+        open={!!viewAll}
+        onClose={() => setViewAll(null)}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 680 }, maxWidth: '100%' } }}
       >
-        {drawerData && (
+        {viewAll && (
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Box sx={{ px: 5, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
-                  {drawerData.title}
-                </Typography>
-              </Box>
-              <IconButton onClick={() => setDrawerScope(null)} size='small'>
+              <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
+                {viewAll === 'symptom' ? 'All symptoms' : 'All conditions'}
+              </Typography>
+              <IconButton onClick={() => setViewAll(null)} size='small'>
                 <Icon icon='mdi:close' />
               </IconButton>
             </Box>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 4, py: 3 }}>
               <TypeTable
-                items={drawerData.ranked}
-                noun={noun}
-                initialSort={
-                  drawerData.scope === 'recurring'
-                    ? { field: 'ratio', sort: 'desc' }
-                    : drawerData.scope === 'all'
-                    ? { field: 'animals', sort: 'desc' }
-                    : { field: 'count', sort: 'desc' }
-                }
-                onPick={pickFromDrawer}
+                items={viewAll === 'symptom' ? symShown : condShown}
+                noun={viewAll === 'symptom' ? 'symptoms' : 'assessments'}
+                onPick={name => {
+                  const dom = viewAll
+                  setViewAll(null)
+                  pickType(dom, name)
+                }}
               />
             </Box>
           </Box>
         )}
       </Drawer>
 
-      {/* wide side sheet · per-symptom 12-month graph (distinct animals affected) */}
+      {/* wide side sheet · per-type 12-month graph (distinct animals affected) */}
       <Drawer
         anchor='right'
         open={!!typeSheet}
@@ -1750,10 +2127,10 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
             <Box sx={{ px: 5, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
-                  {typeCol} · last 12 months
+                  {sheetTypeCol}
                 </Typography>
                 <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
-                  {typeSheet}
+                  {typeSheet.name}
                 </Typography>
               </Box>
               <IconButton onClick={() => setTypeSheet(null)} size='small'>
@@ -1761,25 +2138,24 @@ const ClinicalPanel: React.FC<{ tab: TabKey; prog: ClinicalProgram; range: Range
               </IconButton>
             </Box>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 5, py: 4 }}>
-              <Typography variant='body2' sx={{ color: c.neutralSecondary, mb: 3 }}>
-                Animals affected per month. Click a bar to see those animals in the table below.
-              </Typography>
-              <ColumnTrend data={sheetSeries.series} tone='info' height={240} showValues onBarClick={onSheetBar} />
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 6, mt: 4, pt: 3, borderTop: `1px solid ${c.SurfaceVariant}` }}>
-                {[
-                  { label: 'Animals affected', value: sheetSeries.totalAnimals.toLocaleString() },
-                  { label: 'Total episodes', value: sheetSeries.totalEpisodes.toLocaleString() },
-                  { label: 'Peak month', value: sheetSeries.peakLabel }
-                ].map(stat => (
-                  <Box key={stat.label}>
-                    <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }}>
-                      {stat.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: c.OnSurfaceVariant }}>
-                      {stat.value}
-                    </Typography>
-                  </Box>
-                ))}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 4 }}>
+                <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+                  Animals affected
+                </Typography>
+                <TrendRangeTabs value={sheetRange} onPick={setSheetRange} color={theme.palette.secondary.main} />
+              </Box>
+              <ColumnTrend
+                data={sheetSeries.series}
+                tone='info'
+                height={240}
+                showValues
+                onBarClick={onSheetBar}
+                labelEvery={sheetSeries.labelEvery}
+              />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3, mt: 5 }}>
+                <StatTile label='Animals Affected' value={sheetSeries.totalAnimals.toLocaleString()} tone='info' />
+                <StatTile label='Total Episodes' value={sheetSeries.totalEpisodes.toLocaleString()} tone='neutral' />
+                <StatTile label='Peak Month' value={sheetSeries.peakLabel} tone='neutral' />
               </Box>
               <Box
                 onClick={onSheetViewAll}
@@ -1840,17 +2216,19 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
   const renderPanel = () => {
     if (tab === 'overview') return <OverviewPanel preventive={preventive} clinical={clinical} range={range} onGoToTab={setTab} />
 
-    if (tab === 'symptoms' || tab === 'diagnosis') {
-      const prog = clinical?.programs?.[tab]
-      if (!prog || (!prog.records.length && !prog.summary.animalsAffected)) return <EmptyState message={`No ${tab} data for this species`} />
+    if (tab === 'clinical') {
+      const sym = clinical?.programs?.symptoms
+      const diag = clinical?.programs?.diagnosis
+      const has = (p?: ClinicalProgram) => !!p && (p.records.length > 0 || p.summary.animalsAffected > 0)
+      if (!has(sym) && !has(diag)) return <EmptyState message='No clinical data for this species' />
 
-      return <ClinicalPanel key={tab} tab={tab} prog={prog} range={range} animalCount={clinical?.animalCount ?? 0} />
+      return <ClinicalMergedPanel symptoms={sym} diagnosis={diag} range={range} />
     }
 
     const prog = preventive?.programs?.[tab]
     if (!prog || !prog.summary.animalsTracked) return <EmptyState message='No preventive-care data for this species' />
 
-    return <PreventivePanel key={tab} tab={tab} prog={prog} />
+    return <PreventivePanel key={tab} tab={tab} prog={prog} months={preventive?.months ?? []} />
   }
 
   return (

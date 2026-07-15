@@ -79,6 +79,54 @@ const DIAGNOSES_BY_CLASS = {
 }
 const DEFAULT_DIAGNOSES = ['Enteritis', 'Parasitism', 'Dermatitis', 'Abscess', 'Respiratory infection']
 
+// Body-system category per type (symptoms + diagnoses share one flat map). Drives the
+// Category dropdowns/column on the merged Clinical tab.
+const TYPE_CATEGORY = {
+  // symptoms
+  Lameness: 'Musculoskeletal',
+  Diarrhoea: 'Digestive',
+  'Skin lesion': 'Skin & Coat',
+  Inappetence: 'Nutritional',
+  Lethargy: 'General',
+  Coughing: 'Respiratory',
+  'Nasal discharge': 'Respiratory',
+  Wound: 'Injury & Trauma',
+  'Feather loss': 'Skin & Coat',
+  'Laboured breathing': 'Respiratory',
+  'Skin shedding issue': 'Skin & Coat',
+  'Mouth rot': 'Oral & Dental',
+  Swelling: 'Injury & Trauma',
+  Regurgitation: 'Digestive',
+  Bloating: 'Digestive',
+  Discolouration: 'Skin & Coat',
+  'Fin rot': 'Skin & Coat',
+  'Buoyancy issue': 'General',
+  // diagnoses
+  Enteritis: 'Digestive',
+  Pododermatitis: 'Musculoskeletal',
+  Pneumonia: 'Respiratory',
+  Parasitism: 'Parasitic',
+  Arthritis: 'Musculoskeletal',
+  Dermatitis: 'Skin & Coat',
+  Abscess: 'Infectious',
+  Colic: 'Digestive',
+  Aspergillosis: 'Respiratory',
+  Bumblefoot: 'Musculoskeletal',
+  'Feather cyst': 'Skin & Coat',
+  'Air sacculitis': 'Respiratory',
+  Stomatitis: 'Oral & Dental',
+  'Metabolic bone disease': 'Metabolic',
+  Dysecdysis: 'Skin & Coat',
+  'Respiratory infection': 'Respiratory',
+  Chytridiomycosis: 'Infectious',
+  'Red-leg syndrome': 'Infectious',
+  'Nutritional deficiency': 'Nutritional',
+  Ich: 'Parasitic',
+  Columnaris: 'Infectious',
+  'Swim bladder disorder': 'General'
+}
+const categoryOf = type => TYPE_CATEGORY[type] || 'General'
+
 const PROGNOSES = [
   ['Favourable', 6],
   ['Guarded', 3],
@@ -162,6 +210,7 @@ function genProgram(rng, animals, catalog, opts) {
       site: a.site,
       enclosure: a.enclosure,
       type,
+      category: categoryOf(type),
       date: iso(reported),
       durationDays,
       status: isActive ? 'active' : 'resolved'
@@ -204,7 +253,7 @@ function genProgram(rng, animals, catalog, opts) {
     kind: 'type',
     summary,
     topTypes: Object.entries(perType)
-      .map(([name, count]) => ({ name, count, animals: (perTypeAnimals[name] || new Set()).size }))
+      .map(([name, count]) => ({ name, count, animals: (perTypeAnimals[name] || new Set()).size, category: categoryOf(name) }))
       .sort((a, b) => b.count - a.count),
     statusMix: { active, resolved },
     trend: monthlyTrend(records),

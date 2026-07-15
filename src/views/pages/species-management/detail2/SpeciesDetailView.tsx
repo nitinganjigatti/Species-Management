@@ -261,10 +261,10 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               {h?.iucnStatus && (
-                <StatusChip label={`IUCN: ${stripParen(h.iucnStatus)}`} tone='warning' fg={cc.Tertiary} />
+                <StatusChip label={`IUCN: ${stripParen(h.iucnStatus)}`} tone='warning' fg={cc.Tertiary} size='medium' />
               )}
               {h?.citesAppendix && (
-                <StatusChip label={`CITES: ${stripParen(h.citesAppendix)}`} tone='info' fg={cc.antzInfo60} />
+                <StatusChip label={`CITES: ${stripParen(h.citesAppendix)}`} tone='info' fg={cc.antzInfo60} size='medium' />
               )}
               {/* View toggle — horizontal tabs vs. side rail */}
               <Box sx={{ display: 'inline-flex', border: `1px solid ${cc.OutlineVariant}`, borderRadius: '8px', overflow: 'hidden', ml: 0.5 }}>

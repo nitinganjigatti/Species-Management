@@ -23,7 +23,8 @@ import {
   GRID_CELL_PAD,
   SeasonalColumnChart,
   SectionCard,
-  TrendAreaChart
+  TrendAreaChart,
+  TrendRangeTabs
 } from 'src/views/pages/species-management/detail2/detailUi'
 import DashboardDateRange, {
   resolveRange,
@@ -258,46 +259,8 @@ const fmtYm = (k: string) => {
   return mm ? `${MONTHS[+mm[2] - 1]} '${mm[1].slice(2)}` : k
 }
 
-// The prototype's 1Y·2Y·3Y·All underline tabs on the trend-chart header. Picking one
-// drives the SHARED period filter, so the top Quick preset changes with it.
-const TREND_RANGES: { key: RangePreset; label: string }[] = [
-  { key: 'last_1y', label: '1Y' },
-  { key: 'last_2y', label: '2Y' },
-  { key: 'last_3y', label: '3Y' },
-  { key: 'all', label: 'All' }
-]
-
-const TrendRangeTabs: React.FC<{ value: RangePreset; onPick: (p: RangePreset) => void; color: string }> = ({ value, onPick, color }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors
-
-  return (
-    <Box sx={{ display: 'flex', borderBottom: `2px solid ${cc.SurfaceVariant}` }}>
-      {TREND_RANGES.map(r => {
-        const active = value === r.key
-
-        return (
-          <Box
-            key={r.key}
-            onClick={() => onPick(r.key)}
-            sx={{
-              px: '14px',
-              py: '4px',
-              cursor: 'pointer',
-              mb: '-2px',
-              borderBottom: `2.5px solid ${active ? color : 'transparent'}`,
-              transition: 'all .15s ease'
-            }}
-          >
-            <Typography variant='caption' sx={{ fontWeight: 700, color: active ? color : cc.neutralSecondary }}>
-              {r.label}
-            </Typography>
-          </Box>
-        )
-      })}
-    </Box>
-  )
-}
+// The 1Y·2Y·3Y·All underline tabs (now shared via detailUi). Picking one here drives the
+// SHARED period filter, so the top Quick preset changes with it.
 
 /** Trend series for the chart: bounded year-presets get a contiguous zero-filled month
  *  window (prototype's _buildLastNMonths); everything else shows the months that have data. */

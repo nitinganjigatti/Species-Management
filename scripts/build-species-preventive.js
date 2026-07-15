@@ -237,6 +237,162 @@ function genProgram(rng, animals, catalog, opts) {
   }
 }
 
+// ── per-vaccine (vaccine-wise) breakdown — ADDITIVE `types[]` on each program ──
+// Everything below uses side-RNGs seeded per (species, program, type, animal), so the
+// existing program aggregates above stay byte-stable. Powers the vaccine-wise rethink:
+// index rows (coverage/pending/sites) + detail (trends, site chips, status animal table).
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const ANIMALS_PER_TYPE_CAP = 150 // per type: table paginates; tab counts use the aggregates
+const TREND_MONTHS = 36
+
+// Shared month-label axis for ALL per-type trend arrays (stored once per sidecar — the
+// per-point {label,value} form multiplied to ~90MB across the corpus).
+const TREND_LABELS = (() => {
+  const out = []
+  for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - i, 1))
+    out.push(`${MONTHS[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`)
+  }
+  return out
+})()
+
+const SCHEDULES = {
+  vaccination: [
+    [365, 'Annual · core'],
+    [180, 'Every 6 months'],
+    [730, 'Booster · 2-yearly']
+  ],
+  deworming: [
+    [90, 'Quarterly'],
+    [120, 'Every 4 months'],
+    [180, 'Half-yearly']
+  ],
+  supplements: [[30, 'Monthly · ongoing']]
+}
+
+const monthLabel = d => `${MONTHS[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`
+
+function genTypes(tsnId, programKey, animals, catalog) {
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+  const types = []
+  for (const typeName of catalog) {
+    const vrng = rngFrom(shash(programKey + '|' + typeName) + Number(tsnId) * 2654435761)
+    // per-vaccine personality → coverage spreads meaningfully across the catalog
+    const neverP = 0.02 + vrng() * 0.13
+    const overdueP = 0.03 + vrng() * 0.16
+    const dueP = 0.05 + vrng() * 0.12
+    const [intervalDays, schedule] = SCHEDULES[programKey][Math.floor(vrng() * SCHEDULES[programKey].length)]
+
+    let covered = 0,
+      due = 0,
+      overdue = 0,
+      never = 0
+    const sites = {}
+    const rows = [] // COMPACT rows: {a,s,st,lg,nd,dy,dn} — decoded in detail.ts (doses = lg − k·interval)
+    const doseDates = []
+
+    for (const a of animals) {
+      const arng = rngFrom(shash(typeName + '|' + a.aid) + Number(tsnId) * 40503)
+      const st = (sites[a.site] ||= { animals: 0, covered: 0, overdue: 0 })
+      st.animals++
+      const r = arng()
+      let status, lastGiven = null, days = null, nextDue = null
+      if (r < neverP) {
+        status = 'n'
+        never++
+      } else if (r < neverP + overdueP) {
+        status = 'o'
+        overdue++
+        st.overdue++
+        days = agingDays(arng)
+        nextDue = addDays(TODAY, -days)
+        lastGiven = addDays(nextDue, -intervalDays)
+      } else if (r < neverP + overdueP + dueP) {
+        status = 'd'
+        due++
+        days = 1 + Math.floor(arng() * 30)
+        nextDue = addDays(TODAY, days)
+        lastGiven = addDays(nextDue, -intervalDays)
+      } else {
+        status = 'c'
+        covered++
+        st.covered++
+        const ago = 1 + Math.floor(arng() * Math.max(1, intervalDays - 45))
+        lastGiven = addDays(TODAY, -ago)
+      }
+      let nDoses = 0
+      if (lastGiven) {
+        nDoses = 1 + Math.floor(arng() * 3)
+        for (let k = 0; k < nDoses; k++) doseDates.push(iso(addDays(lastGiven, -k * intervalDays)))
+      }
+      if (rows.length < ANIMALS_PER_TYPE_CAP) {
+        const row = { a: a.aid, s: a.site, st: status }
+        if (lastGiven) row.lg = iso(lastGiven)
+        if (days != null) row.dy = days
+        if (nDoses) row.dn = nDoses
+        rows.push(row)
+      }
+    }
+
+    const tracked = animals.length
+    const coveragePct = tracked ? Math.round((100 * covered) / tracked) : 0
+
+    // doses per month — bucketed from the ACTUAL generated dose dates (trailing 36 months);
+    // plain number[] aligned to the sidecar-level `months` axis
+    const buckets = new Array(TREND_MONTHS).fill(0)
+    const idx = {}
+    for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+      const d = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - i, 1))
+      idx[`${d.getUTCFullYear()}-${d.getUTCMonth()}`] = TREND_MONTHS - 1 - i
+    }
+    for (const ds of doseDates) {
+      const d = new Date(ds)
+      const k = `${d.getUTCFullYear()}-${d.getUTCMonth()}`
+      if (idx[k] != null) buckets[idx[k]]++
+    }
+
+    // coverage % over time — random-walk backwards from today's true value
+    const trend = new Array(TREND_MONTHS)
+    let v = coveragePct
+    for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+      trend[i] = Math.round(clamp(v, 4, 99))
+      v -= 0.15 + vrng() * 0.9 - (vrng() * 4 - 2) / 4
+    }
+
+    const sitesArr = Object.entries(sites)
+      .map(([site, s]) => ({
+        site,
+        animals: s.animals,
+        coveragePct: s.animals ? Math.round((100 * s.covered) / s.animals) : 0,
+        overdue: s.overdue
+      }))
+      .sort((a, b) => a.coveragePct - b.coveragePct)
+    // rows reference their site as an INDEX into sitesArr (long site names repeated per row cost MBs)
+    const siteIdx = new Map(sitesArr.map((s, i) => [s.site, i]))
+    for (const row of rows) row.s = siteIdx.get(row.s)
+
+    types.push({
+      name: typeName,
+      schedule,
+      intervalDays,
+      coveragePct,
+      covered,
+      due,
+      overdue,
+      never,
+      tracked,
+      sitesAffected: sitesArr.filter(s => s.overdue > 0).length,
+      sitesTotal: sitesArr.length,
+      sites: sitesArr,
+      coverageTrend: trend,
+      dosesPerMonth: buckets,
+      animals: rows
+    })
+  }
+
+  return types.sort((a, b) => a.coveragePct - b.coveragePct)
+}
+
 // ── main ───────────────────────────────────────────────────────────────────
 function main() {
   const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'list.json'), 'utf8'))
@@ -267,6 +423,13 @@ function main() {
         supplements: genProgram(rng, animals, SUPPLEMENTS, { kind: 'ongoing', interval: 30, neverP: 0.12, overdueP: 0.18, dueP: 0.2 })
       }
     }
+    // vaccine-wise breakdown (additive; side-seeded so the program aggregates above are untouched)
+    out.months = TREND_LABELS
+    out.short = (sp.common_name || 'Animal').split(' ')[0] // row decoder rebuilds animal names
+
+    out.programs.vaccination.types = genTypes(id, 'vaccination', animals, vaccines)
+    out.programs.deworming.types = genTypes(id, 'deworming', animals, DEWORMERS)
+    out.programs.supplements.types = genTypes(id, 'supplements', animals, SUPPLEMENTS)
     fs.writeFileSync(path.join(OUT, `${id}.json`), JSON.stringify(out))
     written++
     if (written % 400 === 0) console.log(`  …${written} written`)

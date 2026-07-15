@@ -152,6 +152,41 @@ export interface PreventiveSite {
   trendPct: number
   spark: number[]
 }
+// Vaccine-wise breakdown (the vaccine-wise rethink): one entry per medicine.
+export type PreventiveTypeStatus = 'covered' | 'due' | 'overdue' | 'never'
+export interface PreventiveTypeAnimal {
+  aid: string
+  name: string
+  site: string
+  status: PreventiveTypeStatus
+  lastGiven?: string
+  nextDue?: string
+  days?: number
+  doses: string[] // dose dates, newest first
+}
+export interface PreventiveTypeSite {
+  site: string
+  animals: number
+  coveragePct: number
+  overdue: number
+}
+export interface PreventiveType {
+  name: string
+  schedule: string
+  intervalDays: number
+  coveragePct: number
+  covered: number
+  due: number
+  overdue: number
+  never: number
+  tracked: number
+  sitesAffected: number
+  sitesTotal: number
+  sites: PreventiveTypeSite[]
+  coverageTrend: number[] // aligned to SpeciesPreventive.months
+  dosesPerMonth: number[] // aligned to SpeciesPreventive.months
+  animals: PreventiveTypeAnimal[] // capped sample; tab counts come from the aggregate fields
+}
 export interface PreventiveProgram {
   kind: 'schedule' | 'ongoing'
   summary: { coveragePct: number; coverageTrendPct: number; overdue: number; dueIn30: number; never: number; animalsTracked: number }
@@ -159,15 +194,48 @@ export interface PreventiveProgram {
   aging: { d0_30: number; d30_90: number; d90plus: number }
   bySite: { site: string; count: number }[]
   sites?: PreventiveSite[]
+  types?: PreventiveType[]
   records: PreventiveRecord[]
 }
 export interface SpeciesPreventive {
   tsnId: number
   animalCount: number
+  /** Month labels ("Jan '26") shared by every type's coverageTrend / dosesPerMonth. */
+  months?: string[]
   programs: { vaccination?: PreventiveProgram; deworming?: PreventiveProgram; supplements?: PreventiveProgram }
 }
 
 const preventiveCache = new Map<string, Promise<SpeciesPreventive | null>>()
+
+// The sidecar stores per-type animal rows COMPACT ({a,s,st,lg,dy,dn}, site as index) to keep
+// 2350 files small. Decode once at fetch into the friendly PreventiveTypeAnimal shape — a real
+// API can later return the friendly shape directly and this decoder just disappears.
+const STATUS_BY_CODE: Record<string, PreventiveTypeStatus> = { c: 'covered', d: 'due', o: 'overdue', n: 'never' }
+const DAY_MS = 86400000
+const decodePreventive = (raw: any): SpeciesPreventive | null => {
+  if (!raw) return null
+  const short = raw.short || 'Animal'
+  for (const key of ['vaccination', 'deworming', 'supplements']) {
+    const prog = raw.programs?.[key]
+    if (!prog?.types) continue
+    for (const t of prog.types) {
+      t.animals = (t.animals || []).map((r: any) => {
+        const status = STATUS_BY_CODE[r.st] || 'never'
+        const out: PreventiveTypeAnimal = { aid: r.a, name: `${short} #${r.a}`, site: t.sites[r.s]?.site ?? '—', status, doses: [] }
+        if (r.lg) {
+          out.lastGiven = r.lg
+          const lg = new Date(r.lg).getTime()
+          out.nextDue = new Date(lg + t.intervalDays * DAY_MS).toISOString().slice(0, 10)
+          for (let k = 0; k < (r.dn || 1); k++) out.doses.push(new Date(lg - k * t.intervalDays * DAY_MS).toISOString().slice(0, 10))
+        }
+        if (r.dy != null) out.days = r.dy
+        return out
+      })
+    }
+  }
+
+  return raw as SpeciesPreventive
+}
 
 export const getSpeciesPreventive = (id: number | string): Promise<SpeciesPreventive | null> => {
   const k = String(id)
@@ -176,6 +244,7 @@ export const getSpeciesPreventive = (id: number | string): Promise<SpeciesPreven
       k,
       fetch(`/species-data/preventive/${k}.json`)
         .then(r => (r.ok ? r.json() : null))
+        .then(decodePreventive)
         .catch(() => null)
     )
   }
@@ -190,6 +259,7 @@ export interface ClinicalRecord {
   site: string
   enclosure: string
   type: string
+  category?: string
   date: string
   durationDays: number
   status: 'active' | 'resolved'
@@ -199,7 +269,7 @@ export interface ClinicalRecord {
 export interface ClinicalProgram {
   kind: 'type'
   summary: { types: number; active: number; resolved: number; animalsAffected: number; avgResolutionDays?: number }
-  topTypes: { name: string; count: number; animals?: number }[]
+  topTypes: { name: string; count: number; animals?: number; category?: string }[]
   statusMix: { active: number; resolved: number }
   prognosisMix?: { name: string; count: number }[]
   trend: { label: string; value: number }[]
