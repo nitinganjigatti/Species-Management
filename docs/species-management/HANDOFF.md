@@ -643,3 +643,96 @@ new chart/table WITHOUT being told.
 
 ## Still open (unchanged)
 WSO2 dev account fix (user-side) → real browser verification; Nutrition's 4 whitelisted-out types.
+
+# 2026-07-14 session — Clinical merge BUILT + Vaccination rethought vaccine-wise. ALL UNCOMMITTED, tsc 0 errors.
+
+All v2-only (`detail2/`); v1 untouched. 6 source files modified + 3,911 data sidecars regenerated
+(clinical ×1,561 w/ `category`, preventive ×2,350 w/ per-medicine `types[]` — folder 36→**128MB**).
+
+## Shipped 1 — Clinical merge (Medical sub-tabs 6 → 5)
+Symptoms + Clinical Assessment → one **Clinical** tab (per the approved wireframe + live iterations):
+stat band (tiles scope the table) → **Top symptoms | Top conditions** side by side (Category
+dropdown + search IN the heading row; prognosis dots on condition pills, no legend text; "View
+all N" sheet) → ONE combined table: All/Symptoms/Assessments tabs w/ counts; **All = Animal-wise
+only, no dropdowns**; Symptoms tab adds a Severity dropdown, Assessments a Prognosis one; filter
+chips live in a second row under the tabs. Conditions render as **medTag-colored chips w/ domain
+icons** (severity/prognosis IS the chip color — no separate column); All shows split Symptoms |
+Clinical Assessments columns. Animal rows 88px, chips capped at 2 + "+N more". Per-animal drawer
++ per-type graph sheet restyled (card standard; sheet = 1Y·2Y·3Y·All tabs + StatTile row, no
+caption). `TrendRangeTabs` lifted to `detail2/detailUi` (CoL imports it from there now).
+**Acceptance:** `/species-management/list-2/2150/` → Medical → Clinical. 5 sub-tabs; two panels w/
+controls beside headings; colored condition chips in the table. If you still see Symptoms +
+Clinical Assessment as separate sub-tabs → stale bundle (`rm -rf .next`, restart dev).
+
+## Shipped 2 — Vaccination/Deworming/Supplements = vaccine-wise (Site Matrix retired in v2)
+Brainstormed → wireframe approved (artifact f9651378-c1ea-4340-a842-bed0a913441b) → built.
+**Screen 1 (index):** stat strip + one searchable row per medicine — coverage bar+% (orange <70%),
+"N overdue · M upcoming", sites affected — worst coverage first. Row click → **Screen 2 (detail):**
+back arrow + headline, Coverage-over-time (green area) + Doses-per-month (teal columns, two-line
+month/year ticks, `padLeft=0`) each w/ own 1Y·2Y·3Y·All tabs, **site chips row** (stats+filter in
+one, searchable, inset selection ring), status-tab animal table (All/Covered/Upcoming/Overdue/
+Never), row → dose-history drawer. Supplements wording auto-swaps (On schedule/Lapsed/Upcoming
+renewal). Deep vaccination workflows = future dedicated module, NOT here.
+**Data:** `build-species-preventive.js` adds additive `types[]` per program (per-medicine statuses,
+site rollups, 36-mo coverage+doses series from real generated dose dates); COMPACT animal rows
+(site index, doses derived from interval, cap 150/type) decoded in `getSpeciesPreventive`; old
+aggregates byte-stable → Overview tab + v1 unaffected.
+**Acceptance:** Medical → Vaccination shows the medicine list (no site matrix); click a row → detail
+w/ both charts label-aligned (month over year on BOTH); first bar NOT clipped; site chip click
+filters the table. If the list is empty → old cached JSON (hard-refresh / restart dev).
+
+## New standing rules (memory-enforced, from this session's corrections)
+[[table-headers-never-truncate]] (RECORDS@130 clips, 160 fits — budget sort-icon+pad) ·
+[[side-sheet-list-card-standard]] (drawer rows = Figma 2:3 card, never flat grey lists) ·
+[[no-due-for-future-items]] (future = "Upcoming", never "Due") · [[v2-chart-standards]] updated
+(padding.left -22 ONLY for short labels; wide "Aug '25" labels need padLeft 0 — measured; paired
+charts share two-line ticks + pinned 44px axis).
+
+## Open
+COMMIT+PUSH (stage the 6 source files + `public/species-data/{clinical,preventive}/` explicitly —
+never `git add -A`; env files stay unstaged) · WSO2 dev account fix (user-side) → real browser
+verification (everything is tsc-clean + route-200 + headless-chart-verified only) · Breeding & Egg
+module still queued (reminded 2026-07-14; user chose vaccination work) · Nutrition's 4
+whitelisted-out types · preventive folder is now 128MB — flag if repo size becomes a concern.
+
+# 2026-07-14 session (2) — Egg module BUILT as a species-detail TAB. Uncommitted, tsc 0 errors, browser-unverified.
+
+**What shipped.** The queued Egg module was built this session — but as ONE TAB inside species
+detail2 (Aves/Reptilia only, after Circle of Life), NOT the standalone module I first attempted.
+I built standalone (`/eggs-2` route + nav item) → user rejected ("egg module inside species
+details as one tab") → reverted → rebuilt in the Eggs tab. Layout = Variant A "stacked report"
+(user picked from artifacts).
+
+**Files (all uncommitted):** NEW `src/lib/api/species-management/breeding-eggs.ts`
+(`getSpeciesBreeding` + `getFemaleDetail`, synthetic, seeded by species id, derives from real
+static animals/list.json). MODIFIED `detail2/tabs/EggsTab.tsx` (breeding-analytics zone added
+ABOVE the existing per-egg card grid, which stays as "All eggs · operational list") and
+`SpeciesDetail2Container.tsx` (breeding query on eggs tab; births gate extended to `|| tab==='eggs'`;
+passes class/commonName/births).
+
+**The tab (top→bottom):** white KPI StatTiles (Hatchability / Eggs·clutches / Females-laid /
+Capable-didn't-lay alarm) → **Female-participation DONUT + Egg-outcome PIE** (real
+`ProportionChart` from dashboard/dashboardUi, variant donut|pie — NOT hand-rolled SVG) → 2-unit
+funnel (Females: total→capable→laid on female scale; Eggs: laid→hatched on egg scale — never mixed)
++ failure-split chips + Pairing/Circle-of-Life reconcile → 3 rates + season trend → per-female
+**DetailTable** (AnimalCard rows, rowHeight 112, server-paginated) → row click → right Drawer
+(clutch-fate dots + monthly + egg weight-loss-vs-ideal chart).
+
+**Bugs found+fixed this session:** (1) hand-rolled `<table>` → standard DetailTable; (2) AnimalCard
+clipping → rowHeight 112; (3) pagination showed all 146 rows → CommonTable is paginationMode='server',
+must slice per page with total=full count; (4) females+eggs on one bar scale ("looks like shit") →
+split into two unit-groups + donut/pie; (5) unreadable dark-on-dark hero → white StatTiles;
+(6) hand-rolled SVG donut → real ProportionChart; (7) **blank ages** (most animals) wrongly read
+as "too young" → `ageToYears` returns null for blank → unknown age = assume capable (449: 146→144
+capable→2 not-capable, correct).
+
+**Acceptance (browser, once WSO2 login works):** open a BIRD/REPTILE — Aaru Macaw
+`/species-management/list-2/449` (146F, richest), Amber Toucan `/487`, reptile Amber Kukri `/2346`.
+Egg tab appears after Circle of Life; shows donut+pie, 2-group funnel, per-female AnimalCard table
+paging 10 at a time, row→drawer with charts. Mammals (e.g. 2150) correctly have NO Egg tab. If a
+mammal shows it, the class gate broke. If you're on `/list/` (v1) you'll never see it — v2 only.
+
+**Pending:** COMMIT (stage the 3 files explicitly, env files out) · browser-verify · optional genetic
+gauges (GD/MK/Nₑ — were in standalone, dropped when it became a tab; add if wanted) · mammal
+"Breeding" = separate future module. Memory: [[breeding-egg-module-idea]], [[breeding-egg-research]],
+[[egg-module-map]].
