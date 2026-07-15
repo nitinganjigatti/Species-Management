@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import * as detailApi from 'src/lib/api/species-management/detail'
 import { getSpeciesEggs } from 'src/lib/api/species-management/eggs'
+import { getSpeciesBreeding } from 'src/lib/api/species-management/breeding-eggs'
 import type { SpeciesDetailTab } from 'src/types/species-management/detail'
 import SpeciesDetailView from 'src/views/pages/species-management/detail2/SpeciesDetailView'
 import OverviewTab from 'src/views/pages/species-management/detail2/tabs/OverviewTab'
@@ -112,10 +113,20 @@ const SpeciesDetail2Container = () => {
   const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile')
   const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing' || tab === 'overview')
   const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing' || tab === 'pairing')
-  const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview')
+  const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview' || tab === 'eggs')
   const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle' || tab === 'overview')
   const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle' || tab === 'overview')
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
+  const breeding = useTabQuery(
+    ['sm-breeding', id, header.data?.class, births.data?.total],
+    () =>
+      getSpeciesBreeding(id, {
+        className: header.data?.class,
+        commonName: header.data?.commonName,
+        birthsRecorded: births.data?.total
+      }),
+    tab === 'eggs' && !!header.data
+  )
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
   const preventive = useTabQuery(['sm-preventive', id], () => detailApi.getSpeciesPreventive(id), tab === 'medical')
   const clinical = useTabQuery(['sm-clinical', id], () => detailApi.getSpeciesClinical(id), tab === 'medical')
@@ -149,7 +160,7 @@ const SpeciesDetail2Container = () => {
           <CircleOfLifeTab births={births.data} deaths={deaths.data} lifecycle={lifecycle.data} />
         )
       case 'eggs':
-        return eggs.isLoading ? <Loading /> : <EggsTab eggs={eggs.data} />
+        return eggs.isLoading || breeding.isLoading ? <Loading /> : <EggsTab eggs={eggs.data} breeding={breeding.data} />
       case 'assessments':
         return assessments.isLoading ? <Loading /> : <AssessmentsTab assessments={assessments.data} />
       case 'medical':
