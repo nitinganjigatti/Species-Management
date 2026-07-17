@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Avatar, Box, Typography, Tooltip } from '@mui/material'
+import { Avatar, Box, IconButton, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -59,6 +59,465 @@ export const SectionTitle: React.FC<{ children: React.ReactNode; sx?: object }> 
     {children}
   </Typography>
 )
+
+const ANTZ_LOGO = '/images/branding/Antz_logomark_h_color.svg'
+
+/**
+ * Render a "a · b · c" caption with the `·` separators as visible bullets (the plain middot is
+ * too faint at caption size). Non-string captions (nodes) pass through unchanged.
+ */
+const withBullets = (caption: React.ReactNode): React.ReactNode => {
+  if (typeof caption !== 'string' || !caption.includes('·')) return caption
+  const parts = caption.split('·').map(p => p.trim())
+
+  return parts.map((part, i) => (
+    <React.Fragment key={i}>
+      {i > 0 && (
+        <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
+          •
+        </Box>
+      )}
+      {part}
+    </React.Fragment>
+  ))
+}
+
+/**
+ * THE standard side-sheet list row (Figma node 2:3) — one component for every drawer list in the
+ * module. Never hand-roll a sheet row again; use this everywhere. Layout:
+ *   [ leading ]  title (16/600)                                    [ trailing ]  ( ›)
+ *                caption (grey; wraps freely when long)
+ *                SUBLINE (11/600 uppercase — enclosure etc.)
+ * py:4, 0.5px OutlineVariant divider (straight — no radius), hover bg only when clickable.
+ *
+ * Leading: `icon` → teal chip w/ that icon (default), or `avatar` → the ANTZ logomark avatar.
+ * Trailing: TOP-aligned, flush-right, in its own fixed column so a long wrapping caption never
+ *   slides under the chip (a gap is always kept). Pass MedTagPill / StatusChip / a date node.
+ * `subline`: the small uppercase bottom line (e.g. enclosure). `emphasizeCaption` renders the
+ *   caption a bit larger / darker (used where the caption is the condition name).
+ */
+export const SheetRow: React.FC<{
+  title: React.ReactNode
+  caption?: React.ReactNode
+  subline?: React.ReactNode
+  emphasizeCaption?: boolean
+  icon?: string
+  /** Opt-in smaller icon box (px). Default 40 — dense timeline rows (e.g. dose history) pass 32. */
+  iconSize?: number
+  avatar?: boolean
+  trailing?: React.ReactNode
+  chevron?: boolean // show a mdi:chevron-right after the trailing content (navigational rows)
+  last?: boolean
+  onClick?: () => void
+}> = ({
+  title,
+  caption,
+  subline,
+  emphasizeCaption,
+  icon = 'mdi:medical-bag',
+  iconSize = 40,
+  avatar,
+  trailing,
+  chevron,
+  last,
+  onClick
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const hasCaption = caption != null && caption !== ''
+  const hasSubline = subline != null && subline !== ''
+  const multiLine = hasCaption || hasSubline // >1 line → top-align; single line → centre
+  const hasTrailing = trailing != null
+  const hasChevron = !!chevron && !!onClick
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        display: 'flex',
+        // top-align whenever either side can be taller than one line (multi-line text OR a
+        // trailing block) so right-side items line up ROW-FOR-ROW with the left text lines;
+        // plain single-line rows stay centred
+        alignItems: multiLine || hasTrailing ? 'flex-start' : 'center',
+        gap: 2,
+        py: 4,
+        borderBottom: last ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+        ...(onClick ? { cursor: 'pointer', '&:hover': { backgroundColor: c.Surface } } : {})
+      }}
+    >
+      {avatar ? (
+        <Avatar
+          src={ANTZ_LOGO}
+          alt=''
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            bgcolor: c.Surface,
+            // on top-aligned single-line rows, centre the avatar against the 24px title line
+            mt: !multiLine && hasTrailing ? '-8px' : 0,
+            '& img': { objectFit: 'contain', padding: '5px' }
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: iconSize,
+            height: iconSize,
+            flexShrink: 0,
+            borderRadius: '8px',
+            backgroundColor: c.displaybgPrimary,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            // on top-aligned single-line rows, centre the icon against the 24px title line
+            mt: !multiLine && hasTrailing ? `${(24 - iconSize) / 2}px` : 0
+          }}
+        >
+          <Icon icon={icon} fontSize={iconSize / 2} color={c.OnPrimaryContainer} />
+        </Box>
+      )}
+      {/* Text column is full-width. On MULTI-LINE rows the trailing chip/chevron float in the
+          top-right corner (position:absolute) so the caption/subline flow UNDER them. On
+          SINGLE-LINE rows the trailing renders IN FLOW (right-side sibling) so a tall trailing
+          (e.g. dose total + rate) grows the row instead of crowding the divider. */}
+      <Box sx={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        {(hasTrailing || hasChevron) && multiLine && (
+          <Box sx={{ position: 'absolute', top: 0, right: 0, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            {hasTrailing && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>{trailing}</Box>
+            )}
+            {hasChevron && <Icon icon='mdi:chevron-right' fontSize={16} color={c.Outline} style={{ marginTop: 2 }} />}
+          </Box>
+        )}
+        <Typography
+          sx={{
+            fontSize: '16px',
+            fontWeight: 600,
+            color: c.OnSurfaceVariant,
+            // keep the title clear of the corner chip on its line
+            pr: (hasTrailing || hasChevron) && multiLine ? 12 : 0
+          }}
+          noWrap
+        >
+          {title}
+        </Typography>
+        {hasCaption &&
+          (emphasizeCaption ? (
+            <Typography sx={{ fontSize: '13px', fontWeight: 500, color: c.OnSurfaceVariant, mt: 1 }}>
+              {withBullets(caption)}
+            </Typography>
+          ) : (
+            // wraps freely across full width (flows under the corner chip); extra top-gap so a
+            // long caption never crowds the title
+            <Typography sx={{ fontSize: '13px', color: c.neutralSecondary, mt: 1 }}>{withBullets(caption)}</Typography>
+          ))}
+        {hasSubline && (
+          <Typography
+            sx={{
+              fontSize: '11px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.66px',
+              color: c.neutralSecondary,
+              mt: hasCaption ? '2px' : 1
+            }}
+            noWrap
+          >
+            {subline}
+          </Typography>
+        )}
+      </Box>
+      {/* single-line rows: trailing + chevron in flow, TOP-aligned — the trailing's first item
+          rides the title line, its second lines up with where a caption would sit */}
+      {(hasTrailing || hasChevron) && !multiLine && (
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flexShrink: 0 }}>
+          {hasTrailing && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>{trailing}</Box>
+          )}
+          {hasChevron && <Icon icon='mdi:chevron-right' fontSize={16} color={c.Outline} style={{ marginTop: 4 }} />}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+/**
+ * Stats subtitle for side-sheet headers — "LABEL · VALUE" pairs in small caps, separated by
+ * bullets. Use ONLY when the subtitle is counts/stats ("Doses · 7 • Animals · 7"); plain-text
+ * subtitles (a site name, a description) stay as the standard grey caption.
+ */
+export const SheetStats: React.FC<{ items: { label: string; value: number | string }[]; sx?: object }> = ({
+  items,
+  sx
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Typography
+      noWrap
+      sx={{
+        fontSize: '11px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.66px',
+        color: c.neutralSecondary,
+        lineHeight: 1.4,
+        ...sx
+      }}
+    >
+      {items.map((it, i) => (
+        <React.Fragment key={it.label}>
+          {i > 0 && (
+            <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 2, verticalAlign: '-1px' }}>
+              •
+            </Box>
+          )}
+          {it.label} · {it.value}
+        </React.Fragment>
+      ))}
+    </Typography>
+  )
+}
+
+/**
+ * Standard side-sheet HEADER — leading icon/avatar + title (optional chip beside it) + subtitle
+ * + close button. `stats` renders the subtitle via SheetStats; else `subtitle` is plain grey
+ * caption. One header for every drawer; never hand-roll again.
+ *
+ * The bottom divider is decided AUTOMATICALLY by the `Sheet` wrapper — it hides the divider when
+ * a SheetSearch / SheetTabs follows (those draw their own boundary). Don't set `divider` by hand
+ * unless the header is used outside a `Sheet`.
+ */
+export const SheetHeader: React.FC<{
+  title: React.ReactNode
+  subtitle?: React.ReactNode // plain-text subtitle (site name etc.)
+  stats?: { label: string; value: number | string }[] // OR a stats subtitle (counts)
+  chip?: React.ReactNode // pill/StatusChip shown beside the title
+  icon?: string
+  iconTone?: { bg: string; fg: string } // override the standard teal icon chip (e.g. severity-toned)
+  avatar?: boolean
+  leading?: React.ReactNode // fully custom leading node (wins over icon/avatar)
+  divider?: boolean // set by the Sheet wrapper; defaults to true when used standalone
+  onClose: () => void
+}> = ({ title, subtitle, stats, chip, icon, iconTone, avatar, leading, divider = true, onClose }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const hasLeading = !!icon || avatar || leading != null
+
+  return (
+    <Box sx={{ p: 3, borderBottom: divider ? `1px solid ${c.SurfaceVariant}` : 'none', display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      {leading ? (
+        leading
+      ) : avatar ? (
+        <Avatar
+          src={ANTZ_LOGO}
+          alt=''
+          sx={{ width: 40, height: 40, flexShrink: 0, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '5px' } }}
+        />
+      ) : icon ? (
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            borderRadius: '8px',
+            backgroundColor: iconTone?.bg ?? c.displaybgPrimary,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <Icon icon={icon} fontSize={20} color={iconTone?.fg ?? c.OnPrimaryContainer} />
+        </Box>
+      ) : null}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap>
+            {title}
+          </Typography>
+          {chip}
+        </Box>
+        {stats ? (
+          <SheetStats items={stats} sx={{ mt: 0.5 }} />
+        ) : subtitle != null && subtitle !== '' ? (
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }} noWrap>
+            {subtitle}
+          </Typography>
+        ) : null}
+      </Box>
+      <IconButton onClick={onClose} size='small' sx={{ flexShrink: 0, mt: hasLeading ? 0 : -0.5 }}>
+        <Icon icon='mdi:close' />
+      </IconButton>
+    </Box>
+  )
+}
+// role tags let the <Sheet> wrapper identify these parts among its children
+;(SheetHeader as any).__sheet = 'header'
+
+/** Standard side-sheet SEARCH box (rounded, magnify adornment). */
+export const SheetSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string }> = ({
+  value,
+  onChange,
+  placeholder = 'Search…'
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ px: 3, pt: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          px: 2.5,
+          py: 2.25,
+          borderRadius: '8px',
+          border: `1px solid ${c.SurfaceVariant}`
+        }}
+      >
+        <Icon icon='mdi:magnify' fontSize={18} color={c.Outline} />
+        <Box
+          component='input'
+          value={value}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          placeholder={placeholder}
+          sx={{
+            border: 'none',
+            outline: 'none',
+            flex: 1,
+            fontFamily: 'inherit',
+            fontSize: '14px',
+            color: c.OnSurfaceVariant,
+            backgroundColor: 'transparent',
+            '&::placeholder': { color: c.neutralSecondary }
+          }}
+        />
+      </Box>
+    </Box>
+  )
+}
+;(SheetSearch as any).__sheet = 'search'
+
+/**
+ * A titled SECTION inside a sheet — a small heading (optional chip beside it) with its rows
+ * beneath. Use to group rows by site/category; stack several in one scroll area.
+ */
+export const SheetSection: React.FC<{
+  label: React.ReactNode
+  chip?: React.ReactNode
+  first?: boolean
+  noDivider?: boolean // suppress the section-end divider (rare — e.g. the only section in a sheet)
+  children: React.ReactNode
+}> = ({ label, chip, first, noDivider, children }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ mt: first ? 3 : 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+        <Typography sx={{ fontSize: '15px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+          {label}
+        </Typography>
+        {chip}
+      </Box>
+      {children}
+      {/* full-width edge-to-edge divider closes the section (rows own thin inset dividers between
+          themselves; this heavier one reads the whole group as one block, like the header rule).
+          mx:-3 cancels the sheet body's px:3 so it spans the full width. */}
+      {!noDivider && <Box sx={{ borderBottom: `1px solid ${c.SurfaceVariant}`, mx: -3, mt: 4 }} />}
+    </Box>
+  )
+}
+
+/**
+ * In-sheet status/filter tab row (underline style, sits under the header). Generic over a key
+ * string; each tab shows a label. Use for All / Covered / Not-covered style filters in a sheet.
+ */
+export function SheetTabs<K extends string>({
+  tabs,
+  value,
+  onPick
+}: {
+  tabs: { key: K; label: React.ReactNode }[]
+  value: K
+  onPick: (k: K) => void
+}) {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ px: 3, pt: 2, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', borderBottom: `1px solid ${c.SurfaceVariant}` }}>
+      {tabs.map(t => {
+        const active = value === t.key
+
+        return (
+          <Box
+            key={t.key}
+            onClick={() => onPick(t.key)}
+            role='tab'
+            aria-selected={active}
+            sx={{
+              pb: 1.5,
+              borderBottom: '2.5px solid',
+              borderColor: active ? theme.palette.primary.main : 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: active ? theme.palette.primary.main : c.OutlineVariant }
+            }}
+          >
+            <Typography
+              variant='body2'
+              sx={{ fontWeight: 600, color: active ? theme.palette.primary.main : c.neutralSecondary, whiteSpace: 'nowrap' }}
+            >
+              {t.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+;(SheetTabs as any).__sheet = 'tabs'
+
+/**
+ * Sheet BODY WRAPPER — put the whole drawer content inside this. It owns the one piece of logic a
+ * header can't decide alone: whether the header shows its bottom divider. If a SheetSearch or
+ * SheetTabs immediately follows the SheetHeader, they already draw their own boundary, so the
+ * header divider is dropped automatically. Callers never set the divider by hand.
+ *
+ *   <Sheet><SheetHeader …/><SheetSearch …/> …rows… </Sheet>
+ */
+export const Sheet: React.FC<{ children: React.ReactNode; sx?: object }> = ({ children, sx }) => {
+  const kids = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<any>[]
+  const headerIdx = kids.findIndex(k => (k.type as any)?.__sheet === 'header')
+
+  const patched = kids.map((k, i) => {
+    if (i !== headerIdx) return k
+    const next = kids[i + 1]
+    const nextRole = next ? (next.type as any)?.__sheet : undefined
+    const followedByOwnBoundary = nextRole === 'search' || nextRole === 'tabs'
+
+    // only override when the caller hasn't set divider explicitly
+    return k.props.divider === undefined ? React.cloneElement(k, { divider: !followedByOwnBoundary }) : k
+  })
+
+  return <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', ...sx }}>{patched}</Box>
+}
+
+/** Centered empty-state line for a sheet body. */
+export const SheetEmpty: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Typography variant='body2' sx={{ color: c.neutralSecondary, textAlign: 'center', mt: 4 }}>
+      {children}
+    </Typography>
+  )
+}
 
 export const SectionCard: React.FC<{
   title?: React.ReactNode
@@ -215,9 +674,7 @@ export const AnimalCardList: React.FC<{ cards: any[]; onClick?: (index: number) 
           sx={{
             py: 2.5,
             borderBottom: i < cards.length - 1 ? `1px solid ${c.SurfaceVariant}` : 'none',
-            ...(onClick
-              ? { cursor: 'pointer', borderRadius: '8px', transition: '0.15s', '&:hover': { bgcolor: c.Surface } }
-              : {})
+            ...(onClick ? { cursor: 'pointer', transition: '0.15s', '&:hover': { bgcolor: c.Surface } } : {})
           }}
         >
           <AnimalCard data={data} />
@@ -353,6 +810,38 @@ export const Pill: React.FC<{ label: React.ReactNode; onClick?: () => void; icon
   )
 }
 
+/** PLATFORM-STANDARD applied-filter chip: bare outlined pill — NO fill, NO leading icon —
+ *  with a trailing ✕ that clears just this filter. Every "selected filter" chip anywhere in
+ *  the app must be this component (never Pill, never a hand-rolled Box). */
+export const FilterChip: React.FC<{ label: React.ReactNode; onClear: () => void }> = ({ label, onClear }) => {
+  const theme = useTheme() as any
+
+  return (
+    <Box
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 1,
+        px: 1.5,
+        py: 0.5,
+        borderRadius: '16px',
+        border: `1px solid ${cc(theme).OutlineVariant}`,
+        color: cc(theme).OnSurfaceVariant
+      }}
+    >
+      <Typography variant='caption'>{label}</Typography>
+      <Icon
+        icon='mdi:close'
+        fontSize={14}
+        style={{ cursor: 'pointer', color: cc(theme).Outline, flexShrink: 0 }}
+        onClick={onClear}
+        role='button'
+        aria-label='Clear filter'
+      />
+    </Box>
+  )
+}
+
 /** Horizontal value bar (faithful to the prototype's CSS distribution bars). Optionally clickable. */
 export const MiniBarRow: React.FC<{
   label: React.ReactNode
@@ -441,11 +930,11 @@ export const EntityListDrawer: React.FC<{
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }}>
               {title}
             </Typography>
             {subtitle != null && (
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+              <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
                 {subtitle}
               </Typography>
             )}
@@ -571,7 +1060,9 @@ export const TrendRangeTabs: React.FC<{ value: RangePreset; onPick: (p: RangePre
   const c = cc(theme)
 
   return (
-    <Box sx={{ display: 'flex', borderBottom: `2px solid ${c.SurfaceVariant}` }}>
+    // flexShrink 0 + nowrap: the tabs must NEVER be squeezed/cut by a long card title —
+    // in a flex header the title gives way (wraps), not the range control.
+    <Box sx={{ display: 'flex', flexShrink: 0, whiteSpace: 'nowrap', borderBottom: `2px solid ${c.SurfaceVariant}` }}>
       {TREND_RANGES.map(r => {
         const active = value === r.key
 
@@ -1134,47 +1625,80 @@ const trendTooltipHTML = (theme: any, title: string, rows: { color: string; labe
   return `<div style="font-size:12px;font-family:inherit;background:${theme.palette.background.paper};">${head}${body}</div>`
 }
 
+/** THE month/year axis standard (user-locked, matches "Doses given per month"): labels like
+ *  "Aug '25" / "Aug 2025" render as TWO lines (month over 2-digit year), long ranges thin to
+ *  ≤12 visible ticks (tooltips/clicks keep full labels), and two-line axes get a PINNED 44px
+ *  reserve so side-by-side charts share a baseline. Every chart with a month+year x-axis —
+ *  bar or line, card or side sheet, any module — must run its labels through this. */
+export const monthYearAxis = (labels: string[]) => {
+  const every = Math.max(1, Math.ceil(labels.length / 12))
+  let hasTwoLine = false
+  const categories = labels.map((l, i) => {
+    if (i % every !== 0) return ''
+    const m = /^([A-Za-z]{3})\s*'?(\d{2}|\d{4})$/.exec(String(l).trim())
+    if (!m) return l
+    hasTwoLine = true
+
+    return [m[1], m[2].slice(-2)]
+  })
+
+  return { categories, every, hasTwoLine }
+}
+
 export function TrendAreaChart({
   values,
   labels,
   color,
   name,
-  height = 260
+  height = 260,
+  unit = '',
+  onPointClick
 }: {
   values: number[]
   labels: string[]
   color: string
   name: string
   height?: number
+  /** Appended to axis/label/tooltip values (e.g. '%'). */
+  unit?: string
+  /** When provided, clicking a point marker fires with its index (month drill). */
+  onPointClick?: (index: number) => void
 }) {
   const theme = useTheme() as any
   const c = cc(theme)
   const n = values.length
 
-  // Show at most ~12 x ticks; value labels thin to the same indices.
-  const every = Math.max(1, Math.ceil(n / 12))
-  const categories = labels.map((l, i) => {
-    if (i % every !== 0) return ''
-    const m = /^([A-Za-z]{3})\s*'?(\d{2})$/.exec(l.trim())
-
-    return m ? [m[1], m[2]] : l
-  })
+  // Shared month/year axis standard — two-line labels + ≤12 visible ticks; value labels
+  // thin to the same indices.
+  const { categories, every } = monthYearAxis(labels)
 
   // Integer y ticks — capping at the series max avoids duplicate rounded labels (e.g. "1 1 2 2").
   const yMax = Math.max(0, ...values)
   const yTicks = Math.max(1, Math.min(4, yMax))
 
   return (
+    // hand cursor on the clickable point markers (Apex doesn't set one for markerClick)
+    <Box sx={onPointClick ? { '& .apexcharts-marker, & .apexcharts-series': { cursor: 'pointer' } } : undefined}>
     <ReactApexcharts
       type='area'
       height={height}
       options={{
-        chart: { toolbar: { show: false }, animations: { enabled: false }, fontFamily: 'inherit' },
+        chart: {
+          toolbar: { show: false },
+          animations: { enabled: false },
+          fontFamily: 'inherit',
+          // Spread, never `events: undefined` — an explicit undefined clobbers Apex's default
+          // events object and every chart update crashes on `config.chart.events.beforeMount`.
+          ...(onPointClick
+            ? { events: { markerClick: (_e: any, _ctx: any, opts: any) => onPointClick(opts?.dataPointIndex ?? -1) } }
+            : {})
+        },
         colors: [color],
         stroke: { curve: 'smooth', width: 3 },
         dataLabels: {
           enabled: true,
-          formatter: (v: number, opts: any) => (v && opts.dataPointIndex % every === 0 ? v.toLocaleString() : ''),
+          formatter: (v: number, opts: any) =>
+            v && opts.dataPointIndex % every === 0 ? `${v.toLocaleString()}${unit}` : '',
           offsetY: -5,
           style: { fontSize: '11px', fontWeight: 700, colors: [color] },
           background: { enabled: false }
@@ -1220,7 +1744,7 @@ export function TrendAreaChart({
           tickAmount: yTicks,
           labels: {
             style: { colors: c.neutralSecondary, fontSize: '11px' },
-            formatter: (v: number) => Math.round(v).toLocaleString(),
+            formatter: (v: number) => `${Math.round(v).toLocaleString()}${unit}`,
             // Same gutter width on every trend chart so side-by-side plots align.
             minWidth: 26,
             // Pull the tick column flush with the card heading (Apex parks it ~32px in);
@@ -1232,12 +1756,13 @@ export function TrendAreaChart({
         tooltip: {
           custom: ({ series, seriesIndex, dataPointIndex }: any) =>
             trendTooltipHTML(theme, labels[dataPointIndex] ?? '', [
-              { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+              { color, label: name, value: `${Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString()}${unit}` }
             ])
         }
       }}
       series={[{ name, data: values }]}
     />
+    </Box>
   )
 }
 
@@ -1251,6 +1776,8 @@ export function SeasonalColumnChart({
   height = 220,
   onBarClick,
   tooltipLabels,
+  tooltipSeries,
+  tooltipRows,
   padLeft = -22
 }: {
   values: number[]
@@ -1258,9 +1785,16 @@ export function SeasonalColumnChart({
   color: string
   name: string
   height?: number
-  onBarClick?: (label: string) => void
-  /** Full labels for tooltips when `labels` is thinned (long series show every Nth caption). */
+  onBarClick?: (label: string, index: number) => void
+  /** Full labels for tooltips/clicks if `labels` was pre-thinned by the caller (legacy —
+   *  pass FULL labels and let the axis standard thin them instead). */
   tooltipLabels?: string[]
+  /** Show a DIFFERENT series in the hover tooltip than the bars plot (e.g. bars = doses,
+   *  tooltip = distinct animals). `values` is parallel to `labels`. */
+  tooltipSeries?: { label: string; values: number[] }
+  /** Full control of the tooltip body: rows per bar index (rendered in the standard shell).
+   *  Wins over `tooltipSeries` and the default series row. */
+  tooltipRows?: (index: number) => { color: string; label: string; value: string }[]
   /** Plot left padding. Default -22 = flush-left, measured for SHORT month labels ("Jan");
    *  wide labels ("Aug '25") overhang further — pass 0 (headless-Chrome verified 2026-07-14). */
   padLeft?: number
@@ -1269,19 +1803,20 @@ export function SeasonalColumnChart({
   const c = cc(theme)
   const tipLabels = tooltipLabels ?? labels
 
-  // "Aug '25"-style labels render as two lines (month over year) — same treatment as
-  // TrendAreaChart so a side-by-side pair reads as one system. Plain "Jan" passes through.
-  let hasTwoLine = false
-  const categories = labels.map(l => {
-    const m = /^([A-Za-z]{3})\s*'?(\d{2})$/.exec(String(l).trim())
-    if (!m) return l
-    hasTwoLine = true
-
-    return [m[1], m[2]]
-  })
+  // Shared month/year axis standard — two-line "Aug '25" labels, ≤12 visible ticks on long
+  // ranges — same treatment as TrendAreaChart so a side-by-side pair reads as one system.
+  // Plain "Jan" / "2024" labels pass through single-line, unthinned (12-bucket series).
+  const { categories, hasTwoLine } = monthYearAxis(labels)
 
   return (
-    <Box sx={onBarClick ? { '& .apexcharts-bar-area': { cursor: 'pointer' } } : undefined}>
+    <Box
+      sx={{
+        // Edge axis labels (first/last month) are centred under their bars and can extend
+        // past the SVG bounds — let them render into the card padding instead of clipping.
+        '& .apexcharts-svg': { overflow: 'visible' },
+        ...(onBarClick ? { '& .apexcharts-bar-area': { cursor: 'pointer' } } : {})
+      }}
+    >
       <ReactApexcharts
         type='bar'
         height={height}
@@ -1297,7 +1832,9 @@ export function SeasonalColumnChart({
                   events: {
                     dataPointSelection: (_e: any, _ctx: any, cfg: any) => {
                       const i = cfg?.dataPointIndex
-                      if (i != null && i >= 0 && values[i]) onBarClick(labels[i])
+                      // tipLabels: axis labels may be thinned to '' on long ranges — always
+                      // hand the handler the FULL month label (+ its index for month math).
+                      if (i != null && i >= 0 && values[i]) onBarClick(tipLabels[i] ?? labels[i], i)
                     }
                   }
                 }
@@ -1315,7 +1852,9 @@ export function SeasonalColumnChart({
           legend: { show: false },
           // Negative left padding pulls the first bar flush with the card heading —
           // with the y-axis hidden Apex still indents the plot ~22px for nothing.
-          grid: { show: false, padding: { top: 20, left: padLeft } },
+          // Right padding mirrors left (when left ≥ 0) so the plot sits symmetrically in
+          // the card instead of leaving Apex's default dead space on the right.
+          grid: { show: false, padding: { top: 20, left: padLeft, ...(padLeft >= 0 ? { right: padLeft } : {}) } },
           xaxis: {
             categories,
             labels: {
@@ -1333,9 +1872,17 @@ export function SeasonalColumnChart({
           yaxis: { show: false },
           tooltip: {
             custom: ({ series, seriesIndex, dataPointIndex }: any) =>
-              trendTooltipHTML(theme, tipLabels[dataPointIndex] ?? '', [
-                { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
-              ])
+              trendTooltipHTML(
+                theme,
+                tipLabels[dataPointIndex] ?? '',
+                tooltipRows
+                  ? tooltipRows(dataPointIndex)
+                  : [
+                      tooltipSeries
+                        ? { color, label: tooltipSeries.label, value: Number(tooltipSeries.values[dataPointIndex] ?? 0).toLocaleString() }
+                        : { color, label: name, value: Number(series[seriesIndex]?.[dataPointIndex] ?? 0).toLocaleString() }
+                    ]
+              )
           },
           fill: { opacity: 1 }
         }}

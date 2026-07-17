@@ -85,10 +85,10 @@ const EnclosureTableDrawer: React.FC<{
     <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: { width: { xs: '100%', sm: 780 }, p: 4 } } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap title={type}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={type}>
             {type}
           </Typography>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+          <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
             {rows.length} enclosure{rows.length === 1 ? '' : 's'} · click a row for its animals
           </Typography>
         </Box>
@@ -157,10 +157,10 @@ const EnclosureAnimalsDrawer: React.FC<{
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap title={enclosure}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={enclosure}>
             {enclosure}
           </Typography>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+          <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
             {[site, `${list.length} animal${list.length === 1 ? '' : 's'}`].filter(Boolean).join('  ·  ')}
           </Typography>
         </Box>

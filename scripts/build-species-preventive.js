@@ -53,16 +53,60 @@ function agingDays(rng) {
 }
 
 // ── program catalogs ───────────────────────────────────────────────────────
+// Real vaccine PRODUCT/medicine names (not disease names). Grouped by taxonomic class.
 const VACCINES_BY_CLASS = {
-  Mammalia: ['Rabies', 'Clostridial', 'Foot & Mouth', 'Anthrax', 'Brucellosis', 'Leptospira', 'Tetanus'],
-  Aves: ['Newcastle Disease', 'Avian Influenza', 'Fowl Pox', "Marek's Disease", 'Infectious Bronchitis'],
-  Reptilia: ['Salmonella Prophylaxis', 'Herpesvirus', 'Paramyxovirus'],
-  Amphibia: ['Chytrid Prophylaxis', 'Ranavirus'],
-  Actinopterygii: ['Aeromonas', 'Vibrio']
+  Mammalia: ['Nobivac Rabies', 'Covexin 10', 'Aftovaxpur', 'Anthravac', 'Brucevac RB51', 'Spirovac', 'Tetanus Toxoid'],
+  Aves: ['Nobilis ND Clone 30', 'Nobilis Influenza H5', 'Poulvac Fowl Pox', 'Nobilis Rismavac', 'Nobilis IB 4-91'],
+  Reptilia: ['Salmonella Bacterin', 'Herpavac R', 'Reptivac PMV'],
+  Amphibia: ['Chytravac', 'Ranavac FV3'],
+  Actinopterygii: ['Alphaject 2000', 'Vibrogen 2']
 }
-const DEFAULT_VACCINES = ['Core Vaccine A', 'Core Vaccine B', 'Core Vaccine C']
+const DEFAULT_VACCINES = ['Multivac Core I', 'Multivac Core II', 'Multivac Core III']
 const DEWORMERS = ['Ivermectin', 'Fenbendazole', 'Praziquantel', 'Albendazole', 'Levamisole']
 const SUPPLEMENTS = ['Vitamin A', 'Vitamin D3', 'Vitamin E', 'Calcium', 'Multivitamin', 'Mineral Mix']
+
+// Standard dose per medicine: { q: quantity, u: unit, per: 'kg' } — `per: 'kg'` marks a
+// WEIGHT-BASED dose (rate × animal weight); absent = fixed amount per dose. Units are free
+// strings that flow straight to the UI (a real API's doctor-chosen unit drops in unchanged).
+const DOSE_SPECS = {
+  // vaccines — fixed volumes
+  'Nobivac Rabies': { q: 1, u: 'ml' },
+  'Covexin 10': { q: 2, u: 'ml' },
+  Aftovaxpur: { q: 2, u: 'ml' },
+  Anthravac: { q: 1, u: 'ml' },
+  'Brucevac RB51': { q: 2, u: 'ml' },
+  Spirovac: { q: 2, u: 'ml' },
+  'Tetanus Toxoid': { q: 1, u: 'ml' },
+  'Nobilis ND Clone 30': { q: 0.5, u: 'ml' },
+  'Nobilis Influenza H5': { q: 0.5, u: 'ml' },
+  'Poulvac Fowl Pox': { q: 0.5, u: 'ml' },
+  'Nobilis Rismavac': { q: 0.2, u: 'ml' },
+  'Nobilis IB 4-91': { q: 0.5, u: 'ml' },
+  'Salmonella Bacterin': { q: 0.5, u: 'ml' },
+  'Herpavac R': { q: 0.5, u: 'ml' },
+  'Reptivac PMV': { q: 0.5, u: 'ml' },
+  Chytravac: { q: 0.2, u: 'ml' },
+  'Ranavac FV3': { q: 0.2, u: 'ml' },
+  'Alphaject 2000': { q: 0.1, u: 'ml' },
+  'Vibrogen 2': { q: 0.1, u: 'ml' },
+  'Multivac Core I': { q: 1, u: 'ml' },
+  'Multivac Core II': { q: 1, u: 'ml' },
+  'Multivac Core III': { q: 1, u: 'ml' },
+  // dewormers — weight-based rates
+  Ivermectin: { q: 0.2, u: 'mg', per: 'kg' },
+  Fenbendazole: { q: 5, u: 'mg', per: 'kg' },
+  Praziquantel: { q: 5, u: 'mg', per: 'kg' },
+  Albendazole: { q: 7.5, u: 'mg', per: 'kg' },
+  Levamisole: { q: 7.5, u: 'mg', per: 'kg' },
+  // supplements — mixed
+  'Vitamin A': { q: 5000, u: 'IU' },
+  'Vitamin D3': { q: 1000, u: 'IU' },
+  'Vitamin E': { q: 100, u: 'IU' },
+  Calcium: { q: 50, u: 'mg', per: 'kg' },
+  Multivitamin: { q: 1, u: 'tablet' },
+  'Mineral Mix': { q: 10, u: 'g' }
+}
+const DEFAULT_DOSE = { q: 1, u: 'ml' }
 
 // plausible adult body-weight range (kg) per taxonomic class — for synthetic weights
 const WEIGHT_KG_BY_CLASS = {
@@ -282,6 +326,7 @@ function genTypes(tsnId, programKey, animals, catalog) {
     const overdueP = 0.03 + vrng() * 0.16
     const dueP = 0.05 + vrng() * 0.12
     const [intervalDays, schedule] = SCHEDULES[programKey][Math.floor(vrng() * SCHEDULES[programKey].length)]
+    const dose = DOSE_SPECS[typeName] || DEFAULT_DOSE
 
     let covered = 0,
       due = 0,
@@ -330,6 +375,8 @@ function genTypes(tsnId, programKey, animals, catalog) {
         if (lastGiven) row.lg = iso(lastGiven)
         if (days != null) row.dy = days
         if (nDoses) row.dn = nDoses
+        // weight-based medicines need the animal's weight to compute the given amount
+        if (dose.per === 'kg') row.w = Math.round((parseFloat(a.weight) || 1) * 10) / 10
         rows.push(row)
       }
     }
@@ -375,6 +422,7 @@ function genTypes(tsnId, programKey, animals, catalog) {
       name: typeName,
       schedule,
       intervalDays,
+      dose,
       coveragePct,
       covered,
       due,

@@ -54,6 +54,28 @@ const DEFAULT_STATE: ChatClientState = {
 
 const ChatClientContext = createContext<ChatClientState>(DEFAULT_STATE)
 
+/**
+ * chat-core hard-codes `console.error('[AntzChat] Socket connect_error:', …)` on every failed
+ * connect attempt (×10 retries) with no logger config. When the chat backend itself is down
+ * (e.g. "Could not fetch signing key from WSO2"), that spams the Next.js dev overlay with
+ * full-screen errors on every page. Downgrade EXACTLY that line to console.warn — same
+ * message, still visible in the console, no overlay. Dev-only and idempotent.
+ */
+let chatErrorFilterInstalled = false
+const installChatConnectErrorFilter = () => {
+  if (chatErrorFilterInstalled || process.env.NODE_ENV === 'production' || typeof window === 'undefined') return
+  chatErrorFilterInstalled = true
+  const original = console.error.bind(console)
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('[AntzChat] Socket connect_error')) {
+      console.warn(...args)
+
+      return
+    }
+    original(...args)
+  }
+}
+
 interface ChatClientProviderProps {
   children: ReactNode
 }
@@ -129,6 +151,7 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
 
   useEffect(() => {
     if (!enableChatModule) return
+    installChatConnectErrorFilter()
     // Accept either `auth.userData.user` (full backend resData) or `auth.user`
     // (the slim user object that `(module)/layout.tsx` already waits for).
     // The WSO2 hydrate path sometimes lands `auth.user` before / without
@@ -334,6 +357,20 @@ export function ChatClientProvider({ children }: ChatClientProviderProps) {
     }
     const onConnectError = (err: Error) => {
       setError(err)
+      // Server-side auth outage — the chat backend itself can't reach WSO2 ("Could not
+      // fetch signing key from WSO2"). A fresh client token can't fix that, so retrying
+      // 10× just spams errors. Stop this connect cycle; the next visibility/online event
+      // re-runs a full fresh connect anyway.
+      if (/signing key|wso2/i.test(err?.message ?? '')) {
+        console.warn('[chat:socket] chat backend auth outage — pausing reconnects until next visibility/network cycle:', err.message)
+        try {
+          disconnectSocket()
+        } catch {
+          /* forward-compat guard */
+        }
+
+        return
+      }
       // Re-read the latest token via authProvider so the next built-in
       // auto-reconnect attempt uses a current token. Forward-compat guarded.
       try {

@@ -283,10 +283,10 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap title={enclSheet?.site}>
+            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={enclSheet?.site}>
               {enclSheet?.site}
             </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
               {sheetEnclosures.length} enclosure{sheetEnclosures.length === 1 ? '' : 's'} · click a row for its animals
             </Typography>
           </Box>
@@ -321,10 +321,10 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600 }} noWrap title={animalSheet?.enclosure}>
+            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={animalSheet?.enclosure}>
               {animalSheet?.enclosure}
             </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
               {animalSheet?.site}  ·  {sheetAnimals.length} animal{sheetAnimals.length === 1 ? '' : 's'}
             </Typography>
           </Box>

@@ -1,6 +1,6 @@
 # Species Management — Session Handoff
 
-_Last updated: 2026-07-15. Read this first when resuming._
+_Last updated: 2026-07-16 (session 2). Read this first when resuming._
 
 ## TL;DR
 Building a **new Species Management module** in antz, recreated **from the wildventure prototype**,
@@ -900,3 +900,169 @@ untracked `.superpowers/` (deliberately excluded, as always). All 2026-07-14/15 
 is committed and pushed to personal/main. Open items unchanged: WSO2 fix → browser verify ·
 mammal Breeding module · Nutrition's 4 whitelisted-out types · 128MB preventive folder watch ·
 Diet tab integration (brainstorm first — see the Diet & Kitchen section above).
+
+---
+
+# 2026-07-16 session — Medical HEALTH SIGNALS + INSIGHTS built; preventive detail reworked. ALL UNCOMMITTED.
+
+**Everything below is uncommitted** (2,350 clinical JSONs + 5 code files modified + new
+`detail2/tabs/medical/` folder). tsc 0 errors throughout. NOT yet committed because the user
+was iterating; commit when they say so. Durable detail in memory `medical-signals-insights`.
+
+## Built
+1. **Medical Overview additions (additive):** "Sickness Rate" stat tile (morbidity % + delta vs
+   previous equal window) + **Attention signals band** — V1 alert-card design (user picked from
+   7 superdesign variants; V5 inline-expand explicitly REJECTED). 8 signals w/ thresholds in
+   `medical/signals.ts` `INSIGHT_THRESHOLDS`: spreading/contain · outbreak · repeat-sick ·
+   relapse · worsening · stuck · undiagnosed · illness deaths. Card → `SignalDrawer`
+   (chain-grouped for spread/outbreak) → animal row → existing timeline drawer stacks.
+2. **Insights sub-tab (new, 2nd):** V7 **findings-first** — user trashed the V6 chart grid
+   ("worst design"; hates horizontal bar walls). Every card headline = computed conclusion
+   ("Brightwater runs 2.6× the collection average"); forms per data job: line trend (click
+   month), site tiles w/ ×-avg chips, vertical columns w/ on-mark values, single-hue heat strip,
+   3 stat tiles (preventive link), pareto hero + meter + animal list. Zero horizontal bars.
+3. **Clinical data regen** (`build-species-clinical.js`): spread chains, fragile/relapse
+   patterns, `outcome:'died'`, `severityFrom`, precursor symptoms (real conversion %), `sites[]`
+   census. 2,350 sidecars, ~19MB.
+4. **Preventive detail rework:** "Scheduled" column (neutral ink — chip alone says
+   Upcoming/Overdue); site-chips strip → dropdown beside search → standard side sheet;
+   doses-per-month bar click → month sheet → animal → **cross-medicine admin log**
+   (medicine + administered date · synthetic-but-stable time); dose-history rows =
+   "Dose N of T · gap"; bars derived from the same records the drills list.
+5. **Wording/redundancy sweep (user rules, now in memory):** "episode(s)" BANNED → "N times" /
+   "cases"; raw ISO dates → dd MMM yyyy everywhere; id never repeated in captions (name embeds
+   it); header context never restated on sheet rows.
+6. **Chat dev-overlay fix** (`ChatClientContext.tsx`): packaged `[AntzChat] Socket connect_error`
+   console.error → warn (dev-only filter) + reconnects stop on WSO2 signing-key outage. The
+   OUTAGE ITSELF IS SERVER-SIDE (chat backend ↔ WSO2) — report upstream.
+7. **Apex crash fixed** (`detailUi.tsx`): `events: undefined` clobbered Apex defaults →
+   `beforeMount` crash on any chart re-render. Also: chart clicks now pass full (unthinned)
+   labels; `TrendAreaChart` gained optional `unit`/`onPointClick`.
+
+## Acceptance (all on `/species-management/list-2/2150/` → Medical unless noted)
+- **Overview:** Sickness Rate tile + signals band (~8 cards). Click "Spreading — contain" →
+  chain-grouped drawer; click an animal → timeline stacks. Band missing → clinical JSONs stale:
+  `node --max-old-space-size=2048 scripts/build-species-clinical.js` + hard refresh.
+- **Insights:** headlines are sentences, not metric names; trend is a LINE; no horizontal bar
+  lists anywhere. Old look → stale bundle, hard refresh.
+- **Vaccination detail:** column reads "Scheduled" (grey dates, chip is the only red); site
+  dropdown beside search opens sheet; month bar → sheet count EQUALS the bar number → animal →
+  admin log w/ medicine names + date·time; switching All/Overdue/Upcoming tabs does NOT crash.
+- **Chat:** no full-screen red overlay; console shows the socket warn instead.
+
+## Gotchas / pending
+- Spec (`docs/superpowers/specs/2026-07-16-…`) and superdesign mockups (`medsignals_1–7`) are
+  **GITIGNORED** — this note + memory are the durable record.
+- Synthetic sites near-uniform → hotspot card often honestly says "No site stands out";
+  generator site-bias is a 5-line tweak if a demo hotspot is wanted.
+- Dose times are deterministic synthetics (`doseTimeOf`) — real API timestamps drop in.
+- Open items unchanged: WSO2 login fix → full browser verify · mammal Breeding module ·
+  Nutrition's 4 whitelisted-out types · 128MB preventive folder watch · Diet tab (brainstorm
+  first).
+
+---
+
+# 2026-07-16 session 2 — Sheet COMPONENT KIT · Signals band V5.1 Spotlight · real vaccine names. ALL UNCOMMITTED.
+
+**Everything uncommitted** (this + session 1's Signals/Insights build + clinical ×2,350 + preventive
+×2,350 regens). tsc 0 errors throughout. Dev server was left running (background task).
+
+## Built
+1. **Side-sheet COMPONENT KIT** in `detail2/detailUi.tsx` — `Sheet` (wrapper; auto-hides header
+   divider when SheetSearch/SheetTabs follows — parts tagged via `__sheet` role), `SheetHeader`
+   (title/chip/subtitle OR stats; `iconTone`, `leading`, lineHeight 1.4), `SheetSearch`, `SheetTabs`,
+   `SheetSection` (15px label + full-width closing divider, `noDivider` opt-out), `SheetRow`
+   (full-width caption wraps UNDER the top-right chip; single-line rows centre; chevron only with
+   onClick; `·`→15px bullets), `SheetStats`, `SheetEmpty`. All 7 Medical drawers routed through it.
+   **USER MAIN POINT: kit-FIRST on any sheet work; if it doesn't fit, ASK before building new.**
+2. **Signals band → V5.1 "Spotlight"** (research: Linear/clinical-EWS/Grafana → 5 sigband mockups →
+   user picked V5): red BgTeritary "Act now" zone (critical signals, translucent-white rows via
+   `alpha(white,.72)` — NOTE `common.white+'B8'` hex-suffix bug caused invisible bg, fixed) + neutral
+   teal quiet rows right, `gridAutoRows:'1fr'` height-aligned. Title plain "Attention signals" (no
+   count/subtitle). Drawer header tone now MATCHES the clicked row (watch→neutral, not amber).
+   Label renamed: "Outbreak cluster" → **"Same illness in site"**; deaths stay OUT of red.
+3. **SignalDrawer rework**: explainer gone → SheetStats counts (Animals•Enclosures•Sites) under
+   title; chain header cards gone → site-sectioned flat list; rows = name / condition+date /
+   enclosure; "onset" wording dropped; `condition` field added to SignalAnimal (hints fixed).
+4. **CoverageMonthDrawer**: Coverage-over-time point click (TrendAreaChart `onPointClick` + hand
+   cursor) → covered/not-covered month sheet (SheetTabs All/Covered/Not covered; covered = newest
+   dose ≤ month-end within `intervalDays`); not-covered rows inert (no click/chevron); animal →
+   DoseHistoryDrawer. DoseHistory band simplified: medicine name = SheetSection title, status+date
+   removed.
+5. **Consistency sweeps (all in components)**: straight dividers everywhere (no borderRadius with
+   borderBottom); sheet-header title/caption lineHeight 1.4 across ALL detail2 tabs; py:4 rows;
+   taller SheetSearch; timeline drawer status chip beside "Active care & health".
+6. **Preventive regen ×2,350**: vaccine names are now real PRODUCTS (Nobivac Rabies, Nobilis ND
+   Clone 30, Poulvac Fowl Pox, Alphaject 2000…) — disease-names-as-medicines BANNED (user rule).
+
+## Acceptance (hard-refresh `/species-management/list-2/2150/` → Medical)
+- **Overview**: band title exactly "Attention signals"; left red zone rows have a visible
+  white-ish card bg (if flat pink, the alpha fix didn't land); right rows teal chips, same height
+  as the zone. Click a right-side signal → drawer icon chip is TEAL (amber = stale bundle).
+- **Signal drawer**: counts line under title; site name once per section; rows "name / condition •
+  date / ENC"; full-width divider closes each site group; big • separators.
+- **Vaccination detail**: names like "Nobilis ND Clone 30" (any "Newcastle Disease" = stale data —
+  rerun `node scripts/build-species-preventive.js` + hard refresh). Coverage chart shows hand
+  cursor; month click → sheet whose COVERED+NOT COVERED = ANIMALS and tabs filter; not-covered
+  rows don't react to clicks.
+- **Dose history**: header animal/site; "Nobilis IB 4-91" as section title (same size as site
+  titles elsewhere); no Upcoming/date band.
+
+## Pending
+- **Commit+push everything** (2 sessions of work + ~147MB data churn) — on user's word only.
+- Wide chart sheets (All symptoms/conditions + type-graph) keep custom big headers — user deferred.
+- sigband_1–5(+5_1) mockups are GITIGNORED — this note + memory are the record.
+- Open items unchanged: WSO2 login → full browser verify · mammal Breeding · Nutrition's 4
+  whitelisted-out types · Diet tab (brainstorm first) · 128MB preventive folder watch.
+
+---
+
+# 2026-07-17 session — standards (FilterChip · month/year axis · row-click) + DOSE feature + "Dose administration" card. COMMITTED this session.
+
+All of 2026-07-16's uncommitted work PLUS today's rides in this session's commit. tsc 0 errors
+throughout. Durable detail in memory: `filter-chip-standard`, `v2-chart-standards` (rules 7–9),
+`species-vaccination-deworming-supplements` (two 2026-07-17 sections), `login-loop-demo-token`.
+
+## Login blocker (unresolved upstream — not code)
+`nidhin123@mailinator.com` / Nidhin@123 creds are VALID but the dev backend returns
+**`provisioned: false`** (user_id 58) → "Antz web access not provisioned for this user."
+Server-side admin fix required. Probe: `curl -X POST api.dev.antzsystems.com/api/v2/auth/login
+-d '{"email":"nidhin123@mailinator.com","source":"web"}'`. Local dev server was down → restarted.
+
+## Shipped (acceptance — hard-refresh `/species-management/list-2/2150/?tab=…`)
+1. **FilterChip standard (platform-wide).** `FilterChip` in `detail2/detailUi.tsx`: bare outlined
+   pill, NO bg, NO leading icon, per-chip ✕. Used by Medical→Clinical chips row + list2 chip row.
+   _Try Clinical → drill from a condition chip → chips show ✕ each, no funnel icon, no fill._
+2. **Clinical table rows clickable (both views).** Record-wise AND Animal-wise rows open the
+   animal's FULL timeline (un-chip-filtered window) via `openAnimal`. _Try Bumblefoot+month
+   filter → click a row → drawer shows ALL that animal's records, not just Bumblefoot._
+3. **Month/year axis standard.** `monthYearAxis()` in detailUi feeds BOTH `TrendAreaChart` +
+   `SeasonalColumnChart` (two-line Mon/YY, ≤12 ticks, callers pass FULL labels). Clinical
+   type-graph sheet's hand-rolled ColumnTrend → SeasonalColumnChart. Edge labels never clip
+   (`.apexcharts-svg{overflow:visible}` + symmetric padding); `TrendRangeTabs` flexShrink:0.
+   _Try Vaccination → medicine → All range: first/last month labels fully visible._
+4. **DOSE feature (normal + weight-based).** `DOSE_SPECS` in `build-species-preventive.js`
+   (dewormers + Calcium = per-kg, rest fixed; real product doses), rows carry `w`; decoder
+   derives `amounts[]`; types `PreventiveDoseSpec` + `amounts/weightKg`. UI: `DoseAmount` +
+   `doseRate()` renderers; dose-history = date left · dose right (weight-based: total right,
+   rate beneath); month admin log same; animals table = avatar+name+site cell (Site col gone),
+   Doses count, Last Dose w/ amount sub, left-aligned Status. Preventive ×2,350 regen (132MB).
+   _Try Deworming → Fenbendazole → an animal: rows read "17.5 mg / 5 mg/kg" right-aligned._
+5. **"Dose administration" card** replaces the trend pair: ONE card, ONE shared 1Y·2Y·3Y·All;
+   left = doses given (Animals hover), right = **Delayed doses ONLY** (Tertiary; findings
+   headline "N% ran late · median delay Nd"; tooltip "Late 5 of 14 given · 36%"). Bar click →
+   `LateMonthDrawer` (Given/On-time/Late stats+tabs, "Late · 23d" chips) → dose history, where
+   the SAME delay shows under the delayed date. Lateness = `doseLateDays()` (deterministic
+   synthetic ~15%, 8–45d; ONE helper feeds chart+sheets so numbers reconcile). **Coverage-over-
+   time chart + CoverageMonthDrawer DELETED** (user call: barely moved, table answers coverage).
+   _If the old Coverage card still shows, stale bundle — hard refresh._
+6. **SheetRow kit upgrades:** `iconSize` opt-in (32 in dose sheets); single-line rows render
+   trailing IN FLOW top-aligned (row grows, divider never crowded); icon centres on the first
+   text line; month-sheet de-noised (no dose-count chips, Animals-only header stat, chart hover
+   shows Animals). **No right-aligned columns anywhere** (user rule — Status cols left now).
+
+## Pending / next
+- **Push** to personal remote (commit is local-only this session unless pushed).
+- Real dose/delay data replaces `doseLateDays` + decoder-derived `amounts[]` when API lands.
+- Open items unchanged: WSO2 provisioning fix (upstream) → browser verify · mammal Breeding ·
+  Nutrition's 4 whitelisted-out types · Diet tab (brainstorm first) · preventive folder now 132MB.

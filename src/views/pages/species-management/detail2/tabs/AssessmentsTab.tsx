@@ -1291,10 +1291,10 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Box>
-              <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+              <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }}>
                 {animal.name || animal.antzId}
               </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+              <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
                 {[animal.gender, animal.site, animal.enclosure, animal.ageYears != null ? `${animal.ageYears} yr` : null].filter(Boolean).join(' · ')}
               </Typography>
             </Box>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, Button, Card, Chip, Drawer, IconButton, Typography } from '@mui/material'
+import { Box, Button, Card, Drawer, IconButton, Typography } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { alpha, useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -9,7 +9,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-import { GRID_CELL_PAD } from 'src/views/pages/species-management/detail2/detailUi'
+import { FilterChip, GRID_CELL_PAD } from 'src/views/pages/species-management/detail2/detailUi'
 import SpeciesListFilterRail from 'src/views/pages/species-management/list2/SpeciesListFilterRail'
 import { type MajorFilterRow } from 'src/views/pages/species-management/list2/SpeciesListMajorFilters'
 import { type AnalysisFilter, type SpeciesFilters } from 'src/views/pages/species-management/list2/speciesListing.utils'
@@ -117,19 +117,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   const chipRow = (
     <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
       {chips.map(chip => (
-        <Chip
-          key={chip.id}
-          label={chip.label}
-          onDelete={chip.onRemove}
-          deleteIcon={<Icon icon='mdi:close' fontSize='1rem' />}
-          size='small'
-          sx={{
-            bgcolor: alpha(theme.palette.common.black, 0.06),
-            color: cc.OnSurfaceVariant,
-            fontWeight: 500,
-            '& .MuiChip-deleteIcon': { color: cc.neutralSecondary, '&:hover': { color: cc.OnSurfaceVariant } }
-          }}
-        />
+        <FilterChip key={chip.id} label={chip.label} onClear={chip.onRemove} />
       ))}
       <Button
         variant='text'

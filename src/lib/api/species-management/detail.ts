@@ -154,6 +154,13 @@ export interface PreventiveSite {
 }
 // Vaccine-wise breakdown (the vaccine-wise rethink): one entry per medicine.
 export type PreventiveTypeStatus = 'covered' | 'due' | 'overdue' | 'never'
+/** Standard dose of a medicine. `perKg` marks a WEIGHT-BASED dose (rate × animal weight);
+ *  false/absent = fixed amount per dose. `unit` is a free string straight from data. */
+export interface PreventiveDoseSpec {
+  qty: number
+  unit: string
+  perKg?: boolean
+}
 export interface PreventiveTypeAnimal {
   aid: string
   name: string
@@ -163,6 +170,10 @@ export interface PreventiveTypeAnimal {
   nextDue?: string
   days?: number
   doses: string[] // dose dates, newest first
+  /** Given amount per dose, parallel to `doses` (weight-based amounts vary with the
+   *  animal's weight at the time). Absent when the medicine has no dose spec. */
+  amounts?: number[]
+  weightKg?: number
 }
 export interface PreventiveTypeSite {
   site: string
@@ -174,6 +185,7 @@ export interface PreventiveType {
   name: string
   schedule: string
   intervalDays: number
+  dose?: PreventiveDoseSpec
   coveragePct: number
   covered: number
   due: number
@@ -219,6 +231,9 @@ const decodePreventive = (raw: any): SpeciesPreventive | null => {
     const prog = raw.programs?.[key]
     if (!prog?.types) continue
     for (const t of prog.types) {
+      // sidecar dose spec { q, u, per } → friendly { qty, unit, perKg }
+      const spec = t.dose && typeof t.dose.q === 'number' ? { qty: t.dose.q, unit: t.dose.u, perKg: t.dose.per === 'kg' } : undefined
+      t.dose = spec
       t.animals = (t.animals || []).map((r: any) => {
         const status = STATUS_BY_CODE[r.st] || 'never'
         const out: PreventiveTypeAnimal = { aid: r.a, name: `${short} #${r.a}`, site: t.sites[r.s]?.site ?? '—', status, doses: [] }
@@ -229,6 +244,16 @@ const decodePreventive = (raw: any): SpeciesPreventive | null => {
           for (let k = 0; k < (r.dn || 1); k++) out.doses.push(new Date(lg - k * t.intervalDays * DAY_MS).toISOString().slice(0, 10))
         }
         if (r.dy != null) out.days = r.dy
+        // given amount per dose: fixed = the spec qty; weight-based = rate × the animal's
+        // weight at the time (slightly lower on older doses — synthetic growth, like doses[]).
+        if (spec && out.doses.length) {
+          if (spec.perKg && r.w) {
+            out.weightKg = r.w
+            out.amounts = out.doses.map((_, k) => Math.round(spec.qty * r.w * (1 - 0.008 * k) * 10) / 10)
+          } else {
+            out.amounts = out.doses.map(() => spec.qty)
+          }
+        }
         return out
       })
     }
@@ -265,6 +290,8 @@ export interface ClinicalRecord {
   status: 'active' | 'resolved'
   prognosis?: 'Favourable' | 'Guarded' | 'Doubtful' | 'Poor' | 'Grave'
   severity?: 'Low' | 'Medium' | 'High'
+  severityFrom?: 'Low' | 'Medium' // case started milder and climbed → "Worsening" signal
+  outcome?: 'died' // closed episode that ended in death, not recovery
 }
 export interface ClinicalProgram {
   kind: 'type'
@@ -278,6 +305,7 @@ export interface ClinicalProgram {
 export interface SpeciesClinical {
   tsnId: number
   animalCount: number
+  sites?: { name: string; animals: number }[] // site census — denominators for rate analytics
   programs: { symptoms?: ClinicalProgram; diagnosis?: ClinicalProgram }
 }
 

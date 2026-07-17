@@ -192,10 +192,10 @@ const EggDrawer: React.FC<{ egg: SpeciesEgg | null; onClose: () => void }> = ({ 
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }}>
             {egg.eggCode}
           </Typography>
-          <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+          <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
             {egg.eggNumber}
             {egg.clutchId ? ` · Clutch ${egg.clutchId}` : ''}
           </Typography>
