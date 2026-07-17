@@ -1066,3 +1066,39 @@ Server-side admin fix required. Probe: `curl -X POST api.dev.antzsystems.com/api
 - Real dose/delay data replaces `doseLateDays` + decoder-derived `amounts[]` when API lands.
 - Open items unchanged: WSO2 provisioning fix (upstream) → browser verify · mammal Breeding ·
   Nutrition's 4 whitelisted-out types · Diet tab (brainstorm first) · preventive folder now 132MB.
+
+---
+
+# 2026-07-17 (session 2) — Site-hotspots FLOW built + trend/hotspots moved to Overview. Committed f1f5265f5 (pushed to personal/main on user's ask — see WARNING).
+
+**WARNING — standing rule from this session:** user said "never ever push to vercel without asking me" / "no vercel".
+The `personal`/`origin` Species-Management repos may auto-deploy → **NEVER push there without an explicit per-push ask.**
+Local commits are fine. Memory: `species-mgmt-personal-repo-vercel`. Also reaffirmed: jack-* stays BANNED (violated once
+this session — barbossa for a merge question; user had to repeat the ban).
+
+## Shipped (acceptance — hard-refresh `/species-management/list-2/2150/?tab=medical` → Overview)
+1. **Sickness trend card moved to Overview** (below Health status row), counts not % ("sick animals per month"),
+   own 1Y·2Y·3Y·All TrendRangeTabs (`computeSickTrend`, window-independent). _Try: Overview shows the line chart
+   with plain numbers on points; tabs stretch the axis; if you still see it on Insights, stale bundle._
+2. **Site hotspots verdict band** (V7.3 "calm band" mockup, `hotspot_7_3.html`) replaces the tile grid, on Overview:
+   flat BgTeritary band, "N sites are running hot" verdict, ALWAYS top-3 site cards (hot = orange count; others ink),
+   ALL % pills light-orange (user rule: no green %), "Other sites" quiet 2-col list (no last divider) + View all.
+   Metric = sick-animal share (`computeHotspots`: distinct sick ÷ housed; hot ≥1.3×avg AND ≥2 sick — INSIGHT_THRESHOLDS).
+3. **4-level drill:** band/list → `SitesSheet` (above/at-or-below average sections) → site → `SignalDrawer` (sick
+   animals) → animal → **`AnimalHealthRecord`** FULL-WIDTH white takeover dialog: status rollup chip, "Sick N times
+   on record", 2-line KPI tiles, action cards ("12 Jun 2026 ● 21 D ● Medium" big-dot grammar; Upcoming = "Scheduled",
+   never "due"), All/Active/Resolved/Preventive timeline (18px dots; assessments "Prognosis ● X", symptoms
+   "Severity ● X"; dose chips VACCINATION/DEWORMING/SUPPLEMENT — the word "Care" is banned from this surface;
+   missed doses have no sub text). _Try: click any site card → animal row → full-screen record opens._
+4. **Insights tab** now = recovery · conversion · seasonality · preventive-link · pareto only (its hotspots headline
+   sentence removed earlier in session); sheet captions wrap (episodeSummary lists ALL conditions, no "…");
+   "While overdue on X" row noise removed from preventive drill sheets.
+
+## Open questions / pending
+- Left panel of AnimalHealthRecord: I recommended DROPPING it (duplicates timeline; only unique bit = Upcoming) —
+  user hasn't decided. Mockups: hotspot_1–10, 7_1..7_3 in `.superdesign/design_iterations/` (gitignored).
+- Insights merge-into-Overview discussion: partially done via the two moved cards; remaining 4 analytics stay on
+  Insights for now. Findings-headline sweep on remaining cards not requested.
+- Dose history in the record rides the CAPPED per-medicine animal samples — sparse for some animals until real API.
+- Unchanged: WSO2 provisioning fix (browser verify blocked) · Diet tab (brainstorm first) · mammal Breeding ·
+  preventive folder 132MB.
