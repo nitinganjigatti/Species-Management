@@ -12,10 +12,11 @@ import { Avatar, Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
-import { EmptyState, SectionCard, TrendAreaChart } from 'src/views/pages/species-management/detail2/detailUi'
+import { EmptyState, SectionCard } from 'src/views/pages/species-management/detail2/detailUi'
 import { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 import { computeInsights, type InsightBarRow, type SignalAnimal } from './signals'
 import SignalDrawer, { type SignalDrawerPayload } from './SignalDrawer'
+import AnimalHealthRecord from './AnimalHealthRecord'
 
 const ANTZ_LOGO = '/images/branding/Antz_logomark_h_color.svg'
 
@@ -134,6 +135,7 @@ const InsightsPanel: React.FC<{
   const theme = useTheme() as any
   const c = cc(theme)
   const [drill, setDrill] = useState<SignalDrawerPayload | null>(null)
+  const [recordAid, setRecordAid] = useState<string | null>(null)
 
   const insights = useMemo(() => {
     const now = new Date()
@@ -154,33 +156,10 @@ const InsightsPanel: React.FC<{
   const openRows = (title: string, explainer: string, icon: string, animals: SignalAnimal[]) =>
     setDrill({ title, explainer, icon, tone: 'neutral', animals })
 
-  const { morbidity, trend, trendAnimals, risingStreak, hotspots, hotspotAvg, recovery, seasonality, conversion, preventiveLink, pareto } =
-    insights
+  const { recovery, seasonality, conversion, preventiveLink, pareto } = insights
 
-  const delta = morbidity.prevPct != null ? Math.round((morbidity.pct - morbidity.prevPct) * 10) / 10 : null
-  const hasData = trend.some(t => t.value > 0) || hotspots.length > 0
+  const hasData = pareto.totalEvents > 0 || recovery.length > 0
   if (!hasData) return <EmptyState message='No clinical activity in this window.' />
-
-  /* findings — the computed one-liners each card leads with */
-  const trendFinding =
-    risingStreak >= 2
-      ? { lead: `${morbidity.pct}% of animals are sick`, tone: 'bad' as const, rest: `— the rate has risen for ${risingStreak} straight months` }
-      : delta != null && delta > 0
-      ? { lead: `${morbidity.pct}% of animals are sick`, tone: 'bad' as const, rest: `— up ${delta} pt on the previous window` }
-      : delta != null && delta < 0
-      ? { lead: `${morbidity.pct}% of animals are sick`, tone: 'good' as const, rest: `— down ${Math.abs(delta)} pt on the previous window` }
-      : { lead: `${morbidity.pct}% of animals are sick`, tone: 'good' as const, rest: 'in this window' }
-
-  const worstSite = hotspots[0]
-  const worstMult = worstSite && hotspotAvg ? Math.round((worstSite.value / hotspotAvg) * 10) / 10 : 0
-  const multChip = (rate: number) => {
-    if (!hotspotAvg) return { label: '—', bad: false }
-    const m = rate / hotspotAvg
-    if (m >= 1.5) return { label: `${(Math.round(m * 10) / 10).toFixed(1)}× average`, bad: true }
-    if (m >= 0.9) return { label: m >= 1.1 ? `${(Math.round(m * 10) / 10).toFixed(1)}× average` : 'at average', bad: false }
-
-    return { label: `${(Math.round(m * 10) / 10).toFixed(1)}× average`, bad: false }
-  }
 
   const slow = recovery[0]
   const fast = recovery[recovery.length - 1]
@@ -225,122 +204,6 @@ const InsightsPanel: React.FC<{
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* 1 · HERO — sickness-rate trend */}
-      <SectionCard
-        title={<FindingHead eyebrow='Sickness-rate trend · trailing 12 months' lead={trendFinding.lead} leadTone={trendFinding.tone} rest={trendFinding.rest} />}
-        action={
-          delta != null ? (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 3,
-                py: 1,
-                borderRadius: '20px',
-                flexShrink: 0,
-                backgroundColor: delta > 0 ? c.BgTeritary : c.OnBackground,
-                color: delta > 0 ? c.Tertiary : theme.palette.primary.dark
-              }}
-            >
-              <Icon icon={delta > 0 ? 'mdi:trending-up' : 'mdi:trending-down'} fontSize={14} />
-              <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                {delta > 0 ? '+' : ''}
-                {delta} pt vs previous window
-              </Typography>
-            </Box>
-          ) : undefined
-        }
-        titleMb={4}
-      >
-        <TrendAreaChart
-          values={trend.map(t => t.value)}
-          labels={trend.map(t => t.label)}
-          color={theme.palette.primary.main}
-          name='Sickness rate'
-          unit='%'
-          height={230}
-          onPointClick={i =>
-            trendAnimals[i]?.length &&
-            openRows(
-              `${trend[i].label} — sick animals`,
-              `${trendAnimals[i].length} animals had an active illness in ${trend[i].label}.`,
-              'mdi:chart-line',
-              trendAnimals[i]
-            )
-          }
-        />
-        <ClickHint>Click a month's point to see that month's sick animals</ClickHint>
-      </SectionCard>
-
-      {/* 2 · SITE TILES — a handful of headline numbers, not bars */}
-      {hotspots.length > 0 && (
-        <SectionCard
-          title={
-            <FindingHead
-              eyebrow='Site hotspots · illness cases per animal housed'
-              lead={worstMult >= 1.5 ? `${worstSite.label} runs ${worstMult}× the collection average` : 'No site stands out'}
-              leadTone={worstMult >= 1.5 ? 'bad' : 'good'}
-              rest={worstMult >= 1.5 ? '— the other sites sit at or below it' : '— sickness rates are even across sites'}
-            />
-          }
-          titleMb={4}
-        >
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: `repeat(${Math.min(4, hotspots.length)}, 1fr)` }, gap: 3 }}>
-            {hotspots.slice(0, 8).map(site => {
-              const chip = multChip(site.value)
-
-              return (
-                <Box
-                  key={site.label}
-                  onClick={() =>
-                    openRows(site.label, `${site.sub} — every animal at this site that fell sick in the window.`, 'mdi:map-marker', site.animals)
-                  }
-                  sx={{
-                    border: `1px solid ${chip.bad ? c.OutlineVariant : c.SurfaceVariant}`,
-                    backgroundColor: chip.bad ? c.Surface : 'transparent',
-                    borderRadius: '10px',
-                    p: 3.5,
-                    cursor: 'pointer',
-                    transition: 'box-shadow .15s ease',
-                    '&:hover': { boxShadow: '0 2px 8px rgba(68,84,74,0.14)' }
-                  }}
-                >
-                  <Typography variant='caption' sx={{ fontWeight: 600, color: c.neutralSecondary, display: 'block' }} noWrap>
-                    {site.label}
-                  </Typography>
-                  <Typography sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1, mt: 1.5, color: c.OnSurfaceVariant }}>
-                    {site.value.toFixed(1)}{' '}
-                    <Box component='span' sx={{ fontSize: 12, fontWeight: 500, color: c.neutralSecondary }}>
-                      cases / animal
-                    </Box>
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      mt: 2,
-                      px: 2.5,
-                      py: 0.5,
-                      borderRadius: '20px',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      backgroundColor: chip.bad ? c.BgTeritary : c.OnBackground,
-                      color: chip.bad ? c.Tertiary : theme.palette.primary.dark
-                    }}
-                  >
-                    {chip.label}
-                  </Box>
-                  <Typography variant='caption' sx={{ display: 'block', mt: 2, color: c.neutralSecondary }}>
-                    {site.cases} cases · {site.housed} housed
-                  </Typography>
-                </Box>
-              )
-            })}
-          </Box>
-          <ClickHint>Click a site to see its sick animals</ClickHint>
-        </SectionCard>
-      )}
-
       {/* 3+4 · vertical columns — value on the mark */}
       <ChartsRow>
         <SectionCard
@@ -655,7 +518,8 @@ const InsightsPanel: React.FC<{
         )}
       </SectionCard>
 
-      <SignalDrawer payload={drill} onClose={() => setDrill(null)} />
+      <SignalDrawer payload={drill} onClose={() => setDrill(null)} onAnimal={aid => setRecordAid(aid)} />
+      <AnimalHealthRecord aid={recordAid} clinical={clinical} preventive={preventive} onClose={() => setRecordAid(null)} />
     </Box>
   )
 }

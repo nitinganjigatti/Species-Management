@@ -15,7 +15,9 @@ export const INSIGHT_THRESHOLDS = {
   outbreakSpanDays: 30, // …within this many days → outbreak cluster
   stuckDays: 21, // active this long without resolving → stuck
   undiagnosedDays: 7, // symptom active this long with no assessment → undiagnosed
-  paretoShare: 0.6 // care-load: smallest animal group covering this share of events
+  paretoShare: 0.6, // care-load: smallest animal group covering this share of events
+  hotspotHotMult: 1.3, // site sick-share ≥ this × collection average → "running hot"
+  hotspotMinSick: 2 // …and at least this many sick animals (one animal ≠ a hotspot)
 } as const
 
 export type SignalSeverity = 'critical' | 'watch' | 'review'
@@ -89,13 +91,12 @@ export const fmtDate = (s?: string) => {
 
 const newestFirst = (a: SignalAnimal, b: SignalAnimal) => ((a.date ?? '') < (b.date ?? '') ? 1 : -1)
 
-/** Plain-language bout summary — "Pneumonia · 3 times" / "Sick 5 times · Lameness, Wound…". */
+/** Plain-language bout summary — "Pneumonia · 3 times" / "Sick 5 times · Lameness, Wound, …".
+ *  Lists EVERY distinct condition — the sheet row caption wraps, never truncates. */
 const episodeSummary = (recs: ClinicalRecord[]) => {
   const types = [...new Set(recs.map(r => r.type))]
 
-  return types.length === 1
-    ? `${types[0]} · ${recs.length} times`
-    : `Sick ${recs.length} times · ${types.slice(0, 3).join(', ')}${types.length > 3 ? '…' : ''}`
+  return types.length === 1 ? `${types[0]} · ${recs.length} times` : `Sick ${recs.length} times · ${types.join(', ')}`
 }
 
 /* ── the 8 signals ─────────────────────────────────────────────────────────── */
@@ -431,6 +432,8 @@ export interface InsightBarRow {
   sub?: string
   cases?: number // hotspots/recovery: case count behind the number
   housed?: number // hotspots: census denominator
+  sickAnimals?: number // hotspots: distinct sick animals at the site
+  topCondition?: string // hotspots: the site's most frequent condition in the window
   overdueTotal?: number // preventive link: how many were overdue in total
   escalated?: number // conversion: cases that became a diagnosis
   totalCases?: number // conversion: symptom case total
@@ -444,8 +447,8 @@ export interface SpeciesInsights {
   trend: { label: string; value: number }[] // monthly % of population sick (trailing 12 mo)
   trendAnimals: SignalAnimal[][] // per trend bucket, the animals behind the point
   risingStreak: number // consecutive month-over-month rises ending at the latest month
-  hotspots: InsightBarRow[] // cases per animal housed, by site
-  hotspotAvg: number // collection-wide cases per animal housed (the benchmark)
+  hotspots: InsightBarRow[] // % of each site's animals that fell sick, worst first
+  hotspotAvg: number // collection-wide % of housed animals that fell sick (the benchmark)
   recovery: InsightBarRow[] // avg days-to-resolve, by condition
   seasonality: { label: string; value: number; animals: SignalAnimal[] }[] // calendar-month onsets
   conversion: InsightBarRow[] // % of each symptom type that escalated to a diagnosis
@@ -533,31 +536,8 @@ export const computeInsights = (
     else break
   }
 
-  /* site hotspots — cases per animal housed (needs the census the sidecar ships) */
-  const siteCensus = new Map((clinical?.sites ?? []).map(s => [s.name, s.animals]))
-  const bySite = new Map<string, ClinicalRecord[]>()
-  for (const r of recs) {
-    if (!bySite.has(r.site)) bySite.set(r.site, [])
-    bySite.get(r.site)!.push(r)
-  }
-  const censusTotal = [...siteCensus.values()].reduce((s, n) => s + n, 0)
-  const hotspotAvg = censusTotal ? Math.round((recs.length / censusTotal) * 100) / 100 : 0
-  const hotspots: InsightBarRow[] = [...bySite.entries()]
-    .map(([site, list]) => {
-      const housed = siteCensus.get(site) ?? 0
-      const rate = housed ? Math.round((list.length / housed) * 100) / 100 : 0
-
-      return {
-        label: site,
-        value: rate,
-        display: rate.toFixed(2),
-        sub: `${list.length} cases · ${housed} housed`,
-        cases: list.length,
-        housed,
-        animals: distinctAnimals(list.map(r => toAnimalRow(r)))
-      }
-    })
-    .sort((a, b) => b.value - a.value)
+  /* site hotspots — share of each site's animals that fell sick (census from the sidecar) */
+  const { rows: hotspots, avg: hotspotAvg } = computeHotspots(clinical, inWin)
 
   /* recovery time by condition (resolved, excluding deaths) */
   const byType = new Map<string, ClinicalRecord[]>()
@@ -650,7 +630,8 @@ export const computeInsights = (
           .map(aid => {
             const r = latestRec.get(aid)!
 
-            return toAnimalRow(r, `While overdue on ${key}`)
+            // sheet title already says "Overdue <program>" — rows carry only condition + date
+            return toAnimalRow(r)
           })
           .sort(newestFirst)
       }
@@ -715,4 +696,95 @@ export const computeInsights = (
     preventiveLink,
     pareto
   }
+}
+
+/* ── standalone site hotspots (Overview card + computeInsights) ────────────── */
+
+export interface HotspotsResult {
+  rows: InsightBarRow[] // one per site — % of its animals sick, worst first
+  avg: number // collection-wide % of housed animals that fell sick
+  sickTotal: number // distinct sick animals across the collection in the window
+}
+export const computeHotspots = (clinical: SpeciesClinical | null | undefined, inWin: InWin): HotspotsResult => {
+  const recs = allRecords(clinical, inWin)
+  const siteCensus = new Map((clinical?.sites ?? []).map(s => [s.name, s.animals]))
+  const bySite = new Map<string, ClinicalRecord[]>()
+  for (const r of recs) {
+    if (!bySite.has(r.site)) bySite.set(r.site, [])
+    bySite.get(r.site)!.push(r)
+  }
+  const censusTotal = [...siteCensus.values()].reduce((s, n) => s + n, 0)
+  const sickTotal = new Set(recs.map(r => r.aid)).size
+  const avg = censusTotal ? Math.round((sickTotal / censusTotal) * 100) : 0
+  const rows: InsightBarRow[] = [...bySite.entries()]
+    .map(([site, list]) => {
+      const housed = siteCensus.get(site) ?? 0
+      const animals = distinctAnimals(list.map(r => toAnimalRow(r)))
+      const pct = housed ? Math.round((animals.length / housed) * 100) : 0
+      const perType = new Map<string, number>()
+      for (const r of list) perType.set(r.type, (perType.get(r.type) ?? 0) + 1)
+      const top = [...perType.entries()].sort((a, b) => b[1] - a[1])[0]
+
+      return {
+        label: site,
+        value: pct,
+        display: `${pct}%`,
+        sub: `${animals.length} of ${housed} animals`,
+        cases: list.length,
+        housed,
+        sickAnimals: animals.length,
+        topCondition: top?.[0],
+        animals
+      }
+    })
+    .sort((a, b) => b.value - a.value)
+
+  return { rows, avg, sickTotal }
+}
+
+/* ── standalone sickness trend (Insights hero) ─────────────────────────────── */
+
+/** Sick-animal COUNTS per month over the requested span (12/24/36 months, or null = all
+ *  history, capped at 10 years). Independent of the page window — the hero chart has its own
+ *  1Y·2Y·3Y·All tabs. */
+export interface SickTrend {
+  labels: string[]
+  values: number[]
+  animals: SignalAnimal[][]
+}
+export const computeSickTrend = (clinical: SpeciesClinical | null | undefined, months: number | null, now: Date): SickTrend => {
+  const recs = allRecords(clinical, () => true)
+
+  let span = months
+  if (span == null) {
+    let earliest = now.getTime()
+    for (const r of recs) {
+      const t = new Date(r.date).getTime()
+      if (!isNaN(t) && t < earliest) earliest = t
+    }
+    const e = new Date(earliest)
+    span = Math.max(12, Math.min((now.getFullYear() - e.getFullYear()) * 12 + (now.getMonth() - e.getMonth()) + 1, 120))
+  }
+
+  const byMonth = new Map<string, ClinicalRecord[]>()
+  for (const r of recs) {
+    const d = new Date(r.date)
+    if (isNaN(d.getTime())) continue
+    const k = `${d.getFullYear()}-${d.getMonth()}`
+    if (!byMonth.has(k)) byMonth.set(k, [])
+    byMonth.get(k)!.push(r)
+  }
+
+  const labels: string[] = []
+  const values: number[] = []
+  const animals: SignalAnimal[][] = []
+  for (let i = span - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const aids = distinctAnimals((byMonth.get(`${d.getFullYear()}-${d.getMonth()}`) ?? []).map(r => toAnimalRow(r)))
+    labels.push(`${MONTH_LABELS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`)
+    values.push(aids.length)
+    animals.push(aids)
+  }
+
+  return { labels, values, animals }
 }

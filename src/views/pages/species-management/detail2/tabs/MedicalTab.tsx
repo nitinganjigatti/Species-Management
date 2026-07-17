@@ -42,6 +42,8 @@ import DashboardDateRange, {
 } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
 import { computeSignals, type HealthSignal } from './medical/signals'
 import SignalsBand from './medical/SignalsBand'
+import SickTrendCard from './medical/SickTrendCard'
+import SiteHotspotsCard from './medical/SiteHotspotsCard'
 import SignalDrawer, { type SignalDrawerPayload } from './medical/SignalDrawer'
 import InsightsPanel from './medical/InsightsPanel'
 
@@ -888,6 +890,10 @@ const OverviewPanel: React.FC<{
           />
         </SectionCard>
       </ChartsRow>
+
+      {/* Row 2.5 · sickness trend + site hotspots (moved from Insights — below Health status) */}
+      <SickTrendCard clinical={clinical} preventive={preventive} />
+      <SiteHotspotsCard clinical={clinical} preventive={preventive} range={range} />
 
       {/* Row 3 · animals needing attention */}
       <SectionCard
