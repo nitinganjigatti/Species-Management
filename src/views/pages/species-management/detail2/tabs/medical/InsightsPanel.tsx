@@ -12,8 +12,8 @@ import { Avatar, Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
-import { EmptyState, SectionCard } from 'src/views/pages/species-management/detail2/detailUi'
-import { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import { thinScrollbarSx, EmptyState, SectionCard } from 'src/views/pages/species-management/detail2/detailUi'
+import { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
 import { computeInsights, type InsightBarRow, type SignalAnimal } from './signals'
 import SignalDrawer, { type SignalDrawerPayload } from './SignalDrawer'
 import AnimalHealthRecord from './AnimalHealthRecord'
@@ -35,7 +35,7 @@ const FindingHead: React.FC<{ eyebrow: string; lead: string; leadTone?: 'good' |
   return (
     <Box>
       <Typography
-        sx={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}
+        sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}
       >
         {eyebrow}
       </Typography>
@@ -78,7 +78,20 @@ const ColumnChart: React.FC<{
   const c = cc(theme)
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 6, height, px: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 6,
+        height: height + 8,
+        px: 2,
+        pb: '8px',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        ...thinScrollbarSx(theme),
+        '& > *': { minWidth: 88 }
+      }}
+    >
       {items.map((it, i) => (
         <Box
           key={it.label}
@@ -117,7 +130,7 @@ const ColumnChart: React.FC<{
             {it.label}
           </Typography>
           {it.sub && (
-            <Typography variant='caption' sx={{ fontSize: 11, color: c.Outline }} noWrap>
+            <Typography variant='caption' sx={{ fontSize: 14, color: c.Outline }} noWrap>
               {it.sub}
             </Typography>
           )}
@@ -308,7 +321,7 @@ const InsightsPanel: React.FC<{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: 700,
                       color: isPeak ? theme.palette.common.white : c.OnSurfaceVariant,
                       backgroundColor: bg
@@ -316,7 +329,7 @@ const InsightsPanel: React.FC<{
                   >
                     {m.value || ''}
                   </Box>
-                  <Typography variant='caption' sx={{ fontSize: 11, color: r >= 0.95 ? theme.palette.primary.dark : c.neutralSecondary, fontWeight: r >= 0.95 ? 700 : 400 }}>
+                  <Typography variant='caption' sx={{ fontSize: 14, color: r >= 0.95 ? theme.palette.primary.dark : c.neutralSecondary, fontWeight: r >= 0.95 ? 700 : 400 }}>
                     {m.label}
                   </Typography>
                 </Box>
@@ -465,11 +478,11 @@ const InsightsPanel: React.FC<{
                     sx={{ width: 40, height: 40, flexShrink: 0, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '5px' } }}
                   />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: '15px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
                       {row.label}
                     </Typography>
                     <Typography
-                      sx={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
+                      sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
                       noWrap
                     >
                       {a ? `${a.enclosure} · ${a.site}` : ''}
@@ -480,7 +493,7 @@ const InsightsPanel: React.FC<{
                       px: 2.5,
                       py: 0.75,
                       borderRadius: '20px',
-                      fontSize: 11,
+                      fontSize: 14,
                       fontWeight: 700,
                       letterSpacing: '0.4px',
                       textTransform: 'uppercase',

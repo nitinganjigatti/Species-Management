@@ -18,9 +18,12 @@ import CircleOfLifeTab from 'src/views/pages/species-management/detail2/tabs/Cir
 import EggsTab from 'src/views/pages/species-management/detail2/tabs/EggsTab'
 import AssessmentsTab from 'src/views/pages/species-management/detail2/tabs/AssessmentsTab'
 import MedicalTab from 'src/views/pages/species-management/detail2/tabs/MedicalTab'
+import HospitalTab from 'src/views/pages/species-management/detail2/tabs/HospitalTab'
+import LabTab from 'src/views/pages/species-management/detail2/tabs/LabTab'
 import IdentificationTab from 'src/views/pages/species-management/detail2/tabs/IdentificationTab'
 import BreedsTab from 'src/views/pages/species-management/detail2/tabs/BreedsTab'
 import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
+import { V2TypeScale } from 'src/views/pages/species-management/detail2/detailUi'
 
 // Backend endpoints don't exist yet — don't hammer with retries; surface empty states instead.
 // Called unconditionally in a fixed order every render, so it's hook-safe.
@@ -61,6 +64,8 @@ const SpeciesDetail2Container = () => {
     'eggs',
     'assessments',
     'medical',
+    'hospital',
+    'lab',
     'identification',
     'breeds'
   ]
@@ -129,7 +134,7 @@ const SpeciesDetail2Container = () => {
   )
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
   const preventive = useTabQuery(['sm-preventive', id], () => detailApi.getSpeciesPreventive(id), tab === 'medical')
-  const clinical = useTabQuery(['sm-clinical', id], () => detailApi.getSpeciesClinical(id), tab === 'medical')
+  const clinical = useTabQuery(['sm-clinical', id], () => detailApi.getSpeciesClinical(id), tab === 'medical' || tab === 'hospital' || tab === 'lab')
   const identification = useTabQuery(['sm-identification', id], () => detailApi.getSpeciesIdentification(id), tab === 'identification')
   const breeds = useTabQuery(['sm-breeds', id], () => detailApi.getSpeciesBreeds(id), tab === 'breeds')
 
@@ -165,6 +170,10 @@ const SpeciesDetail2Container = () => {
         return assessments.isLoading ? <Loading /> : <AssessmentsTab assessments={assessments.data} />
       case 'medical':
         return preventive.isLoading || clinical.isLoading ? <Loading /> : <MedicalTab preventive={preventive.data} clinical={clinical.data} />
+      case 'hospital':
+        return clinical.isLoading ? <Loading /> : <HospitalTab clinical={clinical.data} />
+      case 'lab':
+        return clinical.isLoading ? <Loading /> : <LabTab clinical={clinical.data} />
       case 'identification':
         return identification.isLoading ? <Loading /> : <IdentificationTab ident={identification.data} />
       case 'breeds':
@@ -179,18 +188,20 @@ const SpeciesDetail2Container = () => {
   const showEggs = ['Aves', 'Reptilia'].includes(String(header.data?.class))
 
   return (
-    <SpeciesDetailView
-      header={header.data}
-      speciesId={id}
-      activeTab={tab}
-      onTabChange={setTab}
-      onBack={() => router.push('/species-management/list-2/')}
-      showEggs={showEggs}
-      alerts={alerts}
-      onAlertClick={() => setTab('assessments')}
-    >
-      {renderTab()}
-    </SpeciesDetailView>
+    <V2TypeScale>
+      <SpeciesDetailView
+        header={header.data}
+        speciesId={id}
+        activeTab={tab}
+        onTabChange={setTab}
+        onBack={() => router.push('/species-management/list-2/')}
+        showEggs={showEggs}
+        alerts={alerts}
+        onAlertClick={() => setTab('assessments')}
+      >
+        {renderTab()}
+      </SpeciesDetailView>
+    </V2TypeScale>
   )
 }
 

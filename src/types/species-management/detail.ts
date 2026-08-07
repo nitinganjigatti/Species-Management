@@ -512,6 +512,8 @@ export type SpeciesDetailTab =
   | 'eggs'
   | 'assessments'
   | 'medical'
+  | 'hospital'
+  | 'lab'
   | 'identification'
   | 'breeds'
 

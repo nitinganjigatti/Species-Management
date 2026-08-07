@@ -19,7 +19,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
 
   const textCell = (value: string, color?: string, fontWeight?: number) => (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
-      <Typography variant='body2' sx={{ color: color || cc.OnSurfaceVariant, fontWeight }}>
+      <Typography sx={{ fontSize: '1rem', color: color || cc.OnSurfaceVariant, fontWeight }}>
         {value}
       </Typography>
     </Box>
@@ -73,7 +73,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
           borderRadius: '3px',
           border: `1px solid ${theme.palette.secondary.main}30`,
           color: theme.palette.secondary.main,
-          fontSize: 10,
+          fontSize: 14,
           fontWeight: 600,
           lineHeight: 1.6,
           whiteSpace: 'nowrap'
@@ -102,6 +102,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
             <Typography
               variant='subtitle2'
               sx={{
+                fontSize: '16px',
                 fontWeight: 600,
                 color: cc.OnSurfaceVariant,
                 overflow: 'hidden',
@@ -112,15 +113,15 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
               {r.species_name || '—'}
             </Typography>
             {code && (
-              <Typography component='span' variant='caption' sx={{ fontWeight: 700, flexShrink: 0, color: iucnColor(r.iucn) }}>
+              <Typography component='span' sx={{ fontSize: '1rem', fontWeight: 700, flexShrink: 0, color: iucnColor(r.iucn) }}>
                 ({code})
               </Typography>
             )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
             <Typography
-              variant='caption'
               sx={{
+                fontSize: '1rem',
                 fontStyle: 'italic',
                 color: cc.neutralSecondary,
                 overflow: 'hidden',
@@ -153,11 +154,11 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
 
           return (
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-              <Typography variant='body2' sx={{ fontWeight: 700, color: theme.palette.secondary.main }}>
+              <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: theme.palette.secondary.main }}>
                 {head != null ? `${head}y` : '—'}
               </Typography>
               {r.lifespanMax != null && (
-                <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+                <Typography sx={{ fontSize: '1rem', color: cc.neutralSecondary }}>
                   max {r.lifespanMax}y · n={r.lifespanCount}
                 </Typography>
               )}
@@ -205,7 +206,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       headerName: 'Population',
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
-          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: cc.OnSurface }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurface }}>
             {Number(params.row.population || 0).toLocaleString()}
           </Typography>
         </Box>
@@ -219,12 +220,12 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderCell: (params: GridRenderCellParams) => {
         const r = params.row as SpeciesRow
         const seg = (n: number, color: string) => (
-          <Typography variant='body2' sx={{ fontWeight: 600, color }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color }}>
             {Number(n || 0).toLocaleString()}
           </Typography>
         )
         const dot = (
-          <Typography variant='body2' sx={{ color: cc.OutlineVariant }}>
+          <Typography sx={{ fontSize: '1rem', color: cc.OutlineVariant }}>
             ·
           </Typography>
         )

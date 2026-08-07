@@ -15,9 +15,9 @@ import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 
 import Icon from 'src/@core/components/icon'
-import DashboardSpeciesPicker, { SpeciesOption } from 'src/views/pages/species-management/dashboard/DashboardSpeciesPicker'
-import { ColumnBarChart, TaxonomyStatusStrip } from 'src/views/pages/species-management/dashboard/dashboardUi'
-import { SectionCard, EmptyState, DetailTable } from 'src/views/pages/species-management/detail/detailUi'
+import DashboardSpeciesPicker, { SpeciesOption } from 'src/views/pages/species-management/dashboard2/DashboardSpeciesPicker'
+import { ColumnBarChart, TaxonomyStatusStrip } from 'src/views/pages/species-management/dashboard2/dashboardUi'
+import { SectionCard, EmptyState, DetailTable } from 'src/views/pages/species-management/detail2/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/detail/useSortableTable'
 
 export type SignalKey = 'fewLeft' | 'deathSpike' | 'declining' | 'singleSex' | 'noRecentBirth'
@@ -333,14 +333,14 @@ const WatchDrawer: React.FC<{
       renderCell: p => (
         <Box sx={{ minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, minWidth: 0 }}>
-            <Typography variant='body2' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+            <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
               {p.row.name}
             </Typography>
             {p.row.iucnCode && ['CR', 'EN', 'VU'].includes(p.row.iucnCode) && (
-              <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: cc.Tertiary, flexShrink: 0 }}>{p.row.iucnCode}</Typography>
+              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: cc.Tertiary, flexShrink: 0 }}>{p.row.iucnCode}</Typography>
             )}
           </Box>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontStyle: 'italic' }} noWrap>
+          <Typography sx={{ fontSize: '1rem', color: cc.neutralSecondary, fontStyle: 'italic' }} noWrap>
             {p.row.sci}
           </Typography>
         </Box>
@@ -352,10 +352,10 @@ const WatchDrawer: React.FC<{
       width: 150,
       renderCell: p => (
         <Box>
-          <Typography variant='body2' sx={{ fontWeight: 700, color: cc.OnSurfaceVariant }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: cc.OnSurfaceVariant }}>
             {p.row.count.toLocaleString()}
           </Typography>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+          <Typography sx={{ fontSize: '1rem', color: cc.neutralSecondary }}>
             {p.row.m}M · {p.row.f}F · {p.row.u}U
           </Typography>
         </Box>
@@ -369,11 +369,11 @@ const WatchDrawer: React.FC<{
       headerAlign: 'right',
       renderCell: p => (
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant='body2' sx={{ fontWeight: 700, color: tile.hot ? cc.Tertiary : cc.OnSurfaceVariant }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: tile.hot ? cc.Tertiary : cc.OnSurfaceVariant }}>
             {tile.stat(p.row)}
           </Typography>
           {others(p.row) && (
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary }} noWrap>
+            <Typography sx={{ fontSize: '1rem', color: cc.neutralSecondary }} noWrap>
               {others(p.row)}
             </Typography>
           )}
@@ -684,7 +684,7 @@ const Dashboard2View: React.FC<{
                       '&:hover': { bgcolor: cc.OnBackground }
                     }}
                   >
-                    <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: cc.Tertiary }}>{w.iucnCode || 'T'}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 800, color: cc.Tertiary }}>{w.iucnCode || 'T'}</Typography>
                     <Typography variant='body2' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
                       {w.name}
                     </Typography>

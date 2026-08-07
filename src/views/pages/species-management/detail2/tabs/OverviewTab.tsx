@@ -10,12 +10,11 @@ import { SectionCard, MiniBarRow, EmptyState } from 'src/views/pages/species-man
 import {
   SexDonut,
   ProportionChart,
-  RankedBarChart,
   ColumnBarChart,
   type CompositionSegment,
   type Tone
-} from 'src/views/pages/species-management/dashboard/dashboardUi'
-import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+} from 'src/views/pages/species-management/dashboard2/dashboardUi'
+import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
 import {
   GenderFilter,
   MoreFiltersDrawer,
@@ -190,20 +189,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
   const monthItems = MONTHS.map((m, i) => ({ value: i + 1, label: m }))
 
   const readiness: CompositionSegment[] = [
-    { label: 'Can breed', value: num(housing?.pairedEncl), onClick: go('pairing') },
-    { label: 'Needs sexing', value: num(housing?.unsexedOnlyEncl), onClick: go('pairing') },
-    { label: 'Single-sex', value: num(housing?.maleOnlyEncl) + num(housing?.femaleOnlyEncl), onClick: go('pairing') },
+    { label: 'Can Breed', value: num(housing?.pairedEncl), onClick: go('pairing') },
+    { label: 'Needs Sexing', value: num(housing?.unsexedOnlyEncl), onClick: go('pairing') },
+    { label: 'Single-Sex', value: num(housing?.maleOnlyEncl) + num(housing?.femaleOnlyEncl), onClick: go('pairing') },
     { label: 'Mixed', value: num(housing?.mixedEncl), onClick: go('pairing') }
   ]
   const readinessTotal = readiness.reduce((s, r) => s + r.value, 0)
 
   const alertRows = alerts
     ? [
-        { label: 'Overdue assessment', value: alerts.overdue, tone: 'error' as Tone },
-        { label: 'Never assessed', value: alerts.neverAssessed, tone: 'warning' as Tone },
+        { label: 'Overdue Assessment', value: alerts.overdue, tone: 'error' as Tone },
+        { label: 'Never Assessed', value: alerts.neverAssessed, tone: 'warning' as Tone },
         { label: 'Gained >10%', value: alerts.gained, tone: 'warning' as Tone },
         { label: 'Lost >10%', value: alerts.lost, tone: 'error' as Tone },
-        { label: 'Under-monitored', value: alerts.underMonitored, tone: 'warning' as Tone }
+        { label: 'Under-Monitored', value: alerts.underMonitored, tone: 'warning' as Tone }
       ].filter(r => r.value > 0)
     : []
 
@@ -321,7 +320,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
             {readinessTotal ? (
               <>
                 <ProportionChart segments={readiness} variant='donut' />
-                <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mt: 1, textAlign: 'center' }}>
+                <Typography variant='caption' sx={{ fontSize: '16px', color: cc.neutralSecondary, display: 'block', mt: 1, textAlign: 'center' }}>
                   {num(housing?.nEncl).toLocaleString()} enclosures · {num(housing?.nPairs).toLocaleString()} breedable pairs
                 </Typography>
               </>
@@ -352,7 +351,18 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
 
           <Card title='Population by Site' tab='housing' viewLabel='View Housing'>
             {sites.length ? (
-              <RankedBarChart segments={sites} horizontal height={Math.max(170, sites.length * 46)} barHeight='42%' />
+              // Same row component as Needs Attention — identical label alignment,
+              // colors, and spacing (standardization rule: one component per pattern).
+              sites.map(s => (
+                <MiniBarRow
+                  key={s.label}
+                  label={s.label}
+                  value={s.value}
+                  max={Math.max(1, ...sites.map(x => x.value))}
+                  tone='primary'
+                  onClick={s.onClick}
+                />
+              ))
             ) : (
               <EmptyState />
             )}

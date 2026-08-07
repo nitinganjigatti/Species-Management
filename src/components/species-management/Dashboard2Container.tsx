@@ -15,8 +15,9 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 
 import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
-import type { SpeciesOption } from 'src/views/pages/species-management/dashboard/DashboardSpeciesPicker'
+import type { SpeciesOption } from 'src/views/pages/species-management/dashboard2/DashboardSpeciesPicker'
 import Dashboard2View, { Dashboard2Data, SignalKey, SpeciesScope, WatchRow } from 'src/views/pages/species-management/dashboard2/Dashboard2View'
+import { V2TypeScale } from 'src/views/pages/species-management/detail2/detailUi'
 
 async function loadSpeciesList(): Promise<any[]> {
   const res = await fetch('/species-data/list.json', { cache: 'no-store' })
@@ -260,13 +261,15 @@ export default function Dashboard2Container() {
     )
 
   return (
-    <Dashboard2View
-      data={data}
-      scope={scope}
-      speciesOptions={speciesOptions}
-      selectedId={selectedId}
-      onSelectSpecies={setSelectedId}
-      onOpenSpecies={(id, tab) => router.push(`/species-management/list-2/${id}/${tab ? `?tab=${tab}` : ''}`)}
-    />
+    <V2TypeScale>
+      <Dashboard2View
+        data={data}
+        scope={scope}
+        speciesOptions={speciesOptions}
+        selectedId={selectedId}
+        onSelectSpecies={setSelectedId}
+        onOpenSpecies={(id, tab) => router.push(`/species-management/list-2/${id}/${tab ? `?tab=${tab}` : ''}`)}
+      />
+    </V2TypeScale>
   )
 }

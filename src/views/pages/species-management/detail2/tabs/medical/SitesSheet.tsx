@@ -15,7 +15,9 @@ import {
   SheetEmpty,
   SheetHeader,
   SheetSearch,
-  SheetSection
+  SheetSection,
+  sheetPaperSx,
+  SHEET_PX
 } from 'src/views/pages/species-management/detail2/detailUi'
 import type { InsightBarRow } from './signals'
 
@@ -47,7 +49,7 @@ const SiteRow: React.FC<{ row: InsightBarRow; hot: boolean; last: boolean; onCli
         <Typography sx={{ fontSize: 20, fontWeight: 700, lineHeight: 1.1, color: hot ? c.Tertiary : c.OnSurfaceVariant }}>
           {row.sickAnimals ?? 0}
         </Typography>
-        <Typography sx={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.6px', color: c.neutralSecondary }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.6px', color: c.neutralSecondary }}>
           SICK
         </Typography>
       </Box>
@@ -65,7 +67,7 @@ const SiteRow: React.FC<{ row: InsightBarRow; hot: boolean; last: boolean; onCli
           px: 2.5,
           py: 0.5,
           borderRadius: '12px',
-          fontSize: '12px',
+          fontSize: '14px',
           fontWeight: 700,
           flexShrink: 0,
           backgroundColor: c.BgTeritary,
@@ -105,22 +107,22 @@ const SitesSheet: React.FC<{
       anchor='right'
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 500 }, maxWidth: '100%' } }}
+      PaperProps={{ sx: sheetPaperSx('md') }}
     >
       <Sheet>
         <SheetHeader
-          title='All sites'
+          title='All Sites'
           icon='mdi:map-marker-radius'
           iconTone={{ bg: c.antzSecondaryBg, fg: theme.palette.secondary.dark }}
           stats={[
             { label: 'Sites', value: hotspots.length },
-            { label: 'Sick animals', value: sickTotal },
+            { label: 'Sick Animals', value: sickTotal },
             { label: 'Average', value: `${avg}%` }
           ]}
           onClose={onClose}
         />
         {hotspots.length > 8 && <SheetSearch value={q} onChange={setQ} placeholder='Search site…' />}
-        <Box sx={{ flex: 1, overflowY: 'auto', px: 3, pb: 3 }}>
+        <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
           {above.length > 0 && (
             <SheetSection label={`Above the average · ${above.length}`} first>
               {above.map((r, i) => (

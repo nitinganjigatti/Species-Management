@@ -47,7 +47,7 @@ const IdentificationTab: React.FC<{ ident?: SpeciesIdentification }> = ({ ident 
       </SectionCard>
 
       {ident.siteCoverage && ident.siteCoverage.length > 0 && (
-        <SectionCard title='Site-wise ID Coverage'>
+        <SectionCard title='Site-Wise ID Coverage'>
           {ident.siteCoverage.map((s, i) => {
             const tone = s.pct >= 80 ? 'success' : s.pct >= 40 ? 'warning' : 'error'
             const label = s.pct >= 80 ? 'Good' : s.pct >= 40 ? 'Partial' : 'Low'

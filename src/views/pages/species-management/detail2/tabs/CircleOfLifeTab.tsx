@@ -18,10 +18,15 @@ import type {
   SpeciesLifecycle
 } from 'src/types/species-management/detail'
 import {
+  AnimalCell,
+  CellText,
   EmptyState,
   EntityListDrawer,
   GRID_CELL_PAD,
   SeasonalColumnChart,
+  sheetPaperSx,
+  SHEET_PX,
+  thinScrollbarSx,
   SectionCard,
   TrendAreaChart,
   TrendRangeTabs
@@ -30,7 +35,7 @@ import DashboardDateRange, {
   resolveRange,
   type RangePreset,
   type RangeSelection
-} from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+} from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
 import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-management/list2/speciesListing.utils'
 
 
@@ -85,7 +90,7 @@ const GenderPie: React.FC<{
             total: {
               show: true,
               label: centerLabel,
-              fontSize: '0.8rem',
+              fontSize: '14px',
               color: cc.neutralSecondary,
               formatter: () => total.toLocaleString()
             }
@@ -93,7 +98,7 @@ const GenderPie: React.FC<{
         }
       }
     },
-    tooltip: { y: { formatter: (v: number) => v.toLocaleString() } }
+    tooltip: { style: { fontSize: '16px' }, y: { formatter: (v: number) => v.toLocaleString() } }
   }
 
   return (
@@ -184,8 +189,8 @@ export const MoreFiltersDrawer: React.FC<{
   const count = facets.reduce((n, f) => n + (draft[f.key]?.length || 0), 0)
 
   return (
-    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: { width: { xs: '100%', sm: 380 } } } }}>
-      <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('sm') } }}>
+      <Box sx={{ px: SHEET_PX, py: 4, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
             Other Filters
@@ -287,11 +292,11 @@ const SectionHeader: React.FC<{ title: string; sub?: string; action?: React.Reac
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 3, flexWrap: 'wrap', mt: 2 }}>
-      <Typography variant='caption' sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: cc.OnSurfaceVariant }}>
+      <Typography variant='caption' sx={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: cc.OnSurfaceVariant }}>
         {title}
       </Typography>
       {sub && (
-        <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+        <Typography variant='caption' sx={{ fontSize: '14px', color: cc.neutralSecondary }}>
           {sub}
         </Typography>
       )}
@@ -310,7 +315,7 @@ const TrendCard: React.FC<{ title: string; trend: { label: string; value: number
 }) => (
   <SectionCard title={title}>
     {trend.length > 0 ? (
-      <TrendAreaChart values={trend.map(d => d.value)} labels={trend.map(d => d.label)} color={color} name={name} />
+      <TrendAreaChart values={trend.map(d => d.value)} labels={trend.map(d => d.label)} color={color} name={name} flush />
     ) : (
       <EmptyState message={empty} />
     )}
@@ -402,7 +407,19 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
       <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', mb: 2 }}>
         Time from accession to death
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, px: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: 2,
+          px: 1,
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          pb: '6px',
+          ...thinScrollbarSx(theme),
+          '& > *': { minWidth: 72 }
+        }}
+      >
         {(() => {
           const max = Math.max(1, ...SURV_BANDS.map(b => sb[b.key] || 0))
 
@@ -723,7 +740,7 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
 
   const openBucket = (label: string, items: (LifecycleDeath & { a: number })[]) =>
     setDrill({
-      title: `Age at death · ${label}`,
+      title: `Age at Death · ${label}`,
       subtitle: `${items.length} animal${items.length === 1 ? '' : 's'}`,
       items: items
         .sort((a, b) => b.a - a.a)
@@ -732,8 +749,8 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
 
   const fmtY = (y: number) => `${(+y).toFixed(1)}y`
   const tiles = [
-    { value: stats.avgAdult != null ? fmtY(stats.avgAdult) : '—', label: 'Avg adult lifespan', color: theme.palette.secondary.main },
-    { value: fmtY(stats.max), label: 'Longest lived', color: theme.palette.secondary.main },
+    { value: stats.avgAdult != null ? fmtY(stats.avgAdult) : '—', label: 'Avg Adult Lifespan', color: theme.palette.secondary.main },
+    { value: fmtY(stats.max), label: 'Longest Lived', color: theme.palette.secondary.main },
     { value: stats.count.toLocaleString(), label: 'Records', color: cc.neutralSecondary }
   ]
 
@@ -818,27 +835,14 @@ export const RangeSelect: React.FC<{
 // ── Animal events datatable (sticky No + animal cell, horizontal scroll, pagination) ──
 const necStatusOf = (y?: string): 'Pending' | 'Completed' | 'NA' => (y === 'Completed' ? 'Completed' : y === 'Pending' ? 'Pending' : 'NA')
 const genderLabel = (g?: string) => (g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Unsexed')
-const ANTZ_LOGO = '/images/branding/Antz_logomark_h_color.svg'
 
-// Compact animal identity cell: avatar + name + AID (no sex chip; gender lives in its own column).
+// Compact animal identity cell — delegates to the shared AnimalCell (single copy in detailUi).
 const AnimalIdCell: React.FC<{ aid?: string; idv?: string; idn?: string }> = ({ aid, idv, idn }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
   const name = idv || idn || (aid ? `Animal ${aid}` : 'Unknown')
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
-      <Avatar src={ANTZ_LOGO} alt='' sx={{ width: 40, height: 40, bgcolor: cc.Surface, '& img': { objectFit: 'contain', padding: '5px' } }} />
-      <Box sx={{ minWidth: 0 }}>
-        <Typography variant='body2' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
-          {name}
-        </Typography>
-        {aid && (
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
-            AID: {aid}
-          </Typography>
-        )}
-      </Box>
+    <Box sx={{ py: 1 }}>
+      <AnimalCell name={name} sub={aid ? `AID: ${aid}` : undefined} size={40} />
     </Box>
   )
 }
@@ -846,9 +850,9 @@ const AnimalIdCell: React.FC<{ aid?: string; idv?: string; idn?: string }> = ({ 
 const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <Typography variant='body2' sx={{ color: color || cc.OnSurfaceVariant, fontWeight: weight }}>
-      {v ?? '-'}
-    </Typography>
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
   const sl: GridColDef = { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) }
   const animal: GridColDef = {
@@ -887,7 +891,7 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
     return [
       sl,
       animal,
-      { width: 130, sortable: false, field: 'd', headerName: 'Date of Birth', renderCell: p => txt(p.row.d) },
+      { width: 165, sortable: false, field: 'd', headerName: 'Date of Birth', renderCell: p => <CellText noWrap>{p.row.d}</CellText> },
       gender,
       site,
       encl,
@@ -901,7 +905,7 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
       sl,
       animal,
       { width: 120, sortable: false, field: 'a', headerName: 'Age at Death', renderCell: p => txt(p.row.a != null ? `${p.row.a}y` : '-', theme.palette.secondary.main, 700) },
-      { width: 130, sortable: false, field: 'd', headerName: 'Date of Death', renderCell: p => txt(p.row.d) },
+      { width: 165, sortable: false, field: 'd', headerName: 'Date of Death', renderCell: p => <CellText noWrap>{p.row.d}</CellText> },
       gender,
       site,
       encl,
@@ -989,7 +993,7 @@ const SiteIdCell: React.FC<{ site: string }> = ({ site }) => {
       <Avatar sx={{ width: 40, height: 40, bgcolor: cc.Surface, color: cc.Outline }}>
         <Icon icon='mdi:map-marker-outline' fontSize='1.3rem' />
       </Avatar>
-      <Typography variant='body2' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+      <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
         {site}
       </Typography>
     </Box>
@@ -999,9 +1003,9 @@ const SiteIdCell: React.FC<{ site: string }> = ({ site }) => {
 const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <Typography variant='body2' sx={{ color: color || cc.OnSurfaceVariant, fontWeight: weight }}>
-      {v ?? '-'}
-    </Typography>
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
   const sl: GridColDef = { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) }
   const site: GridColDef = { width: 360, sortable: false, field: 'site', headerName: 'Site', renderCell: p => <SiteIdCell site={p.row.site} /> }
@@ -1043,7 +1047,7 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
     return [sl, site, num('records', 'Records', cc.OnSurfaceVariant), years('avgAge', 'Avg age', theme.palette.secondary.main), years('longest', 'Longest', theme.palette.primary.dark), ...sexes]
 
   // deaths
-  const topCause: GridColDef = { width: 180, sortable: false, field: 'topCause', headerName: 'Top cause', renderCell: p => txt(p.row.topCause || '-', p.row.topCause ? cc.Tertiary : cc.neutralSecondary, 600) }
+  const topCause: GridColDef = { width: 180, sortable: false, field: 'topCause', headerName: 'Top Cause', renderCell: p => txt(p.row.topCause || '-', p.row.topCause ? cc.Tertiary : cc.neutralSecondary, 600) }
   const necropsy: GridColDef = {
     width: 150,
     sortable: false,
@@ -1076,8 +1080,8 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
 
 // Segmented pill toggle — table header controls (dataset mode + Animal/Site view).
 const TABLE_VIEWS: { key: 'animal' | 'site'; label: string; icon: string }[] = [
-  { key: 'animal', label: 'Animal-wise', icon: 'mdi:paw' },
-  { key: 'site', label: 'Site-wise', icon: 'mdi:map-marker-outline' }
+  { key: 'animal', label: 'Animal-Wise', icon: 'mdi:paw' },
+  { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' }
 ]
 const TABLE_MODES: { key: CircleSubTab; label: string; icon: string }[] = [
   { key: 'births', label: 'Births', icon: 'mdi:egg-outline' },
@@ -1245,10 +1249,10 @@ const AnimalEventsTable: React.FC<{
         getRowHeight={() => 'auto'}
         onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : () => {}}
         externalTableStyle={{
-          '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2, display: 'flex', alignItems: 'center' },
+          '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2, display: 'flex', alignItems: 'center', fontSize: '16px' },
           '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
           // Never clip a header — wrap to two lines instead.
-          '& .MuiDataGrid-columnHeaderTitle': { whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
+          '& .MuiDataGrid-columnHeaderTitle': { fontSize: '15px', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
           '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
           ...(isSite ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
           '& .MuiDataGrid-cell[data-field="sl_no"]': { position: 'sticky', left: 0, zIndex: 3, backgroundColor: theme.palette.background.paper },
@@ -1359,7 +1363,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
     const idx = MONTHS.indexOf(label) + 1
     const recs = recentDeaths.filter(r => monthOf(r.date) === idx)
     setDrill({
-      title: `${label} — mortality`,
+      title: `${label} — Mortality`,
       subtitle: recs.length ? causeSummary(recs) : 'No itemised records for this month',
       items: recs.map((r, i) => ({
         id: `${i}`,

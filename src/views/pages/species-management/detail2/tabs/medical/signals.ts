@@ -30,6 +30,7 @@ export type SignalKey =
   | 'stuck'
   | 'undiagnosed'
   | 'deaths'
+  | 'severe'
 
 /** One row inside a signal drawer — an animal plus why it's listed. */
 export interface SignalAnimal {
@@ -42,6 +43,9 @@ export interface SignalAnimal {
   pill?: string // right-side status pill, e.g. "Active · 26 d"
   pillTone?: 'error' | 'warning' | 'success' | 'neutral'
   date?: string // latest relevant onset (drawer sort + display)
+  /** Optional caption chip — a compact count/label whose tooltip lists the items
+   *  (e.g. Lab: "3 tests" → per-test names + statuses). Generic: any tab can use it. */
+  chip?: { label: string; items: string[] }
 }
 
 /** A same-condition transmission chain inside one enclosure (spreading / outbreak groups). */
@@ -334,7 +338,7 @@ export const computeSignals = (
   const signals: HealthSignal[] = [
     {
       key: 'spreading',
-      label: 'Spreading — contain',
+      label: 'Spreading — Contain',
       severity: 'critical',
       icon: 'mdi:share-variant',
       count: chains.length,
@@ -347,7 +351,7 @@ export const computeSignals = (
     },
     {
       key: 'outbreak',
-      label: 'Same illness in site',
+      label: 'Same Illness in Site',
       severity: 'critical',
       icon: 'mdi:radar',
       count: outbreaks.length,
@@ -360,11 +364,11 @@ export const computeSignals = (
     },
     {
       key: 'repeat',
-      label: 'Repeat-sick animals',
+      label: 'Repeat-Sick Animals',
       severity: 'watch',
       icon: 'mdi:repeat',
       count: repeat.length,
-      hint: repeat.length ? `${T.repeatEpisodes}+ illnesses each · worst ${repeat[0].name} (${repeat[0].pill})` : '',
+      hint: repeat.length ? `${T.repeatEpisodes}+ illnesses each · up to ${repeat[0].pill}` : '',
       explainer: `Animals that fell sick ${T.repeatEpisodes}+ separate times in this window — fragile animals that need a deeper look, whatever each illness was.`,
       animals: repeat
     },
@@ -374,7 +378,7 @@ export const computeSignals = (
       severity: 'watch',
       icon: 'mdi:restart-alert',
       count: relapse.length,
-      hint: relapse.length ? `Same condition returning · ${relapse[0].condition} in ${relapse[0].name}` : '',
+      hint: relapse.length ? `Same condition returning after a ${T.relapseGapDays}+ day gap` : '',
       explainer: `The same condition came back on the same animal after a ${T.relapseGapDays}+ day gap — treatment may not be holding, or the cause was never removed.`,
       animals: relapse
     },
@@ -384,17 +388,17 @@ export const computeSignals = (
       severity: 'watch',
       icon: 'mdi:trending-up',
       count: worsening.length,
-      hint: worsening.length ? `${worsening[0].name} · ${worsening[0].condition} ${worsening[0].detail}` : '',
+      hint: worsening.length ? 'Severity climbing while under care' : '',
       explainer: 'Active cases whose severity has climbed since they were first reported — getting worse under care.',
       animals: worsening
     },
     {
       key: 'stuck',
-      label: 'Stuck cases',
+      label: 'Stuck Cases',
       severity: 'watch',
       icon: 'mdi:timer-sand',
       count: stuck.length,
-      hint: stuck.length ? `Active >${T.stuckDays} days · longest ${stuck[0].pill} (${stuck[0].name})` : '',
+      hint: stuck.length ? `Active >${T.stuckDays} days · longest ${stuck[0].pill}` : '',
       explainer: `Cases still active after ${T.stuckDays} days — these animals are not recovering on the current course.`,
       animals: stuck
     },
@@ -410,17 +414,90 @@ export const computeSignals = (
     },
     {
       key: 'deaths',
-      label: 'Illness deaths',
+      label: 'Illness Deaths',
       severity: 'review',
       icon: 'mdi:heart-pulse',
       count: deaths.length,
-      hint: deaths.length ? `${deaths[0].name} · ${deaths[0].condition}` : '',
+      hint: deaths.length ? 'Illness ended in death, not recovery' : '',
       explainer: 'Illnesses in this window that ended in death rather than recovery — case review recommended.',
       animals: deaths
     }
   ]
 
   return signals
+}
+
+/* ── the 3 Overview cards ──────────────────────────────────────────────────── */
+
+// Prognosis outranks symptom severity when picking an animal's worst active record.
+const SEVERE_RANK: Record<string, number> = { Grave: 3, Poor: 2 }
+const severeRank = (r: ClinicalRecord) => (r.prognosis && SEVERE_RANK[r.prognosis]) || (r.severity === 'High' ? 1 : 0)
+
+/**
+ * The Medical Overview shows exactly three big attention cards (2026-07-30 review:
+ * "decide the two-three critical things, put big cards — that's all"):
+ * repeat-sick with relapse folded in, undiagnosed, and severe cases. The other five
+ * signals stay computable via computeSignals but no longer surface on the Overview.
+ */
+export const computeOverviewSignals = (
+  clinical: SpeciesClinical | null | undefined,
+  inWin: InWin
+): HealthSignal[] => {
+  const T = INSIGHT_THRESHOLDS
+  const all = computeSignals(clinical, inWin)
+  const repeat = all.find(s => s.key === 'repeat')!
+  const relapse = all.find(s => s.key === 'relapse')!
+  const undiagnosed = all.find(s => s.key === 'undiagnosed')!
+
+  /* repeat-sick ∪ relapse — one card: fragile animals, whether many illnesses or one returning */
+  const merged = new Map<string, SignalAnimal>()
+  for (const a of repeat.animals) merged.set(a.aid, a)
+  for (const a of relapse.animals) if (!merged.has(a.aid)) merged.set(a.aid, a)
+  const repeatAnimals = [...merged.values()]
+  const repeatCard: HealthSignal = {
+    key: 'repeat',
+    label: 'Repeat-Sick Animals',
+    severity: 'watch',
+    icon: 'mdi:repeat',
+    count: repeatAnimals.length,
+    hint: `Sick ${T.repeatEpisodes}+ times, or the same condition returning`,
+    explainer: `Animals that fell sick ${T.repeatEpisodes}+ separate times in this window, or had the same condition return after a ${T.relapseGapDays}+ day gap — fragile animals that need a deeper look.`,
+    animals: repeatAnimals
+  }
+
+  /* severe — active cases with prognosis Poor/Grave or High severity, worst record per animal */
+  const worstByAid = new Map<string, ClinicalRecord>()
+  for (const r of allRecords(clinical, inWin)) {
+    if (r.status !== 'active' || !severeRank(r)) continue
+    const prev = worstByAid.get(r.aid)
+    if (!prev || severeRank(r) > severeRank(prev) || (severeRank(r) === severeRank(prev) && r.durationDays > prev.durationDays))
+      worstByAid.set(r.aid, r)
+  }
+  const severeAnimals: SignalAnimal[] = [...worstByAid.values()]
+    .sort((a, b) => severeRank(b) - severeRank(a) || b.durationDays - a.durationDays)
+    .map(r => ({
+      aid: r.aid,
+      name: r.name,
+      site: r.site,
+      enclosure: r.enclosure,
+      condition: r.type,
+      detail: r.prognosis && SEVERE_RANK[r.prognosis] ? `Prognosis ${r.prognosis}` : 'Severity High',
+      pill: `Active • ${r.durationDays} d`,
+      pillTone: 'error',
+      date: r.date
+    }))
+  const severeCard: HealthSignal = {
+    key: 'severe',
+    label: 'Severe Cases',
+    severity: 'critical',
+    icon: 'mdi:alert-octagon-outline',
+    count: severeAnimals.length,
+    hint: 'Prognosis Poor or Grave, or High severity',
+    explainer: 'Active cases whose prognosis is Poor or Grave, or whose symptom severity is High — the animals in the most danger right now.',
+    animals: severeAnimals
+  }
+
+  return [repeatCard, undiagnosed, severeCard]
 }
 
 /* ── insights (the 7 analytics) ────────────────────────────────────────────── */
@@ -742,18 +819,29 @@ export const computeHotspots = (clinical: SpeciesClinical | null | undefined, in
   return { rows, avg, sickTotal }
 }
 
-/* ── standalone sickness trend (Insights hero) ─────────────────────────────── */
+/* ── standalone sickness trend (Overview chart) ────────────────────────────── */
 
-/** Sick-animal COUNTS per month over the requested span (12/24/36 months, or null = all
- *  history, capped at 10 years). Independent of the page window — the hero chart has its own
- *  1Y·2Y·3Y·All tabs. */
+/** Sick animals EACH month — an animal counts in every month its episode (symptom or
+ *  clinical assessment) is active, not just the onset month (2026-07-31 logic review: the
+ *  old onset-only bucketing made long illnesses vanish after month one). Each month splits
+ *  into animals already sick when the month began (`carried`) vs the rest (`fresh`).
+ *  Span: 12/24/36 months, or null = all history capped at 10 years. Independent of the page
+ *  window — the chart has its own 1Y·2Y·3Y·All tabs. */
 export interface SickTrend {
   labels: string[]
-  values: number[]
-  animals: SignalAnimal[][]
+  fresh: number[] // fell sick this month
+  carried: number[] // already sick when the month began
+  animals: SignalAnimal[][] // per month — fresh first, then carried
 }
 export const computeSickTrend = (clinical: SpeciesClinical | null | undefined, months: number | null, now: Date): SickTrend => {
   const recs = allRecords(clinical, () => true)
+  const DAY = 86400000
+  // Episode active span: onset → onset + duration (resolved/died), or through today (active).
+  const spanOf = (r: ClinicalRecord) => {
+    const start = new Date(r.date).getTime()
+
+    return { start, end: r.status === 'active' ? now.getTime() : start + r.durationDays * DAY }
+  }
 
   let span = months
   if (span == null) {
@@ -766,25 +854,40 @@ export const computeSickTrend = (clinical: SpeciesClinical | null | undefined, m
     span = Math.max(12, Math.min((now.getFullYear() - e.getFullYear()) * 12 + (now.getMonth() - e.getMonth()) + 1, 120))
   }
 
-  const byMonth = new Map<string, ClinicalRecord[]>()
-  for (const r of recs) {
-    const d = new Date(r.date)
-    if (isNaN(d.getTime())) continue
-    const k = `${d.getFullYear()}-${d.getMonth()}`
-    if (!byMonth.has(k)) byMonth.set(k, [])
-    byMonth.get(k)!.push(r)
-  }
-
   const labels: string[] = []
-  const values: number[] = []
+  const fresh: number[] = []
+  const carried: number[] = []
   const animals: SignalAnimal[][] = []
   for (let i = span - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const aids = distinctAnimals((byMonth.get(`${d.getFullYear()}-${d.getMonth()}`) ?? []).map(r => toAnimalRow(r)))
+    const mStart = new Date(now.getFullYear(), now.getMonth() - i, 1).getTime()
+    const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1).getTime()
+    // Per animal: every episode overlapping this month; carried = any of them was already
+    // running when the month began.
+    const byAid = new Map<string, { recs: ClinicalRecord[]; carried: boolean }>()
+    for (const r of recs) {
+      const { start, end } = spanOf(r)
+      if (isNaN(start) || start >= mEnd || end < mStart) continue
+      const g = byAid.get(r.aid) ?? { recs: [], carried: false }
+      g.recs.push(r)
+      if (start < mStart) g.carried = true
+      byAid.set(r.aid, g)
+    }
+    const freshRows: SignalAnimal[] = []
+    const carriedRows: SignalAnimal[] = []
+    for (const g of byAid.values()) {
+      const latest = [...g.recs].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
+      ;(g.carried ? carriedRows : freshRows).push(
+        toAnimalRow(latest, g.carried ? 'Already sick when the month began' : 'Fell sick this month')
+      )
+    }
+    freshRows.sort(newestFirst)
+    carriedRows.sort(newestFirst)
+    const d = new Date(mStart)
     labels.push(`${MONTH_LABELS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`)
-    values.push(aids.length)
-    animals.push(aids)
+    fresh.push(freshRows.length)
+    carried.push(carriedRows.length)
+    animals.push([...freshRows, ...carriedRows])
   }
 
-  return { labels, values, animals }
+  return { labels, fresh, carried, animals }
 }

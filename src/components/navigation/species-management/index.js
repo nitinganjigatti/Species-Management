@@ -25,6 +25,20 @@ const composeSpeciesManagementNavigation = () => {
         icon: 'mdi:format-list-bulleted-square',
         activeWhen: ['/species-management/list-2']
       }
+
+      // Version-3 items hidden (2026-08-04) — uncomment to bring them back, pages still exist.
+      // {
+      //   title: 'Dashboard 3',
+      //   path: '/species-management/dashboard-3',
+      //   icon: 'mdi:view-dashboard-variant',
+      //   activeWhen: ['/species-management/dashboard-3']
+      // },
+      // {
+      //   title: 'Species List 3',
+      //   path: '/species-management/list-3',
+      //   icon: 'mdi:format-list-checkbox',
+      //   activeWhen: ['/species-management/list-3']
+      // }
     ]
   }
 

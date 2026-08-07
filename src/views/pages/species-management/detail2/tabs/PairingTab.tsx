@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, DetailTable, EmptyState, SectionCard, useTone } from 'src/views/pages/species-management/detail2/detailUi'
+import { AnimalCardList, CellText, DetailTable, EmptyState, SectionCard, sheetPaperSx, useTone } from 'src/views/pages/species-management/detail2/detailUi'
 
 type Bucket = 'Both Sexes' | 'Needs Sexing' | 'Single Sex'
 type Tone = 'success' | 'warning' | 'error'
@@ -56,9 +56,9 @@ const EnclosureTableDrawer: React.FC<{
   }, [open, type])
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <Typography sx={{ fontSize: '1rem', color: color || cc.OnSurfaceVariant, fontWeight: weight }}>
-      {v ?? '-'}
-    </Typography>
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
   const numCol = (field: keyof EncRow, header: string): GridColDef => ({
     width: header.length <= 2 ? 64 : 78,
@@ -82,7 +82,7 @@ const EnclosureTableDrawer: React.FC<{
   const indexed = rows.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
 
   return (
-    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: { width: { xs: '100%', sm: 780 }, p: 4 } } }}>
+    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={type}>
@@ -153,7 +153,7 @@ const EnclosureAnimalsDrawer: React.FC<{
       open={open}
       onClose={onClose}
       sx={{ zIndex: theme.zIndex.modal + 4 }}
-      slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 }, p: 4 } } }}
+      slotProps={{ paper: { sx: sheetPaperSx('md', { pad: true }) } }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box sx={{ minWidth: 0 }}>

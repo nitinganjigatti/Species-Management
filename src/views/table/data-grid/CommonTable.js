@@ -106,6 +106,14 @@ const CommonTable = ({
   // Base styles object
   const baseStyles = {
     '--DataGrid-cellFocusOutline': 'none',
+    // ONE bordered box: border + radius + clip all live HERE on the grid root.
+    // (Previously .MuiDataGrid-main carried its own 8px border inside the root's
+    // bordered box — the root clipped the inner curve square and the bottom
+    // corners read as cut.) The radius var is MUI's own knob: internal rules
+    // (header top corners etc.) follow it automatically.
+    '--unstable_DataGrid-radius': '8px',
+    border: '1px solid rgba(233, 233, 236, 1)',
+    overflow: 'hidden',
     mt: 5,
     '.MuiDataGrid-cell:focus': {
       outline: 'none'
@@ -195,15 +203,9 @@ const CommonTable = ({
       ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
     },
     '.MuiDataGrid-main': {
-      // margin: '2px',
-      borderLeft: '1px solid #0000000D',
-      borderRight: '1px solid #0000000D',
-
-      // borderBottom: '1px solid #0000000D',
-      borderRadius: '8px', // Ensure the right border extends to last row
-      // Apply margin to the main container
-      // borderRadius: '8px', // Apply border-radius to the main container
-      border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
+      // borderless — the grid ROOT owns the single border/radius/clip (see above)
+      border: 'none',
+      borderRadius: 0
     },
     '& .MuiDataGrid-footerContainer': {
       borderTop: 'none' // Remove the border-top from footer container

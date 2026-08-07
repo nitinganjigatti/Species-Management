@@ -277,9 +277,16 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                   onRowClick={() => {}}
                   onCellClick={onCellClick}
                   externalTableStyle={{
-                    '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2.5, display: 'flex', alignItems: 'center' },
+                    '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2.5, display: 'flex', alignItems: 'center', fontSize: '16px' },
                     '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
                     '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                      fontSize: '15px',
+                      whiteSpace: 'normal',
+                      lineHeight: 1.2,
+                      overflow: 'visible',
+                      textOverflow: 'clip'
+                    },
                     '& .MuiDataGrid-cell[data-field="sl_no"]': {
                       position: 'sticky',
                       left: 0,

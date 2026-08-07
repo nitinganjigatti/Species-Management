@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Avatar, Box, IconButton, Drawer, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, IconButton, Drawer, MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AssessmentAnimal, CatTypeItem, SpeciesAssessments } from 'src/types/species-management/detail'
 import {
+  AnimalCell,
+  CellText,
   ColumnTrend,
   DetailTable,
   EmptyState,
@@ -14,13 +16,14 @@ import {
   IntelligenceCard,
   RangeBar,
   SectionCard,
+  sheetPaperSx,
   Sparkline,
   StatTile,
   TileGrid,
   VBarChart
 } from 'src/views/pages/species-management/detail2/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/detail2/useSortableTable'
-import { resolveRange, type RangePreset } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import { resolveRange, type RangePreset } from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -146,28 +149,13 @@ const useCell = () => {
   const c = cc(theme)
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <Typography sx={{ fontSize: '1rem', color: color || c.OnSurfaceVariant, fontWeight: weight }}>{v ?? '—'}</Typography>
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
 
-  /** Animal identity cell: gender glyph + name (600) over site (caption). */
-  const animalCell = (name?: string, site?: string) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-      <Avatar
-        src='/images/branding/Antz_logomark_h_color.svg'
-        sx={{ width: 36, height: 36, flexShrink: 0, bgcolor: c.Surface, '& img': { objectFit: 'contain', padding: '5px' } }}
-      />
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
-          {name || '—'}
-        </Typography>
-        {site && (
-          <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block' }} noWrap>
-            {site}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  )
+  /** Animal identity cell — delegates to the shared AnimalCell (single copy in detailUi). */
+  const animalCell = (name?: string, site?: string) => <AnimalCell name={name} sub={site} />
 
   /** Signed % with direction arrow, tinted green up / orange down / neutral flat. */
   const trendCell = (pct: number | null) => {
@@ -196,10 +184,10 @@ const useCell = () => {
   ) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%', minWidth: 0 }}>
       <Box sx={{ px: 1.5, py: 0.5, borderRadius: '8px', backgroundColor: c.Surface, flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: valueColor || c.OnSurfaceVariant }}>{valueLabel}</Typography>
+        <Typography sx={{ fontSize: '1.0625rem', fontWeight: 700, color: valueColor || c.OnSurfaceVariant }}>{valueLabel}</Typography>
       </Box>
       {unit && (
-        <Typography variant='caption' sx={{ color: c.neutralSecondary, flexShrink: 0 }}>
+        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.neutralSecondary, flexShrink: 0 }}>
           {unit}
         </Typography>
       )}
@@ -249,10 +237,10 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
       minWidth: 210,
       renderCell: p => animalCell(p.row.name, p.row.site)
     },
-    { field: 'weight', headerName: 'Weight', width: 140, renderCell: p => txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600) },
-    { field: 'bcs', headerName: 'BCS', width: 104, renderCell: p => txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600) },
-    { field: 'trend', headerName: 'Overall %', width: 160, renderCell: p => trendCell(p.row.trend) },
-    { field: 'lastDate', headerName: 'Last Assessed', width: 190, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
+    { field: 'weight', headerName: 'Weight', flex: 0.5, minWidth: 140, renderCell: p => txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600) },
+    { field: 'bcs', headerName: 'BCS', flex: 0.4, minWidth: 104, renderCell: p => txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600) },
+    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) },
+    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
   ]
 
   return (
@@ -314,15 +302,16 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
     {
       field: 'value',
       headerName: `Trend${item.uom ? ` (${abbrevUnit(item.uom)})` : ''}`,
-      flex: 2,
+      flex: 1.2,
       minWidth: 280,
+      maxWidth: 520,
       renderCell: p =>
         p.row.spark.length >= 2
           ? trendSparkCell(p.row.value?.toLocaleString?.() ?? p.row.value, abbrevUnit(item.uom), p.row.spark, p.row.trendUp ? 'up' : 'down')
           : txt(p.row.value?.toLocaleString?.() ?? p.row.value, undefined, 600)
     },
-    { field: 'dev', headerName: 'vs Avg', width: 130, renderCell: p => devCell(p.row.dev ?? 0) },
-    { field: 'lastDate', headerName: 'Last Assessed', width: 190, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
+    { field: 'dev', headerName: 'vs Avg', flex: 0.5, minWidth: 130, renderCell: p => devCell(p.row.dev ?? 0) },
+    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
   ]
 
   const above = data.filter(d => d.value > item.avg)
@@ -355,8 +344,8 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
           <IntelligenceCard
             title={`${item.type} Intelligence`}
             segments={[
-              { label: 'Above average', value: above.length, tone: 'info' },
-              { label: 'Below average', value: below.length, tone: 'neutral' }
+              { label: 'Above Average', value: above.length, tone: 'info' },
+              { label: 'Below Average', value: below.length, tone: 'neutral' }
             ]}
             centerValue={`${item.avg}`}
             centerSub={abbrevUnit(item.uom) || 'Average'}
@@ -414,16 +403,17 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
     {
       field: 'weight',
       headerName: 'Weight Trend',
-      flex: 2,
+      flex: 1.2,
       minWidth: 300,
+      maxWidth: 520,
       renderCell: p => {
         const w = fmtWt(p.row.weight)
 
         return trendSparkCell(w.n, w.u, p.row.spark, p.row.trend == null ? 'flat' : p.row.trend >= 0 ? 'up' : 'down')
       }
     },
-    { field: 'trend', headerName: 'Overall %', width: 162, renderCell: p => trendCell(p.row.trend) },
-    { field: 'lastDate', headerName: 'Last Assessed', width: 180, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
+    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) },
+    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
   ]
 
   const gaining = data.filter(d => d.trend != null && d.trend > 1)
@@ -460,8 +450,8 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
             centerValue={`${pctGain}%`}
             centerSub='Gaining'
             insights={[
-              ...(top && top.trend != null ? [{ icon: 'mdi:arrow-up', tone: 'success' as const, label: 'Top gainer:', value: `${top.name}  +${top.trend}%` }] : []),
-              ...(bottom && bottom.trend != null && bottom !== top ? [{ icon: 'mdi:arrow-down', tone: 'error' as const, label: 'Top loser:', value: `${bottom.name}  ${bottom.trend}%` }] : [])
+              ...(top && top.trend != null ? [{ icon: 'mdi:arrow-up', tone: 'success' as const, label: 'Top Gainer:', value: `${top.name}  +${top.trend}%` }] : []),
+              ...(bottom && bottom.trend != null && bottom !== top ? [{ icon: 'mdi:arrow-down', tone: 'error' as const, label: 'Top Loser:', value: `${bottom.name}  ${bottom.trend}%` }] : [])
             ]}
           />
         )}
@@ -507,15 +497,16 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
     {
       field: 'bcs',
       headerName: 'BCS Trend',
-      flex: 2,
+      flex: 1.2,
       minWidth: 280,
+      maxWidth: 520,
       renderCell: p =>
         p.row.spark.length >= 2
           ? trendSparkCell(p.row.bcs != null ? p.row.bcs : '—', '', p.row.spark, 'info', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary)
           : txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600)
     },
-    { field: 'weight', headerName: 'Weight', width: 130, renderCell: p => txt(p.row.weight != null ? fmtWt(p.row.weight).n : '—', undefined, 600) },
-    { field: 'lastDate', headerName: 'Last Assessed', width: 180, align: 'right', headerAlign: 'right', renderCell: p => txt(fmtDate(p.row.lastDate), c.neutralSecondary) }
+    { field: 'weight', headerName: 'Weight', flex: 0.5, minWidth: 130, renderCell: p => txt(p.row.weight != null ? fmtWt(p.row.weight).n : '—', undefined, 600) },
+    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
   ]
 
   const withBcs = data.filter(d => d.bcs != null)
@@ -574,8 +565,8 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
             centerSub='Ideal'
             centerColor={pctIdeal >= 60 ? theme.palette.primary.main : c.Tertiary}
             insights={[
-              ...(mostImproved ? [{ icon: 'mdi:arrow-up', tone: 'success' as const, label: 'Most improved:', value: `${mostImproved.d.name}  ${mostImproved.d.bcs ?? ''}` }] : []),
-              ...(mostDeclined ? [{ icon: 'mdi:arrow-down', tone: 'error' as const, label: 'Most declined:', value: `${mostDeclined.d.name}  ${mostDeclined.d.bcs ?? ''}` }] : [])
+              ...(mostImproved ? [{ icon: 'mdi:arrow-up', tone: 'success' as const, label: 'Most Improved:', value: `${mostImproved.d.name}  ${mostImproved.d.bcs ?? ''}` }] : []),
+              ...(mostDeclined ? [{ icon: 'mdi:arrow-down', tone: 'error' as const, label: 'Most Declined:', value: `${mostDeclined.d.name}  ${mostDeclined.d.bcs ?? ''}` }] : [])
             ]}
           />
         )}
@@ -794,7 +785,7 @@ const StripTypeTable: React.FC<{
 
     return (
       <Box sx={{ px: '11px', py: '3px', borderRadius: '14px', bgcolor: bg, maxWidth: text ? 180 : 'none' }}>
-        <Typography sx={{ fontSize: '0.8rem', fontWeight: text ? 500 : 700, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Typography sx={{ fontSize: '14px', fontWeight: text ? 500 : 700, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {label}
         </Typography>
       </Box>
@@ -1110,7 +1101,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
             {to}
           </Box>
         </Typography>
-        <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: col }}>
+        <Typography sx={{ fontSize: '14px', fontWeight: 700, color: col }}>
           {up ? '+' : ''}
           {pct}%
         </Typography>
@@ -1286,7 +1277,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
       : null
 
   return (
-    <Drawer anchor='right' open={!!animal} onClose={onClose} slotProps={{ paper: { sx: { width: { xs: '100%', sm: 580 }, p: 4 } } }}>
+    <Drawer anchor='right' open={!!animal} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('lg', { pad: true }) } }}>
       {animal && (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -1429,7 +1420,7 @@ const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; valu
             {count && (
               <Box
                 sx={{
-                  fontSize: '0.6875rem',
+                  fontSize: '14px',
                   fontWeight: 700,
                   lineHeight: 1.7,
                   px: '7px',

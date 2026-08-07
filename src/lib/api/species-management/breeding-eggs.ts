@@ -16,7 +16,7 @@
  * Egg weight must lose ~13–15% of day-0 weight by hatch along a ~linear ideal line.
  */
 
-import { getSpeciesAnimals } from 'src/lib/api/species-management/detail'
+import { getSpeciesAnimals, getSpeciesClinical } from 'src/lib/api/species-management/detail'
 import type { AnimalRecord } from 'src/types/species-management/detail'
 
 /* ------------------------------------------------------------------ types (the contract) */
@@ -32,19 +32,59 @@ export interface FailureSplit {
 
 export interface FemaleRow {
   antzId: string
+  /** Display identity — the module's mock convention ("Aaru #A-1146"), same style the Medical/
+   *  Hospital sheets show. Falls back to the raw identifier when no mock name is available. */
   name: string
+  /** The REAL local identifier from the animal record (chip/ring/local id value). */
+  identifier: string
   idType?: string
   enclosure?: string
   site?: string
+  /** @deprecated maturity is an estimate the 2026-07-30 review rejected — detail2 no longer reads it */
   capable: boolean // age >= assumed maturity
   laid: boolean // laid at least one egg this season
   eggs: number
   clutches: number
+  fertile: number
   hatched: number
   hatchPct: number
+  /** @deprecated targets rejected by the 2026-07-30 review ("no targets") — detail2 no longer reads it */
   targetHatchPct: number
+  /** Her hatch % LAST season — the self-comparison that replaced targets. null = no eggs last season. */
+  prevHatchPct: number | null
   clutchSizes: number[] // for the clutch-bar sparkline
-  monthly: number[] // 12-month laying rhythm
+  monthly: number[] // 12-month laying rhythm (sums to `eggs`)
+  monthlyFertile: number[] // per-month fertile, ≤ monthly (sums to `fertile`)
+  monthlyHatched: number[] // per-month hatched, ≤ monthlyFertile (sums to `hatched`)
+}
+
+/** Females bucketed by how many clutches they put this season — the 2026-07-30 ask ("0 / 1 / 2+"). */
+export interface ClutchBuckets {
+  zero: number
+  one: number
+  twoPlus: number
+  twoPlusAvg: number // avg clutches among the 2+ group
+}
+
+export interface SiteCut {
+  site: string
+  eggs: number
+  hatchPct: number
+}
+export interface EnclosureCut {
+  enclosure: string
+  eggs: number
+  fertilePct: number
+}
+export interface NurseryCut {
+  nursery: string
+  set: number // fertile eggs set here
+  hatchOfFertilePct: number
+}
+export interface DiscardReason {
+  reason: string
+  eggs: number
+  pct: number // share of all lost eggs
 }
 
 /** Cross-tab reconcile — ties the funnel to this species' Pairing / Circle-of-Life data. */
@@ -71,17 +111,34 @@ export interface SpeciesFunnel {
   fertilityPct: number
   hatchOfFertilePct: number
   hatchabilityPct: number
+  /** @deprecated targets rejected by the 2026-07-30 review — detail2 compares to LAST SEASON instead */
   targetHatchPct: number
+  /** Last season's hatchability — the self-comparison reference (replaces the target). */
+  lastSeasonHatchabilityPct: number
+  avgClutchSize: number
+  clutchBuckets: ClutchBuckets
+  bySite: SiteCut[]
+  byEnclosure: EnclosureCut[]
+  byNursery: NurseryCut[]
+  discardReasons: DiscardReason[]
+  monthlyLaid: number[] // Jan..Dec eggs laid — the laying calendar
+  monthlyFertile: number[] // Jan..Dec fertile — nests inside monthlyLaid
+  monthlyHatched: number[] // Jan..Dec hatched — nests inside monthlyFertile
   seasonYears: string[] // e.g. ['2021','2022',...]
   seasonHatchability: number[] // hatchability % per year — the trend line
   reconcile: BreedingReconcile
-  // Female participation (the donut): every female is exactly one of these three.
+  // Female participation. detail2 uses only totalFemales + laidFemales ("laid at least once");
+  // the capable/maturity split below is a rejected estimate kept only for the hidden detail3.
   totalFemales: number
-  capableFemales: number // age >= assumed maturity (ESTIMATE)
-  laidFemales: number // capable AND laid this season
-  capableDidNotLay: number // capable but no eggs this season — the husbandry alarm
-  notYetCapable: number // below maturity age
-  maturityYears: number // the assumed threshold used, for the "est" label
+  /** @deprecated maturity estimate — rejected 2026-07-30 */
+  capableFemales: number
+  laidFemales: number // laid at least once this season
+  /** @deprecated maturity estimate — rejected 2026-07-30 */
+  capableDidNotLay: number
+  /** @deprecated maturity estimate — rejected 2026-07-30 */
+  notYetCapable: number
+  /** @deprecated maturity estimate — rejected 2026-07-30 */
+  maturityYears: number
   females_rows: FemaleRow[]
 }
 
@@ -194,18 +251,58 @@ function femaleBreeding(speciesId: number, f: Female, className?: string) {
   const eggs = clutchSizes.reduce((s, n) => s + n, 0)
   const fertility = (reptile ? 60 : 70) + r() * 22
   const hatchOfFertile = (reptile ? 50 : 62) + r() * 30
-  const hatched = Math.round((eggs * fertility * hatchOfFertile) / 10000)
+  const fertile = Math.min(eggs, Math.round((eggs * fertility) / 100))
+  const hatched = Math.min(fertile, Math.round((eggs * fertility * hatchOfFertile) / 10000))
 
-  // 12-month laying rhythm: a seasonal hump centred on a species-stable peak month
+  // 12-month laying rhythm: a seasonal hump centred on a species-stable peak month.
+  // The hump gives the SHAPE; the counts are then distributed so monthly sums to `eggs`
+  // exactly — every month column must reconcile with the season totals.
   const peak = Math.floor(r() * 12)
-  const monthly = MONTHS.map((_, m) => {
+  const weights = MONTHS.map((_, m) => {
     const dist = Math.min(Math.abs(m - peak), 12 - Math.abs(m - peak))
 
-    return Math.max(0, Math.round((eggs / 3) * Math.exp(-(dist * dist) / 4) * (0.7 + r() * 0.6)))
+    return Math.exp(-(dist * dist) / 4) * (0.7 + r() * 0.6)
   })
+  const monthly = distribute(eggs, weights)
+  const monthlyFertile = distribute(fertile, weights, monthly)
+  const monthlyHatched = distribute(hatched, weights, monthlyFertile)
 
-  return { r, clutchCount, clutchSizes, eggs, hatched, monthly, peak }
+  return { r, clutchCount, clutchSizes, eggs, fertile, hatched, monthly, monthlyFertile, monthlyHatched, peak }
 }
+
+/** Split `total` across 12 months proportionally to `weights`, never exceeding the per-month
+ *  `cap` (when given), with the rounding remainder handed to the largest-fraction months —
+ *  so the pieces ALWAYS sum back to `total` and hatched ≤ fertile ≤ laid holds per month. */
+function distribute(total: number, weights: number[], cap?: number[]): number[] {
+  if (!total) return weights.map(() => 0)
+  const wSum = weights.reduce((s, w) => s + w, 0) || 1
+  const raw = weights.map(w => (total * w) / wSum)
+  const out = raw.map((v, i) => Math.min(Math.floor(v), cap ? cap[i] : Infinity))
+  let left = total - out.reduce((s, n) => s + n, 0)
+  const order = raw
+    .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac)
+  for (const { i } of order) {
+    if (left <= 0) break
+    const room = (cap ? cap[i] : Infinity) - out[i]
+    if (room > 0) {
+      out[i]++
+      left--
+    }
+  }
+  // caps were tight somewhere — sweep any remaining into months that still have room
+  for (let i = 0; i < out.length && left > 0; i++) {
+    const room = (cap ? cap[i] : Infinity) - out[i]
+    const add = Math.min(room, left)
+    out[i] += add
+    left -= add
+  }
+
+  return out
+}
+
+/* Reason labels for lost eggs — the discard ledger cuts. */
+const NURSERY_NAMES = ['Incubator 1', 'Incubator 2', 'Incubator 3', 'Nursery North', 'Parent-reared nest']
 
 export async function getSpeciesBreeding(
   id: number | string,
@@ -221,18 +318,55 @@ export async function getSpeciesBreeding(
   const maturityYears = maturityYearsFor(className)
   const fr = rng(seedOf(speciesId) ^ 0x51ed270b)
 
-  // Female participation: only CAPABLE (mature) females can lay; of those, a share actually laid.
-  // Below maturity → not yet capable (0 eggs). Capable but skipped this season → the husbandry alarm.
+  // Display identity — the module's mock animal convention ("Aaru #A-1146"). The species' mock
+  // given-name comes from the clinical sidecar (so Eggs shows the SAME name Medical/Hospital
+  // show for this species) + a stable 4-digit AID per female. The real local identifier
+  // (chip/ring) is kept on `identifier` for detail views.
+  const clinical = await getSpeciesClinical(id).catch(() => null)
+  const clinRecords = clinical?.programs?.symptoms?.records?.length
+    ? clinical.programs.symptoms.records
+    : clinical?.programs?.diagnosis?.records || []
+  const clinName = clinRecords[0]?.name
+  const given = clinName && clinName.includes(' #A-') ? clinName.split(' #A-')[0] : undefined
+  const usedAids = new Set<number>()
+  const aidFor = (antzId: string) => {
+    let n = 1000 + (Math.abs(seedOf(antzId)) % 9000)
+    while (usedAids.has(n)) n = 1000 + ((n - 999) % 9000)
+    usedAids.add(n)
+
+    return n
+  }
+
+  // Female participation — the headline is simply "laid at least once this season" (2026-07-30
+  // review). The capable/maturity estimate is still computed for the legacy detail3 screen only.
   const rows: FemaleRow[] = females.map(f => {
     // unknown age (null) → assume capable (breeding stock), NOT immature
     const capable = f.ageYears == null || f.ageYears >= maturityYears
-    // deterministic "did she lay?" for capable females (~78% do)
-    const lays = capable && rng(seedOf(speciesId) ^ seedOf(f.antzId) ^ 0x2e1b21)() < 0.78
-    const b = lays ? femaleBreeding(speciesId, f, className) : { clutchCount: 0, clutchSizes: [] as number[], eggs: 0, hatched: 0, monthly: Array(12).fill(0) }
+    // deterministic "did she lay?" (~74% of females do)
+    const lays = rng(seedOf(speciesId) ^ seedOf(f.antzId) ^ 0x2e1b21)() < 0.74
+    const b = lays
+      ? femaleBreeding(speciesId, f, className)
+      : {
+          clutchCount: 0,
+          clutchSizes: [] as number[],
+          eggs: 0,
+          fertile: 0,
+          hatched: 0,
+          monthly: Array(12).fill(0) as number[],
+          monthlyFertile: Array(12).fill(0) as number[],
+          monthlyHatched: Array(12).fill(0) as number[]
+        }
+    const hatchPct = b.eggs ? round((b.hatched / b.eggs) * 100) : 0
+
+    // her LAST season, for the self-comparison column — null = she has no eggs last season
+    const pr = rng(seedOf(speciesId) ^ seedOf(f.antzId) ^ 0x5f356495)
+    const laidLastSeason = pr() < 0.75
+    const prevHatchPct = lays && laidLastSeason ? Math.max(0, Math.min(100, round(hatchPct + (pr() - 0.45) * 26))) : null
 
     return {
       antzId: f.antzId,
-      name: f.name,
+      name: given ? `${given} #A-${aidFor(f.antzId)}` : f.name,
+      identifier: f.name,
       idType: f.idType,
       enclosure: f.enclosure,
       site: f.site,
@@ -240,11 +374,15 @@ export async function getSpeciesBreeding(
       laid: lays,
       eggs: b.eggs,
       clutches: b.clutchCount,
+      fertile: b.fertile,
       hatched: b.hatched,
-      hatchPct: b.eggs ? round((b.hatched / b.eggs) * 100) : 0,
+      hatchPct,
       targetHatchPct: targetForClass(className),
+      prevHatchPct,
       clutchSizes: b.clutchSizes,
-      monthly: b.monthly
+      monthly: b.monthly,
+      monthlyFertile: b.monthlyFertile,
+      monthlyHatched: b.monthlyHatched
     }
   })
 
@@ -257,8 +395,10 @@ export async function getSpeciesBreeding(
   const hatched = rows.reduce((s, x) => s + x.hatched, 0)
   const neverLaid = females.length - laidFemales
 
-  const fertilityPct = round((className === 'Reptilia' ? 60 : 70) + fr() * 22)
-  const fertile = Math.round((laid * fertilityPct) / 100)
+  // fertile is SUMMED from the per-female rows so the funnel, the tables and the roster all
+  // reconcile — a bar that says 166 must open a list that adds up to 166.
+  const fertile = rows.reduce((s, x) => s + x.fertile, 0)
+  const fertilityPct = laid ? round((fertile / laid) * 100) : 0
   const lost = laid - hatched
 
   // split the loss: infertile (laid−fertile) + fertile-but-died split into shell vs early
@@ -268,6 +408,75 @@ export async function getSpeciesBreeding(
   const earlyCracked = Math.max(0, fertileFailed - deadInShell)
 
   const hatchabilityPct = laid ? round((hatched / laid) * 100) : 0
+
+  // clutch distribution — females by clutches put this season (0 / 1 / 2+)
+  const zero = rows.filter(x => x.clutches === 0).length
+  const one = rows.filter(x => x.clutches === 1).length
+  const twoPlusRows = rows.filter(x => x.clutches >= 2)
+  const clutchBuckets: ClutchBuckets = {
+    zero,
+    one,
+    twoPlus: twoPlusRows.length,
+    twoPlusAvg: twoPlusRows.length ? round(twoPlusRows.reduce((s, x) => s + x.clutches, 0) / twoPlusRows.length, 1) : 0
+  }
+  const clutchTotal = rows.reduce((s, x) => s + x.clutches, 0)
+  const avgClutchSize = clutchTotal ? round(laid / clutchTotal, 1) : 0
+
+  // where it is happening — grouped straight from the roster so every cut reconciles
+  const groupBy = <K extends string>(key: (x: FemaleRow) => K | undefined) => {
+    const m = new Map<string, { eggs: number; fertile: number; hatched: number }>()
+    for (const x of rows) {
+      if (!x.eggs) continue
+      const k = key(x) || '—'
+      const g = m.get(k) ?? { eggs: 0, fertile: 0, hatched: 0 }
+      g.eggs += x.eggs
+      g.fertile += x.fertile
+      g.hatched += x.hatched
+      m.set(k, g)
+    }
+
+    return m
+  }
+  const bySite: SiteCut[] = Array.from(groupBy(x => x.site).entries())
+    .map(([site, g]) => ({ site, eggs: g.eggs, hatchPct: g.eggs ? round((g.hatched / g.eggs) * 100) : 0 }))
+    .sort((a, b) => b.eggs - a.eggs)
+  const byEnclosure: EnclosureCut[] = Array.from(groupBy(x => x.enclosure).entries())
+    .map(([enclosure, g]) => ({ enclosure, eggs: g.eggs, fertilePct: g.eggs ? round((g.fertile / g.eggs) * 100) : 0 }))
+    .sort((a, b) => b.eggs - a.eggs)
+
+  // nurseries — where the fertile eggs were set (no nursery field in the dump; deterministic split)
+  const nr = rng(seedOf(speciesId) ^ 0x3c6ef372)
+  const nWeights = NURSERY_NAMES.map(() => 0.4 + nr())
+  const nSum = nWeights.reduce((s, w) => s + w, 0)
+  let setLeft = fertile
+  const byNursery: NurseryCut[] = NURSERY_NAMES.map((nursery, i) => {
+    const set = i === NURSERY_NAMES.length - 1 ? setLeft : Math.min(setLeft, Math.round((fertile * nWeights[i]) / nSum))
+    setLeft -= set
+
+    return { nursery, set, hatchOfFertilePct: Math.max(0, Math.min(100, round((fertile ? (hatched / fertile) * 100 : 0) + (nr() - 0.5) * 18))) }
+  })
+    .filter(n => n.set > 0)
+    .sort((a, b) => b.set - a.set)
+
+  // why eggs were discarded — every lost egg lands in exactly one reason
+  const cracked = Math.round(earlyCracked * 0.5)
+  const rotten = Math.round(earlyCracked * 0.3)
+  const abandoned = Math.max(0, earlyCracked - cracked - rotten)
+  const discardReasons: DiscardReason[] = [
+    { reason: 'Infertile on candling', eggs: infertile },
+    { reason: 'Died in shell', eggs: deadInShell },
+    { reason: 'Cracked in handling', eggs: cracked },
+    { reason: 'Rotten / contaminated', eggs: rotten },
+    { reason: 'Abandoned in nest', eggs: abandoned }
+  ]
+    .filter(d => d.eggs > 0)
+    .map(d => ({ ...d, pct: lost ? round((d.eggs / lost) * 100) : 0 }))
+    .sort((a, b) => b.eggs - a.eggs)
+
+  // laying calendar — Jan..Dec across the roster (fertile/hatched nest inside, all reconcile)
+  const monthlyLaid = MONTHS.map((_, m) => rows.reduce((s, x) => s + (x.monthly[m] || 0), 0))
+  const monthlyFertile = MONTHS.map((_, m) => rows.reduce((s, x) => s + (x.monthlyFertile[m] || 0), 0))
+  const monthlyHatched = MONTHS.map((_, m) => rows.reduce((s, x) => s + (x.monthlyHatched[m] || 0), 0))
 
   // Season-over-season hatchability trend: last 5 years, walking toward this year's value.
   const thisYear = new Date().getFullYear()
@@ -299,6 +508,16 @@ export async function getSpeciesBreeding(
     hatchOfFertilePct: fertile ? round((hatched / fertile) * 100) : 0,
     hatchabilityPct,
     targetHatchPct: targetForClass(className),
+    lastSeasonHatchabilityPct: seasonHatchability[seasonHatchability.length - 2] ?? hatchabilityPct,
+    avgClutchSize,
+    clutchBuckets,
+    bySite,
+    byEnclosure,
+    byNursery,
+    discardReasons,
+    monthlyLaid,
+    monthlyFertile,
+    monthlyHatched,
     seasonYears,
     seasonHatchability,
     reconcile: { pairs, unproductivePairs, birthsRecorded },

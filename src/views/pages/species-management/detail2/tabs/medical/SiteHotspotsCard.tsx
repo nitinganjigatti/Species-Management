@@ -11,7 +11,7 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
 import { SectionCard } from 'src/views/pages/species-management/detail2/detailUi'
-import { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard/DashboardDateRange'
+import { resolveRange, type RangeSelection } from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
 import { computeHotspots, INSIGHT_THRESHOLDS, type InsightBarRow } from './signals'
 import SignalDrawer, { type SignalDrawerPayload } from './SignalDrawer'
 import SitesSheet from './SitesSheet'
@@ -120,7 +120,7 @@ const SiteHotspotsCard: React.FC<{
                     '&:hover': { boxShadow: hot ? '0 6px 18px rgba(250,97,64,0.14)' : '0 2px 8px rgba(68,84,74,0.14)' }
                   }}
                 >
-                  <Typography sx={{ fontSize: '13px', fontWeight: 700, color: c.OnSurfaceVariant }} noWrap>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 700, color: c.OnSurfaceVariant }} noWrap>
                     {site.label}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mt: 2 }}>
@@ -129,11 +129,11 @@ const SiteHotspotsCard: React.FC<{
                     >
                       {site.sickAnimals ?? 0}
                     </Typography>
-                    <Typography sx={{ fontSize: '13px', color: c.neutralSecondary }}>of {site.housed ?? 0}</Typography>
+                    <Typography sx={{ fontSize: '14px', color: c.neutralSecondary }}>of {site.housed ?? 0}</Typography>
                     <Box
                       component='span'
                       sx={{
-                        fontSize: '13px',
+                        fontSize: '14px',
                         fontWeight: 700,
                         px: 2,
                         py: 0.5,
@@ -189,7 +189,7 @@ const SiteHotspotsCard: React.FC<{
                     '&:hover': { backgroundColor: c.Surface }
                   }}
                 >
-                  <Typography sx={{ flex: 1, fontSize: '13.5px', color: c.OnSurfaceVariant, minWidth: 0 }} noWrap>
+                  <Typography sx={{ flex: 1, fontSize: '14px', color: c.OnSurfaceVariant, minWidth: 0 }} noWrap>
                     {site.label}
                   </Typography>
                   <Typography variant='caption' sx={{ color: c.neutralSecondary }}>

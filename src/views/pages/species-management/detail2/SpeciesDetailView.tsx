@@ -43,6 +43,8 @@ const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Circle of Life', value: 'circle' },
   { labelKey: 'Assessments', value: 'assessments' },
   { labelKey: 'Medical', value: 'medical' },
+  { labelKey: 'Hospital', value: 'hospital' },
+  { labelKey: 'Lab Module', value: 'lab' },
   { labelKey: 'Identification', value: 'identification' },
   { labelKey: 'Breeds', value: 'breeds' }
 ]
@@ -55,6 +57,8 @@ const TAB_ICONS: Record<string, string> = {
   circle: 'mdi:autorenew',
   assessments: 'mdi:clipboard-check-outline',
   medical: 'mdi:medical-bag',
+  hospital: 'mdi:hospital-building',
+  lab: 'mdi:flask-outline',
   identification: 'mdi:identifier',
   breeds: 'mdi:dna',
   eggs: 'mdi:egg-outline'
@@ -119,7 +123,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
 
   const wLabel = 'rgba(255, 255, 255, 0.70)'
   const wFaint = 'rgba(255, 255, 255, 0.13)'
-  const lblSx = { fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase' as const, color: wLabel }
+  const lblSx = { fontSize: '14px', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase' as const, color: wLabel }
   const numSx = { fontSize: '30px', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }
 
   // Circular progress ring (track + green fill) for percentage stats.
@@ -224,7 +228,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                     <Typography sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: s.c }}>
                       {s.v}
                     </Typography>
-                    <Typography sx={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: wLabel }}>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: wLabel }}>
                       {s.l}
                     </Typography>
                   </Box>

@@ -8,12 +8,15 @@
  * THIS animal", not "this period".
  */
 import React, { useMemo, useState } from 'react'
-import { Avatar, Box, Dialog, IconButton, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Avatar, Box, Dialog, IconButton, MenuItem, Select, Typography } from '@mui/material'
+import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { ClinicalRecord, SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
 import { EmptyState, StatusChip } from 'src/views/pages/species-management/detail2/detailUi'
 import { fmtDate } from './signals'
+import { buildAdmissions } from '../hospital/hospital'
+import { buildLabRequests } from '../lab/lab'
+import { openSurgeryReport } from './surgeryReport'
 
 const ANTZ_LOGO = '/images/branding/Antz_logomark_h_color.svg'
 const DAY_MS = 86400000
@@ -21,16 +24,27 @@ const PROGRAM_LABEL: Record<string, string> = { vaccination: 'vaccination', dewo
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
 
-type EvKind = 'active' | 'resolved' | 'died' | 'care' | 'overdue'
+type EvKind = 'active' | 'resolved' | 'died' | 'care' | 'overdue' | 'hospital' | 'surgery' | 'lab'
 interface TimelineEvent {
   date: string
   kind: EvKind
   title: string
-  chip: string
+  /** Status chip after the title. Absent on open hospital stays — those use `boldLead` instead. */
+  chip?: string
   when: string // the rendered date line ("29 May 2026 → 12 Jun 2026" for resolved spans)
   sub?: string
   /** "Label ● Value" second line (Severity ● Medium / Prognosis ● Guarded) — rendered with the big dot separator. */
   subParts?: { label: string; value: string }
+  /** Bold text lead on the sub line (episode view: "Inpatient" for a not-yet-discharged stay). */
+  boldLead?: string
+  /** Nested sub-events of this episode (a surgery during a hospital stay). */
+  children?: TimelineEvent[]
+  /** Rendered muted — the item is only shown as parent context for a filtered child. */
+  isContext?: boolean
+  /** Coral alert line (surgery complications). */
+  alert?: string
+  /** Click-through (surgery → print-styled report in a new tab). */
+  onOpen?: () => void
 }
 
 const addDays = (iso: string, days: number) => new Date(new Date(iso).getTime() + days * DAY_MS).toISOString().slice(0, 10)
@@ -43,14 +57,13 @@ const AnimalHealthRecord: React.FC<{
 }> = ({ aid, clinical, preventive, onClose }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const [tab, setTab] = useState<'all' | 'active' | 'resolved' | 'care'>('all')
+  const [tab, setTab] = useState<'all' | 'active' | 'resolved' | 'hospital' | 'surgery' | 'lab' | 'care'>('all')
 
   const data = useMemo(() => {
     if (!aid) return null
-    const clin: ClinicalRecord[] = [
-      ...(clinical?.programs?.symptoms?.records ?? []),
-      ...(clinical?.programs?.diagnosis?.records ?? [])
-    ].filter(r => r.aid === aid)
+    const symRecs: ClinicalRecord[] = (clinical?.programs?.symptoms?.records ?? []).filter(r => r.aid === aid)
+    const diagRecs: ClinicalRecord[] = (clinical?.programs?.diagnosis?.records ?? []).filter(r => r.aid === aid)
+    const clin: ClinicalRecord[] = [...symRecs, ...diagRecs]
 
     const overdue: { program: string; type: string; due: string; days: number }[] = []
     const upcoming: { program: string; type: string; due: string }[] = []
@@ -86,8 +99,20 @@ const AnimalHealthRecord: React.FC<{
     overdue.sort((a, b) => b.days - a.days)
     upcoming.sort((a, b) => (a.due < b.due ? -1 : 1))
 
-    const active = clin.filter(r => r.status === 'active').sort((a, b) => (a.date < b.date ? 1 : -1))
+    const byDateDesc = (a: ClinicalRecord, b: ClinicalRecord) => (a.date < b.date ? 1 : -1)
+    const activeSymptoms = symRecs.filter(r => r.status === 'active').sort(byDateDesc)
+    const activeAssessments = diagRecs.filter(r => r.status === 'active').sort(byDateDesc)
+    const active = [...activeSymptoms, ...activeAssessments].sort(byDateDesc)
     const resolved = clin.filter(r => r.status === 'resolved')
+
+    // Hospitalisations — the SAME derivation the Hospital tab uses, so the record and the tab
+    // always agree. Each admission (and each surgery) is its OWN timeline item, dated by the
+    // activity date (no range).
+    const hospAdms = buildAdmissions(clinical).filter(a => a.aid === aid)
+
+    // Lab requests — the SAME derivation the Lab Module tab uses, so the record and the tab
+    // always agree. One timeline item per request; the chip shows the result when one exists.
+    const labReqs = buildLabRequests(clinical, new Date()).filter(r => r.aid === aid)
 
     const events: TimelineEvent[] = [
       ...active.map(r => ({
@@ -115,6 +140,81 @@ const AnimalHealthRecord: React.FC<{
           ? { label: 'Severity', value: r.severity }
           : undefined
       })),
+      // Hospital stays — EPISODE view: range once discharged; open stays show the admitted
+      // date with a bold "Inpatient" lead (no chip). An in-hospital surgery nests as a CHILD
+      // of its stay; a field surgery (no stay) is its own top-level item.
+      ...hospAdms.map(a => {
+        const discharged = a.status !== 'active'
+
+        return {
+          date: a.admittedOn,
+          kind: 'hospital' as EvKind,
+          title: `Hospitalised — ${a.hospital}`,
+          chip: a.outcome === 'died' ? 'Died in care' : discharged ? `Discharged · ${a.durationDays} d` : undefined,
+          when: discharged ? `${fmtDate(a.admittedOn)} → ${fmtDate(addDays(a.admittedOn, a.durationDays))}` : fmtDate(a.admittedOn),
+          boldLead: discharged ? undefined : 'Inpatient',
+          sub: discharged ? `For ${a.condition}` : `admitted ${a.durationDays} d · For ${a.condition}`,
+          children:
+            a.surgery === 'hospital' && a.surgeryDetail
+              ? [
+                  {
+                    date: a.admittedOn,
+                    kind: 'surgery' as EvKind,
+                    title: `${a.surgeryDetail.name} · in hospital`,
+                    chip: 'Surgery',
+                    when: fmtDate(a.admittedOn),
+                    sub: `Surgeon ${a.surgeryDetail.surgeon} · ${a.surgeryDetail.durationMin} min · ${a.surgeryDetail.approach} approach`,
+                    alert: a.surgeryDetail.complications,
+                    onOpen: () => openSurgeryReport(a)
+                  }
+                ]
+              : undefined
+        }
+      }),
+      ...hospAdms
+        .filter(a => a.surgery === 'field' && a.surgeryDetail)
+        .map(a => ({
+          date: a.admittedOn,
+          kind: 'surgery' as EvKind,
+          title: `${a.surgeryDetail!.name} · on-site (field)`,
+          chip: 'Surgery',
+          when: fmtDate(a.admittedOn),
+          sub: `Surgeon ${a.surgeryDetail!.surgeon} · ${a.surgeryDetail!.durationMin} min · at enclosure · for ${a.condition}`,
+          alert: a.surgeryDetail!.complications,
+          onOpen: () => openSurgeryReport(a)
+        })),
+      // Lab requests — dated by the request date; chip = result when completed, status otherwise.
+      ...labReqs.map(r => {
+        const testsLabel = r.tests.length === 1 ? r.tests[0].name : `${r.tests[0].name} +${r.tests.length - 1}`
+        const results = r.tests.map(t => t.result).filter(Boolean) as string[]
+        const detection = results.find(x => x === 'positive' || x === 'detected')
+        const offRange = results.find(x => x === 'high' || x === 'low')
+        const chip =
+          r.status === 'completed'
+            ? detection
+              ? detection === 'positive'
+                ? 'Positive'
+                : 'Detected'
+              : offRange
+              ? offRange === 'high'
+                ? 'High'
+                : 'Low'
+              : 'Normal'
+            : r.status === 'cancelled'
+            ? 'Cancelled'
+            : r.status === 'in_progress'
+            ? 'In progress'
+            : 'Pending'
+
+        return {
+          date: r.date,
+          kind: 'lab' as EvKind,
+          title: `Lab request — ${testsLabel}`,
+          chip,
+          when: fmtDate(r.date),
+          sub: `${r.id} • ${r.doctor} • ${r.hospital ? `from ${r.hospital}` : 'routine screening'} • ${r.lab}`
+        }
+      }),
       ...care.map(e => ({ date: e.date, kind: 'care' as EvKind, title: e.title, chip: e.program, when: fmtDate(e.date), sub: e.sub })),
       ...overdue.map(o => ({
         date: o.due,
@@ -133,60 +233,85 @@ const AnimalHealthRecord: React.FC<{
       active.length >= 2 || overdue.length >= 3 || poor
         ? { label: 'Critical', tone: 'error' as const }
         : active.length || overdue.length
-        ? { label: 'Needs attention', tone: 'warning' as const }
+        ? { label: 'Needs Attention', tone: 'warning' as const }
         : { label: 'Healthy', tone: 'success' as const }
 
-    return { clin, active, resolved, overdue, upcoming, events, identity, status, lastUpdate }
+    return { clin, active, activeSymptoms, activeAssessments, resolved, overdue, upcoming, events, identity, status, lastUpdate }
   }, [aid, clinical, preventive])
 
-  const careCount = data ? data.events.filter(e => e.kind === 'care' || e.kind === 'overdue').length : 0
-  const shownEvents = data
-    ? data.events.filter(e =>
-        tab === 'all'
-          ? true
-          : tab === 'active'
-          ? e.kind === 'active'
-          : tab === 'resolved'
-          ? e.kind === 'resolved' || e.kind === 'died'
-          : e.kind === 'care' || e.kind === 'overdue'
-      )
-    : []
+  const events = data?.events ?? []
+  const careCount = events.filter(e => e.kind === 'care' || e.kind === 'overdue').length
+  const hospCount = events.filter(e => e.kind === 'hospital').length
+  const labCount = events.filter(e => e.kind === 'lab').length
+  const surgeryCount =
+    events.filter(e => e.kind === 'surgery').length + events.reduce((s, e) => s + (e.children?.length ?? 0), 0)
+
+  /* Filter rule: a filter never orphans a child — Surgery shows in-stay surgeries WITH their
+     parent stay rendered muted (isContext); Hospitalised keeps nested surgeries intact. */
+  const shownEvents: TimelineEvent[] =
+    tab === 'all'
+      ? events
+      : tab === 'active'
+      ? events.filter(e => e.kind === 'active')
+      : tab === 'resolved'
+      ? events.filter(e => e.kind === 'resolved' || e.kind === 'died')
+      : tab === 'hospital'
+      ? events.filter(e => e.kind === 'hospital')
+      : tab === 'surgery'
+      ? events
+          .filter(e => e.kind === 'surgery' || (e.kind === 'hospital' && e.children?.length))
+          .map(e => (e.kind === 'hospital' ? { ...e, isContext: true } : e))
+      : tab === 'lab'
+      ? events.filter(e => e.kind === 'lab')
+      : events.filter(e => e.kind === 'care' || e.kind === 'overdue')
 
   const dotColor: Record<EvKind, string> = {
     active: c.Tertiary,
     resolved: theme.palette.primary.main,
     died: c.OnSurfaceVariant,
     care: theme.palette.secondary.main,
-    overdue: theme.palette.warning.dark
+    overdue: theme.palette.warning.dark,
+    hospital: c.OnPrimaryContainer,
+    surgery: c.Tertiary,
+    lab: theme.palette.secondary.main
   }
   const chipSx: Record<EvKind, { bg: string; fg: string }> = {
     active: { bg: c.BgTeritary, fg: c.Tertiary },
     resolved: { bg: c.OnBackground, fg: theme.palette.primary.dark },
     died: { bg: c.SurfaceVariant, fg: c.OnSurfaceVariant },
     care: { bg: c.antzSecondaryBg, fg: theme.palette.secondary.dark },
-    overdue: { bg: `${theme.palette.warning.main}29`, fg: theme.palette.warning.dark }
+    overdue: { bg: `${theme.palette.warning.main}29`, fg: theme.palette.warning.dark },
+    hospital: { bg: c.displaybgPrimary, fg: c.OnPrimaryContainer },
+    surgery: { bg: c.BgTeritary, fg: c.Tertiary },
+    lab: { bg: c.antzSecondaryBg, fg: theme.palette.secondary.dark }
   }
 
   const kpi = (value: React.ReactNode, label: string, bad?: boolean) => (
-    <Box sx={{ backgroundColor: bad ? c.BgTeritary : c.Surface, borderRadius: '12px', px: 4, py: 3 }}>
+    <Box
+      sx={{
+        backgroundColor: bad ? c.BgTeritary : c.displaybgPrimary,
+        border: `1px solid ${bad ? 'transparent' : c.SurfaceVariant}`,
+        borderRadius: '12px',
+        px: 4,
+        py: 3
+      }}
+    >
       <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.2, color: bad ? c.Tertiary : c.OnSurfaceVariant }}>
         {value}
       </Typography>
-      <Typography sx={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+      <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
         {label}
       </Typography>
     </Box>
   )
 
   const sectionHead = (icon: string, label: string, count: number, color: string) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-      <Icon icon={icon} fontSize={14} color={color} />
-      <Typography sx={{ fontSize: '11.5px', fontWeight: 700, letterSpacing: '0.66px', textTransform: 'uppercase', color }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, px: 3.5 }}>
+      <Icon icon={icon} fontSize={15} color={color} />
+      <Typography sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.66px', textTransform: 'uppercase', color }}>
         {label}
       </Typography>
-      <Typography variant='caption' sx={{ color: c.neutralSecondary, ml: 'auto' }}>
-        {count}
-      </Typography>
+      <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, ml: 'auto' }}>{count}</Typography>
     </Box>
   )
 
@@ -197,22 +322,38 @@ const AnimalHealthRecord: React.FC<{
     />
   )
 
-  const actionCard = (title: string, sub: React.ReactNode, accent: string, bg?: string) => (
+  // Menu-style row — mirrors the main-menu VerticalNavLink (borderRadius 8, icon + label,
+  // active item = primary.light fill with white text). Replaces the old bordered mini-cards.
+  const navRow = (icon: string, title: string, sub: React.ReactNode, active?: boolean) => (
     <Box
       sx={{
-        border: `1px solid ${c.SurfaceVariant}`,
-        borderLeft: `4px solid ${accent}`,
-        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 3,
+        borderRadius: '8px',
         px: 3.5,
-        py: 2.75,
-        mb: 2.25,
-        backgroundColor: bg ?? 'transparent'
+        py: 3.5,
+        mb: 2,
+        backgroundColor: active ? theme.palette.primary.light : 'transparent',
+        '&:hover': { backgroundColor: active ? theme.palette.primary.light : c.Surface }
       }}
     >
-      <Typography sx={{ fontSize: '14px', fontWeight: 700, color: c.OnSurfaceVariant }}>{title}</Typography>
-      <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mt: '2px', lineHeight: 1.5 }}>
-        {sub}
-      </Typography>
+      <Icon
+        icon={icon}
+        fontSize={22}
+        color={active ? theme.palette.common.white : c.neutralSecondary}
+        style={{ flexShrink: 0 }}
+      />
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: active ? theme.palette.common.white : c.OnSurfaceVariant }} noWrap>
+          {title}
+        </Typography>
+        <Typography
+          sx={{ fontSize: '15px', color: active ? alpha(theme.palette.common.white, 0.85) : c.neutralSecondary, mt: '2px', lineHeight: 1.5 }}
+        >
+          {sub}
+        </Typography>
+      </Box>
     </Box>
   )
 
@@ -237,7 +378,7 @@ const AnimalHealthRecord: React.FC<{
               <Typography sx={{ fontSize: 20, fontWeight: 700, color: c.OnSurfaceVariant }} noWrap>
                 {data.identity?.name ?? aid}
               </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+              <Typography sx={{ fontSize: '1rem', color: c.neutralSecondary }}>
                 {data.identity ? `${data.identity.site} · ${data.identity.enclosure}` : ''}
               </Typography>
             </Box>
@@ -279,60 +420,91 @@ const AnimalHealthRecord: React.FC<{
             {/* action column */}
             <Box sx={{ overflowY: 'auto', px: 5, py: 4, borderRight: { md: `1px solid ${c.SurfaceVariant}` } }}>
               {sectionHead('mdi:heart-pulse', 'Active now', data.active.length, c.Tertiary)}
-              {data.active.length ? (
-                data.active.map(r =>
-                  actionCard(
-                    r.type,
-                    <>
-                      {fmtDate(r.date)}
-                      <Dot />
-                      <b>{r.durationDays} D</b>
-                      {r.severity ? (
-                        <>
-                          <Dot />
-                          {r.severity}
-                        </>
-                      ) : null}
-                    </>,
-                    c.Tertiary
-                  )
-                )
-              ) : (
-                <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mb: 2 }}>
-                  Nothing active right now.
-                </Typography>
+              {data.activeSymptoms.length > 0 && (
+                <>
+                  <Typography
+                    sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                  >
+                    Symptoms
+                  </Typography>
+                  {data.activeSymptoms.map(r =>
+                    navRow(
+                      'mdi:emoticon-sad-outline',
+                      r.type,
+                      <>
+                        {fmtDate(r.date)}
+                        <Dot />
+                        <b>{r.durationDays} D</b>
+                        {r.severity && (
+                          <>
+                            <Dot />
+                            <b>{r.severity}</b>
+                          </>
+                        )}
+                      </>,
+                      true
+                    )
+                  )}
+                </>
+              )}
+              {data.activeAssessments.length > 0 && (
+                <>
+                  {data.activeSymptoms.length > 0 && <Box sx={{ height: 12 }} />}
+                  <Typography
+                    sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                  >
+                    Clinical assessments
+                  </Typography>
+                  {data.activeAssessments.map(r =>
+                    navRow(
+                      'mdi:stethoscope',
+                      r.type,
+                      <>
+                        {fmtDate(r.date)}
+                        <Dot />
+                        <b>{r.durationDays} D</b>
+                        {r.prognosis && (
+                          <>
+                            <Dot />
+                            <b>{r.prognosis}</b>
+                          </>
+                        )}
+                      </>,
+                      true
+                    )
+                  )}
+                </>
               )}
 
-              <Box sx={{ height: 12 }} />
+              <Box sx={{ height: 20 }} />
               {sectionHead('mdi:clock-alert-outline', 'Overdue care', data.overdue.length, theme.palette.warning.dark)}
               {data.overdue.length ? (
                 data.overdue.map((o, i) => (
                   <React.Fragment key={`${o.type}-${i}`}>
-                    {actionCard(
+                    {navRow(
+                      'mdi:clock-alert-outline',
                       o.type,
                       <>
                         {fmtDate(o.due)}
                         <Dot />
                         <b>{o.days} D late</b>
-                      </>,
-                      theme.palette.warning.dark,
-                      `${theme.palette.warning.main}14`
+                      </>
                     )}
                   </React.Fragment>
                 ))
               ) : (
-                <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mb: 2 }}>
+                <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, display: 'block', mb: 2, px: 3.5 }}>
                   No care is overdue.
                 </Typography>
               )}
 
               {data.upcoming.length > 0 && (
                 <>
-                  <Box sx={{ height: 12 }} />
+                  <Box sx={{ height: 20 }} />
                   {sectionHead('mdi:calendar-outline', 'Upcoming', data.upcoming.length, theme.palette.secondary.dark)}
                   {data.upcoming.map((u, i) => (
                     <React.Fragment key={`${u.type}-${i}`}>
-                      {actionCard(u.type, <>Scheduled {fmtDate(u.due)}</>, theme.palette.secondary.main)}
+                      {navRow('mdi:calendar-outline', u.type, <>Scheduled {fmtDate(u.due)}</>)}
                     </React.Fragment>
                   ))}
                 </>
@@ -341,95 +513,211 @@ const AnimalHealthRecord: React.FC<{
 
             {/* timeline */}
             <Box sx={{ overflowY: 'auto', px: 6, py: 4 }}>
-              <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-                {(
-                  [
-                    { key: 'all', label: 'All', n: data.events.length },
-                    { key: 'active', label: 'Active', n: data.active.length },
-                    { key: 'resolved', label: 'Resolved', n: data.resolved.length },
-                    { key: 'care', label: 'Preventive', n: careCount }
-                  ] as const
-                ).map(t => (
-                  <Box
-                    key={t.key}
-                    onClick={() => setTab(t.key)}
-                    sx={{
-                      px: 3.5,
-                      py: 1.25,
-                      borderRadius: '16px',
-                      fontSize: '12.5px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: `1px solid ${tab === t.key ? c.OnSurfaceVariant : c.OutlineVariant}`,
-                      backgroundColor: tab === t.key ? c.OnSurfaceVariant : 'transparent',
-                      color: tab === t.key ? theme.palette.common.white : c.neutralSecondary
-                    }}
-                  >
-                    {t.label}{' '}
-                    <Box component='span' sx={{ fontWeight: 700 }}>
-                      {t.n}
-                    </Box>
-                  </Box>
-                ))}
+              {/* activity filter — dropdown (never orphans a child: Surgery keeps its parent stay as context) */}
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+                <Select
+                  size='small'
+                  value={tab}
+                  onChange={ev => setTab(ev.target.value as typeof tab)}
+                  sx={{ minWidth: 280, borderRadius: '10px', fontSize: '16px', '& .MuiSelect-select': { py: 2 } }}
+                >
+                  {(
+                    [
+                      { key: 'all', label: 'All activity', n: data.events.length },
+                      { key: 'active', label: 'Active conditions', n: data.active.length },
+                      { key: 'resolved', label: 'Resolved', n: data.resolved.length },
+                      { key: 'hospital', label: 'Hospitalised', n: hospCount },
+                      { key: 'surgery', label: 'Surgery', n: surgeryCount },
+                      { key: 'lab', label: 'Lab requests', n: labCount },
+                      { key: 'care', label: 'Preventive care', n: careCount }
+                    ] as const
+                  ).map(t => (
+                    <MenuItem key={t.key} value={t.key} sx={{ fontSize: '16px' }}>
+                      {t.label}&nbsp;·&nbsp;<b>{t.n}</b>
+                    </MenuItem>
+                  ))}
+                </Select>
               </Box>
 
               {shownEvents.length ? (
                 <Box sx={{ position: 'relative', ml: 1, '&:before': { content: '""', position: 'absolute', left: 8, top: 10, bottom: 10, width: '2px', backgroundColor: c.SurfaceVariant } }}>
                   {shownEvents.map((e, i) => (
-                    <Box key={`${e.date}-${e.title}-${i}`} sx={{ position: 'relative', pl: 8, pb: i === shownEvents.length - 1 ? 0 : 4.5 }}>
+                    <Box key={`${e.date}-${e.title}-${i}`} sx={{ position: 'relative', pl: 8, pb: i === shownEvents.length - 1 ? 0 : 11 }}>
                       <Box
                         sx={{
                           position: 'absolute',
                           left: 0,
-                          top: 3,
+                          top: 4,
                           width: 18,
                           height: 18,
                           borderRadius: '50%',
                           border: `3px solid ${theme.palette.common.white}`,
-                          boxShadow: `0 0 0 2px ${dotColor[e.kind]}`,
-                          backgroundColor: dotColor[e.kind]
+                          boxShadow: `0 0 0 2px ${e.isContext ? c.Outline : dotColor[e.kind]}`,
+                          backgroundColor: e.isContext ? c.Outline : dotColor[e.kind]
                         }}
                       />
-                      <Typography sx={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
-                        {e.when}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, mt: 0.75, flexWrap: 'wrap' }}>
-                        <Typography sx={{ fontSize: '14.5px', fontWeight: 700, color: c.OnSurfaceVariant }}>{e.title}</Typography>
+                      {/* parent content — muted when only shown as context for a filtered child */}
+                      <Box
+                        onClick={e.onOpen}
+                        sx={{
+                          opacity: e.isContext ? 0.55 : 1,
+                          ...(e.onOpen ? { cursor: 'pointer' } : {}),
+                          // surgery entries read as a CARD on their own timeline dot — one
+                          // dot + card per surgery, so multiple surgeries in one visit stack cleanly
+                          ...(e.kind === 'surgery'
+                            ? { backgroundColor: theme.palette.background.paper, border: `1px solid ${c.OutlineVariant}`, boxShadow: 1, borderRadius: '10px', p: 3.5, maxWidth: 560 }
+                            : {})
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+                            {e.when}
+                          </Typography>
+                          {/* hospital stays + surgeries: the tag rides the DATE line (next to the range) */}
+                          {(e.kind === 'hospital' || e.kind === 'surgery') && e.chip && (
+                            <Box
+                              component='span'
+                              sx={{
+                                px: 2.25,
+                                py: 0.4,
+                                borderRadius: '10px',
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                letterSpacing: '0.4px',
+                                textTransform: 'uppercase',
+                                backgroundColor: chipSx[e.kind].bg,
+                                color: chipSx[e.kind].fg
+                              }}
+                            >
+                              {e.chip}
+                            </Box>
+                          )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, mt: 2.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '17px', fontWeight: 700, color: c.OnSurfaceVariant }}>{e.title}</Typography>
+                          {e.chip && e.kind !== 'hospital' && e.kind !== 'surgery' && (
+                            <Box
+                              component='span'
+                              sx={{
+                                px: 2.25,
+                                py: 0.4,
+                                borderRadius: '10px',
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                letterSpacing: '0.4px',
+                                textTransform: 'uppercase',
+                                backgroundColor: chipSx[e.kind].bg,
+                                color: chipSx[e.kind].fg
+                              }}
+                            >
+                              {e.chip}
+                            </Box>
+                          )}
+                        </Box>
+                        {e.subParts ? (
+                          <Typography sx={{ fontSize: '16px', color: c.neutralSecondary, display: 'block', mt: 2.5 }}>
+                            {e.subParts.label}
+                            <Dot />
+                            <Box component='span' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+                              {e.subParts.value}
+                            </Box>
+                          </Typography>
+                        ) : e.sub || e.boldLead ? (
+                          <Typography sx={{ fontSize: '16px', color: c.neutralSecondary, display: 'block', mt: 2.5 }}>
+                            {e.boldLead && (
+                              <>
+                                <Box component='span' sx={{ fontWeight: 800, color: c.OnSurfaceVariant }}>
+                                  {e.boldLead}
+                                </Box>
+                                {e.sub && <Dot />}
+                              </>
+                            )}
+                            {e.sub?.split(' · ').map((part, pi, arr) => (
+                              <React.Fragment key={pi}>
+                                {part}
+                                {pi < arr.length - 1 && <Dot />}
+                              </React.Fragment>
+                            ))}
+                          </Typography>
+                        ) : null}
+                        {e.alert && (
+                          <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.Tertiary, display: 'block', mt: 1.5 }}>
+                            ⚠ {e.alert}
+                          </Typography>
+                        )}
+                        {e.onOpen && (
+                          <Typography sx={{ fontSize: '15px', fontWeight: 700, color: theme.palette.primary.dark, display: 'block', mt: 1.5 }}>
+                            View surgical report ↗
+                          </Typography>
+                        )}
+                      </Box>
+                      {/* nested sub-events — a surgery during THIS stay */}
+                      {e.children?.map((ch, ci) => (
                         <Box
-                          component='span'
+                          key={`${ch.date}-${ch.title}-${ci}`}
+                          onClick={ch.onOpen}
                           sx={{
-                            px: 2.25,
-                            py: 0.4,
-                            borderRadius: '10px',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            letterSpacing: '0.4px',
-                            textTransform: 'uppercase',
-                            backgroundColor: chipSx[e.kind].bg,
-                            color: chipSx[e.kind].fg
+                            position: 'relative',
+                            mt: 7,
+                            ml: 2,
+                            pl: 7,
+                            pb: 1,
+                            borderLeft: `2px solid ${c.SurfaceVariant}`,
+                            ...(ch.onOpen ? { cursor: 'pointer' } : {})
                           }}
                         >
-                          {e.chip}
-                        </Box>
-                      </Box>
-                      {e.subParts ? (
-                        <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mt: 0.5 }}>
-                          {e.subParts.label}
-                          <Dot />
-                          <Box component='span' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
-                            {e.subParts.value}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: '-7px',
+                              top: 4,
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              border: `2px solid ${theme.palette.common.white}`,
+                              boxShadow: `0 0 0 2px ${dotColor[ch.kind]}`,
+                              backgroundColor: dotColor[ch.kind]
+                            }}
+                          />
+                          <Box sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${c.OutlineVariant}`, boxShadow: 1, borderRadius: '10px', p: 3.5, maxWidth: 560 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
+                              <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+                                {ch.when}
+                              </Typography>
+                              {ch.chip && (
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    px: 2.25,
+                                    py: 0.4,
+                                    borderRadius: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.4px',
+                                    textTransform: 'uppercase',
+                                    backgroundColor: chipSx[ch.kind].bg,
+                                    color: chipSx[ch.kind].fg
+                                  }}
+                                >
+                                  {ch.chip}
+                                </Box>
+                              )}
+                            </Box>
+                            <Typography sx={{ fontSize: '16px', fontWeight: 700, color: c.OnSurfaceVariant, mt: 1.5 }}>{ch.title}</Typography>
+                            {ch.sub && (
+                              <Typography sx={{ fontSize: '16px', color: c.neutralSecondary, mt: 0.75 }}>{ch.sub}</Typography>
+                            )}
+                            {ch.alert && (
+                              <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.Tertiary, mt: 1 }}>⚠ {ch.alert}</Typography>
+                            )}
+                            {ch.onOpen && (
+                              <Typography sx={{ fontSize: '15px', fontWeight: 700, color: theme.palette.primary.dark, mt: 1.5 }}>
+                                View surgical report ↗
+                              </Typography>
+                            )}
                           </Box>
-                        </Typography>
-                      ) : e.sub ? (
-                        <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', mt: 0.5 }}>
-                          {e.sub.split(' · ').map((part, pi, arr) => (
-                            <React.Fragment key={pi}>
-                              {part}
-                              {pi < arr.length - 1 && <Dot />}
-                            </React.Fragment>
-                          ))}
-                        </Typography>
-                      ) : null}
+                        </Box>
+                      ))}
                     </Box>
                   ))}
                 </Box>

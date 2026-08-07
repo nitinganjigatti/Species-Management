@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, DetailTable, EmptyState, StatusChip, SectionCard } from 'src/views/pages/species-management/detail2/detailUi'
+import { AnimalCardList, CellText, DetailTable, EmptyState, StatusChip, SectionCard, sheetPaperSx } from 'src/views/pages/species-management/detail2/detailUi'
 
 const ANIMAL_ICON = '/images/housing/species-icon-colored.svg'
 
@@ -139,9 +139,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   if (!housing || !sites.length) return <EmptyState message='No site or enclosure data available' />
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <Typography sx={{ fontSize: '1rem', color: color || cc.OnSurfaceVariant, fontWeight: weight }}>
-      {v ?? '-'}
-    </Typography>
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
   const num = (field: string): GridColDef => ({
     width: 70,
@@ -224,8 +224,8 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
             )}
             <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: 0.75, borderRadius: '999px', border: `1px solid ${cc.OutlineVariant}`, bgcolor: theme.palette.background.paper }}>
               {[
-                { key: 'site', label: 'Site-wise', icon: 'mdi:map-marker-outline' },
-                { key: 'enclosure', label: 'Enclosure-wise', icon: 'mdi:home-outline' }
+                { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' },
+                { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
               ].map(v => {
                 const on = tableView === v.key
 
@@ -279,7 +279,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         anchor='right'
         open={!!enclSheet}
         onClose={() => setEnclSheet(null)}
-        slotProps={{ paper: { sx: { width: { xs: '100%', sm: 820 }, p: 4 } } }}
+        slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ minWidth: 0 }}>
@@ -317,7 +317,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         open={!!animalSheet}
         onClose={() => setAnimalSheet(null)}
         sx={{ zIndex: theme.zIndex.modal + 4 }}
-        slotProps={{ paper: { sx: { width: { xs: '100%', sm: 680 }, p: 4 } } }}
+        slotProps={{ paper: { sx: sheetPaperSx('xl', { pad: true }) } }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
           <Box sx={{ minWidth: 0 }}>

@@ -14,6 +14,7 @@ import { type FilterOption } from 'src/components/species-management/SpeciesMana
 import { type MajorFilterRow } from 'src/views/pages/species-management/list2/SpeciesListMajorFilters'
 import { useSpeciesChrome } from 'src/components/species-management/useSpeciesChrome'
 import { buildSpeciesColumns } from 'src/views/pages/species-management/list2/speciesColumns'
+import { V2TypeScale } from 'src/views/pages/species-management/detail2/detailUi'
 import {
   EMPTY_ANALYSIS,
   EMPTY_FILTERS,
@@ -510,29 +511,31 @@ const SpeciesListing2Container = () => {
   }, [isDownloading])
 
   return (
-    <SpeciesListingView
-      columns={columns}
-      rows={pageRows}
-      totalCount={filteredRows.length}
-      loading={isLoading}
-      searchValue={searchValue}
-      onSearchChange={handleSearchChange}
-      onSearchClear={handleSearchClear}
-      paginationModel={paginationModel}
-      onPaginationChange={setPaginationModel}
-      onCellClick={handleCellClick}
-      onDownload={handleDownload}
-      isDownloading={isDownloading}
-      chips={chips}
-      onResetAll={handleResetAll}
-      posture={posture}
-      filterSections={majorFilters}
-      appliedFilters={appliedFilters}
-      onToggleFacet={handleToggleFacet}
-      analysis={analysis}
-      analysisYears={analysisYears}
-      onAnalysisChange={handleAnalysisChange}
-    />
+    <V2TypeScale>
+      <SpeciesListingView
+        columns={columns}
+        rows={pageRows}
+        totalCount={filteredRows.length}
+        loading={isLoading}
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
+        onSearchClear={handleSearchClear}
+        paginationModel={paginationModel}
+        onPaginationChange={setPaginationModel}
+        onCellClick={handleCellClick}
+        onDownload={handleDownload}
+        isDownloading={isDownloading}
+        chips={chips}
+        onResetAll={handleResetAll}
+        posture={posture}
+        filterSections={majorFilters}
+        appliedFilters={appliedFilters}
+        onToggleFacet={handleToggleFacet}
+        analysis={analysis}
+        analysisYears={analysisYears}
+        onAnalysisChange={handleAnalysisChange}
+      />
+    </V2TypeScale>
   )
 }
 

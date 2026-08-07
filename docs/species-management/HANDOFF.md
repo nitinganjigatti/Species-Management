@@ -1102,3 +1102,91 @@ this session — barbossa for a merge question; user had to repeat the ban).
 - Dose history in the record rides the CAPPED per-medicine animal samples — sparse for some animals until real API.
 - Unchanged: WSO2 provisioning fix (browser verify blocked) · Diet tab (brainstorm first) · mammal Breeding ·
   preventive folder 132MB.
+
+---
+
+# 2026-07-21 — Command Center exploration (13 mockup variants; 2 animated Explorers SAVED)
+
+**New module explored (no code written): "Command Center"** — director/management daily surface, new top-level nav item.
+Full antz module map built (nav IA, all routes; KEY FINDING: **no unified requests/approvals/inbox system exists** —
+Dept Requests + Pharmacy requisitions are the only real approve/reject flows; a cross-module inbox is greenfield).
+13 artifact variants iterated; user's frontier = the two **animated Explorer** mockups, saved to
+`.superdesign/design_iterations/command-center-night-galaxy.html` + `command-center-day-garden.html` (gitignored; artifact
+URLs in memory `command-center-exploration`). Locked rules: #1F415B navy dark ground, per-globe colors, matte rotating
+planets, ~2s liquid intro, `pathLength="1"` thread draws w/ head-spark, staged entrance choreography, switchboard IA
+(galaxy → site+module chips → L2 module screen → ONE redirect), rail re-binds per site, "Needs you" = Dept+Pharmacy only.
+_Try: open either saved HTML in Chrome → ▶ "Watch the flow"._
+
+## Pending / next
+- **User to pick winning direction** (Explorer vs Daily Brief Pro vs fusion) → then spec → build as new nav item.
+- Medical v2 working tree still dirty from 2026-07-20 (4 files: SheetFilterBar, genericized signal hints, Resolved
+  section + ×N in Overview drawer) — uncommitted, tsc not re-run after last session's interrupted check.
+- Unchanged: WSO2 provisioning · Diet tab brainstorm · mammal Breeding · preventive folder 132MB.
+
+### 2026-07-21 addendum (post-close)
+ALL 23 Command Center mockups saved to `.superdesign/design_iterations/` as `command-center-01…13` + 8 grey editions
++ 2 flagship explorers (night-galaxy, day-garden). 07-daily-brief-pro-CLICKABLE = strongest conventional candidate.
+All self-contained HTML (gitignored — ask user before committing anywhere). Memory `command-center-exploration` has the full catalog.
+
+---
+
+# 2026-07-23 — Medical polish + NEW Hospital tab built (all uncommitted, unverified in browser)
+
+**Working tree is dirty and NOT committed** (8 modified + HospitalTab.tsx/hospital/ untracked). tsc CLEAN after every change.
+This session built on the already-dirty Medical v2 tree from 2026-07-20/21.
+
+## Shipped this session (tsc-verified only — needs browser verify)
+1. **Signal subtitles genericized** (`medical/signals.ts`) — repeat/relapse/worsening/stuck/deaths hints no longer name one
+   animal; now group-level ("3+ illnesses each · up to 7 times", "longest 21 d", "Same condition returning after a 30+ day gap").
+2. **Overview animal drawer — Resolved section + ×N** (`MedicalTab.tsx` OverviewAnimalDrawer): "Active care & health" is now a
+   SheetSection; new **Resolved** section below lists closed cases (found→resolved dates + "N d" duration, Died pill for deaths),
+   newest first; both use new SheetRow `titleCount` ×N repeat marker. Rollup events carry durationDays/outcome now.
+3. **SheetFilterBar kit component** (`detailUi.tsx`) — one row: collapsible left "🔍 Search" pill (flex:1) + facet dropdown
+   (flex:1, 50/50). Click search → input overlays whole row + ✕; click-away empty (or ✕) collapses+clears; non-empty stays open.
+   `CategoryFilter` MOVED from MedicalTab into the kit (exported, no dup). Wired into **SignalDrawer** for Spreading/chain signals:
+   enclosure facet "Enc 12 · 3", placeholder "All N Enclosures", hidden if 1 enclosure; search matches animal/site/enclosure.
+4. **NEW Hospital tab** below Medical (`HospitalTab.tsx` + `hospital/hospital.ts`). SPECIES-SCOPED (user chose species, not
+   system-wide). DERIVED from clinical sidecar — each episode = an admission, deterministic FNV hash picks hospital+surgery
+   (no new data file, no Math.random). Headline tiles (Hospitalised now/Repeat/Long-stay/Mortality) + signals band + by-hospital
+   hotspot cards (PRIMARY breakdown) + repeat-by-site + Surgery card (hospital/field split, own section). All kit + SignalDrawer.
+   Wired: types, VALID_TABS, render case, mdi:hospital-building icon.
+
+## Pending / next (the one important move)
+- **VERIFY IN BROWSER** — none of the above is browser-checked. Dev server was running on :3000 this session. Try
+  `/species-management/list-2/2150/?tab=hospital` for the new tab; Spreading signal drawer for the filter bar; a repeat-sick
+  animal in Overview drill for the Resolved section.
+- **Then decide: commit.** 8 modified files + 2 new are all local-only. NO push (personal repo = Vercel; `species-mgmt-personal-repo-vercel` HARD RULE — explicit per-push ask only).
+- Surgery in Hospital tab is derived/synthetic until a real hospital API lands — only `hospital.ts` changes then.
+- Unchanged carry-overs: Command Center direction pick · WSO2 provisioning · Diet tab brainstorm · mammal Breeding · preventive 132MB.
+
+---
+
+# 2026-07-27 — V3 snapshot created; V2 readability overhaul (fonts + chart standard) — ALL UNCOMMITTED
+
+**V3 born:** full additive copy of v2 (`detail3/list3/dashboard3` + `*3Container` + `/list-3`,`/dashboard-3` routes + nav
+entries) frozen at v2's state with the ORIGINAL small fonts — comparison baseline. HARD RULE: all work goes to V2 only;
+V1 and V3 frozen (memory `v3-frozen-v2-live`).
+
+## Shipped this session (v2 only; tsc clean; screenshot-verified on a throwaway :3001 copy)
+1. **Typography floor 14px everywhere** — `V2TypeScale` provider (detail2/detailUi.tsx, wraps all 3 v2 containers):
+   caption 14 / body2 15 / subtitle2 15 / MuiTooltip 16. Explicit: card titles 20, section rows 16, DataGrid cells 16 +
+   headers 15 (wrap, never truncate), chart labels 14, ALL tooltips 16. _Try: list-2 table + species 2150 Overview —
+   text should read comfortably; V3 (list-3) shows the old small sizes for comparison._
+2. **Chart standard on every v2 chart** (any x-value): ~72px slot/tick, horizontal scroll behind thin 4px
+   `thinScrollbarSx` bar, sticky y-axis (axis-only twin overlay) where an axis exists, edge-to-edge bar on flush cards.
+   Covered: ColumnBarChart, TrendAreaChart (flush prop), SeasonalColumnChart, ColumnTrend (adaptive slots),
+   RankedBarChart-vertical, Survival bands, Insights ColumnChart. _Try: Overview Births/Deaths + Circle of Life trends —
+   scroll the plot, y numbers stay pinned; Assessments → animal side sheet — date labels no longer run together._
+3. **Kit isolation:** v2 no longer imports ANY v1 kit component (dashboard2 has its own dashboardUi/DateRange/SpeciesPicker
+   copies; Dashboard2View + OverviewTab rewired). "Population by Site" = MiniBarRow rows (matches Needs Attention).
+4. Consistency fixes: 3 Overview donuts top-aligned, 16px legends, MiniBarRow dark 16px counts, wider label columns.
+
+## Pending / next
+- **COMMIT DECISION** — working tree now carries: Medical polish + Hospital tab (2026-07-23, still browser-unverified) +
+  this entire readability overhaul + the V3 tree. Local commits only; NO push without explicit per-push ask.
+- User's own browser-verify of the font/chart pass (my checks were on the :3001 stub copy).
+- `SmoothAreaChart` (dashboard2 kit) is dead code — delete or keep?
+- Dev-server note: :3000 was being run from the agent session and DIES when it closes — run `npm run dev` in your own
+  terminal. Throwaway worktree at `/tmp/antz-verify` (+ `.superpowers/` untracked) can be removed anytime:
+  `git worktree remove --force /tmp/antz-verify`.
+- Unchanged carry-overs: Command Center direction pick · WSO2 provisioning · Diet tab brainstorm · mammal Breeding.
