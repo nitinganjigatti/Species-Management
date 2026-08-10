@@ -21,8 +21,8 @@ import {
   AnimalCell,
   CellText,
   EmptyState,
-  EntityListDrawer,
   GRID_CELL_PAD,
+  ListSheet,
   SeasonalColumnChart,
   sheetPaperSx,
   SHEET_PX,
@@ -31,6 +31,7 @@ import {
   TrendAreaChart,
   TrendRangeTabs
 } from 'src/views/pages/species-management/detail2/detailUi'
+import type { ListRow, SheetView } from 'src/views/pages/species-management/detail2/detailUi'
 import DashboardDateRange, {
   resolveRange,
   type RangePreset,
@@ -55,7 +56,9 @@ const GenderPie: React.FC<{
   title: string
   centerLabel: string
   accent: string
-}> = ({ male, female, other, otherLabel = 'Unsexed', title, centerLabel, accent }) => {
+  /** Slice click → the animals behind that slice ('Male' | 'Female' | otherLabel). */
+  onSlice?: (label: string) => void
+}> = ({ male, female, other, otherLabel = 'Unsexed', title, centerLabel, accent, onSlice }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const raw = [
@@ -74,7 +77,14 @@ const GenderPie: React.FC<{
   }
 
   const options = {
-    chart: { toolbar: { show: false } },
+    chart: {
+      toolbar: { show: false },
+      // Spread, never `events: undefined` — an explicit undefined clobbers Apex's defaults.
+      ...(onSlice
+        ? { events: { dataPointSelection: (_e: any, _c: any, cfg: any) => { const d = raw[cfg?.dataPointIndex]; if (d) onSlice(d.label) } } }
+        : {})
+    },
+    states: { active: { filter: { type: 'none' } } },
     labels: raw.map(d => d.label),
     colors: raw.map(d => d.color),
     stroke: { width: 2, colors: [theme.palette.background.paper] },
@@ -104,7 +114,9 @@ const GenderPie: React.FC<{
   return (
     <SectionCard title={title}>
       {/* Remount on data change — ApexCharts leaves the donut center label stale when only the series updates. */}
-      <ReactApexcharts key={`${male}-${female}-${other}`} type='donut' height={260} options={options} series={raw.map(d => d.value)} />
+      <Box sx={onSlice ? { '& .apexcharts-series path': { cursor: 'pointer' } } : undefined}>
+        <ReactApexcharts key={`${male}-${female}-${other}`} type='donut' height={260} options={options} series={raw.map(d => d.value)} />
+      </Box>
     </SectionCard>
   )
 }
@@ -268,18 +280,19 @@ const fmtYm = (k: string) => {
 // SHARED period filter, so the top Quick preset changes with it.
 
 /** Trend series for the chart: bounded year-presets get a contiguous zero-filled month
- *  window (prototype's _buildLastNMonths); everything else shows the months that have data. */
+ *  window (prototype's _buildLastNMonths); everything else shows the months that have data.
+ *  `key` keeps the raw "YYYY-MM" so a clicked point can filter the day-level events. */
 const trendMonths = (byYearMonth: { label: string; value: number }[], preset: RangePreset) => {
   const n = preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : preset === 'last_3y' ? 36 : null
-  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value }))
+  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value, key: d.label }))
 
   const map = new Map(byYearMonth.map(d => [d.label, d.value]))
   const now = new Date()
-  const out: { label: string; value: number }[] = []
+  const out: { label: string; value: number; key: string }[] = []
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    out.push({ label: fmtYm(k), value: map.get(k) || 0 })
+    out.push({ label: fmtYm(k), value: map.get(k) || 0, key: k })
   }
 
   return out
@@ -306,16 +319,25 @@ const SectionHeader: React.FC<{ title: string; sub?: string; action?: React.Reac
 }
 
 // One trend-chart card — used on both sides of the Births vs Deaths comparison row.
-const TrendCard: React.FC<{ title: string; trend: { label: string; value: number }[]; color: string; name: string; empty: string }> = ({
-  title,
-  trend,
-  color,
-  name,
-  empty
-}) => (
+const TrendCard: React.FC<{
+  title: string
+  trend: { label: string; value: number }[]
+  color: string
+  name: string
+  empty: string
+  /** Point click → that month's records sheet (index into `trend`). */
+  onPoint?: (index: number) => void
+}> = ({ title, trend, color, name, empty, onPoint }) => (
   <SectionCard title={title}>
     {trend.length > 0 ? (
-      <TrendAreaChart values={trend.map(d => d.value)} labels={trend.map(d => d.label)} color={color} name={name} flush />
+      <TrendAreaChart
+        values={trend.map(d => d.value)}
+        labels={trend.map(d => d.label)}
+        color={color}
+        name={name}
+        flush
+        onPointClick={onPoint}
+      />
     ) : (
       <EmptyState message={empty} />
     )}
@@ -367,18 +389,38 @@ const SeasonalPatternCard: React.FC<{
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const monthOf = (s?: string) => Number(String(s || '').slice(5, 7)) // "YYYY-MM..." → 1-12
 
-type Drill = { title: string; subtitle: string; items: { id: string; name: string; sub?: string }[] }
+/* ── chart drill sheets — standard ListSheet rows off the raw day-level events ──
+   Events name the animal when the record has one (idv/aid → avatar row); group or
+   unnamed records lead with the enclosure. Trailing = the event date. */
+const trail = (txt: string) => (
+  <Typography
+    sx={{ fontSize: '15px', fontWeight: 700, color: 'customColors.OnSurfaceVariant', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+  >
+    {txt}
+  </Typography>
+)
+const capWord = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : undefined)
+const sumK = (recs: { k?: number }[]) => recs.reduce((s, r) => s + (r.k || 1), 0)
+const byDateDesc = <T extends { d: string }>(recs: T[]) => [...recs].sort((a, b) => (a.d < b.d ? 1 : -1))
 
-/** Ranked "Cause N · Cause N" one-liner for a set of death records (drill subtitles). */
-const causeSummary = (records: NonNullable<SpeciesDeaths['recent']>) => {
-  const m = new Map<string, number>()
-  records.forEach(r => m.set(r.manner || 'Unknown', (m.get(r.manner || 'Unknown') || 0) + 1))
-
-  return Array.from(m.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([k, v]) => `${k} ${v}`)
-    .join(' · ')
-}
+const birthRow = (e: LifecycleBirth, i: number): ListRow => ({
+  key: `${e.aid || 'b'}-${e.d}-${i}`,
+  isAnimal: !!(e.idv || e.aid),
+  title: e.idv || e.e || e.s || 'Unrecorded animal',
+  caption: [capWord(e.g), e.b, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') || undefined,
+  subline: e.idv || e.aid ? e.e : undefined,
+  trailing: trail(e.d)
+})
+const deathRow = (e: LifecycleDeath, i: number): ListRow => ({
+  key: `${e.aid || 'd'}-${e.d}-${i}`,
+  isAnimal: !!(e.idv || e.aid),
+  title: e.idv || e.e || e.s || 'Unrecorded animal',
+  caption:
+    [e.m, e.y && e.y !== 'NA' ? `Necropsy ${e.y}` : null, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') ||
+    undefined,
+  subline: e.idv || e.aid ? e.e : undefined,
+  trailing: trail(e.d)
+})
 
 // Survival Analysis — accession → death, bucketed (mirrors the prototype's 5-band chart).
 const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
@@ -711,7 +753,7 @@ const AGE_BUCKETS: { label: string; lo: number; hi: number }[] = [
 const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
-  const [drill, setDrill] = useState<{ title: string; subtitle: string; items: { id: string; name: string; sub?: string }[] } | null>(null)
+  const [sheet, setSheet] = useState<SheetView | null>(null)
 
   const aged = useMemo(() => deaths.filter(d => typeof d.a === 'number') as (LifecycleDeath & { a: number })[], [deaths])
 
@@ -739,12 +781,16 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
   if (!stats) return <EmptyState message='No age-at-death data for this period' />
 
   const openBucket = (label: string, items: (LifecycleDeath & { a: number })[]) =>
-    setDrill({
-      title: `Age at Death · ${label}`,
-      subtitle: `${items.length} animal${items.length === 1 ? '' : 's'}`,
-      items: items
+    setSheet({
+      title: `Age at Death — ${label}`,
+      icon: 'mdi:chart-timeline-variant',
+      stats: [{ label: 'Animals', value: items.length }],
+      rows: [...items]
         .sort((a, b) => b.a - a.a)
-        .map((d, i) => ({ id: `${i}`, name: d.e || d.s || 'Unknown', sub: [`${d.a}y`, d.d, d.m].filter(Boolean).join(' · ') }))
+        .map((d, i) => ({
+          ...deathRow(d, i),
+          caption: [`${d.a} yrs`, d.m].filter(Boolean).join(' • ') || undefined
+        }))
     })
 
   const fmtY = (y: number) => `${(+y).toFixed(1)}y`
@@ -786,13 +832,7 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
         </SectionCard>
       </Box>
 
-      <EntityListDrawer
-        open={!!drill}
-        title={drill?.title || ''}
-        subtitle={drill?.subtitle}
-        items={drill?.items || []}
-        onClose={() => setDrill(null)}
-      />
+      <ListSheet view={sheet} onClose={() => setSheet(null)} />
     </>
   )
 }
@@ -1283,7 +1323,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const [filterOpen, setFilterOpen] = useState(false)
   const [tableView, setTableView] = useState<'animal' | 'site'>('animal')
   const [tableMode, setTableMode] = useState<CircleSubTab>('births')
-  const [drill, setDrill] = useState<Drill | null>(null)
+  const [sheet, setSheet] = useState<SheetView | null>(null)
 
   const birthEvents = lifecycle?.births || []
   const deathEvents = lifecycle?.deaths || []
@@ -1357,32 +1397,95 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
     [deathsData]
   )
 
-  // Month / cause drill sheets over the (already filtered) death records.
-  const recentDeaths = deathsData?.recent || []
+  // Chart drill sheets — every chart opens the standard ListSheet over the FULL filtered
+  // day-level events (not the 30-record `recent` slice): month bars, trend points, causes,
+  // gender slices. Rows are the standard animal rows (avatar • name • caption • trailing).
+  const topCause = (recs: LifecycleDeath[]) => {
+    const m = new Map<string, number>()
+    recs.forEach(r => m.set(r.m || 'Unknown', (m.get(r.m || 'Unknown') || 0) + (r.k || 1)))
+
+    return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0]?.[0]
+  }
   const openMonth = (label: string) => {
     const idx = MONTHS.indexOf(label) + 1
-    const recs = recentDeaths.filter(r => monthOf(r.date) === idx)
-    setDrill({
+    const recs = byDateDesc(filteredDeaths.filter(r => monthOf(r.d) === idx))
+    setSheet({
       title: `${label} — Mortality`,
-      subtitle: recs.length ? causeSummary(recs) : 'No itemised records for this month',
-      items: recs.map((r, i) => ({
-        id: `${i}`,
-        name: r.enclosure || r.site || 'Unknown',
-        sub: [r.date, r.manner, r.necropsy].filter(Boolean).join(' · ')
-      }))
+      icon: 'mdi:calendar-month-outline',
+      stats: [
+        { label: 'Deaths', value: sumK(recs) },
+        ...(recs.length ? [{ label: 'Top cause', value: topCause(recs) ?? '—' }] : [])
+      ],
+      rows: recs.map(deathRow)
     })
   }
   const openCause = (manner: string) => {
-    const recs = recentDeaths.filter(r => (r.manner || 'Unknown') === manner)
-    setDrill({
-      title: manner,
-      subtitle: 'Deaths recorded under this cause',
-      items: recs.map((r, i) => ({
-        id: `${i}`,
-        name: r.enclosure || r.site || 'Unknown',
-        sub: [r.date, r.necropsy].filter(Boolean).join(' · ')
-      }))
+    const recs = byDateDesc(filteredDeaths.filter(r => (r.m || 'Unknown') === manner))
+    setSheet({
+      title: `${manner} — Deaths`,
+      icon: 'mdi:file-document-outline',
+      stats: [{ label: 'Deaths', value: sumK(recs) }],
+      rows: recs.map(deathRow)
     })
+  }
+  const openBirthMonth = (label: string) => {
+    const idx = MONTHS.indexOf(label) + 1
+    const recs = byDateDesc(filteredBirths.filter(r => monthOf(r.d) === idx))
+    setSheet({
+      title: `${label} — Births`,
+      icon: 'mdi:calendar-month-outline',
+      stats: [{ label: 'Births', value: sumK(recs) }],
+      rows: recs.map(birthRow)
+    })
+  }
+  // Trend point → that exact year-month's records (trend rows carry the raw "YYYY-MM" key).
+  const openBirthPoint = (i: number) => {
+    const pt = birthsTrend[i]
+    if (!pt) return
+    const recs = byDateDesc(filteredBirths.filter(r => r.d.slice(0, 7) === pt.key))
+    setSheet({
+      title: `${pt.label} — Births`,
+      icon: 'mdi:calendar-month-outline',
+      stats: [{ label: 'Births', value: sumK(recs) }],
+      rows: recs.map(birthRow)
+    })
+  }
+  const openDeathPoint = (i: number) => {
+    const pt = deathsTrend[i]
+    if (!pt) return
+    const recs = byDateDesc(filteredDeaths.filter(r => r.d.slice(0, 7) === pt.key))
+    setSheet({
+      title: `${pt.label} — Mortality`,
+      icon: 'mdi:calendar-month-outline',
+      stats: [
+        { label: 'Deaths', value: sumK(recs) },
+        ...(recs.length ? [{ label: 'Top cause', value: topCause(recs) ?? '—' }] : [])
+      ],
+      rows: recs.map(deathRow)
+    })
+  }
+  // Gender slice → that gender's records. 'Male'/'Female' match directly; the third slice
+  // (Undetermined / Unsexed) is everything else.
+  const genderPick = (g: string | undefined, slice: string) =>
+    slice === 'Male' ? g === 'male' : slice === 'Female' ? g === 'female' : g !== 'male' && g !== 'female'
+  const openGenderSlice = (kind: 'births' | 'deaths', slice: string) => {
+    if (kind === 'births') {
+      const recs = byDateDesc(filteredBirths.filter(r => genderPick(r.g, slice)))
+      setSheet({
+        title: `${slice} — Births`,
+        icon: 'mdi:gender-male-female',
+        stats: [{ label: 'Births', value: sumK(recs) }],
+        rows: recs.map(birthRow)
+      })
+    } else {
+      const recs = byDateDesc(filteredDeaths.filter(r => genderPick(r.g, slice)))
+      setSheet({
+        title: `${slice} — Deaths`,
+        icon: 'mdi:gender-male-female',
+        stats: [{ label: 'Deaths', value: sumK(recs) }],
+        rows: recs.map(deathRow)
+      })
+    }
   }
 
   if (!births && !deaths && !hasEvents) return <EmptyState message='No lifecycle data available' />
@@ -1511,8 +1614,8 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         action={<TrendRangeTabs value={range.preset} onPick={pickTrendRange} color={theme.palette.primary.main} />}
       />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
-        <TrendCard title='Births Over Time' trend={birthsTrend} color={theme.palette.primary.main} name='Births' empty='No birth data for this period' />
-        <TrendCard title='Deaths Over Time' trend={deathsTrend} color={cc.Tertiary} name='Deaths' empty='No death data for this period' />
+        <TrendCard title='Births Over Time' trend={birthsTrend} color={theme.palette.primary.main} name='Births' empty='No birth data for this period' onPoint={openBirthPoint} />
+        <TrendCard title='Deaths Over Time' trend={deathsTrend} color={cc.Tertiary} name='Deaths' empty='No death data for this period' onPoint={openDeathPoint} />
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
         <SeasonalPatternCard
@@ -1521,6 +1624,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           color={theme.palette.primary.main}
           name='Births'
           empty='No birth data for this period'
+          onBarClick={openBirthMonth}
         />
         <SeasonalPatternCard
           title='Seasonal Mortality Pattern'
@@ -1540,6 +1644,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           female={birthsData?.byGender?.female || 0}
           other={birthsData?.byGender?.undetermined || 0}
           otherLabel='Undetermined'
+          onSlice={label => openGenderSlice('births', label)}
         />
         <GenderPie
           title='Deaths by Gender'
@@ -1548,6 +1653,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           male={(deathsData as any)?.byGender?.male || 0}
           female={(deathsData as any)?.byGender?.female || 0}
           other={(deathsData as any)?.byGender?.unsexed || 0}
+          onSlice={label => openGenderSlice('deaths', label)}
         />
       </Box>
 
@@ -1583,13 +1689,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         }}
       />
 
-      <EntityListDrawer
-        open={!!drill}
-        title={drill?.title || ''}
-        subtitle={drill?.subtitle}
-        items={drill?.items || []}
-        onClose={() => setDrill(null)}
-      />
+      <ListSheet view={sheet} onClose={() => setSheet(null)} />
 
       <MoreFiltersDrawer open={filterOpen} onClose={() => setFilterOpen(false)} facets={facets} selected={extra} onApply={setExtra} />
     </Box>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, IconButton, TextField, Typography, Tooltip } from '@mui/material'
+import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography, Tooltip } from '@mui/material'
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -911,6 +911,63 @@ export const SheetEmpty: React.FC<{ children: React.ReactNode }> = ({ children }
   )
 }
 
+/** One row of a ListSheet. `isAnimal` rows render in the project's sheet animal-list style
+ *  (the Vaccination pattern): ANTZ avatar • name • context caption • trailing • chevron.
+ *  Non-animal rows (months, reasons, records) get an icon chip instead. */
+export type ListRow = {
+  key: string
+  isAnimal?: boolean
+  title: string
+  caption?: string
+  subline?: string
+  trailing?: React.ReactNode
+  onOpen?: () => void
+}
+
+export type SheetView = {
+  title: string
+  icon: string
+  stats?: { label: string; value: number | string }[]
+  tabs?: { key: string; label: React.ReactNode }[]
+  tab?: string
+  onTab?: (k: string) => void
+  rowIcon?: string
+  rows: ListRow[]
+}
+
+/** THE generic list side sheet (promoted from EggsTab 2026-08-07): standard header
+ *  (+ optional tabs) over a SheetRow list. Use this for every "chart datapoint → list"
+ *  drill; never hand-roll a list drawer again. */
+export const ListSheet: React.FC<{ view: SheetView | null; onClose: () => void }> = ({ view, onClose }) => (
+  <Drawer anchor='right' open={!!view} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    {view && (
+      <Sheet>
+        <SheetHeader icon={view.icon} title={view.title} stats={view.stats} onClose={onClose} />
+        {view.tabs && view.tab && view.onTab && <SheetTabs tabs={view.tabs} value={view.tab} onPick={view.onTab} />}
+        <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
+          {view.rows.length ? (
+            view.rows.map((r, i) => (
+              <SheetRow
+                key={r.key}
+                {...(r.isAnimal ? { avatar: true } : { icon: view.rowIcon ?? 'mdi:egg-outline' })}
+                title={r.title}
+                caption={r.caption}
+                subline={r.subline}
+                last={i === view.rows.length - 1}
+                trailing={r.trailing}
+                onClick={r.onOpen}
+                chevron={!!r.onOpen}
+              />
+            ))
+          ) : (
+            <EmptyState message='Nothing to list here.' />
+          )}
+        </Box>
+      </Sheet>
+    )}
+  </Drawer>
+)
+
 export const SectionCard: React.FC<{
   title?: React.ReactNode
   action?: React.ReactNode
@@ -990,16 +1047,24 @@ export const StatTile: React.FC<{
       the icon in a stronger tinted chip carries the color, value stays ink. Requires `icon`. */
   icon?: string
   soft?: boolean
-}> = ({ label, value, sub, tone = 'neutral', onClick, icon, soft }) => {
+  /** Soft mode only: override the tone-derived hue with a style-guide hex (tile tint + chip
+      derive from it; the icon uses `colorDeep`, defaulting to this). */
+  color?: string
+  colorDeep?: string
+  /** Soft mode only: exact style-guide background token for the tile (skips the alpha-tint
+      derivation — needed when the hue is too light for `${color}14` to stay visible). */
+  colorBg?: string
+}> = ({ label, value, sub, tone = 'neutral', onClick, icon, soft, color, colorDeep, colorBg }) => {
   const theme = useTheme() as any
   const tones = useTone()
   const { fg } = tones(tone)
 
   if (soft && icon) {
-    // strong/deep pair per tone — tints derive from strong, the icon uses deep
+    // strong/deep pair — explicit style-guide `color` wins; else derived from the tone
     const strong =
-      tone === 'success' ? theme.palette.primary.main : tone === 'caution' ? cc(theme).moderateSecondary : cc(theme).Tertiary
-    const deep = tone === 'success' ? theme.palette.primary.dark : strong
+      color ??
+      (tone === 'success' ? theme.palette.primary.main : tone === 'caution' ? cc(theme).moderateSecondary : cc(theme).Tertiary)
+    const deep = colorDeep ?? (color ? color : tone === 'success' ? theme.palette.primary.dark : strong)
 
     return (
       <Box
@@ -1010,7 +1075,7 @@ export const StatTile: React.FC<{
           gap: 4,
           p: '20px 22px',
           borderRadius: '10px',
-          backgroundColor: `${strong}14`,
+          backgroundColor: colorBg ?? `${strong}14`,
           cursor: onClick ? 'pointer' : 'default',
           transition: 'filter .15s ease',
           // darken, not brighten — pale tints, brightening reads as nothing

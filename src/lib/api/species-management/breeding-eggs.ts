@@ -126,6 +126,10 @@ export interface SpeciesFunnel {
   monthlyHatched: number[] // Jan..Dec hatched — nests inside monthlyFertile
   seasonYears: string[] // e.g. ['2021','2022',...]
   seasonHatchability: number[] // hatchability % per year — the trend line
+  /** Monthly hatchability across the 5 seasons ("Mar '25" labels) — feeds the standard
+   *  1Y/2Y/3Y/All range-tab trend. Current season = actual monthly hatched/laid; earlier
+   *  seasons wobble (seeded) around that season's hatchability. */
+  hatchByMonth: { label: string; pct: number }[]
   reconcile: BreedingReconcile
   // Female participation. detail2 uses only totalFemales + laidFemales ("laid at least once");
   // the capable/maturity split below is a rejected estimate kept only for the hidden detail3.
@@ -488,6 +492,20 @@ export async function getSpeciesBreeding(
   })
   seasonHatchability[seasonHatchability.length - 1] = hatchabilityPct
 
+  // Monthly hatchability across the 5 seasons — the standard range-tab trend series.
+  // Current season = ACTUAL monthly hatched/laid off the roster; earlier seasons wobble
+  // (seeded) around that season's hatchability so every window reconciles with the trend.
+  const hm = rng(seedOf(speciesId) ^ 0x1b873593)
+  const hatchByMonth: { label: string; pct: number }[] = []
+  seasonYears.forEach((y, yi) => {
+    MONTHS.forEach((mLabel, m) => {
+      const isCurrent = yi === seasonYears.length - 1
+      const actual = isCurrent && monthlyLaid[m] > 0 ? (monthlyHatched[m] / monthlyLaid[m]) * 100 : null
+      const pct = actual ?? Math.max(0, Math.min(100, seasonHatchability[yi] + (hm() - 0.5) * 16))
+      hatchByMonth.push({ label: `${mLabel} '${y.slice(2)}`, pct: round(pct) })
+    })
+  })
+
   // Reconcile against Pairing + Circle-of-Life. Pairs from list.json; unproductive ~ neverLaid share.
   const unproductivePairs = pairs != null ? Math.min(pairs, Math.round((neverLaid / Math.max(1, females.length)) * pairs)) : undefined
 
@@ -520,6 +538,7 @@ export async function getSpeciesBreeding(
     monthlyHatched,
     seasonYears,
     seasonHatchability,
+    hatchByMonth,
     reconcile: { pairs, unproductivePairs, birthsRecorded },
     totalFemales: females.length,
     capableFemales,
