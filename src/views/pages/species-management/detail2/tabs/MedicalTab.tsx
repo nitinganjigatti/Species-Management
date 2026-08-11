@@ -353,7 +353,7 @@ function ViewToggle<T extends string>({
 }
 
 /** Table search box — same styling/behaviour as the Circle-of-Life table search. */
-const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number }> = ({
+export const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number }> = ({
   value,
   onChange,
   placeholder = 'Search…',
@@ -1270,7 +1270,7 @@ const PreventiveIndex: React.FC<{
 /** Per-site chips — stats AND the site filter in one. Sorted worst coverage first. */
 /** Site filter — dropdown-style trigger beside the table search; opens a standard side sheet
  *  listing every site (coverage % + overdue) with search. Picking a row filters the table. */
-const SiteFilterControl: React.FC<{
+export const SiteFilterControl: React.FC<{
   sites: PreventiveTypeSite[]
   sitesTotal: number
   tracked: number
@@ -1356,7 +1356,7 @@ const SiteFilterControl: React.FC<{
           alignItems: 'center',
           gap: 1.5,
           px: 3,
-          height: 40,
+          height: TABLE_CTRL_H,
           borderRadius: '8px',
           border: `1px solid ${value ? theme.palette.primary.main : c.OutlineVariant}`,
           backgroundColor: value ? c.Surface : theme.palette.background.paper,

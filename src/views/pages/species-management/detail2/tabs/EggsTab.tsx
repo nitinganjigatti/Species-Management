@@ -4,10 +4,9 @@ import React, { useMemo, useState } from 'react'
 import { Box, Drawer, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import Icon from 'src/@core/components/icon'
-import AnimalCard from 'src/views/utility/AnimalCard'
 import type { SpeciesEggs } from 'src/types/species-management/detail'
 import {
+  AnimalCell,
   ChartHoverCard,
   DetailTable,
   EmptyState,
@@ -16,18 +15,16 @@ import {
   Sheet,
   SheetEmpty,
   SheetHeader,
-  SheetRow,
   SheetSection,
   SHEET_PX,
   sheetPaperSx,
   StatTile,
   StatusChip,
   TrendAreaChart,
-  TrendRangeTabs,
   ListSheet
 } from 'src/views/pages/species-management/detail2/detailUi'
 import type { ListRow, SheetView } from 'src/views/pages/species-management/detail2/detailUi'
-import type { RangePreset } from 'src/views/pages/species-management/dashboard2/DashboardDateRange'
+import { SiteFilterControl, TableSearch } from 'src/views/pages/species-management/detail2/tabs/MedicalTab'
 import { getFemaleDetail } from 'src/lib/api/species-management/breeding-eggs'
 import type { EggFate, FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
 
@@ -74,14 +71,12 @@ const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'Jul
 /* ------------------------------------------------------ drill sheets (every stat opens one) */
 
 type SheetSpec =
-  | { kind: 'trend' }
   | { kind: 'fertility' }
   | { kind: 'hatchOfFertile' }
   | { kind: 'eggsByFemale' }
   | { kind: 'femalesLaid' }
   | { kind: 'month'; m: number }
   | { kind: 'outcome'; outcome: 'hatched' | 'died' | 'infertile' }
-  | { kind: 'discardReasons' }
 
 // ListRow / SheetView / ListSheet were promoted to detailUi (2026-08-07) — one generic
 // list sheet for every tab; imported above.
@@ -257,43 +252,61 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
 }
 
 /** The whole breeding-analytics zone that sits ABOVE the operational egg list. */
-const ANIMAL_ICON = '/images/housing/species-icon-colored.svg'
 
-type ClutchBucket = 'zero' | 'one' | 'twoPlus'
-const BUCKET_LABEL: Record<ClutchBucket, string> = { zero: '0 clutches', one: '1 clutch', twoPlus: '2+ clutches' }
 
 const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [openFemale, setOpenFemale] = useState<FemaleRow | null>(null)
-  const [hatchRange, setHatchRange] = useState<RangePreset>('all')
-  const [bucket, setBucketRaw] = useState<ClutchBucket | null>(null)
+  const [rosterTab, setRosterTabRaw] = useState<'all' | 'none' | 'one' | 'twoPlus'>('all')
+  const [q, setQRaw] = useState('')
+  const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [sheet, setSheet] = useState<SheetSpec | null>(null)
   const [femTab, setFemTab] = useState<string>('laid')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
-  // bucket change re-scopes the roster — always land back on page 1
-  const setBucket = (v: ClutchBucket | null | ((prev: ClutchBucket | null) => ClutchBucket | null)) => {
-    setBucketRaw(v)
+  // any roster re-scope (tab / search / site) lands back on page 1
+  const setRosterTab = (v: 'all' | 'none' | 'one' | 'twoPlus') => {
+    setRosterTabRaw(v)
+    setPm(p => ({ ...p, page: 0 }))
+  }
+  const setQ = (v: string) => {
+    setQRaw(v)
+    setPm(p => ({ ...p, page: 0 }))
+  }
+  const pickSite = (v: string | null) => {
+    setSiteFilter(v)
     setPm(p => ({ ...p, page: 0 }))
   }
   const clutchTotal = s.females_rows.reduce((t, f) => t + f.clutches, 0)
   const laidPct = s.totalFemales ? Math.round((s.laidFemales / s.totalFemales) * 100) : 0
 
-  /* per-female roster, filtered by the clutch-bucket chip */
-  const inBucket = (f: FemaleRow) => (bucket === 'zero' ? f.clutches === 0 : bucket === 'one' ? f.clutches === 1 : f.clutches >= 2)
-  const roster = useMemo(() => (bucket ? s.females_rows.filter(inBucket) : s.females_rows), [s.females_rows, bucket]) // eslint-disable-line react-hooks/exhaustive-deps
+  /* per-female roster — tab (all / laid nothing) + site + search scope the same table */
+  const roster = useMemo(() => {
+    const query = q.trim().toLowerCase()
+
+    const inTab = (f: FemaleRow) =>
+      rosterTab === 'all' ? true : rosterTab === 'none' ? !f.laid : rosterTab === 'one' ? f.clutches === 1 : f.clutches >= 2
+
+    return s.females_rows.filter(
+      f =>
+        inTab(f) &&
+        (!siteFilter || f.site === siteFilter) &&
+        (!query || `${f.name} ${f.identifier} ${f.site} ${f.enclosure}`.toLowerCase().includes(query))
+    )
+  }, [s.females_rows, rosterTab, siteFilter, q])
+
+  /* site dropdown options — every site that holds a female, biggest first */
+  const siteOpts = useMemo(() => {
+    const m = new Map<string, number>()
+    s.females_rows.forEach(f => f.site && m.set(f.site, (m.get(f.site) ?? 0) + 1))
+
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([site, n]) => ({ site, n }))
+  }, [s.females_rows])
   const femaleRows = useMemo(() => {
     const start = pm.page * pm.pageSize
 
     return roster.slice(start, start + pm.pageSize).map(f => ({ ...f, id: f.antzId }))
   }, [roster, pm.page, pm.pageSize])
-
-  /* hatchability trend — the standard range window over the 5-season monthly series */
-  const hatchTrend = useMemo(() => {
-    const n = hatchRange === 'last_1y' ? 12 : hatchRange === 'last_2y' ? 24 : hatchRange === 'last_3y' ? 36 : null
-
-    return n ? s.hatchByMonth.slice(-n) : s.hatchByMonth
-  }, [s.hatchByMonth, hatchRange])
 
   /* laying-calendar peak: the best consecutive 3-month window */
   const peak = useMemo(() => {
@@ -343,24 +356,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     })
 
     switch (sheet.kind) {
-      case 'trend':
-        return {
-          title: 'Hatchability by Season',
-          icon: 'mdi:chart-line',
-          rowIcon: 'mdi:calendar-outline',
-          stats: [
-            { label: 'This season', value: `${s.hatchabilityPct}%` },
-            { label: 'Last season', value: `${s.lastSeasonHatchabilityPct}%` }
-          ],
-          rows: s.seasonYears
-            .map((y, i) => ({
-              key: y,
-              title: `${y} season`,
-              caption: i === s.seasonYears.length - 1 ? 'this season' : undefined,
-              trailing: trail(`${s.seasonHatchability[i]}%`)
-            }))
-            .reverse()
-        }
       case 'fertility':
         return {
           title: 'Fertility by Female',
@@ -459,23 +454,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           )
         }
       }
-      case 'discardReasons':
-        return {
-          title: 'Why Eggs Were Discarded',
-          icon: 'mdi:egg-off-outline',
-          rowIcon: 'mdi:egg-off-outline',
-          stats: [
-            { label: 'Eggs lost', value: s.lost },
-            { label: 'Reasons', value: s.discardReasons.length }
-          ],
-          rows: s.discardReasons.map(d => ({
-            key: d.reason,
-            title: d.reason,
-            caption: `${d.pct}% of losses`,
-            trailing: trail(String(d.eggs), d.eggs >= (s.discardReasons[0]?.eggs ?? 0)),
-            onOpen: () => setSheet({ kind: 'outcome', outcome: d.reason === 'Infertile on candling' ? 'infertile' : 'died' })
-          }))
-        }
     }
   }, [sheet, femTab, s, clutchTotal]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -486,18 +464,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
       sortable: false,
       field: 'name',
       headerName: 'Female',
-      renderCell: (p: GridRenderCellParams) => (
-        <AnimalCard
-          data={{
-            default_icon: ANIMAL_ICON,
-            local_identifier_name: 'Name',
-            local_identifier_value: p.row.name,
-            gender: 'Female',
-            user_enclosure_name: p.row.enclosure,
-            site_name: p.row.site
-          }}
-        />
-      )
+      renderCell: (p: GridRenderCellParams) => <AnimalCell name={p.row.name} sub={`${p.row.enclosure} • ${p.row.site}`} size={40} />
     },
     {
       minWidth: 170,
@@ -548,14 +515,36 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     }
   ]
 
-  /* clutch buckets → filter chips on the female table */
-  const b = s.clutchBuckets
-  const bucketPct = (n: number) => (s.totalFemales ? Math.round((n / s.totalFemales) * 100) : 0)
-  const bucketChips: { key: ClutchBucket; n: number; extra?: string }[] = [
-    { key: 'zero', n: b.zero },
-    { key: 'one', n: b.one },
-    { key: 'twoPlus', n: b.twoPlus, extra: b.twoPlus ? ` • avg ${b.twoPlusAvg}` : undefined }
-  ]
+  /* roster tabs — vaccination statusTabs pattern: tabs in the card title slot, per-tab underline */
+  const rosterTabs = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      {[
+        { key: 'all' as const, label: 'All Females', n: s.totalFemales, accent: theme.palette.primary.dark },
+        { key: 'none' as const, label: 'Laid Nothing', n: s.neverLaid, accent: c.Tertiary },
+        { key: 'one' as const, label: '1 Clutch', n: s.clutchBuckets.one, accent: theme.palette.primary.dark },
+        { key: 'twoPlus' as const, label: '2+ Clutches', n: s.clutchBuckets.twoPlus, accent: theme.palette.primary.dark }
+      ].map(t => {
+        const active = rosterTab === t.key
+
+        return (
+          <Box
+            key={t.key}
+            onClick={() => setRosterTab(t.key)}
+            role='tab'
+            aria-selected={active}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, borderBottom: '2.5px solid', borderColor: active ? t.accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? t.accent : c.OutlineVariant } }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? t.accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {t.label}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? t.accent : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+              {t.n.toLocaleString()}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
 
   /* ── the merged hero — FOUR soft stat tiles (2026-08-10): the old 5-cell strip and the
      outcome-tiles section became ONE section in the soft-tile UI. Hatched • Fertility •
@@ -672,143 +661,59 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
         </Box>
       </SectionCard>
 
-      {/* ── the losses & the long view (eggs_7, 2026-08-10): ranked discard reasons
-          (top-5 + View all → sheet) beside the standard range-tab hatchability trend ── */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, alignItems: 'stretch' }}>
-        <SectionCard
-          title='Why Eggs Were Discarded'
-          titleMb={2}
-          action={
-            s.discardReasons.length > 5 ? (
-              <Typography
-                onClick={() => setSheet({ kind: 'discardReasons' })}
-                sx={{ fontSize: '15px', fontWeight: 600, color: theme.palette.primary.dark, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { textDecoration: 'underline' } }}
-              >
-                View all {s.discardReasons.length} →
+      {/* ── the losses: every discard reason as a tag — reason + egg count, nothing else ── */}
+      <SectionCard title='Why Eggs Were Discarded' titleMb={2}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          {s.discardReasons.map(d => (
+            <Box
+              key={d.reason}
+              onClick={() => setSheet({ kind: 'outcome', outcome: d.reason === 'Infertile on candling' ? 'infertile' : 'died' })}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 3,
+                py: 1.25,
+                borderRadius: '20px',
+                border: `1px solid ${c.OutlineVariant}`,
+                cursor: 'pointer',
+                transition: 'all .15s ease',
+                '&:hover': { borderColor: theme.palette.primary.dark, backgroundColor: c.Surface }
+              }}
+            >
+              <Typography sx={{ fontSize: 15, fontWeight: 600, color: c.OnSurfaceVariant }}>{d.reason}</Typography>
+              <Typography sx={{ fontSize: 15, fontWeight: 800, color: theme.palette.primary.dark, fontVariantNumeric: 'tabular-nums' }}>
+                {d.eggs}
               </Typography>
-            ) : undefined
-          }
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {s.discardReasons.slice(0, 5).map((d, i) => (
-              <Box
-                key={d.reason}
-                onClick={() => setSheet({ kind: 'outcome', outcome: d.reason === 'Infertile on candling' ? 'infertile' : 'died' })}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 3.5,
-                  p: '15px 8px',
-                  borderRadius: 2,
-                  cursor: 'pointer',
-                  borderTop: i > 0 ? `1px solid ${c.SurfaceVariant}` : 'none',
-                  '&:hover': { backgroundColor: c.Surface }
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: '999px',
-                    backgroundColor: c.Surface,
-                    border: `1px solid ${c.SurfaceVariant}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flex: 'none',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: c.neutralSecondary
-                  }}
-                >
-                  {i + 1}
-                </Box>
-                <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, flex: 1, minWidth: 0 }} noWrap>
-                  {d.reason}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 17, fontWeight: 800, color: i === 0 ? c.Tertiary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
-                >
-                  {d.eggs}
-                </Typography>
-                <Typography sx={{ fontSize: 15, fontWeight: 600, color: c.neutralSecondary, width: 52, fontVariantNumeric: 'tabular-nums' }}>
-                  • {d.pct}%
-                </Typography>
-                <Icon icon='mdi:chevron-right' fontSize={18} color={c.Outline} />
-              </Box>
-            ))}
-          </Box>
-        </SectionCard>
-
-        <SectionCard
-          title='Hatchability Over Time'
-          titleMb={2}
-          action={<TrendRangeTabs value={hatchRange} onPick={setHatchRange} color={theme.palette.primary.dark} />}
-        >
-          <TrendAreaChart
-            values={hatchTrend.map(d => d.pct)}
-            labels={hatchTrend.map(d => d.label)}
-            color={theme.palette.primary.main}
-            name='Hatchability'
-            unit='%'
-            height={250}
-            onPointClick={() => setSheet({ kind: 'trend' })}
-          />
-        </SectionCard>
-      </Box>
-
-      {/* ── per-female performance ── */}
-      <SectionCard
-        title={
-          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>
-            <Box component='span' sx={{ color: theme.palette.primary.dark }}>{s.laidFemales} of {s.totalFemales}</Box> females laid at least once{' '}
-            <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
-              • <Box component='span' sx={{ color: s.neverLaid ? c.Tertiary : c.neutralSecondary, fontWeight: s.neverLaid ? 700 : 500 }}>{s.neverLaid} laid nothing this season</Box>
             </Box>
-          </Typography>
-        }
-        titleMb={3}
-      >
-        {/* clutch buckets live ON the table they filter — chips, not a standalone chart */}
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 4 }}>
-          {bucketChips.map(ch => {
-            const active = bucket === ch.key
-
-            return (
-              <Box
-                key={ch.key}
-                onClick={() => setBucket(prev => (prev === ch.key ? null : ch.key))}
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1.25,
-                  px: 3,
-                  py: 1.25,
-                  borderRadius: '20px',
-                  border: `1px solid ${active ? theme.palette.primary.dark : c.OutlineVariant}`,
-                  backgroundColor: active ? `${theme.palette.primary.main}1A` : 'transparent',
-                  cursor: 'pointer',
-                  transition: 'all .15s ease',
-                  '&:hover': { borderColor: theme.palette.primary.dark }
-                }}
-              >
-                <Typography sx={{ fontSize: 15, fontWeight: 700, color: active ? theme.palette.primary.dark : c.OnSurfaceVariant }}>
-                  {BUCKET_LABEL[ch.key]}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 15, color: active ? theme.palette.primary.dark : c.neutralSecondary, fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {ch.n} • {bucketPct(ch.n)}%{ch.extra ?? ''}
-                </Typography>
-              </Box>
-            )
-          })}
+          ))}
         </Box>
+      </SectionCard>
+
+      {/* ── per-female performance — tabbed table (vaccination pattern): tabs in the title,
+          site dropdown + search in the action slot ── */}
+      <SectionCard
+        title={rosterTabs}
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <SiteFilterControl
+              sites={siteOpts as any}
+              sitesTotal={siteOpts.length}
+              tracked={s.totalFemales}
+              value={siteFilter}
+              onChange={pickSite}
+              overdueWord='overdue'
+              caption={(x: any) => `${x.n} females`}
+            />
+            <TableSearch value={q} onChange={setQ} placeholder='Search females…' />
+          </Box>
+        }
+        titleMb={2}
+      >
         <DetailTable
           columns={femaleCols}
           rows={femaleRows}
           total={roster.length}
-          rowHeight={112}
           paginationModel={pm}
           setPaginationModel={setPm}
           onRowClick={(p: any) => setOpenFemale(p.row)}
