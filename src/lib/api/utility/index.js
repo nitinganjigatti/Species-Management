@@ -2,7 +2,7 @@ import React from 'react'
 import axios from 'axios'
 import { readAsync } from '../../../lib/windows/utils'
 import wso2Client from 'src/lib/auth/wso2Client'
-import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { isPublicDemo, isWso2AuthEnabled } from 'src/lib/auth/authMode'
 
 // WSO2 CORS fix: in dev, use relative '/api/' so next.config.js rewrite proxies
 // to NEXT_PUBLIC_BASE_URL (avoids CORS when backend is on a different origin,
@@ -32,7 +32,10 @@ apiClient.interceptors.response.use(
     const isSessionExpiredExempt = SESSION_EXPIRED_EXEMPT_URLS.some(suffix => url.includes(suffix))
 
     if (error.response?.status === 401) {
-      if (!isLoggingOut && !isLoginPage && !isSessionExpiredExempt) {
+      // Public demo has no real backend session — every live-API call 401s. Logging out on
+      // those bounces login ↔ dashboard forever (demo re-seeds on each load), so never
+      // trigger the session-expired flow in demo mode.
+      if (!isLoggingOut && !isLoginPage && !isSessionExpiredExempt && !isPublicDemo()) {
         isLoggingOut = true
         window.dispatchEvent(new Event('session-expired'))
       }

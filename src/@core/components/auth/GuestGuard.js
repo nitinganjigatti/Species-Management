@@ -10,7 +10,7 @@ import { useAuth } from 'src/hooks/useAuth'
 // ** WSO2 Auth Client + Flag
 import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 import client from 'src/lib/auth/wso2Client'
-import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { isPublicDemo, isWso2AuthEnabled } from 'src/lib/auth/authMode'
 
 const GuestGuard = props => {
   const { children, fallback } = props
@@ -33,7 +33,9 @@ const GuestGuard = props => {
       : !!window.localStorage.getItem('userData')
 
     if (hasSession) {
-      router.replace('/')
+      // Public demo: only the Species Management module has bundled data — land there,
+      // not on the backend-dependent home dashboard.
+      router.replace(isPublicDemo() ? '/species-management/dashboard-2' : '/')
     }
   }, [router.isReady, router.route, status, wso2])
 
