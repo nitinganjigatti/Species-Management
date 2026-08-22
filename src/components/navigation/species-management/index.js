@@ -24,6 +24,12 @@ const composeSpeciesManagementNavigation = () => {
         path: '/species-management/list-2',
         icon: 'mdi:format-list-bulleted-square',
         activeWhen: ['/species-management/list-2']
+      },
+      {
+        title: 'iPad 1',
+        path: '/species-management/ipad-1/dashboard',
+        icon: 'mdi:tablet',
+        activeWhen: ['/species-management/ipad-1']
       }
 
       // Version-3 items hidden (2026-08-04) — uncomment to bring them back, pages still exist.
