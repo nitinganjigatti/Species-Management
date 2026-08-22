@@ -15,7 +15,7 @@ import authConfig from 'src/configs/auth'
 
 // ** WSO2 Auth Client
 import client from 'src/lib/auth/wso2Client'
-import { isPublicDemo, isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { isPublicDemo, isWso2AuthEnabled, isWso2DevIgnoreExpiry } from 'src/lib/auth/authMode'
 import { hydrateBackendSession } from 'src/lib/auth/wso2Hydrate'
 import Wso2SessionWatcher from 'src/components/wso-auth/Wso2SessionWatcher'
 
@@ -174,6 +174,24 @@ const AuthProvider = ({ children }) => {
           return
         }
       } else {
+        // TEMPORARY (2026-08-21): dev escape hatch — the dev WSO2 tenant kills
+        // tokens ~150s after login, so every page refresh lands here. If a
+        // backend session is still stored, restore it instead of bouncing to
+        // /login; a genuinely dead backend JWT will 401 → interceptor → real
+        // logout. Remove together with isWso2DevIgnoreExpiry (authMode.js).
+        if (isWso2DevIgnoreExpiry()) {
+          const storedUser = read('userData')
+          const storedDetails = read('userDetails')
+          if (storedUser && storedDetails?.token && storedDetails.token !== 'demo-token') {
+            console.warn('[AuthContext] WSO2 tokens dead — restoring session from stored backend JWT (dev escape hatch)')
+            await reconcilePharmacy(storedDetails)
+            setUser({ ...storedUser })
+            setUserData({ ...storedDetails })
+            setLoading(false)
+
+            return
+          }
+        }
         setLoading(false)
         const path = router.pathname || ''
         if (!path.includes('login') && !path.includes('callback') && !path.includes('forgot-password')) {

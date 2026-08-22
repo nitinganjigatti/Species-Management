@@ -1,5 +1,9 @@
 'use client'
 
+// TEMPORARY (2026-08-21): dev-only auth black-box recorder — self-guarded to
+// NODE_ENV=development; remove this import once the session-expiry bug is fixed.
+import 'src/lib/dev/authEventLogger'
+
 import { ReactNode, useEffect } from 'react'
 
 // ** Emotion SSR registry (App Router) — supplies the Emotion cache AND flushes inserted

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 import client, { setDailyExpiryWarningHandler } from 'src/lib/auth/wso2Client'
+import { isWso2DevIgnoreExpiry } from 'src/lib/auth/authMode'
 import { useAuth } from 'src/hooks/useAuth'
 
 // Mounted once at the AuthProvider root.
@@ -34,6 +35,13 @@ const Wso2SessionWatcher = () => {
   // reference is never held after this component is destroyed.
   useEffect(() => {
     setDailyExpiryWarningHandler(() => {
+      // TEMPORARY (2026-08-21): dev tenant has broken (2.5-min) token lifetimes —
+      // don't force-logout on WSO2 expiry when the dev escape hatch is on.
+      if (isWso2DevIgnoreExpiry()) {
+        console.warn('[Wso2SessionWatcher] WSO2 daily-expiry ignored (dev escape hatch)')
+
+        return
+      }
       localStorage.setItem('logout_reason', 'session_expired')
       authLogout()
     })
@@ -47,6 +55,13 @@ const Wso2SessionWatcher = () => {
   // SDK has already cleared antz_auth_* tokens before this fires.
   useAntzAuth(client, {
     onSessionExpired: () => {
+      // TEMPORARY (2026-08-21): see isWso2DevIgnoreExpiry — keep the app session
+      // alive on the backend JWT while dev WSO2 tokens die every ~150s.
+      if (isWso2DevIgnoreExpiry()) {
+        console.warn('[Wso2SessionWatcher] WSO2 session expiry ignored (dev escape hatch)')
+
+        return
+      }
       localStorage.setItem('logout_reason', 'session_expired')
       authLogout()
     }

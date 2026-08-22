@@ -20,7 +20,7 @@ import ChatLauncher from 'src/components/chat/ChatLauncher'
 
 // ** WSO2 Auth Client + Flag
 import client from 'src/lib/auth/wso2Client'
-import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { isWso2AuthEnabled, isWso2DevIgnoreExpiry } from 'src/lib/auth/authMode'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -59,6 +59,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (status === 'authenticated') {
       wasAuthRef.current = true
     } else if (status === 'unauthenticated' && wasAuthRef.current && !firedRef.current) {
+      // TEMPORARY (2026-08-21): dev escape hatch — WSO2 dev tenant kills tokens
+      // every ~150s; keep the app running on the backend JWT (see authMode.js).
+      if (isWso2DevIgnoreExpiry()) return
       firedRef.current = true
       toast.error('Your session has expired. Please log in again.', { duration: 2500 })
       auth.logout()
