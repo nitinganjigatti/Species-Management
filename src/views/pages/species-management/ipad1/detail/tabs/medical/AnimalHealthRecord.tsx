@@ -399,26 +399,37 @@ const AnimalHealthRecord: React.FC<{
             </IconButton>
           </Box>
 
-          {/* KPI strip */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3, px: 6, pb: 5 }}>
+          {/* KPI strip — pinned repeat(4,1fr) in BOTH orientations (stat bands never wrap) */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 3, px: 6, pb: 5 }}>
             {kpi(data.active.length, 'Active conditions', data.active.length > 0)}
             {kpi(data.overdue.length, 'Overdue care', data.overdue.length > 0)}
             {kpi(data.resolved.length, 'Resolved')}
             {kpi(data.lastUpdate ? fmtDate(data.lastUpdate.date) : '—', 'Last update')}
           </Box>
 
-          {/* body */}
+          {/* body — orientation-driven: landscape keeps the rail | timeline columns,
+              portrait stacks them as two independently-scrolling rows (rail on top) */}
           <Box
             sx={{
               flex: 1,
               overflow: 'hidden',
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '340px 1fr' },
-              borderTop: `1px solid ${c.SurfaceVariant}`
+              gridTemplateColumns: '1fr',
+              gridTemplateRows: 'minmax(0, 5fr) minmax(0, 7fr)',
+              borderTop: `1px solid ${c.SurfaceVariant}`,
+              '@media (orientation: landscape)': { gridTemplateColumns: '340px 1fr', gridTemplateRows: '1fr' }
             }}
           >
             {/* action column */}
-            <Box sx={{ overflowY: 'auto', px: 5, py: 4, borderRight: { md: `1px solid ${c.SurfaceVariant}` } }}>
+            <Box
+              sx={{
+                overflowY: 'auto',
+                px: 5,
+                py: 4,
+                borderBottom: `1px solid ${c.SurfaceVariant}`,
+                '@media (orientation: landscape)': { borderBottom: 'none', borderRight: `1px solid ${c.SurfaceVariant}` }
+              }}
+            >
               {sectionHead('mdi:heart-pulse', 'Active now', data.active.length, c.Tertiary)}
               {data.activeSymptoms.length > 0 && (
                 <>
@@ -519,7 +530,14 @@ const AnimalHealthRecord: React.FC<{
                   size='small'
                   value={tab}
                   onChange={ev => setTab(ev.target.value as typeof tab)}
-                  sx={{ minWidth: 280, borderRadius: '10px', fontSize: '16px', '& .MuiSelect-select': { py: 2 } }}
+                  sx={{
+                    minWidth: 280,
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    '& .MuiSelect-select': { py: 2 },
+                    // portrait: the filter spans the full timeline width (two-row header grammar)
+                    '@media (orientation: portrait)': { width: '100%' }
+                  }}
                 >
                   {(
                     [

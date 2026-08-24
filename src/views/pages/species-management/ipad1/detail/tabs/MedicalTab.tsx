@@ -1041,6 +1041,7 @@ const MostUsedSection: React.FC<{
 }> = ({ prog, w, months, icon, siteCaption, showLate = true }) => {
   const theme = useTheme() as any
   const c = cc(theme)
+  const portrait = useMediaQuery('(orientation: portrait)')
   const [selName, setSelName] = useState<string | null>(null)
   const [range, setRange] = useState<RangeSelection>({ preset: 'last_1y', start: null, end: null })
   const [site, setSite] = useState<string | null>(null)
@@ -1078,22 +1079,42 @@ const MostUsedSection: React.FC<{
 
   const n = Math.min(presetMonths(range.preset, months.length), months.length)
 
+  // Two-row portrait header (shipped grammar): title row, then the site filter +
+  // date range spread across a full-width controls row. Landscape keeps one row.
+  const siteCtl = (
+    <SiteFilterControl
+      sites={(prog.sites ?? []) as unknown as PreventiveTypeSite[]}
+      sitesTotal={(prog.sites ?? []).length}
+      tracked={prog.summary.animalsTracked}
+      value={site}
+      onChange={setSite}
+      overdueWord={w.overdueWord}
+      caption={siteCaption}
+    />
+  )
+  const rangeCtl = <DashboardDateRange value={range} onChange={setRange} presets={MOST_USED_PRESETS} />
+  const stackedHeader = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+      <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600 }}>
+        {`Most Used ${w.typeCol}s`}
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%' }}>
+        {siteCtl}
+        {rangeCtl}
+      </Box>
+    </Box>
+  )
+
   return (
     <SectionCard
-      title={`Most Used ${w.typeCol}s`}
+      title={portrait ? stackedHeader : `Most Used ${w.typeCol}s`}
       action={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <SiteFilterControl
-            sites={(prog.sites ?? []) as unknown as PreventiveTypeSite[]}
-            sitesTotal={(prog.sites ?? []).length}
-            tracked={prog.summary.animalsTracked}
-            value={site}
-            onChange={setSite}
-            overdueWord={w.overdueWord}
-            caption={siteCaption}
-          />
-          <DashboardDateRange value={range} onChange={setRange} presets={MOST_USED_PRESETS} />
-        </Box>
+        portrait ? undefined : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {siteCtl}
+            {rangeCtl}
+          </Box>
+        )
       }
       titleMb={3}
     >
@@ -2885,6 +2906,7 @@ const RxMonthDrawer: React.FC<{
  *  list → dose dates. No schedule concepts — the frame is who got it, how much, how recently. */
 const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () => void }> = ({ med, rx, onBack }) => {
   const { txt, animalCell, c, theme } = useCells()
+  const portrait = useMediaQuery('(orientation: portrait)')
   const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
   const [q, setQ] = useState('')
   const [drill, setDrill] = useState<PreventiveTypeAnimal | null>(null)
@@ -2981,16 +3003,20 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
         />
       </SectionCard>
 
+      {/* Portrait: title row, then full-width search (shipped two-row grammar). */}
       <SectionCard
         title={
-          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>
-            Animals{' '}
-            <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
-              • {med.tracked.toLocaleString()}
-            </Box>
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: portrait ? 'column' : 'row', gap: 4, width: portrait ? '100%' : undefined, minWidth: 0 }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              Animals{' '}
+              <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
+                • {med.tracked.toLocaleString()}
+              </Box>
+            </Typography>
+            {portrait && <TableSearch value={q} onChange={onQ} placeholder='Search animals…' grow />}
+          </Box>
         }
-        action={<TableSearch value={q} onChange={onQ} placeholder='Search animals…' />}
+        action={portrait ? undefined : <TableSearch value={q} onChange={onQ} placeholder='Search animals…' />}
         titleMb={3}
       >
         {rows.length ? (
@@ -3019,6 +3045,7 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
  *  first) + Most Used trend. Cure frame — usage and recency, no coverage/overdue columns. */
 const PrescriptionIndex: React.FC<{ rx: RxProgram; onPick: (name: string) => void }> = ({ rx, onPick }) => {
   const { txt, c } = useCells()
+  const portrait = useMediaQuery('(orientation: portrait)')
   const [q, setQ] = useState('')
   const [statusSheet, setStatusSheet] = useState<RxSheetTab | null>(null)
 
@@ -3115,16 +3142,20 @@ const PrescriptionIndex: React.FC<{ rx: RxProgram; onPick: (name: string) => voi
         />
       </StatsRow>
       <RxStatusSheet openTab={statusSheet} rx={rx} onClose={() => setStatusSheet(null)} />
+      {/* Portrait: title row, then full-width search (shipped two-row grammar). */}
       <SectionCard
         title={
-          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>
-            Medicines{' '}
-            <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
-              • {rx.medicines.length}
-            </Box>
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: portrait ? 'column' : 'row', gap: 4, width: portrait ? '100%' : undefined, minWidth: 0 }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              Medicines{' '}
+              <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
+                • {rx.medicines.length}
+              </Box>
+            </Typography>
+            {portrait && <TableSearch value={q} onChange={setQ} placeholder='Search medicines…' grow />}
+          </Box>
         }
-        action={<TableSearch value={q} onChange={setQ} placeholder='Search medicines…' />}
+        action={portrait ? undefined : <TableSearch value={q} onChange={setQ} placeholder='Search medicines…' />}
         titleMb={3}
       >
         {rows.length ? (
@@ -3294,6 +3325,7 @@ const ClinicalMergedPanel: React.FC<{
 }> = ({ symptoms, diagnosis, range }) => {
   const { txt, animalCell, c, theme } = useCells()
   const tagColors = medTagMap(c)
+  const portrait = useMediaQuery('(orientation: portrait)')
 
   // table scoping
   const [domainTab, setDomainTab] = useState<DomainTab>('all')
@@ -3610,7 +3642,7 @@ const ClinicalMergedPanel: React.FC<{
   ]
   const accents: Record<DomainTab, string> = { all: c.OnSurfaceVariant, symptom: c.Tertiary, assessment: theme.palette.secondary.main }
   const domainTabs = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', minWidth: 0, ...thinScrollbarSx(theme) }}>
       {DOMAIN_TABS.map(m => {
         const active = domainTab === m.key
         const accent = accents[m.key]
@@ -3629,6 +3661,7 @@ const ClinicalMergedPanel: React.FC<{
               alignItems: 'center',
               gap: 1.25,
               py: 0.5,
+              flexShrink: 0,
               borderBottom: '2.5px solid',
               borderColor: active ? accent : 'transparent',
               cursor: 'pointer',
@@ -3675,30 +3708,45 @@ const ClinicalMergedPanel: React.FC<{
 
   // All tab: Animal-wise only, no dropdowns — just search. Symptoms tab: Severity dropdown;
   // Assessments tab: Prognosis dropdown; both domain tabs keep the Animal/Record toggle.
+  // Landscape: tabs left, controls right (one row). Portrait: tabs row, then full-width
+  // search running into the right-aligned dropdown + toggle (shipped two-row grammar).
+  const levelCtl =
+    domainTab === 'symptom' ? (
+      <CategoryFilter
+        options={SEVERITY_ORDER}
+        value={sevFilter}
+        onChange={onSev}
+        width={165}
+        placeholder='Severity'
+        icon={DOMAIN_META.symptom.icon}
+      />
+    ) : domainTab === 'assessment' ? (
+      <CategoryFilter
+        options={[...PROGNOSIS_ORDER].reverse()}
+        value={progFilter}
+        onChange={onProg}
+        width={180}
+        placeholder='Prognosis'
+        icon={DOMAIN_META.assessment.icon}
+      />
+    ) : null
+  const toggleCtl = domainTab !== 'all' && <ViewToggle view={view} onChange={setView} />
+  const searchCtl = <TableSearch value={q} onChange={onQ} placeholder='Search animal, site…' grow={portrait} />
   const tableAction = (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-      {domainTab === 'symptom' && (
-        <CategoryFilter
-          options={SEVERITY_ORDER}
-          value={sevFilter}
-          onChange={onSev}
-          width={165}
-          placeholder='Severity'
-          icon={DOMAIN_META.symptom.icon}
-        />
-      )}
-      {domainTab === 'assessment' && (
-        <CategoryFilter
-          options={[...PROGNOSIS_ORDER].reverse()}
-          value={progFilter}
-          onChange={onProg}
-          width={180}
-          placeholder='Prognosis'
-          icon={DOMAIN_META.assessment.icon}
-        />
-      )}
-      {domainTab !== 'all' && <ViewToggle view={view} onChange={setView} />}
-      <TableSearch value={q} onChange={onQ} placeholder='Search animal, site…' />
+      {levelCtl}
+      {toggleCtl}
+      {searchCtl}
+    </Box>
+  )
+  const stackedTableHeader = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+      {domainTabs}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+        {searchCtl}
+        {levelCtl}
+        {toggleCtl}
+      </Box>
     </Box>
   )
 
@@ -3789,7 +3837,7 @@ const ClinicalMergedPanel: React.FC<{
 
       {/* Row 3 · ONE combined table */}
       <Box ref={tableRef}>
-        <SectionCard title={domainTabs} action={tableAction} titleMb={2}>
+        <SectionCard title={portrait ? stackedTableHeader : domainTabs} action={portrait ? undefined : tableAction} titleMb={2}>
           {filterChipsRow}
           {view === 'animal' ? (
             <DetailTable

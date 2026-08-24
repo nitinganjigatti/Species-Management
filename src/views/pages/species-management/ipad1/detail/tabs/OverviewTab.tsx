@@ -289,6 +289,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
           }}
         >
           <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+            {/* divider between the two rows — slides in with the row itself */}
             <Box
               sx={{
                 display: 'flex',
@@ -296,7 +297,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
                 flexWrap: 'wrap',
                 rowGap: { xs: 2, md: 2.5 },
                 columnGap: '48px',
+                mt: 3,
                 pt: 3,
+                borderTop: `1px solid ${cc.SurfaceVariant}`,
                 '& .MuiInputBase-root': { height: CTRL_H },
                 '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
                 '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
