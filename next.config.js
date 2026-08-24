@@ -9,6 +9,9 @@ const pkg = require('./package.json')
 
 module.exports = {
   transpilePackages: ['@antzsoft/wso2-auth-web'],
+  // Dev-only: lets devices on the LAN (iPad design review) load /_next/* assets;
+  // Next 15 blocks cross-origin dev resources by default. Ignored in production.
+  allowedDevOrigins: ['192.168.0.120'],
   // Isolated build dir for a throwaway QA server (defaults to .next → no-op in normal use).
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Single source of truth for the app version: package.json. The sidebar

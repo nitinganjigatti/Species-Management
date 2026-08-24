@@ -16,6 +16,10 @@
  *   With a 15-min access token TTL, polling adds no meaningful benefit.
  */
 
+// DEV-LAN (2026-08-24): must load before any client.login() call — polyfills
+// crypto.subtle.digest for plain-HTTP LAN origins (iPad review). No-op otherwise.
+import './insecureContextShims'
+
 import { AntzAuthClient } from '@antzsoft/wso2-auth-web'
 
 // --- v1.4.5: daily expiry handler bridge ---

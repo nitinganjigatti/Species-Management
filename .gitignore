@@ -51,3 +51,4 @@ docs/superpowers/*
 # dev screenshot harness output
 .screenshots/
 .dev-authlog.jsonl
+.dev-session.json
