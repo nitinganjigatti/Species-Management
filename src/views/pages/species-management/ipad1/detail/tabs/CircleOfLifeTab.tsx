@@ -9,6 +9,7 @@ import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import SpeciesFilterSheet from 'src/views/pages/species-management/ipad1/SpeciesFilterSheet'
 import type {
   CircleSubTab,
   LifecycleBirth,
@@ -1789,7 +1790,16 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
 
       <ListSheet view={sheet} onClose={() => setSheet(null)} />
 
-      <MoreFiltersDrawer open={filterOpen} onClose={() => setFilterOpen(false)} facets={facets} selected={extra} onApply={setExtra} />
+      {/* Other Filters — same Diet-style filter sheet as the listing (one component everywhere);
+          MoreFiltersDrawer above is kept dormant as the previous side-sheet copy. */}
+      <SpeciesFilterSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        title='Other Filters'
+        sections={facets.map(f => ({ key: f.key, label: f.label, options: f.options.map(o => ({ value: o.value, label: o.value, count: o.count })) }))}
+        selected={extra}
+        onApply={setExtra}
+      />
     </Box>
   )
 }

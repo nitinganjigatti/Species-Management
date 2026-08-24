@@ -1391,7 +1391,8 @@ export const Pill: React.FC<{ label: React.ReactNode; onClick?: () => void; icon
 
 /** PLATFORM-STANDARD applied-filter chip: bare outlined pill — NO fill, NO leading icon —
  *  with a trailing ✕ that clears just this filter. Every "selected filter" chip anywhere in
- *  the app must be this component (never Pill, never a hand-rolled Box). */
+ *  the app must be this component (never Pill, never a hand-rolled Box).
+ *  iPad sizing: tap-target scale — 32px tall, roomy side padding, 18px ✕. */
 export const FilterChip: React.FC<{ label: React.ReactNode; onClear: () => void }> = ({ label, onClear }) => {
   const theme = useTheme() as any
 
@@ -1400,18 +1401,18 @@ export const FilterChip: React.FC<{ label: React.ReactNode; onClear: () => void 
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 1,
-        px: 1.5,
-        py: 0.5,
-        borderRadius: '16px',
+        gap: 1.5,
+        px: 3,
+        minHeight: 32,
+        borderRadius: '999px',
         border: `1px solid ${cc(theme).OutlineVariant}`,
         color: cc(theme).OnSurfaceVariant
       }}
     >
-      <Typography variant='caption'>{label}</Typography>
+      <Typography variant='body2'>{label}</Typography>
       <Icon
         icon='mdi:close'
-        fontSize={14}
+        fontSize={18}
         style={{ cursor: 'pointer', color: cc(theme).Outline, flexShrink: 0 }}
         onClick={onClear}
         role='button'

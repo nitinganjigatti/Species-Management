@@ -373,6 +373,13 @@ const IpadListingContainer = () => {
     })
   }, [filterOptions, allRows, appliedFilters])
 
+  // Bulk apply from the filter sheet (Diet-style CustomFilterDrawer fork) — replaces the
+  // whole facet selection in one shot; the sheet stages its own draft until Apply.
+  const handleApplyFilters = useCallback((sel: Record<string, string[]>) => {
+    setAppliedFilters({ ...EMPTY_FILTERS, ...(sel as Partial<SpeciesFilters>) })
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }, [])
+
   const handleToggleFacet = useCallback((key: keyof SpeciesFilters, value: string) => {
     setAppliedFilters(prev => {
       const current = prev[key]
@@ -512,6 +519,7 @@ const IpadListingContainer = () => {
         filterSections={majorFilters}
         appliedFilters={appliedFilters}
         onToggleFacet={handleToggleFacet}
+        onApplyFilters={handleApplyFilters}
         analysis={analysis}
         analysisYears={analysisYears}
         onAnalysisChange={handleAnalysisChange}

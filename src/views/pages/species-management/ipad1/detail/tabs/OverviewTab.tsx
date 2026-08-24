@@ -17,12 +17,12 @@ import {
 import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/ipad1/dashboard/DashboardDateRange'
 import {
   GenderFilter,
-  MoreFiltersDrawer,
   RangeSelect,
   makeMatcher,
   CTRL_H,
   type FacetDef
 } from 'src/views/pages/species-management/ipad1/detail/tabs/CircleOfLifeTab'
+import SpeciesFilterSheet from 'src/views/pages/species-management/ipad1/SpeciesFilterSheet'
 import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-management/ipad1/list/speciesListing.utils'
 import type {
   SpeciesDetailHeader,
@@ -404,7 +404,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
         </>
       )}
 
-      <MoreFiltersDrawer open={filterOpen} onClose={() => setFilterOpen(false)} facets={facets} selected={extra} onApply={setExtra} />
+      {/* Other Filters — same Diet-style filter sheet as the listing (one component everywhere). */}
+      <SpeciesFilterSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        title='Other Filters'
+        sections={facets.map(f => ({ key: f.key, label: f.label, options: f.options.map(o => ({ value: o.value, label: o.value, count: o.count })) }))}
+        selected={extra}
+        onApply={setExtra}
+      />
     </Box>
   )
 }

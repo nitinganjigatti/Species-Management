@@ -3,9 +3,10 @@
 // iPad build of the species listing view — rail shows by orientation (landscape), not viewport width.
 
 import React, { useState } from 'react'
-import { Box, Button, Card, Drawer, IconButton, Typography } from '@mui/material'
+import { Box, Button, Card, Drawer, IconButton, Typography, useMediaQuery } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { alpha, useTheme } from '@mui/material/styles'
+import SpeciesFilterSheet from 'src/views/pages/species-management/ipad1/SpeciesFilterSheet'
 import type { GridColDef } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
@@ -49,6 +50,7 @@ interface SpeciesListingViewProps {
   filterSections: MajorFilterRow[]
   appliedFilters: SpeciesFilters
   onToggleFacet: (key: keyof SpeciesFilters, value: string) => void
+  onApplyFilters: (sel: Record<string, string[]>) => void
   analysis: AnalysisFilter
   analysisYears: number[]
   onAnalysisChange: (next: AnalysisFilter) => void
@@ -75,6 +77,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   filterSections,
   appliedFilters,
   onToggleFacet,
+  onApplyFilters,
   analysis,
   analysisYears,
   onAnalysisChange
@@ -82,7 +85,13 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   const theme = useTheme()
   const cc = theme.palette.customColors as Record<string, string>
   const filtered = posture.species !== posture.totalSpecies
+  const portrait = useMediaQuery('(orientation: portrait)')
+
+  // Legacy rail-copy drawer — kept dormant (the Filters button now opens the filter sheet).
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  // Diet-style filter sheet (portrait bottom sheet / landscape side sheet).
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   // Colorful equal-width stat box (Option A palette — all theme tokens). Tinted fill + accent figure.
   const statBox = (value: number, label: string, accent: string, bg: string, border: string, sub?: string) => (
@@ -114,20 +123,57 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
     </Box>
   )
 
-  // Persistent applied-filter chips — value-only pills + Clear all (mirrors the rail's selections).
+  // The Filters button (portrait only). Standalone above the results until filters are
+  // applied; once chips exist it moves INTO the white chips card, anchoring the left.
+  const filtersButton = (
+    <Button
+      variant='outlined'
+      startIcon={<Icon icon='mdi:filter-variant' />}
+      onClick={() => setFilterSheetOpen(true)}
+      sx={{
+        textTransform: 'none',
+        fontWeight: 500,
+        color: cc.OnSurfaceVariant,
+        borderColor: cc.OutlineVariant,
+        whiteSpace: 'nowrap',
+        // same height as FilterChip so the first chip row centers with the button
+        height: 32
+      }}
+    >
+      Filters{chips.length > 0 ? ` · ${chips.length}` : ''}
+    </Button>
+  )
+
+  // Applied-filter chips card content — button column (never wraps with the chips) +
+  // hairline divider, then the chips + Clear all wrapping in their own tray.
   const chipRow = (
-    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-      {chips.map(chip => (
-        <FilterChip key={chip.id} label={chip.label} onClear={chip.onRemove} />
-      ))}
-      <Button
-        variant='text'
-        size='small'
-        onClick={onResetAll}
-        sx={{ color: cc.Tertiary, fontWeight: 600, textTransform: 'none', minWidth: 'auto' }}
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
+      <Box
+        sx={{
+          display: 'none',
+          '@media (orientation: portrait)': { display: 'flex' },
+          alignItems: 'flex-start',
+          gap: 3,
+          flexShrink: 0,
+          alignSelf: 'stretch'
+        }}
       >
-        Clear all
-      </Button>
+        {filtersButton}
+        <Box sx={{ width: '1px', alignSelf: 'stretch', bgcolor: cc.SurfaceVariant }} />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, flex: 1, minWidth: 0 }}>
+        {chips.map(chip => (
+          <FilterChip key={chip.id} label={chip.label} onClear={chip.onRemove} />
+        ))}
+        <Button
+          variant='text'
+          size='small'
+          onClick={onResetAll}
+          sx={{ color: cc.Tertiary, fontWeight: 600, textTransform: 'none', minWidth: 'auto' }}
+        >
+          Clear all
+        </Button>
+      </Box>
     </Box>
   )
 
@@ -218,27 +264,11 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
 
           {/* Right column */}
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {/* Mobile: open the rail as a drawer */}
-            <Button
-              variant='outlined'
-              startIcon={<Icon icon='mdi:filter-variant' />}
-              onClick={() => setMobileFiltersOpen(true)}
-              sx={{
-                display: 'inline-flex',
-                '@media (orientation: landscape)': { display: 'none' },
-                alignSelf: 'flex-start',
-                textTransform: 'none',
-                fontWeight: 500,
-                color: cc.OnSurfaceVariant,
-                borderColor: cc.OutlineVariant
-              }}
-            >
-              Filters{chips.length > 0 ? ` · ${chips.length}` : ''}
-            </Button>
-
-            {/* Persistent chip summary row — pinned above results */}
+            {/* Filters entry: bare button until something is applied (no empty white strip);
+                the white chips card appears — with the button inside — once chips exist. */}
+            {portrait && chips.length === 0 && <Box sx={{ alignSelf: 'flex-start' }}>{filtersButton}</Box>}
             {chips.length > 0 && (
-              <Card sx={{ px: 4, py: 2.5, position: 'sticky', top: 16, zIndex: 6 }}>{chipRow}</Card>
+              <Card sx={{ p: 4, position: 'sticky', top: 16, zIndex: 6 }}>{chipRow}</Card>
             )}
 
             {/* Results header + table */}
@@ -324,7 +354,18 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
         </Box>
       </Box>
 
-      {/* Mobile filter drawer */}
+      {/* Diet-style filter sheet — portrait bottom sheet / landscape side sheet. Sections
+          mirror the rail facets (same options + counts). Apply commits the whole draft. */}
+      <SpeciesFilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        sections={filterSections.map(s => ({ key: s.key as string, label: s.label, options: s.options }))}
+        selected={appliedFilters as unknown as Record<string, string[]>}
+        onApply={onApplyFilters}
+      />
+
+      {/* Legacy mobile filter drawer (rail copy) — kept dormant; nothing opens it since the
+          Filters button switched to the filter sheet above. */}
       <Drawer
         anchor='left'
         open={mobileFiltersOpen}
