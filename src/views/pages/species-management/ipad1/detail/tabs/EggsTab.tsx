@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Box, Drawer, Typography } from '@mui/material'
+import { Box, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import type { SpeciesEggs } from 'src/types/species-management/detail'
@@ -21,7 +21,9 @@ import {
   StatTile,
   StatusChip,
   TrendAreaChart,
-  ListSheet
+  ListSheet,
+  SheetDrawer,
+  thinScrollbarSx
 } from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import type { ListRow, SheetView } from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { SiteFilterControl, TableSearch } from 'src/views/pages/species-management/ipad1/detail/tabs/MedicalTab'
@@ -160,7 +162,7 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
   const wt = detail?.weightTrack
 
   return (
-    <Drawer anchor='right' open={!!row} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
+    <SheetDrawer open={!!row} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
       {row && (
         <Sheet>
           <SheetHeader
@@ -247,7 +249,7 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -257,6 +259,9 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
 const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s }) => {
   const theme = useTheme() as any
   const c = cc(theme)
+
+  // Portrait: roster tabs + site filter + search stack as two rows (Medical-tab pattern).
+  const portrait = useMediaQuery('(orientation: portrait)')
   const [openFemale, setOpenFemale] = useState<FemaleRow | null>(null)
   const [rosterTab, setRosterTabRaw] = useState<'all' | 'none' | 'one' | 'twoPlus'>('all')
   const [q, setQRaw] = useState('')
@@ -517,7 +522,8 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
 
   /* roster tabs — vaccination statusTabs pattern: tabs in the card title slot, per-tab underline */
   const rosterTabs = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+    // Never wraps: one row, overflow scrolls (the kit's underline-tab pattern).
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', ...thinScrollbarSx(theme) }}>
       {[
         { key: 'all' as const, label: 'All Females', n: s.totalFemales, accent: theme.palette.primary.dark },
         { key: 'none' as const, label: 'Laid Nothing', n: s.neverLaid, accent: c.Tertiary },
@@ -532,7 +538,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             onClick={() => setRosterTab(t.key)}
             role='tab'
             aria-selected={active}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, borderBottom: '2.5px solid', borderColor: active ? t.accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? t.accent : c.OutlineVariant } }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, flexShrink: 0, borderBottom: '2.5px solid', borderColor: active ? t.accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? t.accent : c.OutlineVariant } }}
           >
             <Typography variant='body1' sx={{ fontWeight: 600, color: active ? t.accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
               {t.label}
@@ -691,22 +697,41 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
       </SectionCard>
 
       {/* ── per-female performance — tabbed table (vaccination pattern): tabs in the title,
-          site dropdown + search in the action slot ── */}
-      <SectionCard
-        title={rosterTabs}
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <SiteFilterControl
-              sites={siteOpts as any}
-              sitesTotal={siteOpts.length}
-              tracked={s.totalFemales}
-              value={siteFilter}
-              onChange={pickSite}
-              overdueWord='overdue'
-              caption={(x: any) => `${x.n} females`}
-            />
-            <TableSearch value={q} onChange={setQ} placeholder='Search females…' />
+          site dropdown + search in the action slot. Landscape: one row. Portrait: tabs row,
+          then full-width search up to the right-aligned site filter. ── */}
+      {(() => {
+        const siteFilterCtl = (
+          <SiteFilterControl
+            sites={siteOpts as any}
+            sitesTotal={siteOpts.length}
+            tracked={s.totalFemales}
+            value={siteFilter}
+            onChange={pickSite}
+            overdueWord='overdue'
+            caption={(x: any) => `${x.n} females`}
+          />
+        )
+        const searchCtl = <TableSearch value={q} onChange={setQ} placeholder='Search females…' grow={portrait} />
+        const stackedHeader = (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+            {rosterTabs}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+              {searchCtl}
+              {siteFilterCtl}
+            </Box>
           </Box>
+        )
+
+        return (
+      <SectionCard
+        title={portrait ? stackedHeader : rosterTabs}
+        action={
+          portrait ? undefined : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {siteFilterCtl}
+              {searchCtl}
+            </Box>
+          )
         }
         titleMb={2}
       >
@@ -719,6 +744,8 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           onRowClick={(p: any) => setOpenFemale(p.row)}
         />
       </SectionCard>
+        )
+      })()}
 
       <FemaleDrawer speciesId={s.speciesId} className={s.className} row={openFemale} onClose={() => setOpenFemale(null)} />
       <ListSheet view={sheetView} onClose={() => setSheet(null)} />

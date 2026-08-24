@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Drawer, IconButton, MenuItem, TextField, Typography } from '@mui/material'
+import { Box, IconButton, MenuItem, TextField, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, CellText, DetailTable, EmptyState, StatusChip, SectionCard, sheetPaperSx } from 'src/views/pages/species-management/ipad1/detail/detailUi'
+import { AnimalCardList, CellText, DetailTable, EmptyState, StatusChip, SectionCard, sheetPaperSx , SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 
 const ANIMAL_ICON = '/images/housing/species-icon-colored.svg'
 
@@ -27,6 +27,10 @@ interface HousingTabProps {
 
 const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const theme = useTheme() as any
+
+  // Portrait: title + toggle + filter + search don't fit one header row — stack as
+  // two rows (title + right-aligned toggle / full-width search + right-aligned filter).
+  const portrait = useMediaQuery('(orientation: portrait)')
   const cc = theme.palette.customColors as Record<string, string>
   // Two stacked drill sheets: sheet 1 = a site's enclosures (table), sheet 2 = an enclosure's animals (cards).
   const [enclSheet, setEnclSheet] = useState<{ site: string } | null>(null)
@@ -195,33 +199,39 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       placeholder={isSite ? 'Search sites…' : 'Search enclosures…'}
       value={q}
       onChange={e => setQ(e.target.value)}
-      sx={{ width: 260, '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper } }}
+      sx={{
+        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
+        '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper }
+      }}
       InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
     />
   )
 
+  const enclFilterCtl = !isSite && (
+    <TextField
+      select
+      size='small'
+      value={enclFilter}
+      onChange={e => setEnclFilter(e.target.value as typeof enclFilter)}
+      sx={{ minWidth: 150, '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper } }}
+    >
+      <MenuItem value='all'>All</MenuItem>
+      <MenuItem value='single'>Single Sexed</MenuItem>
+      <MenuItem value='male'>Male only</MenuItem>
+      <MenuItem value='female'>Female only</MenuItem>
+      <MenuItem value='unsexed'>Unsexed only</MenuItem>
+    </TextField>
+  )
+
+  const titleText = `${isSite ? 'Sites' : 'Enclosures'} · ${filtered.length.toLocaleString()}`
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* One section: title + count (left) · Site/Enclosure toggle + search (right) */}
-      <SectionCard
-        title={`${isSite ? 'Sites' : 'Enclosures'} · ${filtered.length.toLocaleString()}`}
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            {!isSite && (
-              <TextField
-                select
-                size='small'
-                value={enclFilter}
-                onChange={e => setEnclFilter(e.target.value as typeof enclFilter)}
-                sx={{ minWidth: 150, '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper } }}
-              >
-                <MenuItem value='all'>All</MenuItem>
-                <MenuItem value='single'>Single Sexed</MenuItem>
-                <MenuItem value='male'>Male only</MenuItem>
-                <MenuItem value='female'>Female only</MenuItem>
-                <MenuItem value='unsexed'>Unsexed only</MenuItem>
-              </TextField>
-            )}
+      {/* One section. Landscape: title + count (left) · filter + Site/Enclosure toggle +
+          search (right). Portrait: title + right-aligned toggle, then full-width search
+          up to the right-aligned filter. */}
+      {(() => {
+        const viewToggle = (
             <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: 0.75, borderRadius: '999px', border: `1px solid ${cc.OutlineVariant}`, bgcolor: theme.palette.background.paper }}>
               {[
                 { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' },
@@ -252,8 +262,34 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
                 )
               })}
             </Box>
-            {search}
+        )
+
+        const stackedHeader = (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                {titleText}
+              </Typography>
+              {viewToggle}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+              {search}
+              {enclFilterCtl}
+            </Box>
           </Box>
+        )
+
+        return (
+      <SectionCard
+        title={portrait ? stackedHeader : titleText}
+        action={
+          portrait ? undefined : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {enclFilterCtl}
+              {viewToggle}
+              {search}
+            </Box>
+          )
         }
       >
         {filtered.length ? (
@@ -273,10 +309,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
           <EmptyState message={isSite ? 'No sites match your search' : 'No enclosures match your search'} />
         )}
       </SectionCard>
+        )
+      })()}
 
       {/* Sheet 1 — enclosures within a picked site (data table) */}
-      <Drawer
-        anchor='right'
+      <SheetDrawer
         open={!!enclSheet}
         onClose={() => setEnclSheet(null)}
         slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}
@@ -309,11 +346,10 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         ) : (
           <EmptyState message='No enclosures for this site' />
         )}
-      </Drawer>
+      </SheetDrawer>
 
       {/* Sheet 2 — stacked on top — the animals in one enclosure (shared AnimalCardList) */}
-      <Drawer
-        anchor='right'
+      <SheetDrawer
         open={!!animalSheet}
         onClose={() => setAnimalSheet(null)}
         sx={{ zIndex: theme.zIndex.modal + 4 }}
@@ -348,7 +384,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         ) : (
           <EmptyState message={sheetAnimals.length ? 'No animals match your search' : 'No animal records for this enclosure'} />
         )}
-      </Drawer>
+      </SheetDrawer>
     </Box>
   )
 }

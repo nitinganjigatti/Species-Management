@@ -7,7 +7,7 @@
  * default ANTZ avatar, name (+id), enclosure • site beneath.
  */
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Drawer, Tooltip, Typography } from '@mui/material'
+import { Box, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
   Sheet,
@@ -18,7 +18,7 @@ import {
   SheetSection,
   sheetPaperSx,
   SHEET_PX
-} from 'src/views/pages/species-management/ipad1/detail/detailUi'
+, SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { fmtDate, type SignalAnimal } from './signals'
 
 export interface SignalDrawerPayload {
@@ -248,8 +248,7 @@ const SignalDrawer: React.FC<{
   const tone = payload ? toneColors(c, theme, payload.tone) : null
 
   return (
-    <Drawer
-      anchor='right'
+    <SheetDrawer
       open={!!payload}
       onClose={onClose}
       PaperProps={{ sx: sheetPaperSx('md') }}
@@ -367,7 +366,7 @@ const SignalDrawer: React.FC<{
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 

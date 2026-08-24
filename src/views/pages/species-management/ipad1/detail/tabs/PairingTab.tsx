@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Drawer, IconButton, TextField, Typography } from '@mui/material'
+import { Box, IconButton, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, CellText, DetailTable, EmptyState, SectionCard, sheetPaperSx, useTone } from 'src/views/pages/species-management/ipad1/detail/detailUi'
+import { AnimalCardList, CellText, DetailTable, EmptyState, SectionCard, sheetPaperSx, SheetDrawer } from 'src/views/pages/species-management/ipad1/detail/detailUi'
 
 type Bucket = 'Both Sexes' | 'Needs Sexing' | 'Single Sex'
 type Tone = 'success' | 'warning' | 'error'
@@ -82,7 +82,7 @@ const EnclosureTableDrawer: React.FC<{
   const indexed = rows.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
 
   return (
-    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}>
+    <SheetDrawer open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={type}>
@@ -109,7 +109,7 @@ const EnclosureTableDrawer: React.FC<{
       ) : (
         <EmptyState message='No enclosures in this category' />
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -148,8 +148,7 @@ const EnclosureAnimalsDrawer: React.FC<{
   })
 
   return (
-    <Drawer
-      anchor='right'
+    <SheetDrawer
       open={open}
       onClose={onClose}
       sx={{ zIndex: theme.zIndex.modal + 4 }}
@@ -184,14 +183,13 @@ const EnclosureAnimalsDrawer: React.FC<{
       ) : (
         <EmptyState message={list.length ? 'No animals match your search' : 'No animal records for this enclosure'} />
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
-  const tones = useTone()
   const [drill, setDrill] = useState<string | null>(null) // readiness type → enclosure table
   const [encDrill, setEncDrill] = useState<{ site: string; enclosure: string } | null>(null) // enclosure → animals
 
@@ -229,14 +227,24 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <SectionCard title='Enclosure Readiness Breakdown'>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, columnGap: 12, rowGap: 4 }}>
-          {BUCKETS.map(b => {
+        {/* Portrait: the three groups stack full-width. Landscape: two columns as before.
+            Groups breathe (32px row gap) and each closes with a divider, except the last. */}
+        <Box
+          sx={{
+            display: 'grid',
+            columnGap: 12,
+            rowGap: 8,
+            gridTemplateColumns: '1fr',
+            '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+          }}
+        >
+          {BUCKETS.filter(b => rows.some(r => r.bucket === b.key)).map((b, idx, visible) => {
             const groupRows = rows.filter(r => r.bucket === b.key)
-            if (!groupRows.length) return null
             const groupMax = Math.max(1, ...groupRows.map(r => r.count))
+            const isLast = idx === visible.length - 1
 
             return (
-              <Box key={b.key}>
+              <Box key={b.key} sx={{ pb: isLast ? 0 : 6, borderBottom: isLast ? 'none' : `1px solid ${cc.SurfaceVariant}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette[b.tone]?.main || cc.Outline }} />
                   <Typography variant='caption' sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: cc.neutralSecondary }}>
@@ -265,7 +273,21 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                           </Box>
                         </Box>
                         <Box sx={{ height: 8, borderRadius: '4px', bgcolor: cc.SurfaceVariant }}>
-                          <Box sx={{ width: `${pct}%`, height: '100%', borderRadius: '4px', bgcolor: tones(r.tone).fg }} />
+                          {/* Bars match the group-dot hues — the kit tone map sends warning AND
+                              error to the same coral, which made Needs Sexing ≡ Single Sex. */}
+                          <Box
+                            sx={{
+                              width: `${pct}%`,
+                              height: '100%',
+                              borderRadius: '4px',
+                              bgcolor:
+                                r.tone === 'warning'
+                                  ? theme.palette.warning.main
+                                  : r.tone === 'success'
+                                    ? theme.palette.primary.dark
+                                    : cc.Tertiary
+                            }}
+                          />
                         </Box>
                       </Box>
                     )

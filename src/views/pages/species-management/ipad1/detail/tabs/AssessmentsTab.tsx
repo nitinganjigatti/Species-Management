@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, IconButton, Drawer, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, IconButton, MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -21,7 +21,7 @@ import {
   StatTile,
   TileGrid,
   VBarChart
-} from 'src/views/pages/species-management/ipad1/detail/detailUi'
+, SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad1/detail/useSortableTable'
 import { resolveRange, type RangePreset } from 'src/views/pages/species-management/ipad1/dashboard/DashboardDateRange'
 
@@ -1277,7 +1277,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
       : null
 
   return (
-    <Drawer anchor='right' open={!!animal} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('lg', { pad: true }) } }}>
+    <SheetDrawer open={!!animal} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('lg', { pad: true }) } }}>
       {animal && (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -1353,7 +1353,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
           {!animal.weightHistory?.length && !animal.bcsHistory?.length && grouped.size === 0 && <EmptyState message='No assessment history for this animal' />}
         </>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 

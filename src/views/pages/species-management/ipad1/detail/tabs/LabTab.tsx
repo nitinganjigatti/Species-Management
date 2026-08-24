@@ -13,7 +13,6 @@ import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { SpeciesClinical } from 'src/lib/api/species-management/detail'
 import type { GridColDef } from '@mui/x-data-grid'
-import { Drawer } from '@mui/material'
 import {
   CellText,
   DetailTable,
@@ -26,7 +25,7 @@ import {
   SHEET_PX,
   TrendAreaChart,
   TrendRangeTabs
-} from 'src/views/pages/species-management/ipad1/detail/detailUi'
+, SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import DashboardDateRange, {
   resolveRange,
   type RangePreset,
@@ -327,7 +326,8 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' },
+            // Always one row of five — the summary is a single band, never a 3+2 wrap.
+            gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 4,
             pb: 5,
             mb: 5,
@@ -344,8 +344,8 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                 flexDirection: 'column',
                 gap: '3px',
                 cursor: 'pointer',
-                borderLeft: { lg: i === 0 ? 'none' : `1px solid ${c.SurfaceVariant}` },
-                pl: { lg: i === 0 ? 0 : 5 },
+                borderLeft: i === 0 ? 'none' : `1px solid ${c.SurfaceVariant}`,
+                pl: i === 0 ? 0 : 5,
                 '&:hover .lab-stat-lbl': { color: c.OnSurface }
               }}
             >
@@ -394,7 +394,16 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
       {/* TESTS ROW — the primary cut (stakeholder 2026-07-30): All Tests + Tests by Lab as
           symmetric cards. Site/hospital cards are gone — site is a filter inside every sheet. */}
       <ActHeader title='Tests done for this species' />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+      {/* Orientation-driven: the two tables stack full-width in portrait, pair up in landscape. */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 4,
+          alignItems: 'stretch',
+          gridTemplateColumns: '1fr',
+          '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+        }}
+      >
         <SectionCard
           title='All Tests'
           titleMb={2}
@@ -426,7 +435,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
 
       {/* View-all list sheet — the FULL test/lab list (name • unique animals • tests); a row
           click closes it and opens that entry's drill sheet. */}
-      <Drawer anchor='right' open={!!listSheet} onClose={() => setListSheet(null)} PaperProps={{ sx: sheetPaperSx('md') }}>
+      <SheetDrawer open={!!listSheet} onClose={() => setListSheet(null)} PaperProps={{ sx: sheetPaperSx('md') }}>
         {listSheet && (
           <Sheet>
             <SheetHeader
@@ -480,7 +489,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
             </Box>
           </Sheet>
         )}
-      </Drawer>
+      </SheetDrawer>
 
       <SignalDrawer payload={drill} onClose={() => setDrill(null)} onAnimal={aid => setRecordAid(aid)} />
       <AnimalHealthRecord aid={recordAid} clinical={clinical} onClose={() => setRecordAid(null)} />

@@ -17,7 +17,7 @@ import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import DashboardSpeciesPicker, { SpeciesOption } from 'src/views/pages/species-management/ipad1/dashboard/DashboardSpeciesPicker'
 import { ColumnBarChart, TaxonomyStatusStrip } from 'src/views/pages/species-management/ipad1/dashboard/dashboardUi'
-import { SectionCard, EmptyState, DetailTable } from 'src/views/pages/species-management/ipad1/detail/detailUi'
+import { SectionCard, EmptyState, DetailTable , SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/detail/useSortableTable'
 
 export type SignalKey = 'fewLeft' | 'deathSpike' | 'declining' | 'singleSex' | 'noRecentBirth'
@@ -384,7 +384,7 @@ const WatchDrawer: React.FC<{
   ]
 
   return (
-    <Drawer anchor='right' open onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 720 }, p: 6 } }}>
+    <SheetDrawer open onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 720 }, p: 6 } }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
           <Box>
@@ -423,7 +423,7 @@ const WatchDrawer: React.FC<{
           <EmptyState message='No matching species' />
         )}
       </Box>
-    </Drawer>
+    </SheetDrawer>
   )
 }
 

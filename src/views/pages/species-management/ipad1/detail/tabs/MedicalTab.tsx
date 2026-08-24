@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Autocomplete, Box, Drawer, IconButton, TextField, Tooltip, Typography } from '@mui/material'
+import { Autocomplete, Box, IconButton, TextField, Tooltip, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -40,7 +40,7 @@ import {
   thinScrollbarSx,
   TrendAreaChart,
   TrendRangeTabs
-} from 'src/views/pages/species-management/ipad1/detail/detailUi'
+, SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad1/detail/useSortableTable'
 // App-standard filter drawer (the hospital Add-Patient animal-picker filter) — reused as-is.
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -353,12 +353,14 @@ function ViewToggle<T extends string>({
 }
 
 /** Table search box — same styling/behaviour as the Circle-of-Life table search. */
-export const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number }> = ({
+export const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number; grow?: boolean }> = ({
   value,
   onChange,
   placeholder = 'Search…',
   width = 240,
-  height = TABLE_CTRL_H
+  height = TABLE_CTRL_H,
+  // grow: fill the available row width (portrait two-row headers) instead of the fixed width.
+  grow = false
 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
@@ -369,7 +371,7 @@ export const TableSearch: React.FC<{ value: string; onChange: (v: string) => voi
       placeholder={placeholder}
       value={value}
       onChange={e => onChange(e.target.value)}
-      sx={{ width, maxWidth: '100%', '& .MuiInputBase-root': { height, bgcolor: theme.palette.background.paper } }}
+      sx={{ ...(grow ? { flex: '1 1 auto', minWidth: 0 } : { width }), maxWidth: '100%', '& .MuiInputBase-root': { height, bgcolor: theme.palette.background.paper } }}
       InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
     />
   )
@@ -415,7 +417,7 @@ const AnimalRecordsDrawer: React.FC<{
   const sorted = group ? [...group.records].sort((a, b) => (a.date < b.date ? 1 : -1)) : []
 
   return (
-    <Drawer anchor='right' open={!!group} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!group} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {group && (
         <Sheet>
           <SheetHeader avatar title={group.name} subtitle={`${group.site} • ${group.enclosure}`} onClose={onClose} />
@@ -453,7 +455,7 @@ const AnimalRecordsDrawer: React.FC<{
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -585,7 +587,7 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
   }
 
   return (
-    <Drawer anchor='right' open={!!group} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!group} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {group && (
         <Sheet>
           <SheetHeader avatar title={group.name} subtitle={`${group.site} • ${group.enclosure}`} onClose={onClose} />
@@ -648,7 +650,7 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -974,7 +976,7 @@ const MostUsedMonthDrawer: React.FC<{
     .filter(x => !query || x.a.name.toLowerCase().includes(query) || x.a.site.toLowerCase().includes(query))
 
   return (
-    <Drawer anchor='right' open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && type && (
         <Sheet>
           <SheetHeader
@@ -1024,7 +1026,7 @@ const MostUsedMonthDrawer: React.FC<{
           />
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -1372,7 +1374,7 @@ export const SiteFilterControl: React.FC<{
         <Icon icon='mdi:chevron-down' fontSize={16} color={c.Outline} />
       </Box>
 
-      <Drawer anchor='right' open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
+      <SheetDrawer open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
         <Sheet>
           <SheetHeader title='Sites' stats={[{ label: 'Sites', value: sitesTotal }]} onClose={() => setOpen(false)} />
           <SheetSearch value={siteQ} onChange={setSiteQ} placeholder='Search sites…' />
@@ -1415,7 +1417,7 @@ export const SiteFilterControl: React.FC<{
             )}
           </Box>
         </Sheet>
-      </Drawer>
+      </SheetDrawer>
     </>
   )
 }
@@ -1456,7 +1458,7 @@ const DoseHistoryDrawer: React.FC<{
   const rate = doseRate(dose)
 
   return (
-    <Drawer anchor='right' open={!!animal} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!animal} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {animal && (
         <Sheet>
           <SheetHeader avatar title={animal.name} subtitle={animal.site} onClose={onClose} />
@@ -1505,7 +1507,7 @@ const DoseHistoryDrawer: React.FC<{
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -1538,7 +1540,7 @@ const MonthDosesDrawer: React.FC<{
   ]
 
   return (
-    <Drawer anchor='right' open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && (
         <Sheet>
           <SheetHeader
@@ -1585,7 +1587,7 @@ const MonthDosesDrawer: React.FC<{
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -1613,7 +1615,7 @@ const BucketDrawer: React.FC<{
   const c = cc(theme)
 
   return (
-    <Drawer anchor='right' open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && (
         <Sheet>
           <SheetHeader
@@ -1640,7 +1642,7 @@ const BucketDrawer: React.FC<{
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -1787,7 +1789,7 @@ const PreventiveStatusSheet: React.FC<{
     : UPCOMING_WINDOWS
 
   return (
-    <Drawer anchor='right' open={!!openTab} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!openTab} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       <Sheet>
         <SheetHeader
           icon={icon}
@@ -1940,7 +1942,7 @@ const PreventiveStatusSheet: React.FC<{
         dose={drill?.type.dose}
         onClose={() => setDrill(null)}
       />
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -1952,6 +1954,10 @@ const PreventiveDetail: React.FC<{
   onBack: () => void
 }> = ({ type, months, w, icon, onBack }) => {
   const { txt, animalCell, c, theme } = useCells()
+
+  // Portrait: the status tabs + site filter + search don't fit one header row —
+  // stack as two deliberate rows (tabs / full-width search + right-aligned filter).
+  const portrait = useMediaQuery('(orientation: portrait)')
   // ONE range drives both dose-administration panels (given | delayed) — they tell one story.
   const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
   const [statusTab, setStatusTab] = useState<'all' | PreventiveTypeStatus>('all')
@@ -2130,7 +2136,8 @@ const PreventiveDetail: React.FC<{
   ]
 
   const statusTabs = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+    // Never wraps: one row, overflow scrolls (the kit's underline-tab pattern).
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', ...thinScrollbarSx(theme) }}>
       {STATUS_TABS.map(m => {
         const active = statusTab === m.key
         const accent = accents[m.key]
@@ -2144,7 +2151,7 @@ const PreventiveDetail: React.FC<{
             }}
             role='tab'
             aria-selected={active}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, borderBottom: '2.5px solid', borderColor: active ? accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? accent : c.OutlineVariant } }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, flexShrink: 0, borderBottom: '2.5px solid', borderColor: active ? accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? accent : c.OutlineVariant } }}
           >
             <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
               {m.label}
@@ -2271,24 +2278,44 @@ const PreventiveDetail: React.FC<{
         </Box>
       </SectionCard>
 
-      {/* animal table — site filter (dropdown → side sheet) + search live together in the header */}
-      <SectionCard
-        title={statusTabs}
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <SiteFilterControl
-              sites={type.sites}
-              sitesTotal={type.sitesTotal}
-              tracked={type.tracked}
-              value={siteFilter}
-              onChange={v => {
-                setSiteFilter(v)
-                tbl.setPaginationModel(p => ({ ...p, page: 0 }))
-              }}
-              overdueWord={w.overdueWord}
-            />
-            <TableSearch value={q} onChange={onQ} placeholder='Search animals…' />
+      {/* animal table — site filter (dropdown → side sheet) + search live together in the
+          header. Landscape: one row (tabs left, controls right). Portrait: tabs row, then
+          full-width search running up to the right-aligned site filter. */}
+      {(() => {
+        const siteFilterCtl = (
+          <SiteFilterControl
+            sites={type.sites}
+            sitesTotal={type.sitesTotal}
+            tracked={type.tracked}
+            value={siteFilter}
+            onChange={v => {
+              setSiteFilter(v)
+              tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+            }}
+            overdueWord={w.overdueWord}
+          />
+        )
+        const searchCtl = <TableSearch value={q} onChange={onQ} placeholder='Search animals…' grow={portrait} />
+        const stackedHeader = (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+            {statusTabs}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+              {searchCtl}
+              {siteFilterCtl}
+            </Box>
           </Box>
+        )
+
+        return (
+      <SectionCard
+        title={portrait ? stackedHeader : statusTabs}
+        action={
+          portrait ? undefined : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {siteFilterCtl}
+              {searchCtl}
+            </Box>
+          )
         }
         titleMb={2}
       >
@@ -2307,6 +2334,8 @@ const PreventiveDetail: React.FC<{
           <EmptyState message='No animals for this filter' />
         )}
       </SectionCard>
+        )
+      })()}
 
       <MonthDosesDrawer
         key={monthDrill?.label ?? 'month'}
@@ -2376,7 +2405,7 @@ const RxAnimalDrawer: React.FC<{ animal: RxAnimalRollup | null; rx: RxProgram; o
   }, [animal, rx])
 
   return (
-    <Drawer anchor='right' open={!!animal} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!animal} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {animal && (
         <Sheet>
           <SheetHeader avatar title={animal.name} subtitle={animal.site} onClose={onClose} />
@@ -2408,7 +2437,7 @@ const RxAnimalDrawer: React.FC<{ animal: RxAnimalRollup | null; rx: RxProgram; o
           </Box>
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -2526,7 +2555,7 @@ const RxStatusSheet: React.FC<{
   }
 
   return (
-    <Drawer anchor='right' open={!!openTab} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!openTab} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       <Sheet>
         <SheetHeader
           icon={RX_ICON}
@@ -2722,7 +2751,7 @@ const RxStatusSheet: React.FC<{
         onClose={() => setDrill(null)}
       />
       <RxAnimalDrawer animal={animalDrill} rx={rx} onClose={() => setAnimalDrill(null)} />
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -2779,7 +2808,7 @@ const RxMonthDrawer: React.FC<{
   ]
 
   return (
-    <Drawer anchor='right' open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+    <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && med && (
         <Sheet>
           <SheetHeader icon={RX_ICON} title={`${data.label} • ${med.name}`} onClose={onClose} />
@@ -2848,7 +2877,7 @@ const RxMonthDrawer: React.FC<{
           />
         </Sheet>
       )}
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -3792,8 +3821,7 @@ const ClinicalMergedPanel: React.FC<{
       <AnimalRecordsDrawer group={animalDrill} onClose={() => setAnimalDrill(null)} />
 
       {/* side sheet · full type list for a panel ("View all N") */}
-      <Drawer
-        anchor='right'
+      <SheetDrawer
         open={!!viewAll}
         onClose={() => setViewAll(null)}
         PaperProps={{ sx: sheetPaperSx('xl') }}
@@ -3821,11 +3849,10 @@ const ClinicalMergedPanel: React.FC<{
             </Box>
           </Box>
         )}
-      </Drawer>
+      </SheetDrawer>
 
       {/* wide side sheet · per-type 12-month graph (distinct animals affected) */}
-      <Drawer
-        anchor='right'
+      <SheetDrawer
         open={!!typeSheet}
         onClose={() => setTypeSheet(null)}
         PaperProps={{ sx: sheetPaperSx('xxl') }}
@@ -3878,7 +3905,7 @@ const ClinicalMergedPanel: React.FC<{
             </Box>
           </Box>
         )}
-      </Drawer>
+      </SheetDrawer>
     </Box>
   )
 }

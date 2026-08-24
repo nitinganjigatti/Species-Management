@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, Divider, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Divider, IconButton, Tooltip, Typography } from '@mui/material'
+import { SheetDrawer } from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { compactNumber, type FilterInsights, type SpeciesFilters } from 'src/views/pages/species-management/ipad1/list/speciesListing.utils'
@@ -245,8 +246,7 @@ const SpeciesListMajorFilters: React.FC<SpeciesListMajorFiltersProps> = ({ rows,
       </Box>
 
       {/* AI Insight side sheet */}
-      <Drawer
-        anchor='right'
+      <SheetDrawer
         open={!!sheetOpt}
         onClose={() => setSheetOpt(null)}
         slotProps={{ paper: { sx: { width: { xs: '100%', sm: 380 } } } }}
@@ -288,7 +288,7 @@ const SpeciesListMajorFilters: React.FC<SpeciesListMajorFiltersProps> = ({ rows,
             </Typography>
           </Box>
         )}
-      </Drawer>
+      </SheetDrawer>
     </>
   )
 }

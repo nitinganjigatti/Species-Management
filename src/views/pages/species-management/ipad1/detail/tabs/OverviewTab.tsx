@@ -263,12 +263,45 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
             })}
           </Box>
 
-          <GenderFilter selected={genders} onChange={setGenders} />
+          {/* Right-aligned control group: All time (quick mode only) · Gender ·
+              Other Filters. Gender + Other Filters anchor the right edge, so
+              toggling modes only adds/removes All time — nothing else moves. */}
+          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
+            {periodMode === 'quick' && <DashboardDateRange value={range} onChange={setRange} />}
 
-          {periodMode === 'quick' ? (
-            <DashboardDateRange value={range} onChange={setRange} />
-          ) : (
-            <>
+            <GenderFilter selected={genders} onChange={setGenders} />
+
+            <FilterButtonWithNotification
+              label='Other Filters'
+              onClick={() => setFilterOpen(true)}
+              appliedFiltersCount={extraCount || undefined}
+              sx={{ height: CTRL_H, bgcolor: theme.palette.background.paper, '&:hover': { bgcolor: theme.palette.background.paper } }}
+            />
+          </Box>
+        </Box>
+
+        {/* Row 2 — Year/Month ranges, revealed by the By month/year toggle. */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateRows: periodMode === 'range' ? '1fr' : '0fr',
+            transition: 'grid-template-rows 0.2s ease'
+          }}
+        >
+          <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                rowGap: { xs: 2, md: 2.5 },
+                columnGap: '48px',
+                pt: 3,
+                '& .MuiInputBase-root': { height: CTRL_H },
+                '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
+                '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {groupLabel('Years')}
                 <RangeSelect value={analysis.yearFrom} onPick={v => setAnalysis(a => ({ ...a, yearFrom: v }))} items={yearItems} anyLabel='All' />
@@ -281,30 +314,28 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
                 {dash}
                 <RangeSelect value={analysis.monthTo} onPick={v => setAnalysis(a => ({ ...a, monthTo: v }))} items={monthItems} anyLabel='All' />
               </Box>
-            </>
-          )}
-
-          <FilterButtonWithNotification
-            label='Other Filters'
-            onClick={() => setFilterOpen(true)}
-            appliedFiltersCount={extraCount || undefined}
-            sx={{ ml: 'auto', height: CTRL_H, bgcolor: theme.palette.background.paper, '&:hover': { bgcolor: theme.palette.background.paper } }}
-          />
+            </Box>
+          </Box>
         </Box>
       </Box>
 
-      {/* Row 1 — Births (green) · Deaths (orange) */}
-      {grid(
-        '1fr 1fr',
-        <>
-          <Card title='Births' tab='circle' viewLabel='View Circle of Life'>
-            {trend.length ? yearBar(trend.map(t => t.births), theme.palette.primary.main, 'Births') : <EmptyState />}
-          </Card>
-          <Card title='Deaths' tab='circle' viewLabel='View Circle of Life'>
-            {trend.length ? yearBar(trend.map(t => t.deaths), cc.Tertiary, 'Deaths') : <EmptyState />}
-          </Card>
-        </>
-      )}
+      {/* Row 1 — Births (green) · Deaths (orange). Orientation-driven like the list
+          rail: stacked full-width in portrait, side-by-side in landscape. */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: '1fr',
+          '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+        }}
+      >
+        <Card title='Births' tab='circle' viewLabel='View Circle of Life'>
+          {trend.length ? yearBar(trend.map(t => t.births), theme.palette.primary.main, 'Births') : <EmptyState />}
+        </Card>
+        <Card title='Deaths' tab='circle' viewLabel='View Circle of Life'>
+          {trend.length ? yearBar(trend.map(t => t.deaths), cc.Tertiary, 'Deaths') : <EmptyState />}
+        </Card>
+      </Box>
 
       {/* Row 2 — composition: sex (donut) · breeding (donut) · causes (pie) */}
       {grid(

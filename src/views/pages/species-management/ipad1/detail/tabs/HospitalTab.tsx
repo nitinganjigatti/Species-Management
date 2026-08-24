@@ -8,7 +8,7 @@
  * Kit-first: detailUi charts + the Medical SignalsBand/SignalDrawer/AnimalHealthRecord flow.
  */
 import React, { useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, useMediaQuery } from '@mui/material'
 import { alpha, lighten, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { SpeciesClinical } from 'src/lib/api/species-management/detail'
@@ -136,6 +136,11 @@ interface Props {
 
 const HospitalTab: React.FC<Props> = ({ clinical }) => {
   const theme = useTheme() as any
+
+  // Portrait-only reshape (2026-08-24): trend chart full width, then Outcomes ·
+  // By Hospital side by side, then Length of Stay · Surgery side by side (Surgery
+  // becomes its own card). Landscape keeps the original two-row 1.3fr/1fr layout.
+  const portrait = useMediaQuery('(orientation: portrait)')
   const c = cc(theme)
   const [range, setRange] = useState<RangeSelection>({ preset: 'all', start: null, end: null })
   const [trendRange, setTrendRange] = useState<RangePreset>('last_1y')
@@ -368,10 +373,34 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
 
   const TABLE_CAP = 5
   const hospCols: GridColDef[] = [
-    { minWidth: 180, flex: 1, sortable: false, field: 'name', headerName: 'Hospital', renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
-    { width: 170, sortable: false, field: 'animals', headerName: 'Admissions', renderCell: p => txt(p.row.animals, p.row.hot ? c.Tertiary : undefined, 700) },
     {
-      width: 110,
+      minWidth: 140,
+      flex: 1,
+      sortable: false,
+      field: 'name',
+      headerName: 'Hospital',
+      // Full names matter here — wrap to two lines (72px rows fit them) instead of clipping.
+      renderCell: p => (
+        <Typography
+          sx={{
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: c.OnSurfaceVariant,
+            whiteSpace: 'normal',
+            lineHeight: 1.3,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}
+        >
+          {p.row.name}
+        </Typography>
+      )
+    },
+    { width: 135, sortable: false, field: 'animals', headerName: 'Admissions', renderCell: p => txt(p.row.animals, p.row.hot ? c.Tertiary : undefined, 700) },
+    {
+      width: 80,
       sortable: false,
       field: 'deaths',
       headerName: 'Died',
@@ -435,7 +464,9 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
         {labels.map((l, i) => (
           <Typography
             key={i}
-            sx={{ width: `${l.pct}%`, fontSize: '14px', color: c.neutralSecondary, textAlign: 'center', px: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            // overflow visible: narrow segments (e.g. "1–3 d", "30 d +") keep their full
+            // label, spilling symmetrically past the segment instead of ellipsizing.
+            sx={{ width: `${l.pct}%`, fontSize: '14px', color: c.neutralSecondary, textAlign: 'center', px: '2px', whiteSpace: 'nowrap', overflow: 'visible' }}
           >
             {l.text}
           </Typography>
@@ -479,7 +510,8 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           px: 6,
           py: 4.5,
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' },
+          // Always one row of three — the strip is a single band, never a 2+1 wrap.
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 4
         }}
       >
@@ -493,8 +525,8 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
               alignItems: 'center',
               gap: 3.5,
               cursor: 'pointer',
-              borderLeft: { lg: i === 0 ? 'none' : `1px solid ${alpha(theme.palette.common.white, 0.12)}` },
-              pl: { lg: i === 0 ? 0 : 5 },
+              borderLeft: i === 0 ? 'none' : `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
+              pl: i === 0 ? 0 : 5,
               '&:hover .triage-arr': { color: theme.palette.common.white }
             }}
           >
@@ -521,8 +553,9 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
         ))}
       </Box>
 
-      {/* Row 2 · FLOW strip — capacity/flow stats with micro-viz (risk lives on the triage board) */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+      {/* Row 2 · FLOW strip — capacity/flow stats with micro-viz (risk lives on the triage board).
+          Always one row of three, matching the triage strip above. */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
         {/* In care now */}
         <Box
           onClick={openNow}
@@ -578,7 +611,8 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       </Box>
 
       {/* Row 3 · admissions trend + outcomes */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
+      {(() => {
+        const trendCard = (
         <SectionCard
           title='Admissions Trend • Per Month'
           action={<TrendRangeTabs value={trendRange} onPick={setTrendRange} color={theme.palette.primary.dark} />}
@@ -586,22 +620,25 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
         >
           <TrendAreaChart values={trend.values} labels={trend.labels} color={theme.palette.primary.main} name='Admissions' height={230} onPointClick={openMonth} />
         </SectionCard>
+        )
 
+        const outcomesCard = (
         <SectionCard title='Outcomes' titleMb={2}>
           <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
             How the {closed.toLocaleString()} completed cases in this period ended
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          {/* Donut on top, legend rows below it (user 2026-08-24). */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <Donut
               segments={[
                 { label: 'Recovered', value: recovered, tone: 'success' },
                 { label: 'Died', value: died, tone: 'danger' }
               ]}
               centerValue={`${recoveryPct}%`}
-              centerSub='recovered'
               size={160}
+              onSegmentClick={label => openOutcome(label === 'Recovered' ? 'recovered' : 'died')}
             />
-            <Box sx={{ flex: 1, minWidth: 200 }}>
+            <Box sx={{ width: '100%' }}>
               <Box onClick={() => openOutcome('recovered')} sx={{ cursor: 'pointer', borderRadius: '6px', px: 1, mx: -1, '&:hover': { backgroundColor: c.Surface } }}>
                 <LegendRow tone='success' label='Recovered' value={recovered} total={closed} />
               </Box>
@@ -611,10 +648,9 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
             </Box>
           </Box>
         </SectionCard>
-      </Box>
+        )
 
-      {/* Row 4 · by hospital + length of stay / surgery */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
+        const byHospitalCard = (
         <SectionCard
           title='Admissions by Hospital'
           titleMb={2}
@@ -642,8 +678,10 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
             onRowClick={(p: any) => openHospital(p.row.name)}
           />
         </SectionCard>
+        )
 
-        <SectionCard title='Length of Stay' titleMb={2}>
+        const losContent = (
+          <>
           <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
             <Box component='span' sx={{ fontWeight: 700, color: c.Tertiary }}>
               {past14Pct}%
@@ -660,21 +698,16 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
             })),
             buckets.map(b => ({ pct: (b.items.length / losTotal) * 100, text: b.label }))
           )}
+          </>
+        )
 
-          <Box sx={{ mt: 10 }} />
-
-          <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, mb: 2 }}>
-            {`Surgery • ${s.total.toLocaleString()}`}
-          </Typography>
-          <Typography component='div' sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            Complications — hospital
-            <Box component='span' sx={pillSx(c.Notes, c.OnSurfaceVariant)}>
-              {s.hospitalComplications} of {s.hospital} • {rate(s.hospitalComplications, s.hospital)}%
-            </Box>
-            field
-            <Box component='span' sx={pillSx(alpha(theme.palette.primary.main, 0.12), theme.palette.primary.dark)}>
-              {s.fieldComplications} of {s.field} • {rate(s.fieldComplications, s.field)}%
-            </Box>
+        const surgeryTitle = `Surgery • ${s.total.toLocaleString()}`
+        // Complications metric dropped (user 2026-08-24: not decision-useful) —
+        // the card is just the count + where surgeries happen.
+        const surgeryBody = (
+          <>
+          <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
+            Where this species&apos; surgeries happen
           </Typography>
           {segStrip(
             [
@@ -686,8 +719,52 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
               { pct: rate(s.field, s.total), text: `${rate(s.field, s.total)}%` }
             ]
           )}
-        </SectionCard>
-      </Box>
+          </>
+        )
+
+        // Portrait: trend full width · Outcomes + By Hospital · Length of Stay + Surgery.
+        if (portrait) {
+          return (
+            <>
+              {trendCard}
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
+                {outcomesCard}
+                {byHospitalCard}
+              </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
+                <SectionCard title='Length of Stay' titleMb={2}>
+                  {losContent}
+                </SectionCard>
+                <SectionCard title={surgeryTitle} titleMb={2}>
+                  {surgeryBody}
+                </SectionCard>
+              </Box>
+            </>
+          )
+        }
+
+        // Landscape: the original layout — trend + outcomes, then by-hospital +
+        // the combined Length of Stay / Surgery card.
+        return (
+          <>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
+              {trendCard}
+              {outcomesCard}
+            </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
+              {byHospitalCard}
+              <SectionCard title='Length of Stay' titleMb={2}>
+                {losContent}
+                <Box sx={{ mt: 10 }} />
+                <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, mb: 2 }}>
+                  {surgeryTitle}
+                </Typography>
+                {surgeryBody}
+              </SectionCard>
+            </Box>
+          </>
+        )
+      })()}
 
       <SignalDrawer payload={drill} onClose={() => setDrill(null)} onAnimal={aid => setRecordAid(aid)} />
       <AnimalHealthRecord aid={recordAid} clinical={clinical} onClose={() => setRecordAid(null)} />

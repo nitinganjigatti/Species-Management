@@ -200,43 +200,36 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderCell: speciesNameCell
     },
     {
-      width: 120,
+      // Single sex/population column: M · F · U · T (T = total, bold green so it
+      // still anchors the scan) — replaces the old Population + M·F·U pair.
+      width: 180,
       sortable: false,
       field: 'population',
-      headerName: 'Population',
-      renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
-          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurface }}>
-            {Number(params.row.population || 0).toLocaleString()}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      sortable: false,
-      field: 'mfu',
-      headerName: 'M · F · U',
+      headerName: 'M · F · U · T',
       renderCell: (params: GridRenderCellParams) => {
         const r = params.row as SpeciesRow
-        const seg = (n: number, color: string) => (
-          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color }}>
+        const seg = (n: number) => (
+          <Typography component='span' sx={{ fontSize: '15px', fontWeight: 500, color: cc.OnSurfaceVariant }}>
             {Number(n || 0).toLocaleString()}
           </Typography>
         )
         const dot = (
-          <Typography sx={{ fontSize: '1rem', color: cc.OutlineVariant }}>
+          <Typography component='span' sx={{ fontSize: '15px', color: cc.OutlineVariant }}>
             ·
           </Typography>
         )
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, height: '100%' }}>
-            {seg(r.male, cc.OnSurfaceVariant)}
+            {seg(r.male)}
             {dot}
-            {seg(r.female, cc.OnSurfaceVariant)}
+            {seg(r.female)}
             {dot}
-            {seg(r.undetermined, cc.OnSurfaceVariant)}
+            {seg(r.undetermined)}
+            {dot}
+            <Typography component='span' sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurface }}>
+              {Number(r.population || 0).toLocaleString()}
+            </Typography>
           </Box>
         )
       }

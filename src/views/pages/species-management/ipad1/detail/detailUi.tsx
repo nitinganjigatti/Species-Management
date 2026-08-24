@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography, Tooltip } from '@mui/material'
+import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
+import type { DrawerProps } from '@mui/material'
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -57,6 +58,39 @@ export const sheetPaperSx = (size: keyof typeof SHEET_WIDTH = 'md', opts?: { pad
   maxWidth: '100%',
   ...(opts?.pad ? { px: SHEET_PX, py: 4 } : {})
 })
+
+/** Orientation-adaptive sheet container — the ONE drawer wrapper for every sheet in
+ *  the iPad tree (tablet feedback 2026-08-24: side sheets feel wrong held upright).
+ *  Landscape: classic right side sheet — the call site's sheetPaperSx width applies.
+ *  Portrait: bottom sheet — full width, 88dvh tall, rounded top, grab handle.
+ *  Drop-in replacement for `<Drawer anchor='right'>`: keep passing sheetPaperSx via
+ *  PaperProps or slotProps.paper as before; portrait overrides are appended after it. */
+export const SheetDrawer: React.FC<DrawerProps> = ({ PaperProps, slotProps, children, ...rest }) => {
+  const portrait = useMediaQuery('(orientation: portrait)')
+  const theme = useTheme() as any
+
+  // '&&' doubles specificity so these beat the call site's responsive
+  // sheetPaperSx width rules (media queries would otherwise win over plain props).
+  const portraitSx = {
+    '&&': { width: '100%', maxWidth: '100%', height: '88dvh', borderRadius: '16px 16px 0 0' }
+  }
+  const paperConf: any = (slotProps as any)?.paper ?? PaperProps ?? {}
+  const paperSx = paperConf.sx
+  const mergedPaper = portrait
+    ? { ...paperConf, sx: [...(Array.isArray(paperSx) ? paperSx : [paperSx]), portraitSx] }
+    : paperConf
+
+  return (
+    <Drawer {...rest} anchor={portrait ? 'bottom' : 'right'} slotProps={{ ...(slotProps as any), paper: mergedPaper }}>
+      {portrait && (
+        <Box sx={{ pt: 2, pb: 1, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <Box sx={{ width: 40, height: 4, borderRadius: '2px', bgcolor: cc(theme).OutlineVariant }} />
+        </Box>
+      )}
+      {children}
+    </Drawer>
+  )
+}
 
 /** Thin always-visible horizontal scrollbar for scrollable charts/strips (v2 standard).
  *  NEVER pair with scrollbarWidth — Chrome then ignores these ::-webkit-scrollbar styles. */
@@ -939,7 +973,7 @@ export type SheetView = {
  *  (+ optional tabs) over a SheetRow list. Use this for every "chart datapoint → list"
  *  drill; never hand-roll a list drawer again. */
 export const ListSheet: React.FC<{ view: SheetView | null; onClose: () => void }> = ({ view, onClose }) => (
-  <Drawer anchor='right' open={!!view} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+  <SheetDrawer open={!!view} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
     {view && (
       <Sheet>
         <SheetHeader icon={view.icon} title={view.title} stats={view.stats} onClose={onClose} />
@@ -965,7 +999,7 @@ export const ListSheet: React.FC<{ view: SheetView | null; onClose: () => void }
         </Box>
       </Sheet>
     )}
-  </Drawer>
+  </SheetDrawer>
 )
 
 export const SectionCard: React.FC<{
@@ -1910,7 +1944,9 @@ export const Donut: React.FC<{
   /** Denominator override — pass to draw segments as a fraction of a larger whole (the grey
    *  track shows the remainder), e.g. a single completed-share ring. */
   total?: number
-}> = ({ segments, centerValue, centerSub, centerColor, size = 150, total: totalProp }) => {
+  /** Per-segment click — the ring slices become tappable (legend rows usually mirror this). */
+  onSegmentClick?: (label: string) => void
+}> = ({ segments, centerValue, centerSub, centerColor, size = 150, total: totalProp, onSegmentClick }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const tones = useTone()
@@ -1928,7 +1964,19 @@ export const Donut: React.FC<{
           {segments.map((s, i) => {
             const len = (s.value / total) * CIRC
             const node = (
-              <circle key={i} cx='70' cy='70' r={R} fill='none' stroke={tones(s.tone).fg} strokeWidth={SW} strokeDasharray={`${len} ${CIRC - len}`} strokeDashoffset={-acc} />
+              <circle
+                key={i}
+                cx='70'
+                cy='70'
+                r={R}
+                fill='none'
+                stroke={tones(s.tone).fg}
+                strokeWidth={SW}
+                strokeDasharray={`${len} ${CIRC - len}`}
+                strokeDashoffset={-acc}
+                onClick={onSegmentClick ? () => onSegmentClick(s.label) : undefined}
+                style={onSegmentClick ? { cursor: 'pointer', pointerEvents: 'visibleStroke' } : undefined}
+              />
             )
             acc += len
 

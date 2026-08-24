@@ -7,7 +7,7 @@
  * sheet on top).
  */
 import React, { useMemo, useState } from 'react'
-import { Box, Drawer, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import {
@@ -18,7 +18,7 @@ import {
   SheetSection,
   sheetPaperSx,
   SHEET_PX
-} from 'src/views/pages/species-management/ipad1/detail/detailUi'
+, SheetDrawer} from 'src/views/pages/species-management/ipad1/detail/detailUi'
 import type { InsightBarRow } from './signals'
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
@@ -103,8 +103,7 @@ const SitesSheet: React.FC<{
   const below = filtered.filter(r => r.value <= avg)
 
   return (
-    <Drawer
-      anchor='right'
+    <SheetDrawer
       open={open}
       onClose={onClose}
       PaperProps={{ sx: sheetPaperSx('md') }}
@@ -140,7 +139,7 @@ const SitesSheet: React.FC<{
           {!filtered.length && <SheetEmpty>No sites match.</SheetEmpty>}
         </Box>
       </Sheet>
-    </Drawer>
+    </SheetDrawer>
   )
 }
 

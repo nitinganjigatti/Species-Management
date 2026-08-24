@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Card, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -97,10 +97,32 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
     }
   }
 
-  // Sticky compact header — appears once the main stat band scrolls away.
+  // Sticky top stack, direction-aware: once the hero scrolls away (`scrolled`),
+  // the tabs bar stays pinned; the compact name+stats header additionally
+  // reveals on any upward scroll gesture (`headerRevealed`) and hides again on
+  // downward scroll — the mobile-browser-toolbar pattern. Back at the top,
+  // everything unpins (the in-flow hero is visible again).
   const [scrolled, setScrolled] = useState(false)
+  const [headerRevealed, setHeaderRevealed] = useState(false)
+
+  // Anchor on the in-flow tabs row (Band 3): the pinned stack engages exactly
+  // when that row crosses the top of the viewport, so the sticky tabs take over
+  // seamlessly. Rail view has no in-flow tabs row → fall back to the hero threshold.
+  const tabsAnchorRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 220)
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      const anchor = tabsAnchorRef.current
+      // y > 0 guard: at the very top nothing may pin, whatever the anchor measures
+      // during first paint (fixes the pinned-tabs-on-fresh-load glitch).
+      const past = y > 0 && (anchor ? anchor.getBoundingClientRect().top <= 0 : y > 220)
+      setScrolled(past)
+      if (!past) setHeaderRevealed(false)
+      else if (y < lastY - 4) setHeaderRevealed(true)
+      else if (y > lastY + 4) setHeaderRevealed(false)
+      lastY = y
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -152,16 +174,16 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   }
 
   // Compact mini stat strip for the sticky header.
+  // Ratio lives WITH the sex counts (M · F · ratio = one section), housing after.
   const mini: ({ v: string; l: string; c: string } | { divider: true })[] = [
     { v: (h?.total ?? 0).toLocaleString(), l: 'animals', c: cc.PrimaryContainer },
     { divider: true },
     { v: m.toLocaleString(), l: 'M', c: cc.antzInfo60 },
     { v: f.toLocaleString(), l: 'F', c: cc.AntzTertiary },
+    { v: ratioStr, l: 'ratio', c: theme.palette.warning.main },
     { divider: true },
     { v: (h?.sites ?? 0).toLocaleString(), l: 'sites', c: 'common.white' },
-    { v: (h?.enclosures ?? 0).toLocaleString(), l: 'encl', c: 'common.white' },
-    { divider: true },
-    { v: ratioStr, l: 'ratio', c: theme.palette.warning.main }
+    { v: (h?.enclosures ?? 0).toLocaleString(), l: 'encl', c: 'common.white' }
   ]
 
   const trail: { label: string; value: string; green?: boolean; pct?: number }[] = [
@@ -185,58 +207,92 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
 
   return (
     <Box>
-      {/* Sticky compact header — appears on scroll: back + name (left), mini stat strip (right). No alerts. */}
-      {scrolled && (
-        <Box sx={{ position: 'sticky', top: 0, zIndex: 1200, mb: 2 }}>
+      {/* Sticky top stack — zero-height sticky wrapper so it overlays content
+          without ever reflowing it. Horizontal view: tabs pin whenever scrolled,
+          compact header slides in above them on scroll-up. Rail view: the rail
+          is already sticky, so only the scroll-up header applies. */}
+      <Box sx={{ position: 'sticky', top: 0, zIndex: 1200, height: 0 }}>
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            border: `1px solid ${cc.SurfaceVariant}`,
+            borderRadius: '10px',
+            boxShadow: '0 4px 16px rgba(31,81,91,0.12)',
+            overflow: 'hidden',
+            // Hide via visibility+opacity, NOT a big translate: a translated bar parks in
+            // the space above the wrapper's flow slot and stays visible on screen at load.
+            ...(scrolled && (view === 'horizontal' || headerRevealed)
+              ? { transform: 'translateY(0)', opacity: 1, visibility: 'visible' as const, pointerEvents: 'auto' as const }
+              : { transform: 'translateY(-12px)', opacity: 0, visibility: 'hidden' as const, pointerEvents: 'none' as const }),
+            transition: 'transform 0.25s ease, opacity 0.2s ease, visibility 0.25s'
+          }}
+        >
+          {/* Compact header — back + name (left), mini stat strip (right). Collapses while scrolling down. */}
           <Box
             sx={{
-              bgcolor: 'background.paper',
-              border: `1px solid ${cc.SurfaceVariant}`,
-              borderRadius: '10px',
-              boxShadow: '0 4px 16px rgba(31,81,91,0.12)',
-              px: 3,
-              py: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 2,
-              flexWrap: 'wrap'
+              display: 'grid',
+              gridTemplateRows: headerRevealed ? '1fr' : '0fr',
+              transition: 'grid-template-rows 0.25s ease'
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minWidth: 0 }}>
-              <IconButton onClick={onBack} sx={{ p: 0.5, color: cc.OnSurfaceVariant }}>
-                <Icon icon='mdi:arrow-left' />
-              </IconButton>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant='h5' sx={{ fontWeight: 700 }} noWrap>
-                  {h?.commonName || `Species #${speciesId}`}
-                </Typography>
-                {h?.scientificName && (
-                  <Typography variant='subtitle2' sx={{ fontStyle: 'italic', color: cc.neutralSecondary, display: 'block' }} noWrap>
-                    {h.scientificName}
-                  </Typography>
-                )}
+            <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+              <Box
+                sx={{
+                  px: 3,
+                  py: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  borderBottom: view === 'horizontal' ? `1px solid ${cc.SurfaceVariant}` : 'none'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minWidth: 0 }}>
+                  <IconButton onClick={onBack} sx={{ p: 0.5, color: cc.OnSurfaceVariant }}>
+                    <Icon icon='mdi:arrow-left' />
+                  </IconButton>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant='h5' sx={{ fontWeight: 700 }} noWrap>
+                      {h?.commonName || `Species #${speciesId}`}
+                    </Typography>
+                    {h?.scientificName && (
+                      <Typography variant='subtitle2' sx={{ fontStyle: 'italic', color: cc.neutralSecondary, display: 'block' }} noWrap>
+                        {h.scientificName}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '30px', bgcolor: 'customColors.chatBubbleSent', borderRadius: '10px', px: '32px', py: '16px', flexWrap: 'wrap' }}>
+                  {mini.map((s, i) =>
+                    'divider' in s ? (
+                      <Box key={i} sx={{ width: '1px', height: 26, bgcolor: wFaint }} />
+                    ) : (
+                      <Box key={i} sx={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
+                        <Typography sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: s.c }}>
+                          {s.v}
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: wLabel }}>
+                          {s.l}
+                        </Typography>
+                      </Box>
+                    )
+                  )}
+                </Box>
               </Box>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '30px', bgcolor: 'customColors.chatBubbleSent', borderRadius: '10px', px: '32px', py: '16px', flexWrap: 'wrap' }}>
-              {mini.map((s, i) =>
-                'divider' in s ? (
-                  <Box key={i} sx={{ width: '1px', height: 26, bgcolor: wFaint }} />
-                ) : (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-                    <Typography sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: s.c }}>
-                      {s.v}
-                    </Typography>
-                    <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: wLabel }}>
-                      {s.l}
-                    </Typography>
-                  </Box>
-                )
-              )}
-            </Box>
           </Box>
+
+          {/* Pinned tabs — horizontal view only (rail view keeps its own sticky rail) */}
+          {view === 'horizontal' && (
+            <TabsWithMenu
+              tabs={TABS}
+              selectedTab={activeTab}
+              onTabChange={(_e, v) => onTabChange(v as SpeciesDetailTab)}
+            />
+          )}
         </Box>
-      )}
+      </Box>
 
       {/* Breadcrumb — on the plain background, above the card */}
       {(h?.class || h?.order || h?.family || h?.genus) && (
@@ -454,13 +510,15 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           </Box>
         )}
 
-        {/* Band 3 — Tabs (horizontal view only) */}
+        {/* Band 3 — Tabs (horizontal view only). The ref anchors the sticky-stack trigger. */}
         {view === 'horizontal' && (
-          <TabsWithMenu
-            tabs={TABS}
-            selectedTab={activeTab}
-            onTabChange={(_e, v) => onTabChange(v as SpeciesDetailTab)}
-          />
+          <Box ref={tabsAnchorRef}>
+            <TabsWithMenu
+              tabs={TABS}
+              selectedTab={activeTab}
+              onTabChange={(_e, v) => onTabChange(v as SpeciesDetailTab)}
+            />
+          </Box>
         )}
       </Card>
 

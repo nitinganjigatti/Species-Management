@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Avatar, Box, Button, Checkbox, Divider, Drawer, IconButton, Menu, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Avatar, Box, Button, Checkbox, Divider, IconButton, Menu, MenuItem, Select, TextField, Typography, useMediaQuery } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material/Select'
 import { alpha, useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
@@ -20,12 +20,14 @@ import type {
 import {
   AnimalCell,
   CellText,
+  ChartHoverCard,
   EmptyState,
   GRID_CELL_PAD,
   ListSheet,
   SeasonalColumnChart,
   sheetPaperSx,
   SHEET_PX,
+  SheetDrawer,
   thinScrollbarSx,
   SectionCard,
   TrendAreaChart,
@@ -201,7 +203,7 @@ export const MoreFiltersDrawer: React.FC<{
   const count = facets.reduce((n, f) => n + (draft[f.key]?.length || 0), 0)
 
   return (
-    <Drawer anchor='right' open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('sm') } }}>
+    <SheetDrawer open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('sm') } }}>
       <Box sx={{ px: SHEET_PX, py: 4, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
@@ -265,7 +267,7 @@ export const MoreFiltersDrawer: React.FC<{
           </Button>
         </Box>
       </Box>
-    </Drawer>
+    </SheetDrawer>
   )
 }
 
@@ -423,17 +425,21 @@ const deathRow = (e: LifecycleDeath, i: number): ListRow => ({
 })
 
 // Survival Analysis — accession → death, bucketed (mirrors the prototype's 5-band chart).
-const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
+// Bands live at module scope so the drill-sheet opener reuses the same ranges
+// (`match` mirrors the bucket cutoffs in buildDeaths — keep them in sync).
+export type SurvBand = { key: 'd7' | 'd30' | 'd90' | 'd365' | 'over365'; label: string; desc: string; opacity: number; match: (days: number) => boolean }
+const SURV_BANDS: SurvBand[] = [
+  { key: 'd7', label: '0–7d', desc: 'Died within first week', opacity: 1, match: d => d <= 7 },
+  { key: 'd30', label: '8–30d', desc: 'Died within first month', opacity: 0.82, match: d => d > 7 && d <= 30 },
+  { key: 'd90', label: '31–90d', desc: 'Died within 3 months', opacity: 0.64, match: d => d > 30 && d <= 90 },
+  { key: 'd365', label: '91–365d', desc: 'Died within first year', opacity: 0.46, match: d => d > 90 && d <= 365 },
+  { key: 'over365', label: '365+d', desc: 'Survived over a year', opacity: 0.32, match: d => d > 365 }
+]
+
+const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvBand) => void }> = ({ deaths, onBarClick }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const sb = deaths?.survivalBuckets
-  const SURV_BANDS: { key: keyof NonNullable<typeof sb>; label: string; desc: string; opacity: number }[] = [
-    { key: 'd7', label: '0–7d', desc: 'Died within first week', opacity: 1 },
-    { key: 'd30', label: '8–30d', desc: 'Died within first month', opacity: 0.82 },
-    { key: 'd90', label: '31–90d', desc: 'Died within 3 months', opacity: 0.64 },
-    { key: 'd365', label: '91–365d', desc: 'Died within first year', opacity: 0.46 },
-    { key: 'over365', label: '365+d', desc: 'Survived over a year', opacity: 0.32 }
-  ]
   const survTotal = sb ? SURV_BANDS.reduce((s, b) => s + (sb[b.key] || 0), 0) : 0
 
   if (!sb || survTotal <= 0) {
@@ -469,9 +475,34 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
             const v = sb[b.key] || 0
             const pct = survTotal ? Math.round((v / survTotal) * 1000) / 10 : 0
             const bh = v > 0 ? Math.max(6, Math.round((v / max) * 120)) : 0
+            const clickable = v > 0 && !!onBarClick
 
             return (
-              <Box key={b.key} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <ChartHoverCard
+                key={b.key}
+                title={`${b.label} — ${b.desc}`}
+                rows={[
+                  { color: cc.Tertiary, label: 'Deaths', value: v.toLocaleString() },
+                  { label: 'Share', value: `${pct}%` }
+                ]}
+                disabled={v === 0}
+              >
+              <Box
+                onClick={clickable ? () => onBarClick(b) : undefined}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  borderRadius: '8px',
+                  ...(clickable && {
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': { bgcolor: 'customColors.Surface' }
+                  })
+                }}
+              >
                 <Typography variant='subtitle2' sx={{ fontWeight: 700, color: cc.Tertiary, opacity: v ? 1 : 0.4 }}>
                   {v || '–'}
                 </Typography>
@@ -495,6 +526,7 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
                   {b.desc}
                 </Typography>
               </Box>
+              </ChartHoverCard>
             )
           })
         })()}
@@ -1186,6 +1218,10 @@ const AnimalEventsTable: React.FC<{
 }> = ({ events, mode, onModeChange, counts, viewMode, onViewModeChange, onDrillSite }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
+
+  // Portrait: tabs + controls don't fit one line — stack them as two deliberate
+  // rows inside the card header instead of letting flex-wrap scatter them.
+  const portrait = useMediaQuery('(orientation: portrait)')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
@@ -1218,7 +1254,7 @@ const AnimalEventsTable: React.FC<{
     lifespan: theme.palette.secondary.main
   }
   const modeTabs = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       {TABLE_MODES.map(m => {
         const active = mode === m.key
         const accent = accents[m.key]
@@ -1253,17 +1289,39 @@ const AnimalEventsTable: React.FC<{
       })}
     </Box>
   )
-  const headerAction = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+  const searchField = (
+    <TextField
+      size='small'
+      placeholder={isSite ? 'Search sites…' : 'Search animals…'}
+      value={q}
+      onChange={e => setQ(e.target.value)}
+      sx={{
+        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 240 }),
+        '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: theme.palette.background.paper }
+      }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+    />
+  )
+
+  // Landscape: one row (toggle then search, right side of the header).
+  // Portrait: full-width search runs up to the right-aligned toggle.
+  const headerAction = portrait ? (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+      {searchField}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
-      <TextField
-        size='small'
-        placeholder={isSite ? 'Search sites…' : 'Search animals…'}
-        value={q}
-        onChange={e => setQ(e.target.value)}
-        sx={{ width: 240, '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: theme.palette.background.paper } }}
-        InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
-      />
+    </Box>
+  ) : (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
+      {searchField}
+    </Box>
+  )
+
+  // Portrait card header: tabs on their own line, controls on the next.
+  const stackedHeader = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
+      {modeTabs}
+      {headerAction}
     </Box>
   )
 
@@ -1276,7 +1334,7 @@ const AnimalEventsTable: React.FC<{
   }
 
   return (
-    <SectionCard title={modeTabs} action={headerAction}>
+    <SectionCard title={portrait ? stackedHeader : modeTabs} action={portrait ? undefined : headerAction}>
       <CommonTable
         columns={columns}
         indexedRows={rows}
@@ -1425,6 +1483,19 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       title: `${manner} — Deaths`,
       icon: 'mdi:file-document-outline',
       stats: [{ label: 'Deaths', value: sumK(recs) }],
+      rows: recs.map(deathRow)
+    })
+  }
+  // Survival-band bar → the deaths whose accession→death span falls in that band.
+  const openSurvivalBucket = (band: SurvBand) => {
+    const recs = byDateDesc(filteredDeaths.filter(r => typeof r.sv === 'number' && band.match(r.sv)))
+    setSheet({
+      title: `${band.label} — ${band.desc}`,
+      icon: 'mdi:timer-sand',
+      stats: [
+        { label: 'Deaths', value: sumK(recs) },
+        ...(recs.length ? [{ label: 'Top cause', value: topCause(recs) ?? '—' }] : [])
+      ],
       rows: recs.map(deathRow)
     })
   }
@@ -1613,11 +1684,19 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         sub='Same period · aligned months'
         action={<TrendRangeTabs value={range.preset} onPick={pickTrendRange} color={theme.palette.primary.main} />}
       />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+      {/* Orientation-driven (matches Overview's Births/Deaths row): the four
+          time/seasonal charts stack full-width in portrait, pair up in landscape. */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 4,
+          alignItems: 'stretch',
+          gridTemplateColumns: '1fr',
+          '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+        }}
+      >
         <TrendCard title='Births Over Time' trend={birthsTrend} color={theme.palette.primary.main} name='Births' empty='No birth data for this period' onPoint={openBirthPoint} />
         <TrendCard title='Deaths Over Time' trend={deathsTrend} color={cc.Tertiary} name='Deaths' empty='No death data for this period' onPoint={openDeathPoint} />
-      </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
         <SeasonalPatternCard
           title='Seasonal Breeding Pattern'
           data={birthsData?.seasonal || []}
@@ -1660,7 +1739,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       {/* ── Deaths — detail analytics ── */}
       <SectionHeader title='Deaths — Detail' />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
-        <SurvivalCard deaths={deathsData} />
+        <SurvivalCard deaths={deathsData} onBarClick={openSurvivalBucket} />
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <AgeAtDeathCard deaths={deathsData} />
           <CauseOfDeathCard deaths={deathsData} onOpenCause={openCause} />
