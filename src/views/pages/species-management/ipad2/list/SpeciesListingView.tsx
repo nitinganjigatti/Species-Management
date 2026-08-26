@@ -15,7 +15,6 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
-import { Ribbon } from 'src/views/pages/species-management/ipad2/marks'
 import { FilterChip, GRID_CELL_PAD } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import SpeciesListFilterRail from 'src/views/pages/species-management/ipad2/list/SpeciesListFilterRail'
 import { type MajorFilterRow } from 'src/views/pages/species-management/ipad2/list/SpeciesListMajorFilters'
@@ -87,7 +86,6 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   analysisYears,
   onAnalysisChange
 }) => {
-  const filtered = posture.species !== posture.totalSpecies
   const portrait = useMediaQuery('(orientation: portrait)')
 
   // Legacy rail-copy drawer — kept dormant (the Filters button now opens the filter sheet).
@@ -96,87 +94,58 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   // Diet-style filter sheet (portrait bottom sheet / landscape side sheet).
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
-  // ── The collection in one band (CC StatBand) — and it was five tinted boxes. ──
-  // Three things at three weights: THE COUNT (species leads, animals supports),
-  // THE COMPOSITION (one proportional ribbon — M/F/U are parts of a whole, and the
-  // finding is usually how much is unsexed), THE EXCEPTION (critical, alone in coral,
-  // hidden at zero — a coral "0" is an alarm about nothing).
+  // ── The collection in one strip (approved 2026-08: "the numbers ARE the design") ──
+  // Five segments at ONE type spec — Species · Animals · Male · Female · Unsexed —
+  // divided by full-height hairlines. Two lines per segment (overline + figure),
+  // nothing else: no ribbon, no legend, no critical, no sub-lines.
   const undetermined = Math.max(0, posture.animals - posture.male - posture.female)
-  const sexes = [
-    { label: 'Male', value: posture.male, color: skin.LIST_GREEN },
-    { label: 'Female', value: posture.female, color: skin.RIBBON_FEMALE },
-    { label: 'Undetermined', value: undetermined, color: skin.RIBBON_UNSEXED }
+  const stats = [
+    { label: 'Species', value: posture.species },
+    { label: 'Animals', value: posture.animals },
+    { label: 'Male', value: posture.male },
+    { label: 'Female', value: posture.female },
+    { label: 'Unsexed', value: undetermined }
   ]
 
   const statBand = (
-    <Box sx={{ ...skin.cardSx, px: '20px', py: '16px' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          gap: { xs: 3, sm: 6 }
-        }}
-      >
-        {/* THE COUNT — baseline-aligned so the figures sit on one line however they wrap. */}
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexShrink: 0 }}>
+    <Box sx={{ ...skin.cardSx, display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+      {stats.map((s, i) => (
+        <Box
+          key={s.label}
+          sx={{
+            px: '24px',
+            py: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '9px',
+            borderLeft: i === 0 ? 'none' : `1px solid ${skin.HAIR}`
+          }}
+        >
           <Typography
-            sx={{ fontSize: '32px', fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}
-          >
-            {posture.species.toLocaleString()}
-          </Typography>
-          <Typography variant='body2' sx={{ color: skin.MUTED }}>
-            species
-          </Typography>
-          <Typography variant='body2' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
-            {filtered ? `of ${posture.totalSpecies.toLocaleString()} · ` : '· '}
-            {posture.animals.toLocaleString()} animals
-          </Typography>
-        </Box>
-
-        {/* THE COMPOSITION — takes the slack; a bar is the one thing here that reads better wide. */}
-        <Box sx={{ minWidth: 0, flex: 1, width: { xs: '100%', sm: 'auto' } }}>
-          <Ribbon items={sexes} height={8} />
-          <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 4, rowGap: 0.5 }}>
-            {sexes.map(s => (
-              <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                <Box sx={{ width: 7, height: 7, flexShrink: 0, borderRadius: '50%', bgcolor: s.color }} />
-                <Typography variant='caption' sx={{ color: skin.MUTED }}>
-                  {s.label}{' '}
-                  <Box component='span' sx={{ color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>
-                    {s.value.toLocaleString()}
-                  </Box>
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-
-        {/* THE EXCEPTION — the only figure a reader would act on today, so the only one in colour. */}
-        {posture.criticallyFew > 0 && (
-          <Box
             sx={{
-              display: 'flex',
-              flexShrink: 0,
-              alignItems: { xs: 'baseline', sm: 'flex-end' },
-              flexDirection: { xs: 'row', sm: 'column' },
-              gap: { xs: 1.5, sm: 0.5 }
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: skin.FAINT
             }}
           >
-            <Typography
-              sx={{ fontSize: '26px', fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: skin.CORAL }}
-            >
-              {posture.criticallyFew.toLocaleString()}
-            </Typography>
-            <Typography
-              variant='caption'
-              sx={{ fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.MUTED }}
-            >
-              Critical
-            </Typography>
-          </Box>
-        )}
-      </Box>
+            {s.label}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '24px',
+              fontWeight: 800,
+              lineHeight: 1.05,
+              letterSpacing: '-0.6px',
+              fontVariantNumeric: 'tabular-nums',
+              color: skin.VALUE
+            }}
+          >
+            {s.value.toLocaleString()}
+          </Typography>
+        </Box>
+      ))}
     </Box>
   )
 
