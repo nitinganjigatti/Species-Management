@@ -14,6 +14,10 @@ import {
  * Sexed % and Chip % are the trailing columns; both are percentages, never raw counts.
  * Taxonomy / category / readiness / accessions columns live in the filters + detail page, not the table.
  */
+// One lane of the M·F·U·T column — sized so a 4-digit count ("1,234") fits without
+// shifting its neighbours; every value left-aligns at its lane's start.
+const SEX_SLOT_W = 48
+
 export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
 
@@ -67,7 +71,6 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       <Box
         component='span'
         sx={{
-          ml: 0.5,
           px: 0.5,
           flexShrink: 0,
           borderRadius: '3px',
@@ -86,7 +89,12 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
 
   const speciesNameCell = (params: GridRenderCellParams) => {
     const r = params.row as SpeciesRow & { image?: string }
-    const img = r.image || '/images/housing/species-icon-colored.svg'
+    // Fallback = antz logomark (module-wide avatar standard, matches AnimalCell); real
+    // species photos fill the tile, the logomark sits contained with breathing room.
+    // The dataset stamps the Housing module's stock icon as default_icon on every row —
+    // treat that as "no photo" too, otherwise the fallback never fires.
+    const photo = r.image && r.image !== '/images/housing/species-icon-colored.svg' ? r.image : ''
+    const img = photo || '/images/branding/Antz_logomark_h_color.svg'
     const code = iucnShort(r.iucn)
 
     return (
@@ -95,7 +103,13 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
           variant='rounded'
           src={img}
           alt={r.scientific_name}
-          sx={{ width: 40, height: 40, flexShrink: 0, bgcolor: cc.Surface, '& img': { objectFit: 'cover' } }}
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            bgcolor: cc.Surface,
+            '& img': photo ? { objectFit: 'cover' } : { objectFit: 'contain', padding: '5px' }
+          }}
         />
         <Box sx={{ minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
@@ -118,7 +132,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
               </Typography>
             )}
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0 }}>
             <Typography
               sx={{
                 fontSize: '1rem',
@@ -200,34 +214,47 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderCell: speciesNameCell
     },
     {
-      // Single sex/population column: M · F · U · T (T = total, bold green so it
-      // still anchors the scan) — replaces the old Population + M·F·U pair.
-      width: 180,
+      // Single sex/population column as FOUR aligned slots — M / F / U / T each get a
+      // fixed-width, left-aligned lane sized for a 4-digit count ("1,234"), so every
+      // row's M values line up under the M header letter (same for F/U/T). T = total,
+      // bold green so it still anchors the scan. No dot separators — alignment separates.
+      width: 220,
       sortable: false,
       field: 'population',
       headerName: 'M · F · U · T',
+      renderHeader: () => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {(['M', 'F', 'U', 'T'] as const).map(l => (
+            <Typography
+              key={l}
+              component='span'
+              sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '15px', fontWeight: 600, color: cc.OnSurfaceVariant }}
+            >
+              {l}
+            </Typography>
+          ))}
+        </Box>
+      ),
       renderCell: (params: GridRenderCellParams) => {
         const r = params.row as SpeciesRow
         const seg = (n: number) => (
-          <Typography component='span' sx={{ fontSize: '15px', fontWeight: 500, color: cc.OnSurfaceVariant }}>
+          <Typography
+            component='span'
+            sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '15px', fontWeight: 500, color: cc.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums' }}
+          >
             {Number(n || 0).toLocaleString()}
-          </Typography>
-        )
-        const dot = (
-          <Typography component='span' sx={{ fontSize: '15px', color: cc.OutlineVariant }}>
-            ·
           </Typography>
         )
 
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, height: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
             {seg(r.male)}
-            {dot}
             {seg(r.female)}
-            {dot}
             {seg(r.undetermined)}
-            {dot}
-            <Typography component='span' sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurface }}>
+            <Typography
+              component='span'
+              sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '1rem', fontWeight: 600, color: cc.OnSurface, fontVariantNumeric: 'tabular-nums' }}
+            >
               {Number(r.population || 0).toLocaleString()}
             </Typography>
           </Box>
@@ -273,7 +300,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       width: 90,
       sortable: false,
       field: 'sexed_pct',
-      headerName: 'Sexed %',
+      headerName: 'Sexed',
       renderCell: (params: GridRenderCellParams) => {
         const r = params.row as SpeciesRow
         const pct = r.population > 0 ? Math.round(((r.male + r.female) / r.population) * 100) : 0
@@ -285,7 +312,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       width: 90,
       sortable: false,
       field: 'chipped',
-      headerName: 'Chip %',
+      headerName: 'Chip',
       renderCell: (params: GridRenderCellParams) => {
         const r = params.row as SpeciesRow
         const pct = r.population > 0 ? Math.round((Number(r.chipped || 0) / r.population) * 100) : 0

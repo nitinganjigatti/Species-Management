@@ -17,6 +17,7 @@ import {
 import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/ipad1/dashboard/DashboardDateRange'
 import {
   GenderFilter,
+  PeriodBand,
   RangeSelect,
   makeMatcher,
   CTRL_H,
@@ -223,104 +224,24 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Control band — Period (Quick / By month·year) · Gender · Other Filters. Scopes Births & Deaths. */}
-      <Box sx={{ borderRadius: '10px', border: `1px solid ${cc.SurfaceVariant}`, bgcolor: 'background.paper', p: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: { xs: 2, md: 2.5 },
-            flexWrap: 'wrap',
-            '& .MuiInputBase-root': { height: CTRL_H },
-            '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
-            '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
-          }}
-        >
-          {groupLabel('Period')}
-          <Box sx={{ display: 'inline-flex', height: CTRL_H, p: 1.5, borderRadius: '999px', bgcolor: cc.OnSurfaceVariant }}>
-            {(['quick', 'range'] as const).map(m => {
-              const on = periodMode === m
-
-              return (
-                <Box
-                  key={m}
-                  onClick={() => switchMode(m)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    px: 4,
-                    borderRadius: '999px',
-                    cursor: 'pointer',
-                    bgcolor: on ? theme.palette.primary.main : 'transparent',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontWeight: on ? 600 : 500, color: on ? theme.palette.common.white : alpha(theme.palette.common.white, 0.7), whiteSpace: 'nowrap' }}>
-                    {m === 'quick' ? 'Quick' : 'By month / year'}
-                  </Typography>
-                </Box>
-              )
-            })}
-          </Box>
-
-          {/* Right-aligned control group: All time (quick mode only) · Gender ·
-              Other Filters. Gender + Other Filters anchor the right edge, so
-              toggling modes only adds/removes All time — nothing else moves. */}
-          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
-            {periodMode === 'quick' && <DashboardDateRange value={range} onChange={setRange} />}
-
-            <GenderFilter selected={genders} onChange={setGenders} />
-
-            <FilterButtonWithNotification
-              label='Other Filters'
-              onClick={() => setFilterOpen(true)}
-              appliedFiltersCount={extraCount || undefined}
-              sx={{ height: CTRL_H, bgcolor: theme.palette.background.paper, '&:hover': { bgcolor: theme.palette.background.paper } }}
-            />
-          </Box>
-        </Box>
-
-        {/* Row 2 — Year/Month ranges, revealed by the By month/year toggle. */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateRows: periodMode === 'range' ? '1fr' : '0fr',
-            transition: 'grid-template-rows 0.2s ease'
-          }}
-        >
-          <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
-            {/* divider between the two rows — slides in with the row itself */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                rowGap: { xs: 2, md: 2.5 },
-                columnGap: '48px',
-                mt: 3,
-                pt: 3,
-                borderTop: `1px solid ${cc.SurfaceVariant}`,
-                '& .MuiInputBase-root': { height: CTRL_H },
-                '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
-                '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {groupLabel('Years')}
-                <RangeSelect value={analysis.yearFrom} onPick={v => setAnalysis(a => ({ ...a, yearFrom: v }))} items={yearItems} anyLabel='All' />
-                {dash}
-                <RangeSelect value={analysis.yearTo} onPick={v => setAnalysis(a => ({ ...a, yearTo: v }))} items={yearItems} anyLabel='All' />
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {groupLabel('Months')}
-                <RangeSelect value={analysis.monthFrom} onPick={v => setAnalysis(a => ({ ...a, monthFrom: v }))} items={monthItems} anyLabel='All' />
-                {dash}
-                <RangeSelect value={analysis.monthTo} onPick={v => setAnalysis(a => ({ ...a, monthTo: v }))} items={monthItems} anyLabel='All' />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+      {/* Control band — shared PeriodBand (split-card layout + squared light-green toggle). */}
+      <PeriodBand
+        periodMode={periodMode}
+        onModeChange={switchMode}
+        range={range}
+        onRangeChange={setRange}
+        genders={genders}
+        onGendersChange={setGenders}
+        extraCount={extraCount}
+        onOpenFilters={() => setFilterOpen(true)}
+        yearFrom={analysis.yearFrom}
+        yearTo={analysis.yearTo}
+        monthFrom={analysis.monthFrom}
+        monthTo={analysis.monthTo}
+        onWindowPatch={patch => setAnalysis(a => ({ ...a, ...patch }))}
+        yearItems={yearItems}
+        monthItems={monthItems}
+      />
 
       {/* Row 1 — Births (green) · Deaths (orange). Orientation-driven like the list
           rail: stacked full-width in portrait, side-by-side in landscape. */}

@@ -128,7 +128,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   const filtersButton = (
     <Button
       variant='outlined'
-      startIcon={<Icon icon='mdi:filter-variant' />}
+      startIcon={<Icon icon='mage:filter' />}
       onClick={() => setFilterSheetOpen(true)}
       sx={{
         textTransform: 'none',
