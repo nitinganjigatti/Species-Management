@@ -1138,6 +1138,9 @@ export const SectionCard: React.FC<{
       sx={{
         ...skin.cardSx,
         p: 4,
+        // Grid/flex items default to min-width:auto — a wide chart body (BarColumns
+        // minSlot) would grow the card past its track instead of scrolling inside it.
+        minWidth: 0,
         ...(onClick && { cursor: 'pointer', ...skin.cardPressSx, '&:hover': { backgroundColor: '#fcfcfb' } }),
         ...sx
       }}

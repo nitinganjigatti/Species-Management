@@ -99,10 +99,19 @@ const CCTabs: React.FC<{
       if (el) setPill({ left: el.offsetLeft, width: el.offsetWidth })
     }
     window.addEventListener('resize', remeasure)
+    // The mount-time measurement can land before the webfont swaps in, leaving the
+    // pill narrower than the text it sits under — observe the active button so any
+    // size change (font load included) re-syncs the pill.
+    const el = btns.current.get(active)
+    const ro = typeof ResizeObserver !== 'undefined' && el ? new ResizeObserver(remeasure) : null
+    if (ro && el) ro.observe(el)
     // A tab picked at the clipped end of the rail slides itself into view.
-    btns.current.get(active)?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
+    el?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
 
-    return () => window.removeEventListener('resize', remeasure)
+    return () => {
+      window.removeEventListener('resize', remeasure)
+      ro?.disconnect()
+    }
   }, [active])
 
   return (

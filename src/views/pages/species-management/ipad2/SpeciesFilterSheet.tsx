@@ -176,11 +176,26 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
             <Box sx={{ flex: 1, overflowY: 'auto' }}>
               {currentOptions.length > 0 ? (
                 <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  {/* The WHOLE row is the tap target (checkbox alone is a fiddly
+                      target on glass); the checkbox stops propagation so a direct
+                      tap on it doesn't toggle twice. */}
+                  <Box
+                    onClick={handleSelectAll}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      mb: 2,
+                      cursor: 'pointer',
+                      borderRadius: '10px',
+                      ...skin.cardPressSx,
+                      '&:hover': { bgcolor: skin.ROW_HOVER }
+                    }}
+                  >
                     <Checkbox
                       checked={allVisibleSelected}
                       indeterminate={!!section && draftFor(section.key).length > 0 && !allVisibleSelected}
                       onChange={handleSelectAll}
+                      onClick={e => e.stopPropagation()}
                       sx={{ color: skin.DASH_INK, '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: skin.LIST_GREEN } }}
                     />
                     <Typography variant='body1' sx={{ color: skin.MUTED }}>
@@ -190,9 +205,27 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                   <Divider sx={{ mb: 2, borderColor: skin.HAIR }} />
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     {currentOptions.map(opt => (
-                      <Box key={opt.value} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box
+                        key={opt.value}
+                        onClick={() => toggleOption(opt.value)}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          borderRadius: '10px',
+                          pr: 2,
+                          ...skin.cardPressSx,
+                          '&:hover': { bgcolor: skin.ROW_HOVER }
+                        }}
+                      >
                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                          <Checkbox checked={!!section && draftFor(section.key).includes(opt.value)} onChange={() => toggleOption(opt.value)} sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }} />
+                          <Checkbox
+                            checked={!!section && draftFor(section.key).includes(opt.value)}
+                            onChange={() => toggleOption(opt.value)}
+                            onClick={e => e.stopPropagation()}
+                            sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
+                          />
                           <Typography variant='body1' sx={{ color: skin.INK2 }} noWrap>
                             {opt.label}
                           </Typography>
@@ -227,9 +260,13 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
           flexShrink: 0
         }}
       >
+        {/* color='inherit' / variant='contained' keep these off the theme's
+            text-primary hover rule (primary @ 8% — a pale wash that outranks
+            a plain sx '&:hover' and washed the CTA out). */}
         <Button
           size='large'
           fullWidth
+          color='inherit'
           onClick={handleCancelAll}
           sx={{
             textTransform: 'none',
@@ -246,6 +283,8 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
         <Button
           size='large'
           fullWidth
+          variant='contained'
+          disableElevation
           onClick={handleApply}
           sx={{
             textTransform: 'none',
@@ -254,7 +293,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
             color: '#ffffff',
             bgcolor: skin.LIST_GREEN,
             ...skin.cardPressSx,
-            '&:hover': { bgcolor: skin.ACCENT_INK }
+            '&:hover': { bgcolor: skin.ACCENT_INK, color: '#ffffff' }
           }}
         >
           Apply Filter
