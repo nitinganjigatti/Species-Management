@@ -97,6 +97,31 @@ const VerticalLayout = props => {
             {...props}
           />
 
+          {/* Floating nav opener — the sidebar hides below the lg breakpoint (iPad
+              portrait) and the appbar hamburger isn't always reachable there, so a
+              fixed touch target keeps the main nav one tap away. Gone whenever the
+              sidebar itself is visible (landscape/desktop) or the drawer is open. */}
+          {hidden && !navVisible && (
+            <Fab
+              size='small'
+              aria-label='Open navigation'
+              onClick={toggleNavVisibility}
+              sx={{
+                position: 'fixed',
+                top: 'max(10px, env(safe-area-inset-top))',
+                left: 10,
+                zIndex: theme => theme.zIndex.appBar + 1,
+                boxShadow: 3,
+                color: 'customColors.OnSurfaceVariant',
+                backgroundColor: 'background.paper',
+                border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                '&:hover': { backgroundColor: 'customColors.Surface' }
+              }}
+            >
+              <Icon icon='mdi:menu' />
+            </Fab>
+          )}
+
           {/* Content */}
           <ContentWrapper
             className='layout-page-content'
