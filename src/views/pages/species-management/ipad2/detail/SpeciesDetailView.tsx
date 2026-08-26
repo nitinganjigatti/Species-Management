@@ -481,7 +481,9 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         <Sprig sx={{ bottom: -28, left: -20 }} opacity={0.1} flip />
 
         {/* Identity: back, the name once, binomial + lineage under it, the standing opposite. */}
-        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+        {/* nowrap: the pills stay top-right of the title row even at 810px portrait
+            (iPad) — the title truncates and the lineage wraps before the pills drop. */}
+        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 3, flexWrap: 'nowrap' }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, minWidth: 0 }}>
             {/* Back — a soft glass square, no stroke, no fill heavier than glass. */}
             <Box
@@ -523,7 +525,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           </Box>
 
           {/* The published listings as glass pills; the view toggle rides with them. */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap', flexShrink: 0 }}>
             {h?.iucnStatus && (
               <Box sx={glassPillSx} title={iucnName}>
                 {iucnEntry && (

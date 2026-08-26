@@ -151,10 +151,13 @@ export const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]
         endIcon={<Icon icon='mdi:chevron-down' />}
         sx={{
           height: CTRL_H,
+          px: 3,
           textTransform: 'none',
           fontSize: '15px',
           fontWeight: 500,
           borderRadius: '999px',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
           color: selected.length ? skin.LIST_GREEN : skin.INK2,
           bgcolor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
           borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR,
@@ -957,7 +960,9 @@ export const PeriodBand: React.FC<{
   // Lead labels (PERIOD / YEARS / MONTHS) share one fixed, RIGHT-ALIGNED column: every
   // label ends at the same edge, so the label→control gap is identical for all three
   // and the controls start on one aligned left edge.
-  const LEAD_LABEL_W = 64
+  // 56 (not 64): row 1 must hold PERIOD · toggle · preset · divider · Gender · Other
+  // Filters on ONE line at 810px portrait (iPad) — every px here was clawed back for that.
+  const LEAD_LABEL_W = 56
   const groupLabel = (text: string, lead = false) => (
     <Typography
       variant='caption'
@@ -987,9 +992,10 @@ export const PeriodBand: React.FC<{
         '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
       }}
     >
-      {/* Row 1 — split zones: mode left | divider | scope filters right */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
-        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 }, flexWrap: 'wrap' }}>
+      {/* Row 1 — split zones: mode left | divider | scope filters right. NOWRAP: the
+          approved portrait layout keeps everything on one line at 810px (iPad). */}
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: { xs: 1.5, md: 2.5 }, flexWrap: 'nowrap' }}>
           {groupLabel('Period', true)}
 
           {/* CC SegmentToggle grammar: sage track, rounded-full, the active segment a
@@ -1005,8 +1011,8 @@ export const PeriodBand: React.FC<{
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5,
-                    px: 3.5,
+                    gap: 1,
+                    px: 2.5,
                     borderRadius: '999px',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -1031,7 +1037,7 @@ export const PeriodBand: React.FC<{
             })}
           </Box>
 
-          {periodMode === 'quick' && <DashboardDateRange value={range} onChange={onRangeChange} />}
+          {periodMode === 'quick' && <DashboardDateRange value={range} onChange={onRangeChange} selectMinWidth={128} />}
         </Box>
 
         {/* Zone divider — pinned to row 1's control height; never grows with the Years/Months row */}
@@ -1046,6 +1052,9 @@ export const PeriodBand: React.FC<{
             appliedFiltersCount={extraCount || undefined}
             sx={{
               height: CTRL_H,
+              px: 3,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               borderRadius: '999px',
               border: `1px solid ${extraCount ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR}`,
               color: extraCount ? skin.LIST_GREEN : skin.INK2,

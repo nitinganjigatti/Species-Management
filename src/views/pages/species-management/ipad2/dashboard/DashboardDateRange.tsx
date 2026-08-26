@@ -87,13 +87,16 @@ const fmt = (d: Date) =>
 export default function DashboardDateRange({
   value,
   onChange,
-  presets
+  presets,
+  selectMinWidth = 160
 }: {
   value: RangeSelection
   onChange: (sel: RangeSelection) => void
   /** Optional allowlist — sections whose data can't honor every preset (e.g. monthly-bucketed
    *  series can't show "Today") pass the valid subset. Default: all presets. */
   presets?: RangePreset[]
+  /** Preset select floor — PeriodBand passes a tighter one so its row holds at 810px portrait. */
+  selectMinWidth?: number
 }) {
   const theme = useTheme() as any
   const cc = theme.palette.customColors
@@ -112,7 +115,7 @@ export default function DashboardDateRange({
         value={value.preset}
         onChange={e => onChange({ preset: e.target.value as RangePreset, start: value.start, end: value.end })}
         sx={{
-          minWidth: 160,
+          minWidth: selectMinWidth,
           bgcolor: '#ffffff',
           borderRadius: '999px',
           '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
