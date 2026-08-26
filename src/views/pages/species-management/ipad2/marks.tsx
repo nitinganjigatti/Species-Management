@@ -74,6 +74,43 @@ function usePlay<T extends HTMLElement>() {
   return { ref, play }
 }
 
+/* ── ribbon (CC Ribbon) ──────────────────────────────────────────────────────
+   Segmented composition as one line — the atom of every part-to-whole mark.
+   Segments carry a 2px gap (two adjacent steps otherwise read as one band) and
+   a 0.8% sliver floor so a real but tiny part stays visible. Grows in on scroll,
+   left-to-right, each segment 70ms behind the last. */
+export function Ribbon({
+  items,
+  height = 10
+}: {
+  items: { label: string; value: number; color: string }[]
+  height?: number
+}) {
+  const { ref, play } = usePlay<HTMLDivElement>()
+  const total = items.reduce((n, i) => n + i.value, 0) || 1
+
+  return (
+    <Box ref={ref} aria-hidden sx={{ display: 'flex', width: '100%', gap: '2px', height }}>
+      {items.map((it, i) => (
+        <Box
+          key={it.label}
+          sx={{
+            height: '100%',
+            width: `${Math.max(0.8, (it.value / total) * 100)}%`,
+            backgroundColor: it.color,
+            transformOrigin: 'left',
+            '&:first-of-type': { borderTopLeftRadius: '999px', borderBottomLeftRadius: '999px' },
+            '&:last-of-type': { borderTopRightRadius: '999px', borderBottomRightRadius: '999px' },
+            animation: play ? `ribbonGrowX ${skin.DUR_REVEAL} ${skin.EASE} both` : 'none',
+            animationDelay: play ? `${i * 70}ms` : undefined,
+            '@keyframes ribbonGrowX': { from: { transform: 'scaleX(0)' }, to: { transform: 'scaleX(1)' } }
+          }}
+        />
+      ))}
+    </Box>
+  )
+}
+
 /* ── the one tooltip (CC ChartTip) ──────────────────────────────────────────
    Portalled to <body>, follows the pointer, 44px lift on touch / 12px on cursor,
    clamped to the window, flips under the pointer near the top edge. */
@@ -140,6 +177,7 @@ export function useChartTip() {
 export function BarColumns({
   bars,
   fill = '#37bd69',
+  fills,
   noun,
   height = 196,
   minSlot,
@@ -147,6 +185,8 @@ export function BarColumns({
 }: {
   bars: [string | number, number][]
   fill?: string
+  /** Optional per-bar fills (semantic buckets — e.g. a BCS histogram); falls back to `fill`. */
+  fills?: (string | undefined)[]
   noun: string
   height?: number
   /** When set, the chart scrolls horizontally with at least this many px per column. */
@@ -170,7 +210,8 @@ export function BarColumns({
   const lines = Array.from({ length: Math.round(top / stepSize) + 1 }, (_, i) => i * stepSize)
 
   const body = (
-    <Box sx={{ pl: '32px', minWidth: minSlot ? `${bars.length * minSlot + 32}px` : undefined }}>
+    // pt keeps the TOP gridline's tick label inside the scroller — edge labels never clip.
+    <Box sx={{ pl: '32px', pt: '12px', minWidth: minSlot ? `${bars.length * minSlot + 32}px` : undefined }}>
       <Box sx={{ position: 'relative', height, borderRadius: '8px' }}>
         {lines.map(v => (
           <Box
@@ -205,8 +246,9 @@ export function BarColumns({
 
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: 2 }}>
           {bars.map(([label, v], i) => {
-            // Two-line axis labels ("Jan\n'25") read as one phrase in the tip.
-            const tip = (e: React.PointerEvent) => show(e, String(label).replace('\n', ' '), [{ label: noun, value: fmt(v), fill }])
+            const barFill = fills?.[i] ?? fill
+            // Two-line axis labels ("Jan\n25") read as one phrase in the tip.
+            const tip = (e: React.PointerEvent) => show(e, String(label).replace('\n', ' '), [{ label: noun, value: fmt(v), fill: barFill }])
 
             return (
               <Box
@@ -240,7 +282,7 @@ export function BarColumns({
                     mx: 'auto',
                     borderRadius: '4px 4px 0 0',
                     height: `${Math.max(2, (v / top) * 100)}%`,
-                    background: `linear-gradient(180deg, ${skin.mixOverWhite(fill, 0.58)} 0%, ${fill} 100%)`,
+                    background: `linear-gradient(180deg, ${skin.mixOverWhite(barFill, 0.58)} 0%, ${barFill} 100%)`,
                     transformOrigin: 'bottom',
                     transform: play ? 'scaleY(1)' : 'scaleY(0)',
                     transition: `transform ${skin.DUR_REVEAL} ${skin.EASE}`,
@@ -255,8 +297,8 @@ export function BarColumns({
 
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-around', gap: 2 }}>
         {bars.map(([label]) => {
-          // "Jan\n'25" renders as two stacked lines — month first, year beneath — so
-          // twelve slots keep breathing space instead of cramming "Jan '25" on one line.
+          // "Jan\n25" renders as two stacked lines — month first, year beneath — so
+          // twelve slots keep breathing space instead of cramming "Jan 2025" on one line.
           const [line1, line2] = String(label).split('\n')
 
           return (
@@ -300,19 +342,22 @@ export function Slices({
   inner = 0.62,
   centre,
   size = 188,
+  fills,
   onSelect
 }: {
   items: Slice[]
   inner?: number
   centre?: [string, string]
   size?: number
+  /** Explicit fills, for a scale whose colours mean something outside the hue ladder. */
+  fills?: string[]
   onSelect?: (slice: Slice) => void
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
   const { ref, play } = usePlay<HTMLDivElement>()
   const { show, hide, node } = useChartTip()
   const total = items.reduce((n, s) => n + s.value, 0)
-  const hues = huesFor(items.map(s => s.label))
+  const hues = fills ?? huesFor(items.map(s => s.label))
   if (!total) return null
 
   const R = size / 2
@@ -456,7 +501,7 @@ export function RankRows({
   total,
   onOpen
 }: {
-  rows: { key: string; label: string; value: number; onOpen?: () => void }[]
+  rows: { key: string; label: string; value: number; fill?: string; onOpen?: () => void }[]
   total: number
   onOpen?: (key: string) => void
 }) {
@@ -475,8 +520,7 @@ export function RankRows({
             key={r.key}
             onClick={() => (r.onOpen ? r.onOpen() : onOpen?.(r.key))}
             sx={{
-              borderBottom: `1px solid ${skin.HAIR}`,
-              '&:last-of-type': { borderBottom: 'none' },
+              // no row dividers (2026-08-27 review) — the rhythm alone separates rows
               py: 2.5,
               ...(clickable && { cursor: 'pointer', ...skin.cardPressSx, mx: -2, px: 2, borderRadius: '10px', '&:hover': { backgroundColor: '#fcfcfb' } })
             }}
@@ -498,7 +542,7 @@ export function RankRows({
                   height: '100%',
                   borderRadius: '999px',
                   width: `${Math.max(2, (r.value / peak) * 100)}%`,
-                  background: `linear-gradient(90deg, ${skin.ACCENT_FILL} 0%, ${skin.mixOverWhite(skin.ACCENT_FILL, 0.72)} 100%)`,
+                  background: `linear-gradient(90deg, ${r.fill ?? skin.ACCENT_FILL} 0%, ${skin.mixOverWhite(r.fill ?? skin.ACCENT_FILL, 0.72)} 100%)`,
                   transformOrigin: 'left',
                   transform: play ? 'scaleX(1)' : 'scaleX(0)',
                   transition: `transform ${skin.DUR_REVEAL} ${skin.EASE}`,

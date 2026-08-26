@@ -1,16 +1,21 @@
 'use client'
 
-// iPad build of the species listing view — rail shows by orientation (landscape), not viewport width.
+// iPad build of the species listing view — rail shows by orientation (landscape), not viewport
+// width. CC reskin: bare title on the sage ground, the five tinted stat boxes folded into ONE
+// StatBand (count leads · sex composition as a ribbon · critical alone in coral), white
+// hairline cards throughout, and the CC table language (pale teal-green header, one row
+// hairline, only population/births/deaths wearing colour).
 
 import React, { useState } from 'react'
-import { Box, Button, Card, Drawer, IconButton, Typography, useMediaQuery } from '@mui/material'
+import { Box, Button, Drawer, IconButton, Typography, useMediaQuery } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
-import { alpha, useTheme } from '@mui/material/styles'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad2/SpeciesFilterSheet'
 import type { GridColDef } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
+import { Ribbon } from 'src/views/pages/species-management/ipad2/marks'
 import { FilterChip, GRID_CELL_PAD } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import SpeciesListFilterRail from 'src/views/pages/species-management/ipad2/list/SpeciesListFilterRail'
 import { type MajorFilterRow } from 'src/views/pages/species-management/ipad2/list/SpeciesListMajorFilters'
@@ -82,8 +87,6 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   analysisYears,
   onAnalysisChange
 }) => {
-  const theme = useTheme()
-  const cc = theme.palette.customColors as Record<string, string>
   const filtered = posture.species !== posture.totalSpecies
   const portrait = useMediaQuery('(orientation: portrait)')
 
@@ -93,51 +96,109 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   // Diet-style filter sheet (portrait bottom sheet / landscape side sheet).
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
-  // Colorful equal-width stat box (Option A palette — all theme tokens). Tinted fill + accent figure.
-  const statBox = (value: number, label: string, accent: string, bg: string, border: string, sub?: string) => (
-    <Box
-      sx={{
-        flex: '1 1 0',
-        minWidth: 128,
-        borderRadius: '10px',
-        border: `1px solid ${border}`,
-        bgcolor: bg,
-        px: '16px',
-        py: '14px'
-      }}
-    >
-      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, lineHeight: 1, color: accent, fontVariantNumeric: 'tabular-nums' }}>
-        {value.toLocaleString()}
-        {sub && (
-          <Typography component='span' variant='body2' sx={{ color: cc.neutralSecondary, fontWeight: 500, ml: 0.75 }}>
-            {sub}
-          </Typography>
-        )}
-      </Typography>
-      <Typography
-        variant='body2'
-        sx={{ mt: '8px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: cc.neutralSecondary }}
+  // ── The collection in one band (CC StatBand) — and it was five tinted boxes. ──
+  // Three things at three weights: THE COUNT (species leads, animals supports),
+  // THE COMPOSITION (one proportional ribbon — M/F/U are parts of a whole, and the
+  // finding is usually how much is unsexed), THE EXCEPTION (critical, alone in coral,
+  // hidden at zero — a coral "0" is an alarm about nothing).
+  const undetermined = Math.max(0, posture.animals - posture.male - posture.female)
+  const sexes = [
+    { label: 'Male', value: posture.male, color: skin.LIST_GREEN },
+    { label: 'Female', value: posture.female, color: skin.RIBBON_FEMALE },
+    { label: 'Undetermined', value: undetermined, color: skin.RIBBON_UNSEXED }
+  ]
+
+  const statBand = (
+    <Box sx={{ ...skin.cardSx, px: '20px', py: '16px' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: { xs: 3, sm: 6 }
+        }}
       >
-        {label}
-      </Typography>
+        {/* THE COUNT — baseline-aligned so the figures sit on one line however they wrap. */}
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexShrink: 0 }}>
+          <Typography
+            sx={{ fontSize: '32px', fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}
+          >
+            {posture.species.toLocaleString()}
+          </Typography>
+          <Typography variant='body2' sx={{ color: skin.MUTED }}>
+            species
+          </Typography>
+          <Typography variant='body2' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
+            {filtered ? `of ${posture.totalSpecies.toLocaleString()} · ` : '· '}
+            {posture.animals.toLocaleString()} animals
+          </Typography>
+        </Box>
+
+        {/* THE COMPOSITION — takes the slack; a bar is the one thing here that reads better wide. */}
+        <Box sx={{ minWidth: 0, flex: 1, width: { xs: '100%', sm: 'auto' } }}>
+          <Ribbon items={sexes} height={8} />
+          <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 4, rowGap: 0.5 }}>
+            {sexes.map(s => (
+              <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <Box sx={{ width: 7, height: 7, flexShrink: 0, borderRadius: '50%', bgcolor: s.color }} />
+                <Typography variant='caption' sx={{ color: skin.MUTED }}>
+                  {s.label}{' '}
+                  <Box component='span' sx={{ color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>
+                    {s.value.toLocaleString()}
+                  </Box>
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        {/* THE EXCEPTION — the only figure a reader would act on today, so the only one in colour. */}
+        {posture.criticallyFew > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexShrink: 0,
+              alignItems: { xs: 'baseline', sm: 'flex-end' },
+              flexDirection: { xs: 'row', sm: 'column' },
+              gap: { xs: 1.5, sm: 0.5 }
+            }}
+          >
+            <Typography
+              sx={{ fontSize: '26px', fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: skin.CORAL }}
+            >
+              {posture.criticallyFew.toLocaleString()}
+            </Typography>
+            <Typography
+              variant='caption'
+              sx={{ fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.MUTED }}
+            >
+              Critical
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 
-  // The Filters button (portrait only). Standalone above the results until filters are
-  // applied; once chips exist it moves INTO the white chips card, anchoring the left.
+  // The Filters button (portrait only) — a white CC pill. Standalone above the results
+  // until filters are applied; once chips exist it moves INTO the chips card, anchoring the left.
   const filtersButton = (
     <Button
-      variant='outlined'
-      startIcon={<Icon icon='mage:filter' />}
+      startIcon={<Icon icon='mage:filter' color={skin.LIST_GREEN} />}
       onClick={() => setFilterSheetOpen(true)}
       sx={{
         textTransform: 'none',
         fontWeight: 500,
-        color: cc.OnSurfaceVariant,
-        borderColor: cc.OutlineVariant,
+        color: skin.INK2,
+        bgcolor: '#ffffff',
+        border: `1px solid ${skin.HAIR}`,
+        borderRadius: '999px',
+        px: 4,
         whiteSpace: 'nowrap',
         // same height as FilterChip so the first chip row centers with the button
-        height: 32
+        height: 32,
+        ...skin.cardPressSx,
+        '&:hover': { bgcolor: skin.ROW_HOVER }
       }}
     >
       Filters{chips.length > 0 ? ` · ${chips.length}` : ''}
@@ -159,17 +220,27 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
         }}
       >
         {filtersButton}
-        <Box sx={{ width: '1px', alignSelf: 'stretch', bgcolor: cc.SurfaceVariant }} />
+        <Box sx={{ width: '1px', alignSelf: 'stretch', bgcolor: skin.HAIR }} />
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, flex: 1, minWidth: 0 }}>
         {chips.map(chip => (
           <FilterChip key={chip.id} label={chip.label} onClear={chip.onRemove} />
         ))}
+        {/* Clear wears the coral wash — present only because there is something to clear. */}
         <Button
           variant='text'
           size='small'
           onClick={onResetAll}
-          sx={{ color: cc.Tertiary, fontWeight: 600, textTransform: 'none', minWidth: 'auto' }}
+          sx={{
+            color: skin.CORAL,
+            bgcolor: skin.mixOverWhite(skin.CORAL, 0.1),
+            fontWeight: 600,
+            textTransform: 'none',
+            minWidth: 'auto',
+            borderRadius: '999px',
+            px: 2.5,
+            '&:hover': { bgcolor: skin.mixOverWhite(skin.CORAL, 0.16) }
+          }}
         >
           Clear all
         </Button>
@@ -190,62 +261,44 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {/* ── Overview — title + download + live posture ── */}
-        <Card>
-          <Box
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* ── Title on the sage ground + the Download pill — no card around them ── */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, px: 1, pt: 1 }}>
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.4px', color: skin.INK }}>
+            Species List
+          </Typography>
+          <Button
+            onClick={onDownload}
+            disabled={isDownloading}
+            startIcon={
+              isDownloading ? (
+                <CircularProgress size={14} sx={{ color: skin.LIST_GREEN }} />
+              ) : (
+                <Icon icon='mdi:download-outline' fontSize='1.1rem' color={skin.LIST_GREEN} />
+              )
+            }
             sx={{
-              px: 5,
-              pt: 5,
-              pb: 3,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 2
+              textTransform: 'none',
+              fontWeight: 500,
+              color: skin.INK2,
+              bgcolor: '#ffffff',
+              borderRadius: '999px',
+              px: 4,
+              py: 1.5,
+              ...skin.cardPressSx,
+              '&:hover': { bgcolor: skin.ROW_HOVER }
             }}
           >
-            <Typography variant='h6' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
-              Species List
-            </Typography>
-            <Button
-              variant='text'
-              onClick={onDownload}
-              disabled={isDownloading}
-              endIcon={
-                isDownloading ? (
-                  <CircularProgress size={16} sx={{ color: cc.OnSurface }} />
-                ) : (
-                  <Icon icon='solar:download-square-linear' />
-                )
-              }
-              sx={{ color: cc.OnSurface, fontWeight: 500, textTransform: 'none' }}
-            >
-              {isDownloading ? 'Preparing...' : 'Download'}
-            </Button>
-          </Box>
+            {isDownloading ? 'Preparing...' : 'Download'}
+          </Button>
+        </Box>
 
-          <Box sx={{ px: 5, pb: 5 }}>
-            <Box sx={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-              {statBox(
-                posture.species,
-                'Species',
-                theme.palette.primary.dark,
-                cc.OnBackground,
-                alpha(theme.palette.primary.dark, 0.14),
-                filtered ? `of ${posture.totalSpecies.toLocaleString()}` : undefined
-              )}
-              {statBox(posture.animals, 'Animals', cc.OnSurfaceVariant, alpha(cc.Outline, 0.14), alpha(cc.Outline, 0.28))}
-              {statBox(posture.male, 'Male', theme.palette.secondary.main, cc.antzSecondaryBg, alpha(theme.palette.secondary.main, 0.2))}
-              {statBox(posture.female, 'Female', theme.palette.primary.main, alpha(theme.palette.primary.main, 0.1), alpha(theme.palette.primary.main, 0.2))}
-              {statBox(posture.criticallyFew, 'Critical', cc.Tertiary, cc.BgTeritary, alpha(cc.Tertiary, 0.22))}
-            </Box>
-          </Box>
-        </Card>
+        {/* ── The summary band ── */}
+        {statBand}
 
         {/* ── Filter rail (left, sticky) + Results column (right) ── */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 5 }}>
-          {/* Left rail — sticky + independently scrollable; hidden under lg (Drawer instead) */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+          {/* Left rail — sticky + independently scrollable; landscape only (sheet in portrait) */}
           <Box
             sx={{
               display: 'none',
@@ -259,7 +312,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
               overflowY: 'auto'
             }}
           >
-            <Card sx={{ px: 4, py: 3 }}>{rail}</Card>
+            <Box sx={{ ...skin.cardSx, px: 4, py: 3 }}>{rail}</Box>
           </Box>
 
           {/* Right column */}
@@ -268,28 +321,34 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                 the white chips card appears — with the button inside — once chips exist. */}
             {portrait && chips.length === 0 && <Box sx={{ alignSelf: 'flex-start' }}>{filtersButton}</Box>}
             {chips.length > 0 && (
-              <Card sx={{ p: 4, position: 'sticky', top: 16, zIndex: 6 }}>{chipRow}</Card>
+              <Box sx={{ ...skin.cardSx, p: 4, position: 'sticky', top: 16, zIndex: 6 }}>{chipRow}</Box>
             )}
 
             {/* Results header + table */}
-            <Card sx={{ overflow: 'visible' }}>
+            <Box sx={{ ...skin.cardSx, overflow: 'visible' }}>
               <Box sx={{ px: 5, pt: 5, pb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexWrap: 'wrap' }}>
-                    <Typography variant='h5' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
                       Results
                     </Typography>
-                    <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+                    {/* The one line on the page that moves with the filters — both halves of the SAME set. */}
+                    <Typography variant='caption' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums', display: 'block', mt: 0.5 }}>
                       {posture.species.toLocaleString()} species · {posture.animals.toLocaleString()} animals
                     </Typography>
                   </Box>
                   <Search
-                    borderRadius='4px'
+                    borderRadius='999px'
+                    backgroundColor={skin.FIELD_BG}
                     width='240px'
                     placeholder='Search species...'
                     value={searchValue}
                     onClear={onSearchClear}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+                    textFielsSX={{
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                    }}
                   />
                 </Box>
               </Box>
@@ -308,11 +367,25 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                   onRowClick={() => {}}
                   onCellClick={onCellClick}
                   externalTableStyle={{
-                    '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2.5, display: 'flex', alignItems: 'center', fontSize: '16px' },
-                    '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                    '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
+                    // ── CC table language: pale teal-green header, uppercase overline header
+                    // type, ONE row hairline (no vertical rules), quiet green row hover. ──
+                    '& .MuiDataGrid-columnHeaders': { backgroundColor: skin.TABLE_HEAD_BG },
+                    '& .MuiDataGrid-cell': {
+                      ...GRID_CELL_PAD,
+                      py: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: '16px',
+                      borderBottomColor: skin.ROW_LINE
+                    },
+                    '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: skin.ROW_HOVER },
+                    '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD, backgroundColor: skin.TABLE_HEAD_BG },
                     '& .MuiDataGrid-columnHeaderTitle': {
-                      fontSize: '15px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: skin.TABLE_HEAD_INK,
                       whiteSpace: 'normal',
                       lineHeight: 1.2,
                       overflow: 'visible',
@@ -322,34 +395,34 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                       position: 'sticky',
                       left: 0,
                       zIndex: 3,
-                      backgroundColor: theme.palette.background.paper
+                      backgroundColor: '#ffffff'
                     },
                     '& .MuiDataGrid-columnHeader[data-field="sl_no"]': {
                       position: 'sticky',
                       left: 0,
                       zIndex: 5,
-                      backgroundColor: cc.customTableHeaderBg
+                      backgroundColor: skin.TABLE_HEAD_BG
                     },
                     '& .MuiDataGrid-cell[data-field="species_name"]': {
                       position: 'sticky',
                       left: 60,
                       zIndex: 3,
-                      backgroundColor: theme.palette.background.paper,
-                      borderRight: `1px solid ${cc.OutlineVariant}`
+                      backgroundColor: '#ffffff',
+                      borderRight: `1px solid ${skin.ROW_LINE}`
                     },
                     '& .MuiDataGrid-columnHeader[data-field="species_name"]': {
                       position: 'sticky',
                       left: 60,
                       zIndex: 5,
-                      backgroundColor: cc.customTableHeaderBg,
-                      borderRight: `1px solid ${cc.OutlineVariant}`
+                      backgroundColor: skin.TABLE_HEAD_BG,
+                      borderRight: `1px solid ${skin.ROW_LINE}`
                     },
-                    '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="sl_no"]': { backgroundColor: cc.Surface },
-                    '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="species_name"]': { backgroundColor: cc.Surface }
+                    '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="sl_no"]': { backgroundColor: skin.ROW_HOVER },
+                    '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="species_name"]': { backgroundColor: skin.ROW_HOVER }
                   }}
                 />
               </Box>
-            </Card>
+            </Box>
           </Box>
         </Box>
       </Box>

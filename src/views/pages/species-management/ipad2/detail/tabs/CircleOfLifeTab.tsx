@@ -6,6 +6,7 @@ import type { SelectChangeEvent } from '@mui/material/Select'
 import { alpha, useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -151,11 +152,16 @@ export const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]
         sx={{
           height: CTRL_H,
           textTransform: 'none',
+          fontSize: '15px',
           fontWeight: 500,
-          color: cc.OnSurfaceVariant,
-          bgcolor: theme.palette.background.paper,
-          borderColor: selected.length ? cc.OnSurfaceVariant : cc.OutlineVariant,
-          '&:hover': { borderColor: cc.Outline, bgcolor: theme.palette.background.paper }
+          borderRadius: '999px',
+          color: selected.length ? skin.LIST_GREEN : skin.INK2,
+          bgcolor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+          borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR,
+          '&:hover': {
+            borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.TRACK,
+            bgcolor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
+          }
         }}
       >
         {labelText}
@@ -276,7 +282,7 @@ export const MoreFiltersDrawer: React.FC<{
 const fmtYm = (k: string) => {
   const mm = /^(\d{4})-(\d{2})$/.exec(k)
 
-  return mm ? `${MONTHS[+mm[2] - 1]} '${mm[1].slice(2)}` : k
+  return mm ? `${MONTHS[+mm[2] - 1]} ${mm[1]}` : k
 }
 
 // The 1Y·2Y·3Y·All underline tabs (now shared via detailUi). Picking one here drives the
@@ -889,9 +895,11 @@ export const RangeSelect: React.FC<{
       renderValue={v => (v === '' ? anyLabel : items.find(i => String(i.value) === v)?.label ?? String(v))}
       sx={{
         minWidth: 84,
-        bgcolor: theme.palette.background.paper,
-        '& .MuiSelect-select': { py: 0.85, color: cc.OnSurfaceVariant, fontSize: '0.875rem' },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: cc.OutlineVariant }
+        bgcolor: '#ffffff',
+        borderRadius: '999px',
+        '& .MuiSelect-select': { py: 0.85, color: skin.INK2, fontSize: '15px', fontWeight: 500 },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
       }}
       MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320, borderRadius: '10px' } } } }}
     >
@@ -954,7 +962,7 @@ export const PeriodBand: React.FC<{
     <Typography
       variant='caption'
       sx={{
-        color: cc.neutralSecondary,
+        color: skin.FAINT,
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.04em',
@@ -969,9 +977,10 @@ export const PeriodBand: React.FC<{
   return (
     <Box
       sx={{
-        borderRadius: '10px',
-        border: `1px solid ${cc.SurfaceVariant}`,
-        bgcolor: theme.palette.background.paper,
+        borderRadius: skin.CARD_RADIUS,
+        border: `1px solid ${skin.HAIR}`,
+        boxShadow: 'none',
+        bgcolor: '#ffffff',
         p: 3,
         '& .MuiInputBase-root': { height: CTRL_H },
         '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0, fontSize: '0.875rem' },
@@ -983,8 +992,9 @@ export const PeriodBand: React.FC<{
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 }, flexWrap: 'wrap' }}>
           {groupLabel('Period', true)}
 
-          {/* squared segmented toggle — light-green active fill, icon + label */}
-          <Box sx={{ display: 'inline-flex', p: '3px', gap: '3px', bgcolor: theme.palette.background.paper, border: `1.5px solid ${cc.OutlineVariant}`, borderRadius: '8px' }}>
+          {/* CC SegmentToggle grammar: sage track, rounded-full, the active segment a
+              white pill wearing the accent ink — the same control the CC species pages use. */}
+          <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: CTRL_H, p: '3px', gap: '2px', bgcolor: skin.TRACK, borderRadius: '999px', boxSizing: 'border-box' }}>
             {(['quick', 'range'] as const).map(m => {
               const on = periodMode === m
 
@@ -997,22 +1007,22 @@ export const PeriodBand: React.FC<{
                     alignItems: 'center',
                     gap: 1.5,
                     px: 3.5,
-                    py: 1.5,
-                    borderRadius: '6px',
+                    borderRadius: '999px',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    bgcolor: on ? cc.OnBackground : 'transparent',
-                    '&:hover': { bgcolor: on ? cc.OnBackground : cc.Surface }
+                    whiteSpace: 'nowrap',
+                    bgcolor: on ? '#ffffff' : 'transparent',
+                    ...skin.cardPressSx,
+                    transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
                   }}
                 >
                   <Icon
                     icon={m === 'quick' ? 'mdi:clock-outline' : 'mdi:calendar-month-outline'}
-                    fontSize={16}
-                    color={on ? theme.palette.primary.dark : cc.Outline}
+                    fontSize={15}
+                    color={on ? skin.ACCENT_INK : skin.MUTED}
                   />
                   <Typography
                     variant='body2'
-                    sx={{ fontWeight: 600, color: on ? theme.palette.primary.dark : cc.OnSurfaceVariant, whiteSpace: 'nowrap' }}
+                    sx={{ fontWeight: 500, fontSize: '15px', color: on ? skin.ACCENT_INK : skin.INK2, whiteSpace: 'nowrap' }}
                   >
                     {m === 'quick' ? 'Quick' : 'By month / year'}
                   </Typography>
@@ -1025,7 +1035,7 @@ export const PeriodBand: React.FC<{
         </Box>
 
         {/* Zone divider — pinned to row 1's control height; never grows with the Years/Months row */}
-        <Box sx={{ width: '1px', height: CTRL_H, alignSelf: 'flex-start', bgcolor: cc.SurfaceVariant }} />
+        <Box sx={{ width: '1px', height: CTRL_H, alignSelf: 'flex-start', bgcolor: skin.HAIR }} />
 
         {/* Right zone — scope filters, never move when the period window opens */}
         <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
@@ -1034,7 +1044,16 @@ export const PeriodBand: React.FC<{
             label='Other Filters'
             onClick={onOpenFilters}
             appliedFiltersCount={extraCount || undefined}
-            sx={{ height: CTRL_H, bgcolor: theme.palette.background.paper, '&:hover': { bgcolor: theme.palette.background.paper } }}
+            sx={{
+              height: CTRL_H,
+              borderRadius: '999px',
+              border: `1px solid ${extraCount ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR}`,
+              color: extraCount ? skin.LIST_GREEN : skin.INK2,
+              fontSize: '15px',
+              fontWeight: 500,
+              bgcolor: extraCount ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+              '&:hover': { bgcolor: extraCount ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER }
+            }}
           />
         </Box>
       </Box>

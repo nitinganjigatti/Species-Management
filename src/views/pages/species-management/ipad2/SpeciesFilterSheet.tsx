@@ -10,9 +10,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Badge, Box, Button, Checkbox, Divider, IconButton, List, ListItemButton, ListItemText, Typography } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Search from 'src/views/utility/Search'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import { SheetDrawer } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 
 export interface FilterSheetOption {
@@ -38,9 +38,6 @@ interface SpeciesFilterSheetProps {
 }
 
 const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, title = 'Filter', sections, selected, onApply }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
-
   const [selectedMenu, setSelectedMenu] = useState<string>(sections[0]?.key || '')
   const [searchQuery, setSearchQuery] = useState('')
   const [draft, setDraft] = useState<Record<string, string[]>>({})
@@ -106,7 +103,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
         paper: {
           sx: {
             width: { xs: '100%', sm: 560 },
-            backgroundColor: cc.Background,
+            backgroundColor: '#ffffff',
             display: 'flex',
             flexDirection: 'column'
           }
@@ -116,8 +113,8 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
       {/* Header (copy of CustomFilterDrawer) */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 3 }}>
-          <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: cc.OnSurfaceVariant }}>{heading}</Typography>
+          <Icon icon='mage:filter' fontSize={26} color={skin.LIST_GREEN} />
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }}>{heading}</Typography>
         </Box>
         <IconButton onClick={onClose}>
           <Icon icon='mdi:close' />
@@ -136,32 +133,31 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                   setSearchQuery('')
                 }}
                 sx={{
-                  color: 'primary.light',
                   fontSize: '16px',
                   fontWeight: 400,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px',
-                  backgroundColor: selectedMenu === s.key ? cc.OnPrimary : 'transparent',
+                  borderRadius: '10px',
+                  mb: 0.5,
+                  backgroundColor: selectedMenu === s.key ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : 'transparent',
                   '&:hover': {
-                    backgroundColor: selectedMenu === s.key ? cc.OnPrimary : alpha(cc.OnPrimary, 0.8)
+                    backgroundColor: selectedMenu === s.key ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
                   }
                 }}
               >
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography sx={{ fontSize: '16px', color: cc.OnSurfaceVariant }}>{s.label}</Typography>
-                      <Badge badgeContent={draftFor(s.key).length} color='primary' sx={{ ml: 2 }} />
+                      <Typography sx={{ fontSize: '16px', fontWeight: selectedMenu === s.key ? 600 : 400, color: selectedMenu === s.key ? skin.LIST_GREEN : skin.INK2 }}>{s.label}</Typography>
+                      <Badge badgeContent={draftFor(s.key).length} sx={{ ml: 2, '& .MuiBadge-badge': { bgcolor: skin.LIST_GREEN, color: '#ffffff', fontWeight: 600 } }} />
                     </Box>
                   }
-                  sx={{ '& .MuiListItemText-primary': { color: cc.OnSurfaceVariant, fontSize: '16px' } }}
+                  sx={{ '& .MuiListItemText-primary': { fontSize: '16px' } }}
                 />
               </ListItemButton>
             ))}
           </List>
         </Box>
 
-        <Box sx={{ width: '100%', backgroundColor: cc.OnPrimary, borderTopRightRadius: '8px', p: '24px', pb: 0, flex: 1, minWidth: 0 }}>
+        <Box sx={{ width: '100%', borderLeft: `1px solid ${skin.HAIR}`, p: '24px', pt: 0, pb: 0, flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Box sx={{ mb: 4 }}>
               <Search
@@ -169,6 +165,12 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                 placeholder={`Search ${(section?.label || '').toLowerCase()}...`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 onClear={() => setSearchQuery('')}
+                borderRadius='999px'
+                backgroundColor={skin.FIELD_BG}
+                textFielsSX={{
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                }}
               />
             </Box>
             <Box sx={{ flex: 1, overflowY: 'auto' }}>
@@ -179,22 +181,23 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                       checked={allVisibleSelected}
                       indeterminate={!!section && draftFor(section.key).length > 0 && !allVisibleSelected}
                       onChange={handleSelectAll}
+                      sx={{ color: skin.DASH_INK, '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: skin.LIST_GREEN } }}
                     />
-                    <Typography variant='body1' sx={{ color: cc.Outline }}>
+                    <Typography variant='body1' sx={{ color: skin.MUTED }}>
                       Select all
                     </Typography>
                   </Box>
-                  <Divider sx={{ mb: 2 }} />
+                  <Divider sx={{ mb: 2, borderColor: skin.HAIR }} />
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     {currentOptions.map(opt => (
                       <Box key={opt.value} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                          <Checkbox checked={!!section && draftFor(section.key).includes(opt.value)} onChange={() => toggleOption(opt.value)} />
-                          <Typography variant='body1' sx={{ color: cc.OnSurfaceVariant }} noWrap>
+                          <Checkbox checked={!!section && draftFor(section.key).includes(opt.value)} onChange={() => toggleOption(opt.value)} sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }} />
+                          <Typography variant='body1' sx={{ color: skin.INK2 }} noWrap>
                             {opt.label}
                           </Typography>
                         </Box>
-                        <Typography variant='caption' sx={{ color: cc.neutralSecondary, flexShrink: 0, ml: 2 }}>
+                        <Typography variant='caption' sx={{ color: skin.FAINT, flexShrink: 0, ml: 2, fontVariantNumeric: 'tabular-nums' }}>
                           {opt.count.toLocaleString()}
                         </Typography>
                       </Box>
@@ -202,7 +205,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                   </Box>
                 </>
               ) : (
-                <Typography variant='body2' sx={{ color: cc.Outline, textAlign: 'center', py: 4 }}>
+                <Typography variant='body2' sx={{ color: skin.FAINT, textAlign: 'center', py: 4 }}>
                   No options found
                 </Typography>
               )}
@@ -216,18 +219,44 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          bgcolor: cc.OnPrimary,
+          bgcolor: '#ffffff',
+          borderTop: `1px solid ${skin.HAIR}`,
           px: 4,
-          py: 6,
-          boxShadow: `0px 4px 21px 0px ${alpha(theme.palette.primary.deepDark || theme.palette.primary.dark, 0.4)}`,
+          py: 4,
           gap: 2,
           flexShrink: 0
         }}
       >
-        <Button size='large' variant='outlined' fullWidth onClick={handleCancelAll}>
+        <Button
+          size='large'
+          fullWidth
+          onClick={handleCancelAll}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: '999px',
+            color: skin.INK2,
+            border: `1px solid ${skin.TRACK}`,
+            ...skin.cardPressSx,
+            '&:hover': { bgcolor: skin.ROW_HOVER }
+          }}
+        >
           Cancel All
         </Button>
-        <Button size='large' variant='contained' fullWidth onClick={handleApply}>
+        <Button
+          size='large'
+          fullWidth
+          onClick={handleApply}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: '999px',
+            color: '#ffffff',
+            bgcolor: skin.LIST_GREEN,
+            ...skin.cardPressSx,
+            '&:hover': { bgcolor: skin.ACCENT_INK }
+          }}
+        >
           Apply Filter
         </Button>
       </Box>

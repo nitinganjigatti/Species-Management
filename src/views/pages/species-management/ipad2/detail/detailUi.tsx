@@ -12,6 +12,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import type { RangePreset } from 'src/views/pages/species-management/ipad2/dashboard/DashboardDateRange'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
+import { BarColumns, Slices } from 'src/views/pages/species-management/ipad2/marks'
 
 /**
  * Shared, on-system UI primitives for the Species Management detail tabs.
@@ -73,7 +74,7 @@ export const SheetDrawer: React.FC<DrawerProps> = ({ PaperProps, slotProps, chil
   // '&&' doubles specificity so these beat the call site's responsive
   // sheetPaperSx width rules (media queries would otherwise win over plain props).
   const portraitSx = {
-    '&&': { width: '100%', maxWidth: '100%', height: '88dvh', borderRadius: '16px 16px 0 0' }
+    '&&': { width: '100%', maxWidth: '100%', height: '88dvh', borderRadius: '22px 22px 0 0' }
   }
   const paperConf: any = (slotProps as any)?.paper ?? PaperProps ?? {}
   const paperSx = paperConf.sx
@@ -84,12 +85,113 @@ export const SheetDrawer: React.FC<DrawerProps> = ({ PaperProps, slotProps, chil
   return (
     <Drawer {...rest} anchor={portrait ? 'bottom' : 'right'} slotProps={{ ...(slotProps as any), paper: mergedPaper }}>
       {portrait && (
-        <Box sx={{ pt: 2, pb: 1, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
-          <Box sx={{ width: 40, height: 4, borderRadius: '2px', bgcolor: cc(theme).OutlineVariant }} />
+        <Box aria-hidden sx={{ pt: 3, pb: 1, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <Box sx={{ width: 36, height: 4, borderRadius: '999px', bgcolor: 'rgba(22,21,15,0.10)' }} />
         </Box>
       )}
       {children}
     </Drawer>
+  )
+}
+
+/** THE composed sheet for the iPad tree — the CC sheet grammar on our orientation
+ *  geometry (portrait bottom sheet / landscape side sheet, via SheetDrawer).
+ *  White header carrying an EYEBROW (the trail — a count, a window, a place) over the
+ *  title, a round hairline close button, an optional back chevron; the body scrolls on
+ *  the sage ground as a stack of cards. Build every new drill sheet from THIS, not from
+ *  a bare SheetDrawer — hand-rolled headers are how sheets drift apart.
+ *  (Named DrillSheet: `Sheet` is the v2 kit's in-drawer layout shell.) */
+export const DrillSheet: React.FC<{
+  open: boolean
+  onClose: () => void
+  /** Shows the back chevron — one gesture goes back one level; content swaps, never stacks. */
+  onBack?: () => void
+  /** One short line above the title — a count, a window, a status. Never a sentence. */
+  eyebrow?: React.ReactNode
+  title?: React.ReactNode
+  /** Optional control rendered between the title and the close button. */
+  action?: React.ReactNode
+  size?: keyof typeof SHEET_WIDTH
+  zIndex?: number
+  /** Sage scroller (CC default) — pass false for a white body (dense full-bleed tables). */
+  ground?: boolean
+  bodySx?: object
+  children: React.ReactNode
+}> = ({ open, onClose, onBack, eyebrow, title, action, size = 'md', zIndex, ground = true, bodySx, children }) => {
+  const roundBtnSx = {
+    width: 40,
+    height: 40,
+    flexShrink: 0,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    transition: `background-color ${skin.DUR_FAST} ${skin.EASE}`,
+    '&:hover': { backgroundColor: '#f7f6f3' },
+    '&:active': { backgroundColor: '#f2f1ed' }
+  } as const
+
+  return (
+    <SheetDrawer
+      open={open}
+      onClose={onClose}
+      sx={zIndex != null ? { zIndex } : undefined}
+      slotProps={{
+        paper: {
+          sx: {
+            ...sheetPaperSx(size),
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#ffffff',
+            boxShadow: skin.SHADOW_MODAL
+          }
+        }
+      }}
+    >
+      {/* Header — white, hairline seam to the scroller. */}
+      <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, px: 5, pt: 3, pb: 3, borderBottom: `1px solid ${skin.HAIR}` }}>
+        {onBack && (
+          <Box onClick={onBack} aria-label='Back' sx={{ ...roundBtnSx, ml: -2 }}>
+            <Icon icon='mdi:chevron-left' fontSize='1.3rem' color='#55524a' />
+          </Box>
+        )}
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          {eyebrow != null && (
+            <Typography
+              sx={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.FAINT }}
+              noWrap
+            >
+              {eyebrow}
+            </Typography>
+          )}
+          {title != null && (
+            <Typography sx={{ mt: eyebrow != null ? '3px' : 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }} noWrap>
+              {title}
+            </Typography>
+          )}
+        </Box>
+        {action}
+        <Box onClick={onClose} aria-label='Close' sx={{ ...roundBtnSx, border: `1px solid ${skin.HAIR}` }}>
+          <Icon icon='mdi:close' fontSize='1.05rem' color='#55524a' />
+        </Box>
+      </Box>
+
+      {/* Body — the sage scroller; content reads as a stack of cards. */}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
+          backgroundColor: ground ? skin.GROUND : '#ffffff',
+          p: 4,
+          pb: 'calc(env(safe-area-inset-bottom) + 32px)',
+          ...bodySx
+        }}
+      >
+        {children}
+      </Box>
+    </SheetDrawer>
   )
 }
 
@@ -103,6 +205,18 @@ export const thinScrollbarSx = (theme: any) => ({
 })
 
 type Tone = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary' | 'danger' | 'caution'
+
+/** Tone → the CC MARK fill (bars, slices, dots). Type beside a mark uses useTone().fg instead. */
+export const TONE_MARK: Record<Tone, string> = {
+  success: skin.TONE_FILL.good,
+  warning: skin.TONE_FILL.warn,
+  error: skin.TONE_FILL.bad,
+  info: '#00abab',
+  primary: skin.ACCENT_FILL,
+  neutral: skin.TONE_FILL.neutral,
+  danger: skin.TONE_FILL.bad,
+  caution: skin.TONE_FILL.warn
+}
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
 
@@ -120,7 +234,7 @@ export const CellText: React.FC<{ children?: React.ReactNode; color?: string; we
   const c = cc(theme)
 
   return (
-    <Typography sx={{ fontSize: CELL_FONT, color: color || c.OnSurfaceVariant, fontWeight: weight }} noWrap={noWrap}>
+    <Typography sx={{ fontSize: CELL_FONT, color: color || skin.INK2, fontWeight: weight }} noWrap={noWrap}>
       {children ?? '—'}
     </Typography>
   )
@@ -164,7 +278,7 @@ const fmtMonth = (v: any): string => {
   const m = /^(\d{4})-(\d{2})$/.exec(String(v))
   if (!m) return String(v ?? '')
 
-  return `${MONTH_ABBR[Number(m[2]) - 1] ?? m[2]} '${m[1].slice(2)}`
+  return `${MONTH_ABBR[Number(m[2]) - 1] ?? m[2]} ${m[1]}`
 }
 
 /** Resolve a semantic tone to {bg, fg} token colors. */
@@ -172,27 +286,31 @@ export const useTone = () => {
   const theme = useTheme() as any
   const c = cc(theme)
 
+  // CC tone pairs: the SOFT wash carries the tint, the TYPE ink is always the tone's
+  // readable partner — never the bright fill as text. This also un-collides warning
+  // (amber family) from error (red family); they used to share the coral.
   return (tone: Tone): { bg: string; fg: string } => {
     switch (tone) {
       case 'success':
-        return { bg: `${theme.palette.primary.main}1A`, fg: theme.palette.primary.dark }
+        return { bg: skin.TONE_SOFT.good, fg: skin.TONE_TYPE.good }
       case 'warning':
-        return { bg: c.BgTeritary, fg: c.Tertiary }
+        return { bg: skin.TONE_SOFT.warn, fg: skin.TONE_TYPE.warn }
       case 'error':
-        return { bg: `${c.Tertiary}26`, fg: c.Tertiary }
+        return { bg: skin.TONE_SOFT.bad, fg: skin.TONE_TYPE.bad }
       case 'danger':
-        // Terminal/fatal states (e.g. died in care) — darker than the coral 'error'.
+        // Terminal/fatal states (e.g. died in care) — darker than 'error'.
         return { bg: `${c.rusticRed}1A`, fg: c.rusticRed }
       case 'caution':
-        // Mid-severity between 'primary' and the coral tones. Text stays dark grey —
+        // Mid-severity between 'primary' and the warm tones. Text stays dark —
         // the gold moderateSecondary is unreadable on the pale-yellow Notes bg (2026-08-03).
         return { bg: c.Notes, fg: c.OnSurfaceVariant }
       case 'info':
-        return { bg: c.antzSecondaryBg, fg: theme.palette.secondary.main }
+        // Teal is a FILL — as type it wears its deep ink partner (CC strokeOf rule).
+        return { bg: c.antzSecondaryBg, fg: skin.strokeOf('#00abab') }
       case 'primary':
-        return { bg: c.OnBackground, fg: theme.palette.primary.main }
+        return { bg: c.OnBackground, fg: skin.ACCENT_INK }
       default:
-        return { bg: c.SurfaceVariant, fg: c.OnSurfaceVariant }
+        return { bg: skin.TONE_SOFT.neutral, fg: skin.TONE_TYPE.neutral }
     }
   }
 }
@@ -1127,17 +1245,17 @@ export const StatTile: React.FC<{
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
-            sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: cc(theme).neutralSecondary }}
+            sx={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: skin.FAINT }}
           >
             {label}
           </Typography>
           <Typography
-            sx={{ mt: 0.5, fontSize: '25px', fontWeight: 800, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', color: theme.palette.common.black, whiteSpace: 'nowrap' }}
+            sx={{ mt: 0.5, fontSize: '25px', fontWeight: 700, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', color: skin.VALUE, whiteSpace: 'nowrap' }}
           >
             {value}
           </Typography>
           {sub != null && (
-            <Typography sx={{ fontSize: 15, color: cc(theme).neutralSecondary, mt: 0.5 }} noWrap>
+            <Typography sx={{ fontSize: 15, color: skin.FAINT, mt: 0.5 }} noWrap>
               {sub}
             </Typography>
           )}
@@ -1287,6 +1405,10 @@ export const DetailTable: React.FC<{
   handleSortModel?: (model: any) => void
   /** Pin this column to the left while the rest scrolls horizontally (species-list pattern). */
   stickyField?: string
+  /** NAVEEN'S RULE: a table never stands on the sage — pass `framed` when the table sits
+   *  directly on the page/sheet ground so it gets its own white surface. Tables already
+   *  inside a white card stay frameless (a frame-in-frame reads boxed). */
+  framed?: boolean
 }> = ({
   columns,
   rows,
@@ -1298,7 +1420,8 @@ export const DetailTable: React.FC<{
   rowHeight = DETAIL_TABLE_ROW_H,
   sortModel,
   handleSortModel,
-  stickyField
+  stickyField,
+  framed = false
 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
@@ -1309,21 +1432,21 @@ export const DetailTable: React.FC<{
           position: 'sticky',
           left: 0,
           zIndex: 3,
-          backgroundColor: theme.palette.background.paper,
-          borderRight: `1px solid ${c.OutlineVariant}`
+          backgroundColor: '#ffffff',
+          borderRight: `1px solid ${skin.ROW_LINE}`
         },
         [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: {
           position: 'sticky',
           left: 0,
           zIndex: 5,
-          backgroundColor: c.customTableHeaderBg,
-          borderRight: `1px solid ${c.OutlineVariant}`
+          backgroundColor: skin.TABLE_HEAD_BG,
+          borderRight: `1px solid ${skin.ROW_LINE}`
         },
-        [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: c.Surface }
+        [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: skin.ROW_HOVER }
       }
     : {}
 
-  return (
+  const table = (
     <CommonTable
       columns={columns}
       indexedRows={rows}
@@ -1342,15 +1465,37 @@ export const DetailTable: React.FC<{
       hideFooter={hideFooter || total <= 10}
       externalTableStyle={{
         mt: 0, // kill CommonTable's baked-in 20px top margin — the card title's mb is the spacing
-        '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '16px' },
-        '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
+        // CC table language: pale teal-green header, uppercase overline header type,
+        // ONE row hairline (no vertical rules), quiet green row hover.
+        '& .MuiDataGrid-columnHeaders': { backgroundColor: skin.TABLE_HEAD_BG },
+        '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '16px', borderBottomColor: skin.ROW_LINE },
+        '& .MuiDataGrid-row:hover': { backgroundColor: skin.ROW_HOVER },
+        '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD, backgroundColor: skin.TABLE_HEAD_BG },
         // Never clip a header — let it wrap to two lines instead of showing "OVER…".
-        '& .MuiDataGrid-columnHeaderTitle': { fontSize: '15px', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
+        '& .MuiDataGrid-columnHeaderTitle': {
+          fontSize: '13px',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          color: skin.TABLE_HEAD_INK,
+          whiteSpace: 'normal',
+          lineHeight: 1.2,
+          overflow: 'visible',
+          textOverflow: 'clip'
+        },
         '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
         ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
         ...stickyStyle
       }}
     />
+  )
+
+  return framed ? (
+    <Box sx={{ backgroundColor: '#ffffff', border: `1px solid ${skin.HAIR}`, borderRadius: '12px', overflow: 'hidden', p: 2 }}>
+      {table}
+    </Box>
+  ) : (
+    table
   )
 }
 
@@ -1443,19 +1588,30 @@ export const MiniBarRow: React.FC<{
         mx: onClick ? -1 : 0,
         borderRadius: '6px',
         cursor: onClick ? 'pointer' : 'default',
-        '&:hover': onClick ? { backgroundColor: cc(theme).Surface } : undefined
+        '&:hover': onClick ? { backgroundColor: skin.ROW_HOVER } : undefined
       }}
     >
-      <Typography variant='body2' sx={{ fontSize: '16px', width: 210, color: cc(theme).OnSurfaceVariant, flexShrink: 0 }} noWrap>
+      <Typography variant='body2' sx={{ fontSize: '16px', width: 210, color: skin.INK2, flexShrink: 0 }} noWrap>
         {label}
       </Typography>
-      <Box sx={{ flex: 1, height: 8, borderRadius: '4px', backgroundColor: cc(theme).SurfaceVariant }}>
-        <Box sx={{ width: `${pct}%`, height: '100%', borderRadius: '4px', backgroundColor: fg }} />
+      {/* CC meter: sage track, rounded-full, the fill fading to its lightness-step partner. */}
+      <Box sx={{ flex: 1, height: 8, borderRadius: '999px', backgroundColor: skin.TRACK, overflow: 'hidden' }}>
+        <Box
+          sx={{
+            width: `${pct}%`,
+            height: '100%',
+            borderRadius: '999px',
+            background: `linear-gradient(90deg, ${fg} 0%, ${skin.mixOverWhite(fg, 0.72)} 100%)`
+          }}
+        />
       </Box>
-      <Typography variant='caption' sx={{ fontSize: '16px', fontWeight: 600, width: 56, textAlign: 'right', color: cc(theme).OnSurfaceVariant }}>
+      <Typography
+        variant='caption'
+        sx={{ fontSize: '16px', fontWeight: 600, width: 56, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}
+      >
         {trailing ?? value.toLocaleString()}
       </Typography>
-      {onClick && <Icon icon='mdi:chevron-right' fontSize={16} color={cc(theme).Outline} />}
+      {onClick && <Icon icon='mdi:chevron-right' fontSize={16} color={skin.FAINT} />}
     </Box>
   )
 }
@@ -1475,93 +1631,52 @@ export const EntityListDrawer: React.FC<{
   onItemClick?: (id: string) => void
   onClose: () => void
 }> = ({ open, title, subtitle, unit, items = [], isClickable, onItemClick, onClose }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
   return (
-    <Box
-      component='div'
-      sx={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: theme.zIndex.drawer + 2,
-        pointerEvents: open ? 'auto' : 'none'
-      }}
-      style={{ display: open ? 'block' : 'none' }}
-    >
-      <Box onClick={onClose} sx={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.32)' }} />
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          height: '100%',
-          width: { xs: '100%', sm: SHEET_WIDTH.md },
-          backgroundColor: theme.palette.background.paper,
-          px: SHEET_PX,
-          py: 4,
-          overflowY: 'auto',
-          boxShadow: 6
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }}>
-              {title}
-            </Typography>
-            {subtitle != null && (
-              <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
-          <Box onClick={onClose} sx={{ cursor: 'pointer', display: 'flex' }}>
-            <Icon icon='mdi:close' />
-          </Box>
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          {items.map((it, i) => {
-            const clickable = !!onItemClick && (!isClickable || isClickable(it.id))
+    <DrillSheet open={open} onClose={onClose} title={title} eyebrow={subtitle} size='md'>
+      {/* One white card holding the rows — the sheet's sage ground frames it. */}
+      <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
+        {items.map((it, i) => {
+          const clickable = !!onItemClick && (!isClickable || isClickable(it.id))
 
-            return (
-              <Box
-                key={i}
-                onClick={clickable ? () => onItemClick?.(it.id) : undefined}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  py: 3.75,
-                  borderBottom: `1px solid ${c.SurfaceVariant}`,
-                  cursor: clickable ? 'pointer' : 'default',
-                  '&:hover': clickable ? { backgroundColor: c.Surface } : undefined
-                }}
-              >
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <AnimalCell name={it.name || it.id} sub={it.sub} size={42} />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-                  {it.value != null && (
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, color: c.OnSurface, lineHeight: 1.2 }}>
-                        {it.value}
-                      </Typography>
-                      {unit && (
-                        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.neutralSecondary, display: 'block' }}>
-                          {unit}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                  {clickable && <Icon icon='mdi:chevron-right' fontSize={18} color={c.Outline} />}
-                </Box>
+          return (
+            <Box
+              key={i}
+              onClick={clickable ? () => onItemClick?.(it.id) : undefined}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                py: 3,
+                borderBottom: `1px solid ${skin.HAIR}`,
+                '&:last-of-type': { borderBottom: 'none' },
+                cursor: clickable ? 'pointer' : 'default',
+                ...(clickable && { ...skin.cardPressSx, mx: -2, px: 2, borderRadius: '10px', '&:hover': { backgroundColor: skin.ROW_HOVER } })
+              }}
+            >
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <AnimalCell name={it.name || it.id} sub={it.sub} size={42} />
               </Box>
-            )
-          })}
-          {!items.length && <EmptyState message='No animals in this group' />}
-        </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+                {it.value != null && (
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography sx={{ fontSize: '1.05rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.VALUE, lineHeight: 1.2 }}>
+                      {it.value}
+                    </Typography>
+                    {unit && (
+                      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: skin.FAINT, display: 'block' }}>
+                        {unit}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+                {clickable && <Icon icon='mdi:chevron-right' fontSize={18} color={skin.FAINT} />}
+              </Box>
+            </Box>
+          )
+        })}
+        {!items.length && <EmptyState message='No animals in this group' />}
       </Box>
-    </Box>
+    </DrillSheet>
   )
 }
 
@@ -1752,7 +1867,7 @@ export const RangeBar: React.FC<{ min: number; avg: number; max: number; tone?: 
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ position: 'relative', height: 6, borderRadius: '3px', backgroundColor: cc(theme).SurfaceVariant }}>
+      <Box sx={{ position: 'relative', height: 6, borderRadius: '999px', backgroundColor: skin.TRACK }}>
         <Box
           sx={{
             position: 'absolute',
@@ -1768,10 +1883,10 @@ export const RangeBar: React.FC<{ min: number; avg: number; max: number; tone?: 
         />
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-        <Typography variant='caption' sx={{ color: cc(theme).neutralSecondary }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT }}>
           {min}
         </Typography>
-        <Typography variant='caption' sx={{ color: cc(theme).neutralSecondary }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT }}>
           {max}
         </Typography>
       </Box>
@@ -1831,14 +1946,16 @@ export const Sparkline: React.FC<{ values: number[]; tone?: 'up' | 'down' | 'fla
   const theme = useTheme() as any
   const c = cc(theme)
   if (!values || values.length < 2) return null
+  // A 1.5px stroke is TYPE-thin — brand brights fail contrast there, so the line
+  // wears each tone's deep ink partner (CC strokeOf rule).
   const color =
     tone === 'up'
-      ? theme.palette.primary.main
+      ? skin.ACCENT_INK
       : tone === 'down'
-        ? c.Tertiary
+        ? skin.CORAL
         : tone === 'info'
-          ? theme.palette.secondary.main
-          : c.neutralSecondary
+          ? skin.strokeOf('#00abab')
+          : skin.FAINT
   const min = Math.min(...values)
   const max = Math.max(...values)
   const span = max - min || 1
@@ -1867,59 +1984,25 @@ export const VBarChart: React.FC<{
   height?: number
   onSelect?: (label: string) => void
 }> = ({ bars, legend, height = 210, onSelect }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const tones = useTone()
+  // Naveen's columns mark — 1-2-5 gridline ladder, whole-slot tap targets, the white
+  // ChartTip, grow-in on scroll. Semantic buckets keep their tone as the bar's FILL.
   if (!bars.length) return null
-  const max = Math.max(1, ...bars.map(b => b.count))
-  const plot = height - 46
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height, borderBottom: `1px solid ${c.SurfaceVariant}` }}>
-        {bars.map(b => {
-          const { fg } = tones(b.tone || 'primary')
-          const h = Math.max(3, (b.count / max) * plot)
-
-          return (
-            <Box
-              key={b.label}
-              onClick={() => onSelect?.(b.label)}
-              sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 0.75, cursor: onSelect ? 'pointer' : 'default', minWidth: 0 }}
-            >
-              <Typography variant='caption' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
-                {b.count.toLocaleString()}
-              </Typography>
-              <Tooltip title={`${b.label}: ${b.count.toLocaleString()}`} arrow>
-                <Box
-                  sx={{
-                    width: '68%',
-                    maxWidth: 60,
-                    height: `${h}px`,
-                    backgroundColor: fg,
-                    borderRadius: '6px 6px 0 0',
-                    transition: 'opacity .15s ease, transform .15s ease',
-                    '&:hover': onSelect ? { opacity: 0.82, transform: 'translateY(-3px)' } : undefined
-                  }}
-                />
-              </Tooltip>
-            </Box>
-          )
-        })}
-      </Box>
-      <Box sx={{ display: 'flex', gap: 1.5, mt: 0.75 }}>
-        {bars.map(b => (
-          <Typography key={b.label} variant='caption' sx={{ flex: 1, textAlign: 'center', color: c.neutralSecondary }} noWrap>
-            {b.label}
-          </Typography>
-        ))}
-      </Box>
+      <BarColumns
+        bars={bars.map(b => [b.label, b.count] as [string, number])}
+        fills={bars.map(b => (b.tone ? TONE_MARK[b.tone] : skin.ACCENT_FILL))}
+        noun='animals'
+        height={height - 46}
+        onSelect={onSelect ? label => onSelect(String(label)) : undefined}
+      />
       {legend?.length ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', mt: 2 }}>
+        <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: '6px 14px', justifyContent: 'center' }}>
           {legend.map(l => (
             <Box key={l.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: tones(l.tone).fg }} />
-              <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+              <Box sx={{ width: 9, height: 9, borderRadius: '2.5px', backgroundColor: TONE_MARK[l.tone], flexShrink: 0 }} />
+              <Typography variant='caption' sx={{ fontSize: '13px', color: skin.INK2 }}>
                 {l.label}
               </Typography>
             </Box>
@@ -1930,7 +2013,6 @@ export const VBarChart: React.FC<{
   )
 }
 
-/** Hand-rolled SVG donut (stroke-dasharray arcs) with centered value. */
 export const Donut: React.FC<{
   segments: { label: string; value: number; tone: Tone }[]
   centerValue: React.ReactNode
@@ -2010,19 +2092,26 @@ export const IntelligenceCard: React.FC<{
 
   return (
     <SectionCard title={title}>
-      <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-        <Donut segments={segments} centerValue={centerValue} centerSub={centerSub} centerColor={centerColor} />
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+      <Box sx={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Naveen's Slices ring — semantic tones ride as explicit slice FILLS; the centre
+            reading is the mark's own (VALUE ink), and the tooltip is the white ChartTip. */}
+        <Slices
+          items={segments.filter(s => s.value > 0).map(s => ({ label: s.label, value: s.value }))}
+          fills={segments.filter(s => s.value > 0).map(s => TONE_MARK[s.tone])}
+          centre={[centerSub || '', String(centerValue)]}
+          size={168}
+        />
+        <Box sx={{ flex: 1, minWidth: 180, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
           {segments.map(s => (
             <Box key={s.label} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: tones(s.tone).fg, flexShrink: 0 }} />
-              <Typography variant='body2' sx={{ color: c.OnSurfaceVariant, flex: 1 }} noWrap>
+              <Box sx={{ width: 9, height: 9, borderRadius: '2.5px', backgroundColor: TONE_MARK[s.tone], flexShrink: 0 }} />
+              <Typography variant='body2' sx={{ color: skin.INK2, flex: 1 }} noWrap>
                 {s.label}
               </Typography>
-              <Typography variant='subtitle2' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+              <Typography variant='subtitle2' sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}>
                 {s.value.toLocaleString()}
               </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary, width: 40, textAlign: 'right' }}>
+              <Typography variant='caption' sx={{ color: skin.FAINT, width: 40, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                 {Math.round((s.value / total) * 100)}%
               </Typography>
             </Box>
@@ -2030,7 +2119,7 @@ export const IntelligenceCard: React.FC<{
         </Box>
       </Box>
       {insights?.length ? (
-        <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${c.SurfaceVariant}`, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${skin.HAIR}`, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {insights.map((it, i) => (
             <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Icon icon={it.icon} fontSize={16} color={tones(it.tone).fg} />
@@ -2188,7 +2277,7 @@ const SvgTrend: React.FC<{ labels: string[]; series: TrendSeries[]; height: numb
 export const EmptyState: React.FC<{ message?: string }> = ({ message = 'No data available' }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 6 }}>
     <NoDataFound />
-    <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
+    <Typography variant='body2' sx={{ color: skin.MUTED, mt: 1 }}>
       {message}
     </Typography>
   </Box>

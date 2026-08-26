@@ -3,8 +3,8 @@
 import React from 'react'
 import { Box, MenuItem, Select, Typography } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material/Select'
-import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import { MONTH_LABELS, type AnalysisFilter, type AnalysisMode } from 'src/views/pages/species-management/ipad2/list/speciesListing.utils'
 
 interface SpeciesListAnalysisFilterProps {
@@ -41,9 +41,6 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
   periodForLifespan = false,
   vertical = false
 }) => {
-  const theme = useTheme()
-  const cc = theme.palette.customColors as Record<string, string>
-
   const setMode = (mode: AnalysisMode) => {
     // Re-clicking the active mode turns analysis off (unless alwaysOn); switching picks the new mode.
     if (value.mode === mode) {
@@ -66,14 +63,14 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
     borderRadius: '999px',
     cursor: 'pointer',
     border: '1px solid',
-    borderColor: active ? cc.OnSurfaceVariant : cc.OutlineVariant,
-    bgcolor: active ? cc.OnSurfaceVariant : theme.palette.background.paper,
-    color: active ? theme.palette.common.white : cc.OnSurfaceVariant,
-    transition: 'all 0.15s ease',
+    borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR,
+    bgcolor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+    color: active ? skin.LIST_GREEN : skin.INK2,
+    transition: `all ${skin.DUR_FAST} ${skin.EASE}`,
     userSelect: 'none' as const,
     '&:hover': {
-      borderColor: active ? cc.OnSurfaceVariant : cc.Outline,
-      bgcolor: active ? cc.OnSurfaceVariant : alpha(theme.palette.common.black, 0.04)
+      borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.TRACK,
+      bgcolor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
     }
   })
 
@@ -93,15 +90,16 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
       sx={{
         minWidth: vertical ? 0 : 86,
         flex: vertical ? 1 : 'none',
-        bgcolor: theme.palette.background.paper,
-        '& .MuiSelect-select': { py: 0.85, color: cc.OnSurfaceVariant, fontSize: '0.875rem' },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: cc.OutlineVariant },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: cc.Outline }
+        bgcolor: '#ffffff',
+        borderRadius: '10px',
+        '& .MuiSelect-select': { py: 0.85, color: skin.INK2, fontSize: '0.875rem' },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
       }}
       MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320, borderRadius: '10px' } } } }}
     >
       <MenuItem value=''>
-        <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
+        <Typography variant='body2' sx={{ color: skin.FAINT }}>
           {anyLabel}
         </Typography>
       </MenuItem>
@@ -114,12 +112,12 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
   )
 
   const dash = (
-    <Typography variant='body2' sx={{ color: cc.neutralSecondary, px: 0.25 }}>
+    <Typography variant='body2' sx={{ color: skin.FAINT, px: 0.25 }}>
       –
     </Typography>
   )
   const groupLabel = (text: string) => (
-    <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', mr: 0.5 }}>
+    <Typography variant='caption' sx={{ color: skin.FAINT, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', mr: 0.5 }}>
       {text}
     </Typography>
   )
@@ -184,7 +182,7 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
       {!vertical && (
         <Typography
           variant='body2'
-          sx={{ color: cc.OnSurfaceVariant, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', width: 92, flexShrink: 0 }}
+          sx={{ color: skin.INK2, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', width: 92, flexShrink: 0 }}
         >
           {label}
         </Typography>
@@ -230,7 +228,7 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
           {rangeSelect(value.lifeMin, v => onChange({ ...value, lifeMin: v }), lifeItems, 'Any')}
           {dash}
           {rangeSelect(value.lifeMax, v => onChange({ ...value, lifeMax: v }), lifeItems, 'Any')}
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary, ml: 0.5 }}>
+          <Typography variant='caption' sx={{ color: skin.FAINT, ml: 0.5 }}>
             Ranked by average adult lifespan
           </Typography>
         </Box>

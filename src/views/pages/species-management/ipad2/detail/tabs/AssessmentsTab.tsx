@@ -1,27 +1,28 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, IconButton, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type { AssessmentAnimal, CatTypeItem, SpeciesAssessments } from 'src/types/species-management/detail'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
+import { BarColumns } from 'src/views/pages/species-management/ipad2/marks'
 import {
   AnimalCell,
   CellText,
-  ColumnTrend,
   DetailTable,
+  DrillSheet,
   EmptyState,
   EntityListDrawer,
   IntelligenceCard,
   RangeBar,
   SectionCard,
-  sheetPaperSx,
   Sparkline,
   StatTile,
   TileGrid,
   VBarChart
-, SheetDrawer} from 'src/views/pages/species-management/ipad2/detail/detailUi'
+} from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad2/detail/useSortableTable'
 import { resolveRange, type RangePreset } from 'src/views/pages/species-management/ipad2/dashboard/DashboardDateRange'
 
@@ -52,13 +53,34 @@ const fmtWt = (v?: number | null): { n: string; u: string } => {
 const series = (history?: { d: string; v: number }[]) =>
   [...(history || [])].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0)).map(h => h.v)
 
+/** Same ordering, keeping the {d,v} pairs (for the trend bar marks). */
+const series2 = (history?: { d: string; v: number }[]) =>
+  [...(history || [])].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0))
+
+/** Two-line axis label — "03 Jun" over "'25" (the standard month/year axis grammar). */
+const axisDate = (d: string): string => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d)
+  if (!m) return d
+
+  return `${m[3]} ${MONTHS[Number(m[2]) - 1] ?? m[2]}\n${m[1].slice(2)}`
+}
+
 type ChipTone = 'error' | 'warning' | 'success' | 'neutral' | 'info' | 'primary'
 
 /** Headline stat chip (count + label) with a tone-colored left rail — the row above the charts. */
+// CC pair per tone: the DOT wears the bright fill (a mark), the COUNT wears the
+// tone's readable ink — never the bright as type, never a wash over the card.
+const CHIP_TONES: Record<ChipTone, { dot: string; ink: string }> = {
+  success: { dot: skin.TONE_FILL.good, ink: skin.TONE_TYPE.good },
+  warning: { dot: skin.TONE_FILL.warn, ink: skin.TONE_TYPE.warn },
+  error: { dot: skin.TONE_FILL.bad, ink: skin.TONE_TYPE.bad },
+  info: { dot: '#00abab', ink: skin.strokeOf('#00abab') },
+  primary: { dot: skin.ACCENT_FILL, ink: skin.ACCENT_INK },
+  neutral: { dot: skin.TONE_FILL.neutral, ink: skin.VALUE }
+}
+
 const StatChip: React.FC<{ count: React.ReactNode; label: string; tone: ChipTone; onClick?: () => void }> = ({ count, label, tone, onClick }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const col = tone === 'success' ? theme.palette.primary.main : tone === 'error' || tone === 'warning' ? c.Tertiary : tone === 'info' ? theme.palette.secondary.main : c.neutralSecondary
+  const t = CHIP_TONES[tone]
 
   return (
     <Box
@@ -67,20 +89,20 @@ const StatChip: React.FC<{ count: React.ReactNode; label: string; tone: ChipTone
         flex: '1 1 150px',
         maxWidth: 240,
         cursor: onClick ? 'pointer' : 'default',
-        borderRadius: '10px',
-        border: `1px solid ${c.SurfaceVariant}`,
-        borderLeft: `3px solid ${col}`,
-        backgroundColor: theme.palette.background.paper,
+        ...skin.cardSx,
+        borderRadius: '12px',
         px: 3,
         py: 2,
-        transition: 'box-shadow .15s ease',
-        '&:hover': onClick ? { boxShadow: 2 } : undefined
+        ...(onClick && { ...skin.cardPressSx, '&:hover': { backgroundColor: '#fcfcfb' } })
       }}
     >
-      <Typography variant='h5' sx={{ color: col, lineHeight: 1.1 }}>
-        {count}
-      </Typography>
-      <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ width: 8, height: 8, flexShrink: 0, borderRadius: '50%', bgcolor: t.dot }} />
+        <Typography sx={{ fontSize: '22px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: t.ink, lineHeight: 1.1 }}>
+          {count}
+        </Typography>
+      </Box>
+      <Typography variant='caption' sx={{ color: skin.FAINT, display: 'block', mt: 0.5 }}>
         {label}
       </Typography>
     </Box>
@@ -159,9 +181,9 @@ const useCell = () => {
 
   /** Signed % with direction arrow, tinted green up / orange down / neutral flat. */
   const trendCell = (pct: number | null) => {
-    if (pct == null) return txt('—', c.neutralSecondary)
+    if (pct == null) return txt('—', skin.DASH_INK)
     const up = pct >= 0
-    const color = pct > 1 ? theme.palette.primary.main : pct < -1 ? c.Tertiary : c.neutralSecondary
+    const color = pct > 1 ? skin.TONE_TYPE.good : pct < -1 ? skin.CORAL : skin.FAINT
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
@@ -183,11 +205,11 @@ const useCell = () => {
     valueColor?: string
   ) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%', minWidth: 0 }}>
-      <Box sx={{ px: 1.5, py: 0.5, borderRadius: '8px', backgroundColor: c.Surface, flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '1.0625rem', fontWeight: 700, color: valueColor || c.OnSurfaceVariant }}>{valueLabel}</Typography>
+      <Box sx={{ px: 1.5, py: 0.5, borderRadius: '8px', backgroundColor: skin.ROW_LINE, flexShrink: 0 }}>
+        <Typography sx={{ fontSize: '1.0625rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: valueColor || skin.VALUE }}>{valueLabel}</Typography>
       </Box>
       {unit && (
-        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.neutralSecondary, flexShrink: 0 }}>
+        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: skin.FAINT, flexShrink: 0 }}>
           {unit}
         </Typography>
       )}
@@ -226,7 +248,7 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
 
   const tbl = useSortableTable(data, { field: 'weight', sort: 'desc' })
 
-  const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : c.Tertiary)
+  const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
@@ -253,6 +275,7 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
       sortModel={tbl.sortModel}
       handleSortModel={tbl.handleSortModel}
       onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+      framed
     />
   )
 }
@@ -291,7 +314,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
   const tbl = useSortableTable(data, { field: 'value', sort: 'desc' })
 
   const devCell = (pct: number) => {
-    const color = pct > 1 ? theme.palette.primary.main : pct < -1 ? c.Tertiary : c.neutralSecondary
+    const color = pct > 1 ? skin.TONE_TYPE.good : pct < -1 ? skin.CORAL : skin.FAINT
 
     return txt(`${pct > 0 ? '+' : ''}${round1(pct)}%`, color, 600)
   }
@@ -365,6 +388,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
         sortModel={tbl.sortModel}
         handleSortModel={tbl.handleSortModel}
         onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+        framed
       />
     </Box>
   )
@@ -465,6 +489,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
         sortModel={tbl.sortModel}
         handleSortModel={tbl.handleSortModel}
         onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+        framed
       />
     </Box>
   )
@@ -489,7 +514,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
     [animals]
   )
   const tbl = useSortableTable(data, { field: 'bcs', sort: 'desc' })
-  const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : c.Tertiary)
+  const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
@@ -563,7 +588,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
             ]}
             centerValue={`${pctIdeal}%`}
             centerSub='Ideal'
-            centerColor={pctIdeal >= 60 ? theme.palette.primary.main : c.Tertiary}
+            centerColor={pctIdeal >= 60 ? skin.TONE_TYPE.good : skin.CORAL}
             insights={[
               ...(mostImproved ? [{ icon: 'mdi:arrow-up', tone: 'success' as const, label: 'Most Improved:', value: `${mostImproved.d.name}  ${mostImproved.d.bcs ?? ''}` }] : []),
               ...(mostDeclined ? [{ icon: 'mdi:arrow-down', tone: 'error' as const, label: 'Most Declined:', value: `${mostDeclined.d.name}  ${mostDeclined.d.bcs ?? ''}` }] : [])
@@ -580,6 +605,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
         sortModel={tbl.sortModel}
         handleSortModel={tbl.handleSortModel}
         onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+        framed
       />
     </Box>
   )
@@ -607,15 +633,17 @@ const Pills: React.FC<{ options: { key: string; label: string }[]; value: string
             sx={{
               flexShrink: 0,
               px: '18px',
-              py: 1,
-              borderRadius: '20px',
+              py: 1.25,
+              borderRadius: '999px',
               cursor: 'pointer',
-              border: `1px solid ${on ? theme.palette.primary.main : c.OutlineVariant}`,
-              backgroundColor: on ? theme.palette.primary.main : theme.palette.background.paper,
-              transition: 'all 0.15s ease'
+              border: `1px solid ${on ? skin.HERO_MID : skin.HAIR}`,
+              backgroundColor: on ? skin.HERO_MID : '#ffffff',
+              ...skin.cardPressSx,
+              transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`,
+              ...(!on && { '&:hover': { backgroundColor: skin.ROW_HOVER } })
             }}
           >
-            <Typography variant='caption' sx={{ fontWeight: 600, color: on ? theme.palette.common.white : c.OnSurfaceVariant, whiteSpace: 'nowrap' }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, color: on ? '#ffffff' : skin.INK2, whiteSpace: 'nowrap' }}>
               {o.label}
             </Typography>
           </Box>
@@ -779,13 +807,14 @@ const StripTypeTable: React.FC<{
   // Search or entries-filter changes must not strand the view on an out-of-range page.
   useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [q, entries]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // CC tone pairs: soft wash + the tone's readable ink.
   const chip = (label: string, sentiment: 'good' | 'bad' | 'neutral', text?: boolean) => {
-    const bg = sentiment === 'good' ? c.OnBackground : sentiment === 'bad' ? c.BgTeritary : c.SurfaceVariant
-    const fg = sentiment === 'good' ? theme.palette.primary.dark : sentiment === 'bad' ? c.Tertiary : c.OnSurfaceVariant
+    const bg = sentiment === 'good' ? skin.TONE_SOFT.good : sentiment === 'bad' ? skin.TONE_SOFT.bad : skin.TONE_SOFT.neutral
+    const fg = sentiment === 'good' ? skin.TONE_TYPE.good : sentiment === 'bad' ? skin.TONE_TYPE.bad : skin.TONE_TYPE.neutral
 
     return (
-      <Box sx={{ px: '11px', py: '3px', borderRadius: '14px', bgcolor: bg, maxWidth: text ? 180 : 'none' }}>
-        <Typography sx={{ fontSize: '14px', fontWeight: text ? 500 : 700, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <Box sx={{ px: '11px', py: '3px', borderRadius: '999px', bgcolor: bg, maxWidth: text ? 180 : 'none' }}>
+        <Typography sx={{ fontSize: '14px', fontWeight: text ? 500 : 600, color: fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {label}
         </Typography>
       </Box>
@@ -802,7 +831,7 @@ const StripTypeTable: React.FC<{
             flexDirection: 'column',
             alignItems: isText ? 'flex-start' : 'center',
             px: '14px',
-            borderLeft: i ? `1px solid ${c.SurfaceVariant}` : 'none'
+            borderLeft: i ? `1px solid ${skin.HAIR}` : 'none'
           }}
         >
           {chip(
@@ -810,13 +839,13 @@ const StripTypeTable: React.FC<{
             isText || isNumeric ? 'neutral' : valSentiment(r.v),
             isText
           )}
-          <Typography variant='caption' sx={{ color: c.neutralSecondary, mt: '4px', whiteSpace: 'nowrap' }}>
+          <Typography variant='caption' sx={{ color: skin.FAINT, mt: '4px', whiteSpace: 'nowrap' }}>
             {fmtDate(r.d)}
           </Typography>
         </Box>
       ))}
       {readings.length > MAX_STRIP_READINGS && (
-        <Typography variant='caption' sx={{ color: c.Outline, alignSelf: 'center', pl: '10px' }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT, alignSelf: 'center', pl: '10px' }}>
           +{readings.length - MAX_STRIP_READINGS}
         </Typography>
       )}
@@ -845,9 +874,9 @@ const StripTypeTable: React.FC<{
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {changed > 0 && (
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, alignSelf: 'flex-start', px: 2, py: 1, borderRadius: '10px', bgcolor: c.BgTeritary }}>
-          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: c.Tertiary }}>{changed}</Typography>
-          <Typography variant='body2' sx={{ color: c.OnSurfaceVariant }}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.5, alignSelf: 'flex-start', px: 3, py: 1.25, borderRadius: '999px', bgcolor: skin.TONE_SOFT.warn }}>
+          <Typography sx={{ fontSize: '1.05rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.TONE_TYPE.warn }}>{changed}</Typography>
+          <Typography variant='body2' sx={{ color: skin.INK2 }}>
             animal{changed === 1 ? '' : 's'} changed since previous assessment
           </Typography>
         </Box>
@@ -855,7 +884,7 @@ const StripTypeTable: React.FC<{
 
       <SectionCard
         title={
-          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK, fontVariantNumeric: 'tabular-nums' }}>
             {tbl.total.toLocaleString()} animal{tbl.total === 1 ? '' : 's'}
           </Typography>
         }
@@ -865,7 +894,14 @@ const StripTypeTable: React.FC<{
               size='small'
               value={entries}
               onChange={e => setEntries(e.target.value as EntriesFilter)}
-              sx={{ minWidth: 160, bgcolor: 'background.paper', '& .MuiOutlinedInput-notchedOutline': { borderColor: c.SurfaceVariant } }}
+              sx={{
+                minWidth: 160,
+                bgcolor: '#ffffff',
+                borderRadius: '999px',
+                '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+              }}
             >
               {ENTRIES_FILTERS.map(f => (
                 <MenuItem key={f.key} value={f.key}>
@@ -878,8 +914,14 @@ const StripTypeTable: React.FC<{
               placeholder='Search animal…'
               value={q}
               onChange={e => setQ(e.target.value)}
-              sx={{ width: 240, maxWidth: '100%', '& .MuiInputBase-root': { bgcolor: theme.palette.background.paper } }}
-              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
+              sx={{
+                width: 240,
+                maxWidth: '100%',
+                '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
+                '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+              }}
+              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
             />
           </Box>
         }
@@ -962,13 +1004,13 @@ const SectionLabel: React.FC<{ children: React.ReactNode; sub?: React.ReactNode 
 
   return (
     <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap' }}>
-      <Typography variant='caption' sx={{ color: c.neutralSecondary, textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+      <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
         {children}
       </Typography>
       {sub != null && (
         <>
-          <Typography variant='caption' sx={{ color: c.OutlineVariant }}>·</Typography>
-          <Typography variant='caption' sx={{ color: c.neutralSecondary }}>{sub}</Typography>
+          <Typography variant='caption' sx={{ color: skin.DASH_INK }}>·</Typography>
+          <Typography variant='caption' sx={{ color: skin.FAINT }}>{sub}</Typography>
         </>
       )}
     </Box>
@@ -1040,8 +1082,16 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
   // loop onSortModelChange → setState → "Maximum update depth exceeded" (the earlier crash).
   const outlierTbl = useSortableTable(outlierRows, { field: 'dev', sort: 'desc' })
 
-  const toneColor = (tone: AlertGroup['tone']) =>
-    tone === 'error' ? c.Tertiary : tone === 'warning' ? c.Tertiary : tone === 'success' ? theme.palette.primary.main : c.neutralSecondary
+  // The dot wears the tone's FILL, the count its readable INK — and warning is the
+  // amber family, no longer sharing error's coral.
+  const toneOf = (tone: AlertGroup['tone']) =>
+    tone === 'error'
+      ? { dot: skin.TONE_FILL.bad, ink: skin.TONE_TYPE.bad }
+      : tone === 'warning'
+        ? { dot: skin.TONE_FILL.warn, ink: skin.TONE_TYPE.warn }
+        : tone === 'success'
+          ? { dot: skin.TONE_FILL.good, ink: skin.TONE_TYPE.good }
+          : { dot: skin.TONE_FILL.neutral, ink: skin.VALUE }
 
   if (!groups.length && !changesByCat.length && !outlierRows.length) return <EmptyState message='No alerts for this species' />
 
@@ -1055,17 +1105,17 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
       minWidth: 170,
       renderCell: p => (
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+          <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: skin.INK }} noWrap>
             {p.row.metric}
           </Typography>
-          <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+          <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
             {p.row.cat}
           </Typography>
         </Box>
       )
     },
     { field: 'value', headerName: 'Value', width: 140, renderCell: p => txt(`${p.row.value?.toLocaleString?.() ?? p.row.value}${p.row.uom ? ` ${p.row.uom}` : ''}`, undefined, 600) },
-    { field: 'avg', headerName: 'Species Avg', width: 140, renderCell: p => txt(p.row.avg?.toLocaleString?.() ?? p.row.avg, c.neutralSecondary) },
+    { field: 'avg', headerName: 'Species Avg', width: 140, renderCell: p => txt(p.row.avg?.toLocaleString?.() ?? p.row.avg, skin.FAINT) },
     {
       field: 'dev',
       headerName: 'Deviation',
@@ -1074,12 +1124,12 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
       headerAlign: 'right',
       renderCell: p => {
         const up = p.row.dev >= 0
-        const col = up ? theme.palette.primary.main : c.Tertiary
+        const col = up ? skin.TONE_TYPE.good : skin.CORAL
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.25 }}>
             <Icon icon={up ? 'mdi:arrow-up' : 'mdi:arrow-down'} fontSize={16} color={col} />
-            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: col }}>
+            <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: col }}>
               {up ? '+' : ''}
               {p.row.dev}%
             </Typography>
@@ -1091,17 +1141,17 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
 
   const changeVal = (from: number, to: number, pct: number) => {
     const up = pct >= 0
-    const col = up ? theme.palette.primary.main : c.Tertiary
+    const col = up ? skin.TONE_TYPE.good : skin.CORAL
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '0.85rem', color: c.neutralSecondary, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontSize: '0.85rem', color: skin.FAINT, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
           {from} →{' '}
-          <Box component='span' sx={{ color: c.OnSurfaceVariant, fontWeight: 600 }}>
+          <Box component='span' sx={{ color: skin.VALUE, fontWeight: 600 }}>
             {to}
           </Box>
         </Typography>
-        <Typography sx={{ fontSize: '14px', fontWeight: 700, color: col }}>
+        <Typography sx={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: col }}>
           {up ? '+' : ''}
           {pct}%
         </Typography>
@@ -1117,7 +1167,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
           <SectionLabel>Physical Health</SectionLabel>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {groups.map(g => {
-              const col = toneColor(g.tone)
+              const t = toneOf(g.tone)
 
               return (
                 <Box
@@ -1127,19 +1177,20 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                     flex: '1 1 180px',
                     maxWidth: 260,
                     cursor: 'pointer',
-                    borderRadius: '10px',
-                    border: `1px solid ${c.SurfaceVariant}`,
-                    borderLeft: `3px solid ${col}`,
-                    backgroundColor: theme.palette.background.paper,
+                    ...skin.cardSx,
+                    borderRadius: '12px',
                     p: 3,
-                    transition: 'box-shadow .15s ease',
-                    '&:hover': { boxShadow: 2 }
+                    ...skin.cardPressSx,
+                    '&:hover': { backgroundColor: '#fcfcfb' }
                   }}
                 >
-                  <Typography variant='h5' sx={{ color: col }}>
-                    {g.items.length}
-                  </Typography>
-                  <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ width: 8, height: 8, flexShrink: 0, borderRadius: '50%', bgcolor: t.dot }} />
+                    <Typography sx={{ fontSize: '22px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: t.ink, lineHeight: 1.1 }}>
+                      {g.items.length}
+                    </Typography>
+                  </Box>
+                  <Typography variant='caption' sx={{ color: skin.FAINT, display: 'block', mt: 0.5 }}>
                     {g.label}
                   </Typography>
                 </Box>
@@ -1155,10 +1206,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
           <SectionLabel sub='Animals whose latest reading moved from the previous one'>Recent Changes</SectionLabel>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
             {changesByCat.map(grp => (
-              <Box
-                key={grp.cat}
-                sx={{ borderRadius: '10px', border: `1px solid ${c.SurfaceVariant}`, backgroundColor: theme.palette.background.paper, p: 3 }}
-              >
+              <Box key={grp.cat} sx={{ ...skin.cardSx, p: 3 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -1166,13 +1214,13 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                     alignItems: 'center',
                     pb: 1.5,
                     mb: 1,
-                    borderBottom: `1px solid ${c.SurfaceVariant}`
+                    borderBottom: `1px solid ${skin.HAIR}`
                   }}
                 >
-                  <Typography variant='subtitle1' sx={{ fontWeight: 700, color: c.OnSurfaceVariant }}>
+                  <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
                     {grp.cat}
                   </Typography>
-                  <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600 }}>
+                  <Typography variant='caption' sx={{ color: skin.FAINT, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                     {grp.items.length} changed
                   </Typography>
                 </Box>
@@ -1187,17 +1235,17 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                         alignItems: 'center',
                         gap: 2,
                         py: 1.25,
-                        borderTop: i ? `1px solid ${c.Surface}` : 'none',
+                        borderTop: i ? `1px solid ${skin.HAIR}` : 'none',
                         cursor: 'pointer',
-                        borderRadius: '6px',
-                        '&:hover': { backgroundColor: c.Surface }
+                        borderRadius: '8px',
+                        '&:hover': { backgroundColor: skin.ROW_HOVER }
                       }}
                     >
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: skin.INK }} noWrap>
                           {it.name || it.id}
                         </Typography>
-                        <Typography variant='caption' sx={{ color: c.neutralSecondary }} noWrap>
+                        <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
                           {it.metric}
                         </Typography>
                       </Box>
@@ -1217,7 +1265,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                       })
                     }
                     variant='caption'
-                    sx={{ color: theme.palette.primary.main, fontWeight: 600, cursor: 'pointer', display: 'inline-block', mt: 1.5 }}
+                    sx={{ color: skin.ACCENT_INK, fontWeight: 600, cursor: 'pointer', display: 'inline-block', mt: 1.5 }}
                   >
                     View all {grp.items.length} changes →
                   </Typography>
@@ -1241,6 +1289,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
             sortModel={outlierTbl.sortModel}
             handleSortModel={outlierTbl.handleSortModel}
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+            framed
           />
         </Box>
       )}
@@ -1277,23 +1326,19 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
       : null
 
   return (
-    <SheetDrawer open={!!animal} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('lg', { pad: true }) } }}>
+    <DrillSheet
+      open={!!animal}
+      onClose={onClose}
+      size='lg'
+      title={animal ? animal.name || animal.antzId : undefined}
+      eyebrow={
+        animal
+          ? [animal.gender, animal.site, animal.enclosure, animal.ageYears != null ? `${animal.ageYears} yr` : null].filter(Boolean).join(' · ')
+          : undefined
+      }
+    >
       {animal && (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Box>
-              <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }}>
-                {animal.name || animal.antzId}
-              </Typography>
-              <Typography variant='caption' sx={{ color: c.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-                {[animal.gender, animal.site, animal.enclosure, animal.ageYears != null ? `${animal.ageYears} yr` : null].filter(Boolean).join(' · ')}
-              </Typography>
-            </Box>
-            <IconButton onClick={onClose}>
-              <Icon icon='mdi:close' />
-            </IconButton>
-          </Box>
-
           <TileGrid>
             {animal.latestWeight != null && (
               <StatTile label='Latest Weight' value={animal.latestWeight} sub={wVsAvg != null ? `${wVsAvg > 0 ? '+' : ''}${wVsAvg}% vs avg` : undefined} tone='info' />
@@ -1305,9 +1350,15 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
 
           {animal.weightHistory && animal.weightHistory.length > 1 && (
             <SectionCard title='Weight Trend' sx={{ mt: 3 }}>
-              <ColumnTrend data={animal.weightHistory.map(h => ({ label: h.d, value: h.v }))} tone='info' baseline={speciesMinWeight} />
+              <BarColumns
+                bars={series2(animal.weightHistory).slice(-12).map(h => [axisDate(h.d), h.v] as [string, number])}
+                fill='#00abab'
+                noun='kg'
+                height={160}
+                minSlot={64}
+              />
               {speciesMinWeight != null && (
-                <Typography variant='caption' sx={{ color: c.neutralSecondary }}>
+                <Typography variant='caption' sx={{ color: skin.FAINT }}>
                   Baseline = species minimum ({speciesMinWeight})
                 </Typography>
               )}
@@ -1316,7 +1367,12 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
 
           {animal.bcsHistory && animal.bcsHistory.length > 1 && (
             <SectionCard title='BCS Trend' sx={{ mt: 3 }}>
-              <ColumnTrend data={animal.bcsHistory.map(h => ({ label: h.d, value: h.v }))} tone='primary' height={100} />
+              <BarColumns
+                bars={series2(animal.bcsHistory).slice(-12).map(h => [axisDate(h.d), h.v] as [string, number])}
+                noun='BCS'
+                height={110}
+                minSlot={64}
+              />
             </SectionCard>
           )}
 
@@ -1353,7 +1409,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
           {!animal.weightHistory?.length && !animal.bcsHistory?.length && grouped.size === 0 && <EmptyState message='No assessment history for this animal' />}
         </>
       )}
-    </SheetDrawer>
+    </DrillSheet>
   )
 }
 
@@ -1363,83 +1419,66 @@ const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; valu
   options,
   value,
   onChange
-}) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
+}) => (
+  // CC SegmentToggle grammar: one sage track, the active segment a white pill wearing
+  // the accent ink; counts ride as tabular figures. Scrolls, never wraps.
+  <Box
+    sx={{
+      display: 'inline-flex',
+      alignSelf: 'flex-start',
+      maxWidth: '100%',
+      alignItems: 'center',
+      p: '3px',
+      gap: '2px',
+      bgcolor: skin.TRACK,
+      borderRadius: '999px',
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+      '&::-webkit-scrollbar': { display: 'none' },
+      WebkitOverflowScrolling: 'touch'
+    }}
+  >
+    {options.map(o => {
+      const on = o.value === value
+      const m = o.label.match(/^(.*?)\s*\((\d[\d,]*)\)\s*$/)
+      const name = m ? m[1] : o.label
+      const count = m ? m[2] : null
 
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: '24px',
-        borderBottom: `1px solid ${c.SurfaceVariant}`,
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        '&::-webkit-scrollbar': { display: 'none' }
-      }}
-    >
-      {options.map(o => {
-        const on = o.value === value
-        const m = o.label.match(/^(.*?)\s*\((\d[\d,]*)\)\s*$/)
-        const name = m ? m[1] : o.label
-        const count = m ? m[2] : null
-
-        return (
-          <Box
-            key={o.value}
-            onClick={() => onChange(o.value)}
-            sx={{
-              position: 'relative',
-              flexShrink: 0,
-              cursor: 'pointer',
-              pt: '10px',
-              pb: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '7px',
-              whiteSpace: 'nowrap',
-              '&::after': on
-                ? {
-                    content: '""',
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: '-1px',
-                    height: '3px',
-                    borderRadius: '3px 3px 0 0',
-                    backgroundColor: theme.palette.primary.main
-                  }
-                : undefined
-            }}
-          >
+      return (
+        <Box
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flexShrink: 0,
+            px: 3.5,
+            py: 1.5,
+            borderRadius: '999px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            bgcolor: on ? '#ffffff' : 'transparent',
+            ...skin.cardPressSx,
+            transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
+          }}
+        >
+          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.ACCENT_INK : skin.MUTED, whiteSpace: 'nowrap' }}>
+            {name}
+          </Typography>
+          {count && (
             <Typography
-              sx={{ fontSize: '0.9375rem', fontWeight: on ? 700 : 500, color: on ? c.OnSurfaceVariant : c.neutralSecondary }}
+              component='span'
+              sx={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: on ? skin.ACCENT_INK : skin.FAINT }}
             >
-              {name}
+              {count}
             </Typography>
-            {count && (
-              <Box
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  lineHeight: 1.7,
-                  px: '7px',
-                  borderRadius: '999px',
-                  fontVariantNumeric: 'tabular-nums',
-                  backgroundColor: on ? c.OnBackground : c.Surface,
-                  color: on ? theme.palette.primary.dark : c.Outline,
-                  border: `1px solid ${on ? c.OnBackground : c.SurfaceVariant}`
-                }}
-              >
-                {count}
-              </Box>
-            )}
-          </Box>
-        )
-      })}
-    </Box>
-  )
-}
+          )}
+        </Box>
+      )
+    })}
+  </Box>
+)
 
 /* ------------------------------------------------------------------ Tab root */
 

@@ -110,7 +110,7 @@ const monthlyAnimals = (rows: ClinicalRecord[], now: Date, months = 12) => {
     const k = `${d.getFullYear()}-${d.getMonth()}`
     idx[k] = buckets.length
     sets[k] = new Set()
-    buckets.push({ label: `${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`, value: 0 })
+    buckets.push({ label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, value: 0 })
   }
   for (const r of rows) {
     const d = new Date(r.date)

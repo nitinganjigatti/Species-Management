@@ -1,14 +1,20 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, IconButton, MenuItem, TextField, Typography, useMediaQuery } from '@mui/material'
+import { Box, MenuItem, TextField, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, CellText, DetailTable, EmptyState, StatusChip, SectionCard, sheetPaperSx , SheetDrawer} from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import { CellText, DetailTable, DrillSheet, EmptyState, StatusChip, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 
-const ANIMAL_ICON = '/images/housing/species-icon-colored.svg'
+/** Meta lines for the standard animal SheetRow (same card as Medical / Hospital). */
+const animalCaption = (a: AnimalRecord) =>
+  [a.gender ? a.gender.charAt(0).toUpperCase() + a.gender.slice(1) : null, a.age, a.weight != null ? `${a.weight} kg` : null]
+    .filter(Boolean)
+    .join(' · ')
+const animalSubline = (a: AnimalRecord) => [a.enclosure, a.site].filter(Boolean).join(' · ')
 
 const toneForType = (type: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' => {
   const t = type.toLowerCase()
@@ -127,19 +133,6 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     ? sheetAnimals.filter(a => `${a.name || ''} ${a.antzId} ${a.ring || ''} ${a.chip || ''}`.toLowerCase().includes(animalQuery))
     : sheetAnimals
 
-  const cardData = (a: AnimalRecord) => ({
-    default_icon: ANIMAL_ICON,
-    local_identifier_name: a.idType || 'ID',
-    local_identifier_value: a.name || a.antzId,
-    gender: a.gender,
-    age: a.age,
-    weight: a.weight,
-    user_enclosure_name: a.enclosure,
-    site_name: a.site,
-    breed_name: a.breed,
-    morph_name: a.morph
-  })
-
   if (!housing || !sites.length) return <EmptyState message='No site or enclosure data available' />
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
@@ -201,9 +194,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       onChange={e => setQ(e.target.value)}
       sx={{
         ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper }
+        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
+        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
       }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
     />
   )
 
@@ -213,7 +208,12 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       size='small'
       value={enclFilter}
       onChange={e => setEnclFilter(e.target.value as typeof enclFilter)}
-      sx={{ minWidth: 150, '& .MuiInputBase-root': { height: 44, bgcolor: theme.palette.background.paper } }}
+      sx={{
+        minWidth: 150,
+        '& .MuiInputBase-root': { height: 44, bgcolor: '#ffffff', borderRadius: '999px', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+      }}
     >
       <MenuItem value='all'>All</MenuItem>
       <MenuItem value='single'>Single Sexed</MenuItem>
@@ -232,7 +232,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
           up to the right-aligned filter. */}
       {(() => {
         const viewToggle = (
-            <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: 0.75, borderRadius: '999px', border: `1px solid ${cc.OutlineVariant}`, bgcolor: theme.palette.background.paper }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: '3px', gap: '2px', borderRadius: '999px', bgcolor: skin.TRACK, boxSizing: 'border-box' }}>
               {[
                 { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' },
                 { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
@@ -246,16 +246,18 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      px: 3,
+                      gap: 1.5,
+                      px: 3.5,
                       borderRadius: '999px',
                       cursor: 'pointer',
-                      bgcolor: on ? theme.palette.primary.main : 'transparent',
-                      transition: 'all 0.15s ease'
+                      whiteSpace: 'nowrap',
+                      bgcolor: on ? '#ffffff' : 'transparent',
+                      ...skin.cardPressSx,
+                      transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
                     }}
                   >
-                    <Icon icon={v.icon} fontSize='1.15rem' color={on ? theme.palette.common.white : cc.neutralSecondary} />
-                    <Typography variant='body2' sx={{ fontWeight: 600, color: on ? theme.palette.common.white : cc.neutralSecondary, whiteSpace: 'nowrap' }}>
+                    <Icon icon={v.icon} fontSize='1rem' color={on ? skin.ACCENT_INK : skin.MUTED} />
+                    <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.ACCENT_INK : skin.MUTED, whiteSpace: 'nowrap' }}>
                       {v.label}
                     </Typography>
                   </Box>
@@ -267,7 +269,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         const stackedHeader = (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-              <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
                 {titleText}
               </Typography>
               {viewToggle}
@@ -313,78 +315,71 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       })()}
 
       {/* Sheet 1 — enclosures within a picked site (data table) */}
-      <SheetDrawer
+      <DrillSheet
         open={!!enclSheet}
         onClose={() => setEnclSheet(null)}
-        slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}
+        size='xxl'
+        title={enclSheet?.site}
+        eyebrow={`${sheetEnclosures.length} enclosure${sheetEnclosures.length === 1 ? '' : 's'} · click a row for its animals`}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={enclSheet?.site}>
-              {enclSheet?.site}
-            </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-              {sheetEnclosures.length} enclosure{sheetEnclosures.length === 1 ? '' : 's'} · click a row for its animals
-            </Typography>
-          </Box>
-          <IconButton onClick={() => setEnclSheet(null)}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-
         {sheetEnclosures.length ? (
           <DetailTable
-            columns={sheetColumns}
-            rows={sheetRows}
-            total={sheetEnclosures.length}
-            paginationModel={sheetPm}
-            setPaginationModel={setSheetPm}
-            onRowClick={(params: { row: Record<string, any> }) =>
-              enclSheet && setAnimalSheet({ site: enclSheet.site, enclosure: params.row.name })
-            }
-          />
+              columns={sheetColumns}
+              rows={sheetRows}
+              total={sheetEnclosures.length}
+              paginationModel={sheetPm}
+              setPaginationModel={setSheetPm}
+              onRowClick={(params: { row: Record<string, any> }) =>
+                enclSheet && setAnimalSheet({ site: enclSheet.site, enclosure: params.row.name })
+              }
+              framed
+            />
         ) : (
           <EmptyState message='No enclosures for this site' />
         )}
-      </SheetDrawer>
+      </DrillSheet>
 
-      {/* Sheet 2 — stacked on top — the animals in one enclosure (shared AnimalCardList) */}
-      <SheetDrawer
+      {/* Sheet 2 — stacked on top — the animals in one enclosure (standard SheetRow card) */}
+      <DrillSheet
         open={!!animalSheet}
         onClose={() => setAnimalSheet(null)}
-        sx={{ zIndex: theme.zIndex.modal + 4 }}
-        slotProps={{ paper: { sx: sheetPaperSx('xl', { pad: true }) } }}
+        size='xl'
+        zIndex={theme.zIndex.modal + 4}
+        title={animalSheet?.enclosure}
+        eyebrow={`${animalSheet?.site ?? ''}  ·  ${sheetAnimals.length} animal${sheetAnimals.length === 1 ? '' : 's'}`}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={animalSheet?.enclosure}>
-              {animalSheet?.enclosure}
-            </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-              {animalSheet?.site}  ·  {sheetAnimals.length} animal{sheetAnimals.length === 1 ? '' : 's'}
-            </Typography>
-          </Box>
-          <IconButton onClick={() => setAnimalSheet(null)}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-
         <TextField
           size='small'
           fullWidth
           placeholder='Search animals…'
           value={animalQ}
           onChange={e => setAnimalQ(e.target.value)}
-          sx={{ mb: 2, '& .MuiInputBase-root': { bgcolor: theme.palette.background.paper } }}
-          InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+          sx={{
+            mb: 2,
+            '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px' },
+            '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+            '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+          }}
+          InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
         />
 
         {animalFiltered.length ? (
-          <AnimalCardList cards={animalFiltered.map(cardData)} />
+          <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
+            {animalFiltered.map((a, i) => (
+              <SheetRow
+                key={a.antzId || i}
+                avatar
+                title={a.name || a.antzId}
+                caption={animalCaption(a)}
+                subline={animalSubline(a)}
+                last={i === animalFiltered.length - 1}
+              />
+            ))}
+          </Box>
         ) : (
           <EmptyState message={sheetAnimals.length ? 'No animals match your search' : 'No animal records for this enclosure'} />
         )}
-      </SheetDrawer>
+      </DrillSheet>
     </Box>
   )
 }

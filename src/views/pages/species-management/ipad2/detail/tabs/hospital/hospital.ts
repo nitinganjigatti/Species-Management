@@ -212,7 +212,7 @@ export const monthlyAdmissions = (
   const perMonth: Admission[][] = []
   for (let d = new Date(start); d <= now; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
     const list = byMonth.get(key(d)) ?? []
-    labels.push(`${MONTH_ABBR[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`)
+    labels.push(`${MONTH_ABBR[d.getMonth()]} ${d.getFullYear()}`)
     values.push(list.length)
     perMonth.push(list)
   }

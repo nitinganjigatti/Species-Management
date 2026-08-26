@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField'
 import { useTheme } from '@mui/material/styles'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 
 export type RangePreset =
   | 'today'
@@ -110,7 +111,14 @@ export default function DashboardDateRange({
         size='small'
         value={value.preset}
         onChange={e => onChange({ preset: e.target.value as RangePreset, start: value.start, end: value.end })}
-        sx={{ minWidth: 160, bgcolor: 'background.paper', '& .MuiOutlinedInput-notchedOutline': { borderColor: cc.SurfaceVariant } }}
+        sx={{
+          minWidth: 160,
+          bgcolor: '#ffffff',
+          borderRadius: '999px',
+          '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+        }}
       >
         {PRESETS.filter(p => !presets || presets.includes(p.key)).map(p => (
           <MenuItem key={p.key} value={p.key}>

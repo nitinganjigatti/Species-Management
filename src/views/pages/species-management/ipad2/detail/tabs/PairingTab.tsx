@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, IconButton, TextField, Typography } from '@mui/material'
+import { Box, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { AnimalCardList, CellText, DetailTable, EmptyState, SectionCard, sheetPaperSx, SheetDrawer } from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import { CellText, DetailTable, DrillSheet, EmptyState, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 
 type Bucket = 'Both Sexes' | 'Needs Sexing' | 'Single Sex'
 type Tone = 'success' | 'warning' | 'error'
@@ -38,7 +39,12 @@ interface EncRow {
   pairs: number
 }
 
-const ANIMAL_ICON = '/images/housing/species-icon-colored.svg'
+/** Meta lines for the standard animal SheetRow (same card as Medical / Hospital). */
+const animalCaption = (a: AnimalRecord) =>
+  [a.gender ? a.gender.charAt(0).toUpperCase() + a.gender.slice(1) : null, a.age, a.weight != null ? `${a.weight} kg` : null]
+    .filter(Boolean)
+    .join(' · ')
+const animalSubline = (a: AnimalRecord) => [a.enclosure, a.site].filter(Boolean).join(' · ')
 
 // First sheet — the enclosures in a readiness category, as our standard data table.
 const EnclosureTableDrawer: React.FC<{
@@ -82,34 +88,26 @@ const EnclosureTableDrawer: React.FC<{
   const indexed = rows.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
 
   return (
-    <SheetDrawer open={open} onClose={onClose} slotProps={{ paper: { sx: sheetPaperSx('xxl', { pad: true }) } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={type}>
-            {type}
-          </Typography>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-            {rows.length} enclosure{rows.length === 1 ? '' : 's'} · click a row for its animals
-          </Typography>
-        </Box>
-        <IconButton onClick={onClose}>
-          <Icon icon='mdi:close' />
-        </IconButton>
-      </Box>
-
+    <DrillSheet
+      open={open}
+      onClose={onClose}
+      size='xxl'
+      title={type}
+      eyebrow={`${rows.length} enclosure${rows.length === 1 ? '' : 's'} · click a row for its animals`}
+    >
       {rows.length ? (
         <DetailTable
-          columns={columns}
-          rows={indexed}
-          total={rows.length}
-          paginationModel={pm}
-          setPaginationModel={setPm}
-          onRowClick={(p: { row: EncRow }) => onPick(p.row)}
-        />
+            columns={columns}
+            rows={indexed}
+            total={rows.length}
+            paginationModel={pm}
+            setPaginationModel={setPm}
+            onRowClick={(p: { row: EncRow }) => onPick(p.row)}
+          />
       ) : (
         <EmptyState message='No enclosures in this category' />
       )}
-    </SheetDrawer>
+    </DrillSheet>
   )
 }
 
@@ -134,56 +132,47 @@ const EnclosureAnimalsDrawer: React.FC<{
     ? list.filter(a => `${a.name || ''} ${a.antzId} ${a.ring || ''} ${a.chip || ''}`.toLowerCase().includes(query))
     : list
 
-  const cardData = (a: AnimalRecord) => ({
-    default_icon: ANIMAL_ICON,
-    local_identifier_name: a.idType || 'ID',
-    local_identifier_value: a.name || a.antzId,
-    gender: a.gender,
-    age: a.age,
-    weight: a.weight,
-    user_enclosure_name: a.enclosure,
-    site_name: a.site,
-    breed_name: a.breed,
-    morph_name: a.morph
-  })
-
   return (
-    <SheetDrawer
+    <DrillSheet
       open={open}
       onClose={onClose}
-      sx={{ zIndex: theme.zIndex.modal + 4 }}
-      slotProps={{ paper: { sx: sheetPaperSx('md', { pad: true }) } }}
+      size='md'
+      zIndex={theme.zIndex.modal + 4}
+      title={enclosure}
+      eyebrow={[site, `${list.length} animal${list.length === 1 ? '' : 's'}`].filter(Boolean).join('  ·  ')}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap title={enclosure}>
-            {enclosure}
-          </Typography>
-          <Typography variant='caption' sx={{ color: cc.neutralSecondary, display: 'block', lineHeight: 1.4 }}>
-            {[site, `${list.length} animal${list.length === 1 ? '' : 's'}`].filter(Boolean).join('  ·  ')}
-          </Typography>
-        </Box>
-        <IconButton onClick={onClose}>
-          <Icon icon='mdi:close' />
-        </IconButton>
-      </Box>
-
       <TextField
         size='small'
         fullWidth
         placeholder='Search animals…'
         value={q}
         onChange={e => setQ(e.target.value)}
-        sx={{ mb: 2, '& .MuiInputBase-root': { bgcolor: theme.palette.background.paper } }}
-        InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+        sx={{
+          mb: 2,
+          '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px' },
+          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+          '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+        }}
+        InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
       />
 
       {filtered.length ? (
-        <AnimalCardList cards={filtered.map(cardData)} />
+        <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
+          {filtered.map((a, i) => (
+            <SheetRow
+              key={a.antzId || i}
+              avatar
+              title={a.name || a.antzId}
+              caption={animalCaption(a)}
+              subline={animalSubline(a)}
+              last={i === filtered.length - 1}
+            />
+          ))}
+        </Box>
       ) : (
         <EmptyState message={list.length ? 'No animals match your search' : 'No animal records for this enclosure'} />
       )}
-    </SheetDrawer>
+    </DrillSheet>
   )
 }
 
@@ -243,11 +232,13 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
             const groupMax = Math.max(1, ...groupRows.map(r => r.count))
             const isLast = idx === visible.length - 1
 
+            const groupFill = b.tone === 'success' ? skin.TONE_FILL.good : b.tone === 'warning' ? skin.TONE_FILL.warn : skin.TONE_FILL.bad
+
             return (
-              <Box key={b.key} sx={{ pb: isLast ? 0 : 6, borderBottom: isLast ? 'none' : `1px solid ${cc.SurfaceVariant}` }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette[b.tone]?.main || cc.Outline }} />
-                  <Typography variant='caption' sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: cc.neutralSecondary }}>
+              <Box key={b.key} sx={{ pb: isLast ? 0 : 6, borderBottom: isLast ? 'none' : `1px solid ${skin.HAIR}` }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: groupFill }} />
+                  <Typography variant='caption' sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
                     {b.label} · {totals[b.key]}
                   </Typography>
                 </Box>
@@ -259,33 +250,28 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                       <Box
                         key={i}
                         onClick={() => setDrill(r.type)}
-                        sx={{ cursor: 'pointer', borderRadius: '8px', p: 1, mx: -1, '&:hover': { bgcolor: cc.Surface } }}
+                        sx={{ cursor: 'pointer', borderRadius: '10px', p: 1, mx: -1, ...skin.cardPressSx, '&:hover': { bgcolor: skin.ROW_HOVER } }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1 }}>
-                          <Typography variant='body2' sx={{ color: cc.OnSurfaceVariant, fontWeight: 500 }}>
+                          <Typography sx={{ fontSize: '15px', color: skin.INK }}>
                             {r.type}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-                            <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
+                            <Typography variant='caption' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
                               {r.count} encl.
                             </Typography>
-                            <Icon icon='mdi:chevron-right' fontSize={16} color={cc.Outline} />
+                            <Icon icon='mdi:chevron-right' fontSize={16} color={skin.FAINT} />
                           </Box>
                         </Box>
-                        <Box sx={{ height: 8, borderRadius: '4px', bgcolor: cc.SurfaceVariant }}>
-                          {/* Bars match the group-dot hues — the kit tone map sends warning AND
-                              error to the same coral, which made Needs Sexing ≡ Single Sex. */}
+                        {/* CC meter: sage track, rounded-full, the group's TONE_FILL fading to
+                            its lightness-step partner. */}
+                        <Box sx={{ height: 8, borderRadius: '999px', bgcolor: skin.TRACK, overflow: 'hidden' }}>
                           <Box
                             sx={{
                               width: `${pct}%`,
                               height: '100%',
-                              borderRadius: '4px',
-                              bgcolor:
-                                r.tone === 'warning'
-                                  ? theme.palette.warning.main
-                                  : r.tone === 'success'
-                                    ? theme.palette.primary.dark
-                                    : cc.Tertiary
+                              borderRadius: '999px',
+                              background: `linear-gradient(90deg, ${groupFill} 0%, ${skin.mixOverWhite(groupFill, 0.72)} 100%)`
                             }}
                           />
                         </Box>

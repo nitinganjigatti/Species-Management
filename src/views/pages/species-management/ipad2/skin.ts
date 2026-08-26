@@ -92,6 +92,39 @@ export const DUR_REVEAL = '560ms' // a data mark drawing itself in
 /** Focus ring — one value everywhere, never browser blue. */
 export const FOCUS_RING = 'rgba(55,189,105,0.45)'
 
+/** ── The species-table language (CC speciesList's page inks) ──────────────
+ *  The table header is a pale teal-green (not a grey), rows separate with ONE
+ *  horizontal hairline (no vertical rules), and only two figures wear colour:
+ *  population/births in the list green, deaths in the soft coral. Zeros print
+ *  as an em dash in the pale ink — "0 deaths" is a silence, not a finding. */
+export const TABLE_HEAD_BG = '#e4efe8' // header bar fill
+export const TABLE_HEAD_INK = '#4a6156' // header type — muted dark green, uppercase
+export const ROW_LINE = '#eef1ee' // the one row separator
+export const ROW_HOVER = '#f4f9f6' // row / option hover wash
+export const CORAL = '#d4553a' // deaths & the critical figure — never the alarm red
+export const LIST_GREEN = '#1f6b45' // population/births figures + filter accents
+export const DASH_INK = '#a9b3ad' // the em-dash / absent-figure ink
+export const FIELD_BG = '#f4f6f4' // the search field's quiet fill
+export const RIBBON_FEMALE = '#8fd9ae' // sex ribbon: female step
+export const RIBBON_UNSEXED = '#dcebe1' // sex ribbon: the pale undetermined step
+
+/** IUCN Red List — the published fills, non-negotiable. The FILL carries the
+ *  encoding; type set beside it is always readable ink (CC's contrast rule —
+ *  the standard's own yellow is 1.9:1 on white). NE's published fill is WHITE,
+ *  so it alone carries an outline. */
+export const RED_LIST: { code: string; name: string; fill: string; outline?: string }[] = [
+  { code: 'EX', name: 'Extinct', fill: '#000000' },
+  { code: 'EW', name: 'Extinct in the Wild', fill: '#542344' },
+  { code: 'CR', name: 'Critically Endangered', fill: '#D81E05' },
+  { code: 'EN', name: 'Endangered', fill: '#FC7F3F' },
+  { code: 'VU', name: 'Vulnerable', fill: '#F9E814' },
+  { code: 'NT', name: 'Near Threatened', fill: '#CCE226' },
+  { code: 'LC', name: 'Least Concern', fill: '#60C659' },
+  { code: 'DD', name: 'Data Deficient', fill: '#D1D1C6' },
+  { code: 'NE', name: 'Not Evaluated', fill: '#ffffff', outline: '#c8c3ba' },
+  { code: 'NC', name: 'Not Checked', fill: '#B7B7B7' }
+]
+
 /** card-press — CC's universal pressed feel (asymmetric on purpose). */
 export const cardPressSx = {
   transition: `transform ${DUR_STD} ${EASE}`,

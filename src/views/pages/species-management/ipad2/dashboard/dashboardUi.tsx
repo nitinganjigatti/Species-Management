@@ -763,7 +763,7 @@ export function BirthsDeathsTrend({ trend, onClick }: { trend: DashboardData['tr
     const mm = /^(\d{4})-(\d{2})$/.exec(String(v))
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-    return mm ? `${MONTHS[Number(mm[2]) - 1]} '${mm[1].slice(2)}` : v
+    return mm ? `${MONTHS[Number(mm[2]) - 1]} ${mm[1]}` : v
   }
   const labels = trend.map(t => fmtMonth(t.label))
   const chevron = onClick ? <Icon icon='mdi:chevron-right' fontSize='1.3rem' color={cc.OutlineVariant} /> : undefined

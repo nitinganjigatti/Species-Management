@@ -600,7 +600,7 @@ export const computeInsights = (
     })
     const aids = distinctAnimals(monthRecs.map(r => toAnimalRow(r)))
     trend.push({
-      label: `${MONTH_LABELS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`,
+      label: `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`,
       value: population ? Math.round((aids.length / population) * 1000) / 10 : 0
     })
     trendAnimals.push(aids)
@@ -883,7 +883,7 @@ export const computeSickTrend = (clinical: SpeciesClinical | null | undefined, m
     freshRows.sort(newestFirst)
     carriedRows.sort(newestFirst)
     const d = new Date(mStart)
-    labels.push(`${MONTH_LABELS[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`)
+    labels.push(`${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`)
     fresh.push(freshRows.length)
     carried.push(carriedRows.length)
     animals.push([...freshRows, ...carriedRows])

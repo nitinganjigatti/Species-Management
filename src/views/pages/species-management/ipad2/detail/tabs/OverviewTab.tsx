@@ -6,14 +6,14 @@ import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
-import { SectionCard, MiniBarRow, EmptyState } from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
+import { SectionCard, EmptyState } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import {
   SexDonut,
   ProportionChart,
-  ColumnBarChart,
-  type CompositionSegment,
-  type Tone
+  type CompositionSegment
 } from 'src/views/pages/species-management/ipad2/dashboard/dashboardUi'
+import { BarColumns, RankRows } from 'src/views/pages/species-management/ipad2/marks'
 import DashboardDateRange, { type RangeSelection } from 'src/views/pages/species-management/ipad2/dashboard/DashboardDateRange'
 import {
   GenderFilter,
@@ -74,7 +74,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
         e.stopPropagation()
         onTabChange(tab)
       }}
-      sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, cursor: 'pointer', color: theme.palette.primary.dark }}
+      sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, cursor: 'pointer', color: skin.ACCENT_INK }}
     >
       <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
         {label}
@@ -83,35 +83,32 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     </Box>
   )
 
-  const Card: React.FC<{ title: string; tab: SpeciesDetailTab; viewLabel: string; children: React.ReactNode }> = ({
+  // CC pressable card: no hover shadow (nothing casts) — SectionCard's own
+  // card-press scale + quiet wash carry the affordance.
+  const Card: React.FC<{ title: string; tab: SpeciesDetailTab; viewLabel?: string; children: React.ReactNode }> = ({
     title,
     tab,
     viewLabel,
     children
   }) => (
-    <Box
+    <SectionCard
+      title={title}
+      action={
+        viewLabel ? (
+          <ViewLink tab={tab} label={viewLabel} />
+        ) : (
+          <Icon icon='mdi:chevron-right' fontSize='1.1rem' color={skin.FAINT} />
+        )
+      }
+      sx={{ height: '100%' }}
       onClick={go(tab)}
-      sx={{ cursor: 'pointer', borderRadius: '10px', transition: 'box-shadow .15s ease', height: '100%', '&:hover': { boxShadow: 2 } }}
     >
-      <SectionCard title={title} action={<ViewLink tab={tab} label={viewLabel} />} sx={{ height: '100%' }}>
-        {children}
-      </SectionCard>
-    </Box>
+      {children}
+    </SectionCard>
   )
 
   const grid = (cols: string, children: React.ReactNode) => (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: cols }, gap: 2 }}>{children}</Box>
-  )
-
-  const groupLabel = (text: string) => (
-    <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-      {text}
-    </Typography>
-  )
-  const dash = (
-    <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>
-      –
-    </Typography>
   )
 
   // ── Data ──
@@ -197,13 +194,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
   ]
   const readinessTotal = readiness.reduce((s, r) => s + r.value, 0)
 
+  // Severity rides the meter's FILL (CC: tone as mark, never tone as type).
   const alertRows = alerts
     ? [
-        { label: 'Overdue Assessment', value: alerts.overdue, tone: 'error' as Tone },
-        { label: 'Never Assessed', value: alerts.neverAssessed, tone: 'warning' as Tone },
-        { label: 'Gained >10%', value: alerts.gained, tone: 'warning' as Tone },
-        { label: 'Lost >10%', value: alerts.lost, tone: 'error' as Tone },
-        { label: 'Under-Monitored', value: alerts.underMonitored, tone: 'warning' as Tone }
+        { label: 'Overdue Assessment', value: alerts.overdue, fill: skin.TONE_FILL.bad },
+        { label: 'Never Assessed', value: alerts.neverAssessed, fill: skin.TONE_FILL.warn },
+        { label: 'Gained >10%', value: alerts.gained, fill: skin.TONE_FILL.warn },
+        { label: 'Lost >10%', value: alerts.lost, fill: skin.TONE_FILL.bad },
+        { label: 'Under-Monitored', value: alerts.underMonitored, fill: skin.TONE_FILL.warn }
       ].filter(r => r.value > 0)
     : []
 
@@ -218,8 +216,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     .filter(s => s.value > 0)
     .sort((a, b) => b.value - a.value)
 
+  // Naveen's columns mark — never re-themed Apex. 72px min slot per year; scrolls
+  // sooner than it squeezes a column.
   const yearBar = (data: number[], color: string, name: string) => (
-    <ColumnBarChart values={data} labels={trend.map(t => t.label)} color={color} name={name} height={280} />
+    <BarColumns
+      bars={trend.map((t, i) => [t.label, data[i]] as [string, number])}
+      fill={color}
+      noun={name.toLowerCase()}
+      height={240}
+      minSlot={72}
+    />
   )
 
   return (
@@ -265,17 +271,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
       {grid(
         '1fr 1fr 1fr',
         <>
-          <Box onClick={go('pairing')} sx={{ cursor: 'pointer', borderRadius: '10px', height: '100%', '&:hover': { boxShadow: 2 } }}>
-            {animals.total ? <SexDonut animals={animals as any} /> : (
-              <SectionCard title='Sex Composition' sx={{ height: '100%' }}><EmptyState /></SectionCard>
-            )}
-          </Box>
+          {animals.total ? (
+            <SexDonut animals={animals as any} onClick={go('pairing')} />
+          ) : (
+            <SectionCard title='Sex Composition' sx={{ height: '100%' }}>
+              <EmptyState />
+            </SectionCard>
+          )}
 
-          <Card title='Breeding Readiness' tab='pairing' viewLabel='View Pairing'>
+          <Card title='Breeding Readiness' tab='pairing'>
             {readinessTotal ? (
               <>
                 <ProportionChart segments={readiness} variant='donut' />
-                <Typography variant='caption' sx={{ fontSize: '16px', color: cc.neutralSecondary, display: 'block', mt: 1, textAlign: 'center' }}>
+                <Typography variant='caption' sx={{ fontSize: '14px', color: skin.FAINT, display: 'block', mt: 1, textAlign: 'center' }}>
                   {num(housing?.nEncl).toLocaleString()} enclosures · {num(housing?.nPairs).toLocaleString()} breedable pairs
                 </Typography>
               </>
@@ -284,7 +292,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
             )}
           </Card>
 
-          <Card title='Top Causes of Death' tab='circle' viewLabel='View Circle of Life'>
+          <Card title='Top Causes of Death' tab='circle'>
             {causes.length ? <ProportionChart segments={causes} variant='pie' /> : <EmptyState />}
           </Card>
         </>
@@ -296,9 +304,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
         <>
           <Card title='Needs Attention' tab='assessments' viewLabel='View Assessments'>
             {alertRows.length ? (
-              alertRows.map(r => (
-                <MiniBarRow key={r.label} label={r.label} value={r.value} max={Math.max(1, animals.total)} tone={r.tone} />
-              ))
+              <RankRows
+                rows={alertRows.map(r => ({ key: r.label, label: r.label, value: r.value, fill: r.fill }))}
+                total={Math.max(1, animals.total)}
+              />
             ) : (
               <EmptyState message='Nothing needs attention' />
             )}
@@ -306,18 +315,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
 
           <Card title='Population by Site' tab='housing' viewLabel='View Housing'>
             {sites.length ? (
-              // Same row component as Needs Attention — identical label alignment,
-              // colors, and spacing (standardization rule: one component per pattern).
-              sites.map(s => (
-                <MiniBarRow
-                  key={s.label}
-                  label={s.label}
-                  value={s.value}
-                  max={Math.max(1, ...sites.map(x => x.value))}
-                  tone='primary'
-                  onClick={s.onClick}
-                />
-              ))
+              // Same mark as Needs Attention — one component per pattern.
+              <RankRows
+                rows={sites.map(s => ({ key: s.label, label: s.label, value: s.value, onOpen: s.onClick }))}
+                total={sites.reduce((n, x) => n + x.value, 0)}
+              />
             ) : (
               <EmptyState />
             )}

@@ -89,7 +89,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const fmtMonthKey = (k?: string) => {
   const mm = /^(\d{4})-(\d{2})$/.exec(String(k || ''))
 
-  return mm ? `${MONTHS[Number(mm[2]) - 1]} '${mm[1].slice(2)}` : '—'
+  return mm ? `${MONTHS[Number(mm[2]) - 1]} ${mm[1]}` : '—'
 }
 const signed = (n: number) => (n > 0 ? `+${n.toLocaleString()}` : n.toLocaleString())
 

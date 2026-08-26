@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import { Box, Checkbox, Collapse, TextField, Typography } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import SpeciesListAnalysisFilter from 'src/views/pages/species-management/ipad2/list/SpeciesListAnalysisFilter'
 import { compactNumber, type AnalysisFilter, type SpeciesFilters } from 'src/views/pages/species-management/ipad2/list/speciesListing.utils'
 import type { MajorFilterRow } from 'src/views/pages/species-management/ipad2/list/SpeciesListMajorFilters'
@@ -40,7 +41,6 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
   defaultOpen = ['Category', 'Class']
 }) => {
   const theme = useTheme()
-  const cc = theme.palette.customColors as Record<string, string>
 
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
     defaultOpen.reduce((acc, k) => ({ ...acc, [k]: true }), {} as Record<string, boolean>)
@@ -65,7 +65,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Typography
           variant='subtitle2'
-          sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: cc.OnSurfaceVariant }}
+          sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: skin.INK2 }}
         >
           {label}
         </Typography>
@@ -76,7 +76,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
               height: 18,
               px: 0.75,
               borderRadius: '9px',
-              bgcolor: theme.palette.primary.main,
+              bgcolor: skin.LIST_GREEN,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -91,7 +91,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
       <Box
         sx={{
           display: 'flex',
-          color: cc.neutralSecondary,
+          color: skin.FAINT,
           transform: open[key] ? 'rotate(180deg)' : 'none',
           transition: 'transform 0.2s ease'
         }}
@@ -115,17 +115,17 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
           py: 0.5,
           cursor: 'pointer',
           borderRadius: '6px',
-          '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.03) }
+          '&:hover': { bgcolor: skin.ROW_HOVER }
         }}
       >
-        <Checkbox checked={checked} size='small' sx={{ p: 0.5, color: cc.OutlineVariant, '&.Mui-checked': { color: theme.palette.primary.main } }} />
+        <Checkbox checked={checked} size='small' sx={{ p: 0.5, color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }} />
         <Typography
           variant='body2'
-          sx={{ flex: 1, minWidth: 0, color: cc.OnSurfaceVariant, fontWeight: checked ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          sx={{ flex: 1, minWidth: 0, color: checked ? skin.INK : skin.INK2, fontWeight: checked ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         >
           {label}
         </Typography>
-        <Typography variant='caption' sx={{ color: cc.neutralSecondary, flexShrink: 0 }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
           {compactNumber(count)}
         </Typography>
       </Box>
@@ -135,15 +135,15 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
   return (
     <Box>
       {/* Rail title */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 2, borderBottom: `1px solid ${cc.SurfaceVariant}` }}>
-        <Icon icon='mdi:filter-variant' fontSize='1.35rem' color={cc.OnSurfaceVariant} />
-        <Typography variant='subtitle1' sx={{ fontWeight: 600, color: cc.OnSurfaceVariant }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 2, borderBottom: `1px solid ${skin.HAIR}` }}>
+        <Icon icon='mdi:filter-variant' fontSize='1.35rem' color={skin.LIST_GREEN} />
+        <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
           Filters
         </Typography>
       </Box>
 
       {/* ── ANALYSIS (its own top section) ── */}
-      <Box sx={{ borderBottom: `1px solid ${cc.SurfaceVariant}` }}>
+      <Box sx={{ borderBottom: `1px solid ${skin.HAIR}` }}>
         {sectionHeader(ANALYSIS_KEY, 'Analysis', analysis.mode ? 1 : 0)}
         <Collapse in={open[ANALYSIS_KEY]}>
           <Box sx={{ pb: 3 }}>
@@ -167,7 +167,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
         const indent = REVEAL_INDENT[section.key]
 
         return (
-          <Box key={section.key} sx={{ borderBottom: `1px solid ${cc.SurfaceVariant}`, pl: indent ? 2 : 0 }}>
+          <Box key={section.key} sx={{ borderBottom: `1px solid ${skin.HAIR}`, pl: indent ? 2 : 0 }}>
             {sectionHeader(section.key, indent ? `↳ ${section.label}` : section.label, activeCount)}
             <Collapse in={open[section.key]}>
               <Box sx={{ pb: 2.5 }}>
@@ -178,17 +178,22 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
                     placeholder={`Search ${section.label.toLowerCase()}…`}
                     value={q[section.key] || ''}
                     onChange={e => setQ(p => ({ ...p, [section.key]: e.target.value }))}
-                    sx={{ mb: 1.5 }}
+                    sx={{
+                      mb: 1.5,
+                      '& .MuiInputBase-root': { borderRadius: '10px', backgroundColor: skin.FIELD_BG },
+                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                    }}
                     InputProps={{
                       startAdornment: (
-                        <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} />
+                        <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} />
                       )
                     }}
                   />
                 )}
                 {shown.map(opt => optionRow(section.key, opt.value, opt.label, opt.count))}
                 {matched.length === 0 && (
-                  <Typography variant='caption' sx={{ color: cc.neutralSecondary, pl: 1 }}>
+                  <Typography variant='caption' sx={{ color: skin.FAINT, pl: 1 }}>
                     No matches
                   </Typography>
                 )}
@@ -197,7 +202,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
                     onClick={() => setExpanded(p => ({ ...p, [section.key]: !isExpanded }))}
                     sx={{ mt: 0.5, cursor: 'pointer', display: 'inline-flex', userSelect: 'none' }}
                   >
-                    <Typography variant='caption' sx={{ color: theme.palette.primary.dark, fontWeight: 600 }}>
+                    <Typography variant='caption' sx={{ color: skin.LIST_GREEN, fontWeight: 600 }}>
                       {isExpanded ? 'Show less' : `+ ${matched.length - VISIBLE_CAP} more`}
                     </Typography>
                   </Box>
