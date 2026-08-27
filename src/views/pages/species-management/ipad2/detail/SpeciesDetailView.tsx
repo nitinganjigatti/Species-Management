@@ -462,8 +462,8 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             boxShadow: skin.BANNER_PHOTO_SHADOW,
             width: 212,
             height: 216,
-            borderRadius: '32px',
-            [LANDSCAPE]: { width: 284, height: 289, borderRadius: '40px' }
+            borderRadius: '22px',
+            [LANDSCAPE]: { width: 284, height: 289, borderRadius: '28px' }
           }}
         >
           {heroPhoto ? (
@@ -482,14 +482,20 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                 inset: 0,
                 display: 'grid',
                 placeItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.10)'
+                // no-photo card: a glass portrait — lighter tile of the banner's own
+                // surface with a soft mint spotlight behind the logomark, so it carries
+                // the same visual weight as a photo instead of punching a light hole.
+                backgroundColor: 'rgba(255,255,255,0.10)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                backgroundImage: `radial-gradient(circle at 50% 44%, ${skin.HERO_MINT}59 0%, transparent 68%)`
               }}
             >
               <Box
                 component='img'
                 src='/images/branding/Antz_logomark_h_color.svg'
                 alt=''
-                sx={{ width: '46%', opacity: 0.9 }}
+                // brightness(0) invert(1) renders the colored mark pure white on the glass
+                sx={{ width: '52%', opacity: 0.95, filter: 'brightness(0) invert(1) drop-shadow(0 6px 18px rgba(0,0,0,0.30))' }}
               />
             </Box>
           )}
