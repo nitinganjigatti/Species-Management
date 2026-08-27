@@ -70,7 +70,6 @@ const TAB_ICONS: Record<string, string> = {
 }
 
 type TabView = 'rail' | 'horizontal'
-const VIEW_STORAGE_KEY = 'speciesDetailTabView'
 const LANDSCAPE = '@media (orientation: landscape)'
 
 /* ── the CC tab strip — one white track, a sliding emerald pill ─────────────
@@ -243,20 +242,10 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
 }) => {
   const h = header
 
-  // Tab layout: 'rail' (sticky left rail, default) or 'horizontal' (top track). Persisted.
-  const [view, setView] = useState<TabView>('rail')
-  useEffect(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem(VIEW_STORAGE_KEY) : null
-    if (saved === 'horizontal' || saved === 'rail') setView(saved)
-  }, [])
-  const changeView = (v: TabView) => {
-    setView(v)
-    try {
-      window.localStorage.setItem(VIEW_STORAGE_KEY, v)
-    } catch {
-      /* ignore */
-    }
-  }
+  // iPad 2 keeps ONE tab layout: horizontal tabs, always. The rail view and its
+  // toggle are retired here (iPad 1 still has both) — the TabView plumbing stays
+  // so the rail can come back with one line if ever asked for.
+  const view: TabView = 'horizontal'
 
   // Sticky top stack, direction-aware: once the hero scrolls away (`scrolled`),
   // the tabs bar stays pinned; the compact name+stats header additionally
@@ -302,32 +291,24 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // either sex is zero, because absence is not an assessment.
   const ratioStr = m > 0 && f > 0 ? `1 M : ${(f / m).toFixed(1)} F` : null
 
-  const stats: { icon: string; label: string; value: string; sub?: string }[] = [
-    { icon: 'mdi:paw', label: 'Animals', value: (h?.total ?? 0).toLocaleString() },
-    ...(ratioStr ? [{ icon: 'mdi:layers-outline', label: 'Sex ratio', value: ratioStr }] : []),
-    { icon: 'mdi:map-marker-outline', label: 'Sites', value: (h?.sites ?? 0).toLocaleString() },
-    ...((h?.enclosures ?? 0) > 0
-      ? [{ icon: 'mdi:cube-outline', label: 'Enclosures', value: (h?.enclosures ?? 0).toLocaleString() }]
-      : []),
-    ...(typeof h?.sexedPct === 'number'
-      ? [
-          {
-            icon: 'mdi:shield-check-outline',
-            label: 'Sexed',
-            value: `${h.sexedPct}%`,
-            sub: `${(m + f).toLocaleString()} of ${(h?.total ?? 0).toLocaleString()}`
-          }
-        ]
-      : []),
-    ...(typeof h?.chippedPct === 'number'
-      ? [{ icon: 'mdi:barcode-scan', label: 'Chipped', value: `${h.chippedPct}%` }]
-      : [])
+  // Banner stat cells (Figma 23:371) — value colour is semantic per column:
+  // Animals = antzNotes80 yellow, Male/Female = PrimaryContainer green,
+  // Site/Enclosure = Secondary teal. Labels are the Figma's exact singular forms.
+  const bannerCells: { label: string; value: string; color: string }[] = [
+    { label: 'Animals', value: (h?.total ?? 0).toLocaleString(), color: skin.BANNER_YELLOW },
+    { label: 'Male', value: m.toLocaleString(), color: skin.BANNER_GREEN },
+    { label: 'Female', value: f.toLocaleString(), color: skin.BANNER_GREEN },
+    { label: 'Site', value: (h?.sites ?? 0).toLocaleString(), color: skin.BANNER_TEAL },
+    { label: 'Enclosure', value: (h?.enclosures ?? 0).toLocaleString(), color: skin.BANNER_TEAL }
   ]
 
-  // The lineage, as far as the data has it — class › order › family › genus.
-  // Assembled from whatever ranks are filled: a chain padded with dashes reads
-  // as missing data where it is simply a shorter lineage.
-  const lineage = [h?.class, h?.order, h?.family, h?.genus].filter(Boolean).join(' › ')
+  // Species with a real hero photo — everything else gets the antz logomark card.
+  // bgPos frames the full-bleed banner crop per photo (where the face is).
+  const HERO_PHOTOS: Record<string, { src: string; bgPos: string }> = {
+    '2150': { src: '/images/species/2150.jpg', bgPos: 'center 38%' },
+    '449': { src: '/images/species/449.jpg', bgPos: 'center 10%' }
+  }
+  const heroPhoto = HERO_PHOTOS[String(speciesId)]
 
   // The IUCN pill's dot carries the Red List category's own published fill — the
   // sanctioned exception on a surface that otherwise stays in the green family.
@@ -346,33 +327,6 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
     { v: (h?.sites ?? 0).toLocaleString(), l: 'sites', c: skin.VALUE },
     { v: (h?.enclosures ?? 0).toLocaleString(), l: 'encl', c: skin.VALUE }
   ]
-
-  // Band 2 — alert chips (only those with a count)
-  const alertChips = alerts
-    ? [
-        { key: 'overdue_assessment', label: 'overdue assessment', count: alerts.overdue, tone: 'high' as const },
-        { key: 'never_assessed', label: 'never assessed', count: alerts.neverAssessed, tone: 'med' as const },
-        { key: 'weight_gain', label: 'gained >10%', count: alerts.gained, tone: 'med' as const },
-        { key: 'weight_loss', label: 'lost >10%', count: alerts.lost, tone: 'high' as const },
-        { key: 'under_monitored', label: 'under-monitored', count: alerts.underMonitored, tone: 'med' as const }
-      ].filter(c => c.count > 0)
-    : []
-  // On the emerald, severity is a MARK (the dot's fill) — the words stay in hero inks.
-  const toneDot = (t: 'high' | 'med') => (t === 'high' ? skin.TONE_FILL.bad : skin.TONE_FILL.warn)
-
-  const glassPillSx = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 1.5,
-    borderRadius: '999px',
-    px: 3,
-    py: 1,
-    backgroundColor: skin.HERO_GLASS,
-    color: skin.HERO_SOFT,
-    fontSize: '14px',
-    fontWeight: 500,
-    whiteSpace: 'nowrap' as const
-  }
 
   return (
     <Box>
@@ -463,71 +417,134 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         </Box>
       </Box>
 
-      {/* ── The hero — identity and holding as ONE composition, on one emerald surface.
-          No border (a dark card on the sage separates itself); the shadow is the house
-          lift. Every ink here is in the green family; nothing draws an outline. ── */}
+      {/* ── The hero BANNER — 1:1 port of Figma 23:371 (2026-08-27): photo card left,
+          identity + semantic stat strip + one-line stats right, on its own gradient.
+          Portrait scales the same layout down (photo/figures smaller), landscape is
+          the Figma reference exactly. ── */}
       <Box
         sx={{
           position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
           overflow: 'hidden',
-          borderRadius: skin.CARD_RADIUS,
-          background: skin.HERO_RAMP,
-          boxShadow: skin.HERO_SHADOW,
-          p: 5,
-          mb: 4
+          borderRadius: '8px',
+          background: skin.BANNER_GRAD,
+          p: '16px',
+          mb: 4,
+          [LANDSCAPE]: { p: '24px' }
         }}
       >
-        <Sprig sx={{ top: -16, right: -20 }} opacity={0.14} />
-        <Sprig sx={{ bottom: -28, left: -20 }} opacity={0.1} flip />
-
-        {/* Identity: back, the name once, binomial + lineage under it, the standing opposite. */}
-        {/* nowrap: the pills stay top-right of the title row even at 810px portrait
-            (iPad) — the title truncates and the lineage wraps before the pills drop. */}
-        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 3, flexWrap: 'nowrap' }}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, minWidth: 0 }}>
-            {/* Back — a soft glass square, no stroke, no fill heavier than glass. */}
+        {/* Figma 23:471 — the species photo runs full-bleed BEHIND the banner, the
+            gradient sits over it at 90% so the image only ghosts through. */}
+        {heroPhoto && (
+          <>
             <Box
-              onClick={onBack}
-              aria-label='Back'
+              component='img'
+              src={heroPhoto.src}
+              alt=''
+              aria-hidden
+              // Per-photo vertical anchor so the animal's face lands mid-banner
+              // (gazelle 38% — 50% showed only body, 22% overshot to the trees).
+              sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: heroPhoto.bgPos }}
+            />
+            <Box sx={{ position: 'absolute', inset: 0, background: skin.BANNER_GRAD_SCRIM }} />
+          </>
+        )}
+
+        {/* Photo card — white ground, 40px radius, the Figma shadow, 40% scrim over
+            the image. No-photo species carry the antz logomark on the deep green. */}
+        <Box
+          sx={{
+            position: 'relative',
+            flexShrink: 0,
+            overflow: 'hidden',
+            backgroundColor: heroPhoto ? '#ffffff' : 'transparent',
+            boxShadow: skin.BANNER_PHOTO_SHADOW,
+            width: 212,
+            height: 216,
+            borderRadius: '32px',
+            [LANDSCAPE]: { width: 284, height: 289, borderRadius: '40px' }
+          }}
+        >
+          {heroPhoto ? (
+            <>
+              <Box
+                component='img'
+                src={heroPhoto.src}
+                alt={h?.commonName || 'Species'}
+                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </>
+          ) : (
+            <Box
               sx={{
-                width: 36,
-                height: 36,
-                flexShrink: 0,
+                position: 'absolute',
+                inset: 0,
                 display: 'grid',
                 placeItems: 'center',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                backgroundColor: skin.HERO_GLASS,
-                transition: `background-color ${skin.DUR_FAST} ${skin.EASE}`,
-                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' },
-                '&:active': { backgroundColor: 'rgba(255,255,255,0.2)' },
-                mt: 0.5
+                backgroundColor: 'rgba(0,0,0,0.10)'
               }}
             >
-              <Icon icon='mdi:arrow-left' fontSize='1.15rem' color={skin.HERO_SOFT} />
+              <Box
+                component='img'
+                src='/images/branding/Antz_logomark_h_color.svg'
+                alt=''
+                sx={{ width: '46%', opacity: 0.9 }}
+              />
             </Box>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                sx={{ fontSize: '26px', fontWeight: 600, lineHeight: 1.2, letterSpacing: '-0.4px', color: skin.HERO_ON }}
-                noWrap
-              >
+          )}
+        </Box>
+
+        {/* Right column — name row / stat strip / one-line stats */}
+        <Box
+          sx={{
+            position: 'relative',
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            py: '16px',
+            [LANDSCAPE]: { gap: '24px' }
+          }}
+        >
+          {/* Row 1 — name + binomial left, listing pills right */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              pl: '16px',
+              pr: '8px',
+              [LANDSCAPE]: { pl: '24px', pr: '16px', height: 51 }
+            }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <Typography sx={{ fontSize: '22px', fontWeight: 600, lineHeight: 'normal', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', [LANDSCAPE]: { fontSize: '24px' } }}>
                 {h?.commonName || `Species #${speciesId}`}
               </Typography>
               {h?.scientificName && (
-                <Typography sx={{ fontSize: '16px', fontStyle: 'italic', color: skin.HERO_SOFT, mt: 0.5 }}>
+                <Typography sx={{ fontSize: '16px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {h.scientificName}
                 </Typography>
               )}
-              {lineage && (
-                <Typography sx={{ fontSize: '14px', color: skin.HERO_MUTE, mt: 1 }}>{lineage}</Typography>
-              )}
             </Box>
-          </Box>
-
-          {/* The published listings as glass pills; the view toggle rides with them. */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap', flexShrink: 0 }}>
             {h?.iucnStatus && (
-              <Box sx={glassPillSx} title={iucnName}>
+              <Box
+                title={iucnName}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  flexShrink: 0,
+                  px: '14px',
+                  py: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: skin.ROW_HOVER,
+                  border: `1px solid ${skin.HAIR}`,
+                  whiteSpace: 'nowrap'
+                }}
+              >
                 {iucnEntry && (
                   <Box
                     sx={{
@@ -540,153 +557,98 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                     }}
                   />
                 )}
-                IUCN · {iucnEntry?.code || iucnName}
+                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: skin.INK2 }}>
+                  IUCN · {iucnEntry?.code || iucnName}
+                </Typography>
               </Box>
             )}
-            {h?.citesAppendix && <Box sx={glassPillSx}>CITES · {stripParen(h.citesAppendix)}</Box>}
-
-            {/* View toggle — horizontal tabs vs. side rail, as glass squares. */}
-            <Box sx={{ display: 'inline-flex', gap: '2px', borderRadius: '10px', overflow: 'hidden' }}>
-              {([['horizontal', 'mdi:view-sequential'], ['rail', 'mdi:view-split-vertical']] as const).map(([v, icon]) => {
-                const on = view === v
-
-                return (
-                  <Box
-                    key={v}
-                    onClick={() => changeView(v)}
-                    title={v === 'rail' ? 'Side rail' : 'Horizontal tabs'}
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      display: 'grid',
-                      placeItems: 'center',
-                      cursor: 'pointer',
-                      backgroundColor: on ? 'rgba(255,255,255,0.3)' : skin.HERO_GLASS,
-                      transition: `background-color ${skin.DUR_FAST} ${skin.EASE}`,
-                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-                    }}
-                  >
-                    <Icon icon={icon} fontSize='1.1rem' color={on ? skin.HERO_MINT : skin.HERO_SOFT} />
-                  </Box>
-                )
-              })}
-            </Box>
-          </Box>
-        </Box>
-
-        {/* The figures, inside the same surface — a hairline above them and hairlines
-            between them, nothing heavier. Equal columns once there is room. */}
-        <Box sx={{ position: 'relative', mt: 5, pt: 4, borderTop: `1px solid ${skin.HERO_HAIR}` }}>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              rowGap: 4,
-              columnGap: 6,
-              [LANDSCAPE]: { gridTemplateColumns: `repeat(${stats.length}, 1fr)`, columnGap: 0 }
-            }}
-          >
-            {stats.map((s, i) => (
+            {h?.citesAppendix && (
               <Box
-                key={s.label}
                 sx={{
-                  minWidth: 0,
-                  [LANDSCAPE]: i > 0 ? { borderLeft: `1px solid ${skin.HERO_HAIR}`, pl: 5, pr: 3 } : { pr: 3 }
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  px: '14px',
+                  py: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: skin.ROW_HOVER,
+                  border: `1px solid ${skin.HAIR}`,
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontSize: '14px', color: skin.HERO_MUTE }}>
-                  <Icon icon={s.icon} fontSize='0.95rem' color={skin.HERO_MINT} />
-                  {s.label}
-                </Typography>
-                <Typography
-                  sx={{ mt: 0.5, fontSize: '24px', fontWeight: 600, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums', color: skin.HERO_ON }}
-                >
-                  {s.value}
-                  {s.sub && (
-                    <Box component='span' sx={{ ml: 1.5, fontSize: '12px', fontWeight: 400, color: skin.HERO_MUTE }}>
-                      {s.sub}
-                    </Box>
-                  )}
+                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: skin.INK2 }}>
+                  CITES · {stripParen(h.citesAppendix)}
                 </Typography>
               </Box>
-            ))}
+            )}
           </Box>
-        </Box>
 
-        {/* Alerts, inside the same surface — glass pills on a hairline row, so the page
-            does not stack a second white strip under the hero. Severity is the dot's
-            fill; the words stay in the hero's own inks. Swipes when it overflows. */}
-        {alerts && alertChips.length > 0 && (
-          <Box
-            sx={{
-              position: 'relative',
-              mt: 4,
-              pt: 3.5,
-              borderTop: `1px solid ${skin.HERO_HAIR}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3
-            }}
-          >
-            <Typography
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-                flexShrink: 0,
-                fontSize: '12px',
-                fontWeight: 500,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                color: skin.HERO_MUTE
-              }}
-            >
-              <Icon icon='mdi:bell-alert-outline' fontSize='1.05rem' color={skin.HERO_MINT} />
-              Alerts
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                flex: 1,
-                minWidth: 0,
-                overflowX: 'auto',
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' }
-              }}
-            >
-              {alertChips.map(c => (
+          {/* Stat strip — five equal cells, semantic figure inks, 16px radius clip */}
+          <Box sx={{ pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
+            <Box sx={{ display: 'flex', width: '100%', borderRadius: '16px', overflow: 'hidden' }}>
+              {bannerCells.map((c, i) => (
                 <Box
-                  key={c.key}
-                  onClick={() => onAlertClick?.(c.key)}
+                  key={c.label}
                   sx={{
-                    display: 'inline-flex',
+                    flex: '1 0 0',
+                    minWidth: '1px',
+                    display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 1.5,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                    borderRadius: '999px',
-                    px: 3,
-                    py: 1.25,
-                    cursor: 'pointer',
-                    backgroundColor: skin.HERO_GLASS,
-                    transition: `background-color ${skin.DUR_FAST} ${skin.EASE}`,
-                    '&:hover': { backgroundColor: 'rgba(255,255,255,0.28)' },
-                    '&:active': { backgroundColor: 'rgba(255,255,255,0.2)' }
+                    justifyContent: 'center',
+                    gap: '4px',
+                    backgroundColor: skin.BANNER_CELL,
+                    borderRight: i < bannerCells.length - 1 ? `1px solid ${skin.BANNER_CELL_HAIR}` : 'none',
+                    height: 96,
+                    px: '10px',
+                    pt: '16px',
+                    pb: '15px',
+                    [LANDSCAPE]: { height: 122, px: '24px' }
                   }}
                 >
-                  <Box sx={{ width: 8, height: 8, flexShrink: 0, borderRadius: '50%', bgcolor: toneDot(c.tone) }} />
-                  <Typography sx={{ fontSize: '15px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.HERO_ON, lineHeight: 1 }}>
-                    {c.count}
+                  <Typography sx={{ fontSize: '14px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.78, [LANDSCAPE]: { fontSize: '16px' } }}>
+                    {c.label}
                   </Typography>
-                  <Typography sx={{ fontSize: '13px', color: skin.HERO_SOFT }}>{c.label}</Typography>
+                  <Typography
+                    sx={{ fontSize: '28px', fontWeight: 700, lineHeight: 'normal', fontVariantNumeric: 'tabular-nums', color: c.color, [LANDSCAPE]: { fontSize: '36px' } }}
+                  >
+                    {c.value}
+                  </Typography>
                 </Box>
               ))}
             </Box>
           </Box>
-        )}
+
+          {/* One-line stats — Sex ratio · Sexed · Chipped */}
+          <Box sx={{ display: 'flex', alignItems: 'center', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
+            {ratioStr && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', pr: '36px', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
+                  Sex ratio
+                </Typography>
+                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>{ratioStr}</Typography>
+              </Box>
+            )}
+            {typeof h?.sexedPct === 'number' && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
+                  Sexed
+                </Typography>
+                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff', whiteSpace: 'pre' }}>
+                  {`${h.sexedPct}%  ${(m + f).toLocaleString()} of ${(h?.total ?? 0).toLocaleString()}`}
+                </Typography>
+              </Box>
+            )}
+            {typeof h?.chippedPct === 'number' && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', pl: '36px', whiteSpace: 'nowrap' }}>
+                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
+                  Chipped
+                </Typography>
+                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>{h.chippedPct}%</Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
       </Box>
 
       {/* Band 3 — Tabs (horizontal view only). The ref anchors the sticky-stack trigger. */}

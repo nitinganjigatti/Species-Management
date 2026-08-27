@@ -75,6 +75,19 @@ export const HERO_HAIR = 'rgba(255,255,255,0.2)' // only separation on the hero
 export const HERO_GLASS = 'rgba(255,255,255,0.16)' // pills & back button on the hero
 export const HERO_SHADOW = '0 3px 18px rgba(15,42,30,0.10)' // the hero's own lift
 
+/** The species-detail BANNER (Figma 23:371, approved 2026-08-27) — its own gradient
+ *  and semantic figure inks (all three inks = existing antz theme tokens). */
+export const BANNER_GRAD = 'linear-gradient(161.38deg, #25774d 0%, #0a4d29 71.43%)'
+// Same ramp at 90% — laid over the species photo so it ghosts through the banner.
+export const BANNER_GRAD_SCRIM = 'linear-gradient(161.38deg, rgba(37,119,77,0.9) 0%, rgba(10,77,41,0.9) 71.43%)'
+export const BANNER_YELLOW = '#ffe86e' // = antz customColors.antzNotes80 — Animals
+export const BANNER_GREEN = '#52f990' // = antz customColors.PrimaryContainer — Male / Female
+export const BANNER_TEAL = '#00d6c9' // = antz customColors.Secondary — Site / Enclosure
+export const BANNER_CELL = 'rgba(0,0,0,0.10)' // stat-cell wash over the gradient
+export const BANNER_CELL_HAIR = 'rgba(255,255,255,0.10)' // divider between cells
+export const BANNER_PHOTO_SHADOW = '7px 4px 54px 0 rgba(0,0,0,0.25)' // photo card lift
+export const BANNER_PHOTO_SCRIM = 'rgba(0,0,0,0.40)' // wash over the photo
+
 /** The five shadows CC allows — nothing else casts. */
 export const SHADOW_LIFT = '0 1px 2px rgba(15,42,30,0.06)'
 export const SHADOW_RAISED = '0 10px 30px rgba(20,40,30,0.14)'
