@@ -625,28 +625,29 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             </Box>
           </Box>
 
-          {/* One-line stats — Sex ratio · Sexed · Chipped */}
-          <Box sx={{ display: 'flex', alignItems: 'center', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
+          {/* One-line stats — Sex ratio · Unsexed (hidden at zero) · Chipped. The 36px
+              container gap keeps spacing right however many groups render. */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '36px', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
             {ratioStr && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', pr: '36px', whiteSpace: 'nowrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                 <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
                   Sex ratio
                 </Typography>
                 <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>{ratioStr}</Typography>
               </Box>
             )}
-            {typeof h?.sexedPct === 'number' && (
+            {(h?.total ?? 0) - m - f > 0 && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                 <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
-                  Sexed
+                  Unsexed
                 </Typography>
-                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff', whiteSpace: 'pre' }}>
-                  {`${h.sexedPct}%  ${(m + f).toLocaleString()} of ${(h?.total ?? 0).toLocaleString()}`}
+                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>
+                  {((h?.total ?? 0) - m - f).toLocaleString()}
                 </Typography>
               </Box>
             )}
             {typeof h?.chippedPct === 'number' && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', pl: '36px', whiteSpace: 'nowrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                 <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
                   Chipped
                 </Typography>

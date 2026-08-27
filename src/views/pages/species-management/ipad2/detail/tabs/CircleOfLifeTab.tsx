@@ -955,30 +955,6 @@ export const PeriodBand: React.FC<{
   monthItems
 }) => {
   const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
-
-  // Lead labels (PERIOD / YEARS / MONTHS) share one fixed, RIGHT-ALIGNED column: every
-  // label ends at the same edge, so the label→control gap is identical for all three
-  // and the controls start on one aligned left edge.
-  // 56 (not 64): row 1 must hold PERIOD · toggle · preset · divider · Gender · Other
-  // Filters on ONE line at 810px portrait (iPad) — every px here was clawed back for that.
-  const LEAD_LABEL_W = 56
-  const groupLabel = (text: string, lead = false) => (
-    <Typography
-      variant='caption'
-      sx={{
-        color: skin.FAINT,
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        ...(lead && { width: LEAD_LABEL_W, flexShrink: 0, textAlign: 'right' })
-      }}
-    >
-      {text}
-    </Typography>
-  )
-  const dash = <Typography variant='body2' sx={{ color: cc.neutralSecondary }}>–</Typography>
-
   return (
     <Box
       sx={{
@@ -992,60 +968,14 @@ export const PeriodBand: React.FC<{
         '& .MuiOutlinedInput-input': { py: 0, fontSize: '0.875rem' }
       }}
     >
-      {/* Row 1 — split zones: mode left | divider | scope filters right. NOWRAP: the
-          approved portrait layout keeps everything on one line at 810px (iPad). */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: { xs: 1.5, md: 2.5 }, flexWrap: 'nowrap' }}>
-          {groupLabel('Period', true)}
-
-          {/* CC SegmentToggle grammar: sage track, rounded-full, the active segment a
-              white pill wearing the accent ink — the same control the CC species pages use. */}
-          <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: CTRL_H, p: '3px', gap: '2px', bgcolor: skin.TRACK, borderRadius: '999px', boxSizing: 'border-box' }}>
-            {(['quick', 'range'] as const).map(m => {
-              const on = periodMode === m
-
-              return (
-                <Box
-                  key={m}
-                  onClick={() => onModeChange(m)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 2.5,
-                    borderRadius: '999px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    bgcolor: on ? '#ffffff' : 'transparent',
-                    ...skin.cardPressSx,
-                    transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
-                  }}
-                >
-                  <Icon
-                    icon={m === 'quick' ? 'mdi:clock-outline' : 'mdi:calendar-month-outline'}
-                    fontSize={15}
-                    color={on ? skin.ACCENT_INK : skin.MUTED}
-                  />
-                  <Typography
-                    variant='body2'
-                    sx={{ fontWeight: 500, fontSize: '15px', color: on ? skin.ACCENT_INK : skin.INK2, whiteSpace: 'nowrap' }}
-                  >
-                    {m === 'quick' ? 'Quick' : 'By month / year'}
-                  </Typography>
-                </Box>
-              )
-            })}
-          </Box>
-
-          {periodMode === 'quick' && <DashboardDateRange value={range} onChange={onRangeChange} selectMinWidth={128} />}
-        </Box>
-
-        {/* Zone divider — pinned to row 1's control height; never grows with the Years/Months row */}
-        <Box sx={{ width: '1px', height: CTRL_H, alignSelf: 'flex-start', bgcolor: skin.HAIR }} />
-
-        {/* Right zone — scope filters, never move when the period window opens */}
-        <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
-          <GenderFilter selected={genders} onChange={onGendersChange} />
+      {/* ONE row, three filters (2026-08-27): All-time preset + Gender side by side on
+          the left, Other Filters right-aligned. No toggle, no lead label, no divider —
+          the Years/Months (by month/year) mode is retired. */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
+        <DashboardDateRange value={range} onChange={onRangeChange} selectMinWidth={128} />
+        <GenderFilter selected={genders} onChange={onGendersChange} />
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
           <FilterButtonWithNotification
             label='Other Filters'
             onClick={onOpenFilters}
@@ -1067,31 +997,6 @@ export const PeriodBand: React.FC<{
         </Box>
       </Box>
 
-      {/* Row 2 — Years + Months side by side, ONE line, full band width (ignores the row-1 split) */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateRows: periodMode === 'range' ? '1fr' : '0fr',
-          transition: 'grid-template-rows 0.2s ease'
-        }}
-      >
-        <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', columnGap: '32px', pt: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 }, flexShrink: 0 }}>
-              {groupLabel('Years', true)}
-              <RangeSelect value={yearFrom} onPick={v => onWindowPatch({ yearFrom: v })} items={yearItems} anyLabel='All' />
-              {dash}
-              <RangeSelect value={yearTo} onPick={v => onWindowPatch({ yearTo: v })} items={yearItems} anyLabel='All' />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 }, flexShrink: 0 }}>
-              {groupLabel('Months', true)}
-              <RangeSelect value={monthFrom} onPick={v => onWindowPatch({ monthFrom: v })} items={monthItems} anyLabel='All' />
-              {dash}
-              <RangeSelect value={monthTo} onPick={v => onWindowPatch({ monthTo: v })} items={monthItems} anyLabel='All' />
-            </Box>
-          </Box>
-        </Box>
-      </Box>
     </Box>
   )
 }

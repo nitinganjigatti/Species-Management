@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, useMediaQuery } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
@@ -107,8 +107,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     </SectionCard>
   )
 
+  // Columns hold in BOTH orientations (2026-08-27): iPad portrait (810px) sits below
+  // the md breakpoint, which used to collapse these rows to a single column.
   const grid = (cols: string, children: React.ReactNode) => (
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: cols }, gap: 2 }}>{children}</Box>
+    <Box sx={{ display: 'grid', gridTemplateColumns: cols, gap: 2 }}>{children}</Box>
   )
 
   // ── Data ──
@@ -216,15 +218,18 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
     .filter(s => s.value > 0)
     .sort((a, b) => b.value - a.value)
 
-  // Naveen's columns mark — never re-themed Apex. 72px min slot per year; scrolls
-  // sooner than it squeezes a column.
+  // Naveen's columns mark — never re-themed Apex. Landscape shows Births/Deaths as
+  // half-width cards, so a 72px min slot keeps columns readable (scrolls sooner than
+  // it squeezes). Portrait cards are FULL width — every year fits, so no min slot
+  // and no horizontal scroll there.
+  const landscape = useMediaQuery('(orientation: landscape)')
   const yearBar = (data: number[], color: string, name: string) => (
     <BarColumns
       bars={trend.map((t, i) => [t.label, data[i]] as [string, number])}
       fill={color}
       noun={name.toLowerCase()}
       height={240}
-      minSlot={72}
+      minSlot={landscape ? 72 : undefined}
     />
   )
 
