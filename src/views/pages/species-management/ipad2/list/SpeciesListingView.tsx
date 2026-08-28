@@ -8,6 +8,7 @@
 
 import React, { useState } from 'react'
 import { Box, Button, Drawer, IconButton, Typography, useMediaQuery } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import CircularProgress from '@mui/material/CircularProgress'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad2/SpeciesFilterSheet'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -15,7 +16,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
-import { FilterChip, GRID_CELL_PAD } from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import { CategoryFilter, FilterChip, GRID_CELL_PAD } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import SpeciesListFilterRail from 'src/views/pages/species-management/ipad2/list/SpeciesListFilterRail'
 import { type MajorFilterRow } from 'src/views/pages/species-management/ipad2/list/SpeciesListMajorFilters'
 import { type AnalysisFilter, type SpeciesFilters } from 'src/views/pages/species-management/ipad2/list/speciesListing.utils'
@@ -30,9 +31,8 @@ export interface PostureStats {
   species: number
   totalSpecies: number
   animals: number
-  male: number
-  female: number
-  criticallyFew: number // animals in critically-few (1–3 population) species
+  sites: number // unique sites across the filtered set
+  enclosures: number // enclosures across the filtered set
 }
 
 interface SpeciesListingViewProps {
@@ -58,6 +58,60 @@ interface SpeciesListingViewProps {
   analysis: AnalysisFilter
   analysisYears: number[]
   onAnalysisChange: (next: AnalysisFilter) => void
+  classTabs: { label: string; value: string; count: number }[]
+  otherClasses: string[]
+  classAllCount: number
+  classOthersCount: number
+  onClassSelect: (values: string[]) => void
+  onFacetSelect: (key: keyof SpeciesFilters, value: string | null) => void
+}
+
+// The kit's underline-tab pattern (MedicalTab status tabs): label + count on a 2.5px
+// underline, one row, overflow scrolls. Active = the dark ink; inactive = the muted
+// greens the pattern uses everywhere.
+const ClassTabs: React.FC<{
+  tabs: { label: string; value: string; count: number }[]
+  active: string
+  onChange: (v: string) => void
+}> = ({ tabs, active, onChange }) => {
+  const theme = useTheme()
+  const c = theme.palette.customColors as Record<string, string>
+
+  return (
+    <Box role='tablist' sx={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'nowrap', overflowX: 'auto' }}>
+      {tabs.map(t => {
+        const on = t.value === active
+
+        return (
+          <Box
+            key={t.value}
+            role='tab'
+            aria-selected={on}
+            onClick={() => onChange(t.value)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              py: 0.5,
+              flexShrink: 0,
+              borderBottom: '2.5px solid',
+              borderColor: on ? skin.INK : 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: on ? skin.INK : c.OutlineVariant }
+            }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, color: on ? skin.INK : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {t.label}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: on ? skin.INK : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+              {t.count.toLocaleString()}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
 }
 
 const RAIL_WIDTH = 268
@@ -84,7 +138,13 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   onApplyFilters,
   analysis,
   analysisYears,
-  onAnalysisChange
+  onAnalysisChange,
+  classTabs,
+  otherClasses,
+  classAllCount,
+  classOthersCount,
+  onClassSelect,
+  onFacetSelect
 }) => {
   const portrait = useMediaQuery('(orientation: portrait)')
 
@@ -94,21 +154,46 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
   // Diet-style filter sheet (portrait bottom sheet / landscape side sheet).
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
-  // ── The collection in one strip (approved 2026-08: "the numbers ARE the design") ──
-  // Five segments at ONE type spec — Species · Animals · Male · Female · Unsexed —
-  // divided by full-height hairlines. Two lines per segment (overline + figure),
-  // nothing else: no ribbon, no legend, no critical, no sub-lines.
-  const undetermined = Math.max(0, posture.animals - posture.male - posture.female)
+  // ── Class tabs — the PORTRAIT table heading (stakeholder call 2026-08-27) ──
+  // "Results" + its species·animals line retired there; in their place a proper CC tab
+  // bar: All · Birds · Mammals · Reptiles · Others. Others is a REAL tab — it filters to
+  // every class outside the featured three at once (the Class column disambiguates).
+  // Landscape keeps the Results header until its own pass.
+  const classTabItems = [
+    { label: 'All', value: '__all__', count: classAllCount },
+    ...classTabs,
+    ...(otherClasses.length > 0 ? [{ label: 'Others', value: '__others__', count: classOthersCount }] : [])
+  ]
+  const selectedClasses = appliedFilters.Class
+  const activeClassTab =
+    selectedClasses.length === 0
+      ? '__all__'
+      : selectedClasses.length === 1 && classTabs.some(t => t.value === selectedClasses[0])
+      ? selectedClasses[0]
+      : selectedClasses.length > 0 && selectedClasses.every(c => otherClasses.includes(c))
+      ? '__others__'
+      : '__all__'
+  const handleClassTab = (v: string) => onClassSelect(v === '__all__' ? [] : v === '__others__' ? otherClasses : [v])
+
+  // The two always-on dropdowns beside the search (stakeholder call: Site + IUCN are the
+  // filters that matter — no sheet trip for them). Options come from the same facet rows
+  // the sheet uses; single-select, pill corners.
+  const siteOptions = (filterSections.find(s => s.key === 'Site')?.options || []).map(o => o.value)
+  const iucnOptions = (filterSections.find(s => s.key === 'Conservation')?.options || []).map(o => o.value)
+
+  // ── The collection in one strip (v3, stakeholder call 2026-08-27) ──
+  // Four segments at ONE type spec — Species · Animals · Sites · Enclosures — divided by
+  // full-height hairlines. Sex composition retired from the strip (lives in each row's
+  // Total column); where the collection LIVES is the management-level fact.
   const stats = [
     { label: 'Species', value: posture.species },
     { label: 'Animals', value: posture.animals },
-    { label: 'Male', value: posture.male },
-    { label: 'Female', value: posture.female },
-    { label: 'Unsexed', value: undetermined }
+    { label: 'Sites', value: posture.sites },
+    { label: 'Enclosures', value: posture.enclosures }
   ]
 
   const statBand = (
-    <Box sx={{ ...skin.cardSx, display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+    <Box sx={{ ...skin.cardSx, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
       {stats.map((s, i) => (
         <Box
           key={s.label}
@@ -293,33 +378,77 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
               <Box sx={{ ...skin.cardSx, p: 4, position: 'sticky', top: 16, zIndex: 6 }}>{chipRow}</Box>
             )}
 
-            {/* Results header + table */}
+            {/* Table heading — portrait: class tabs over a full-width search (Results header
+                retired there); landscape: Results header unchanged until its own pass. */}
             <Box sx={{ ...skin.cardSx, overflow: 'visible' }}>
-              <Box sx={{ px: 5, pt: 5, pb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
-                      Results
-                    </Typography>
-                    {/* The one line on the page that moves with the filters — both halves of the SAME set. */}
-                    <Typography variant='caption' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums', display: 'block', mt: 0.5 }}>
-                      {posture.species.toLocaleString()} species · {posture.animals.toLocaleString()} animals
-                    </Typography>
+              <Box sx={{ px: 5, pt: 5, pb: portrait ? 2 : 3 }}>
+                {portrait ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <ClassTabs tabs={classTabItems} active={activeClassTab} onChange={handleClassTab} />
+                    {/* One control row: the app's pill search stretching, Site + IUCN pickers beside it. */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Search
+                          borderRadius='999px'
+                          backgroundColor={skin.FIELD_BG}
+                          width='100%'
+                          placeholder='Search species...'
+                          value={searchValue}
+                          onClear={onSearchClear}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+                          textFielsSX={{
+                            height: 44,
+                            '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                            '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                          }}
+                        />
+                      </Box>
+                      <CategoryFilter
+                        radius='999px'
+                        width={180}
+                        options={siteOptions}
+                        value={appliedFilters.Site[0] ?? null}
+                        onChange={v => onFacetSelect('Site', v)}
+                        placeholder='All sites'
+                        icon='mdi:map-marker-outline'
+                      />
+                      <CategoryFilter
+                        radius='999px'
+                        width={180}
+                        options={iucnOptions}
+                        value={appliedFilters.Conservation[0] ?? null}
+                        onChange={v => onFacetSelect('Conservation', v)}
+                        placeholder='All IUCN'
+                        icon='mdi:earth'
+                      />
+                    </Box>
                   </Box>
-                  <Search
-                    borderRadius='999px'
-                    backgroundColor={skin.FIELD_BG}
-                    width='240px'
-                    placeholder='Search species...'
-                    value={searchValue}
-                    onClear={onSearchClear}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
-                    textFielsSX={{
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-                    }}
-                  />
-                </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
+                        Results
+                      </Typography>
+                      {/* The one line on the page that moves with the filters — both halves of the SAME set. */}
+                      <Typography variant='caption' sx={{ color: skin.FAINT, fontVariantNumeric: 'tabular-nums', display: 'block', mt: 0.5 }}>
+                        {posture.species.toLocaleString()} species · {posture.animals.toLocaleString()} animals
+                      </Typography>
+                    </Box>
+                    <Search
+                      borderRadius='999px'
+                      backgroundColor={skin.FIELD_BG}
+                      width='240px'
+                      placeholder='Search species...'
+                      value={searchValue}
+                      onClear={onSearchClear}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+                      textFielsSX={{
+                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
 
               <Box sx={{ mx: 5, mb: 7 }}>

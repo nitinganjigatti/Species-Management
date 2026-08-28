@@ -10,6 +10,7 @@ import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad2/marks'
 import {
   AnimalCell,
+  CategoryFilter,
   CellText,
   DetailTable,
   DrillSheet,
@@ -220,6 +221,58 @@ const useCell = () => {
   return { txt, animalCell, trendCell, trendSparkCell, c, theme }
 }
 
+/* ------------------------------------------------------------- shared table controls */
+
+// Every assessment table carries a pill search + site dropdown (stakeholder call
+// 2026-08-27). The site list comes from the rows themselves, so tables whose rows carry
+// no site — and single-site species — simply never show the dropdown.
+function useSiteSearch<T extends { name?: string; antzId?: string; site?: string }>(rows: T[]) {
+  const [q, setQ] = useState('')
+  const [site, setSite] = useState<string | null>(null)
+  const sites = useMemo(() => Array.from(new Set(rows.map(r => r.site).filter(Boolean))) as string[], [rows])
+  const query = q.trim().toLowerCase()
+  const filtered = rows.filter(
+    r =>
+      (!query || `${r.name || ''} ${r.antzId || ''} ${r.site || ''}`.toLowerCase().includes(query)) &&
+      (!site || r.site === site)
+  )
+
+  return { q, setQ, site, setSite, sites, filtered }
+}
+
+const TableControls: React.FC<{
+  ctl: { q: string; setQ: (v: string) => void; site: string | null; setSite: (v: string | null) => void; sites: string[] }
+  placeholder?: string
+}> = ({ ctl, placeholder = 'Search animals…' }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+    <TextField
+      size='small'
+      placeholder={placeholder}
+      value={ctl.q}
+      onChange={e => ctl.setQ(e.target.value)}
+      sx={{
+        flex: 1,
+        minWidth: 200,
+        '& .MuiInputBase-root': { bgcolor: '#ffffff', borderRadius: '999px', height: 44, fontSize: '15px' },
+        '& .MuiOutlinedInput-notchedOutline': { border: `1px solid ${skin.HAIR}` },
+        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+      }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+    />
+    {ctl.sites.length > 1 && (
+      <CategoryFilter
+        radius='999px'
+        width={180}
+        options={ctl.sites}
+        value={ctl.site}
+        onChange={v => ctl.setSite(v)}
+        placeholder='All sites'
+        icon='mdi:map-marker-outline'
+      />
+    )}
+  </Box>
+)
+
 /* ------------------------------------------------------------------ Population table */
 
 const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: string) => void }> = ({ animals, onAnimal }) => {
@@ -246,7 +299,9 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
     [animals]
   )
 
-  const tbl = useSortableTable(data, { field: 'weight', sort: 'desc' })
+  const ctl = useSiteSearch(data)
+  const tbl = useSortableTable(ctl.filtered, { field: 'weight', sort: 'desc' })
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
@@ -266,17 +321,24 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
   ]
 
   return (
-    <DetailTable
-      columns={columns}
-      rows={tbl.rows}
-      total={tbl.total}
-      paginationModel={tbl.paginationModel}
-      setPaginationModel={tbl.setPaginationModel}
-      sortModel={tbl.sortModel}
-      handleSortModel={tbl.handleSortModel}
-      onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-      framed
-    />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <TableControls ctl={ctl} />
+      {tbl.total ? (
+        <DetailTable
+          columns={columns}
+          rows={tbl.rows}
+          total={tbl.total}
+          paginationModel={tbl.paginationModel}
+          setPaginationModel={tbl.setPaginationModel}
+          sortModel={tbl.sortModel}
+          handleSortModel={tbl.handleSortModel}
+          onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+          framed
+        />
+      ) : (
+        <EmptyState message='No animals match your filters' />
+      )}
+    </Box>
   )
 }
 
@@ -291,7 +353,12 @@ const UNIT_ABBR: Record<string, string> = {
 /** Short uppercase unit label for compact tiles/headers (centimeter → CM). Unknown units pass through. */
 const abbrevUnit = (u?: string) => (u ? UNIT_ABBR[u.trim().toLowerCase()] || u : '')
 
-const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeric' }>; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({ item, onAnimal, onBucket }) => {
+const NumericTypePanel: React.FC<{
+  item: Extract<CatTypeItem, { display: 'numeric' }>
+  siteById?: Map<string, string | undefined>
+  onAnimal: (id: string) => void
+  onBucket: (title: string, items?: any[]) => void
+}> = ({ item, siteById, onAnimal, onBucket }) => {
   const { txt, animalCell, trendSparkCell, c, theme } = useCell()
 
   const data = useMemo(
@@ -302,6 +369,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
         return {
           antzId: a.id,
           name: a.name || a.id,
+          site: siteById?.get(a.id),
           value: a.value,
           spark,
           trendUp: spark.length >= 2 ? spark[spark.length - 1] >= spark[0] : null,
@@ -309,9 +377,11 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
           lastDate: a.date || ''
         }
       }),
-    [item]
+    [item, siteById]
   )
-  const tbl = useSortableTable(data, { field: 'value', sort: 'desc' })
+  const ctl = useSiteSearch(data)
+  const tbl = useSortableTable(ctl.filtered, { field: 'value', sort: 'desc' })
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const devCell = (pct: number) => {
     const color = pct > 1 ? skin.TONE_TYPE.good : pct < -1 ? skin.CORAL : skin.FAINT
@@ -321,7 +391,7 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
     {
       field: 'value',
       headerName: `Trend${item.uom ? ` (${abbrevUnit(item.uom)})` : ''}`,
@@ -379,17 +449,22 @@ const NumericTypePanel: React.FC<{ item: Extract<CatTypeItem, { display: 'numeri
           />
         )}
       </Box>
-      <DetailTable
-        columns={columns}
-        rows={tbl.rows}
-        total={tbl.total}
-        paginationModel={tbl.paginationModel}
-        setPaginationModel={tbl.setPaginationModel}
-        sortModel={tbl.sortModel}
-        handleSortModel={tbl.handleSortModel}
-        onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-        framed
-      />
+      <TableControls ctl={ctl} />
+      {tbl.total ? (
+        <DetailTable
+          columns={columns}
+          rows={tbl.rows}
+          total={tbl.total}
+          paginationModel={tbl.paginationModel}
+          setPaginationModel={tbl.setPaginationModel}
+          sortModel={tbl.sortModel}
+          handleSortModel={tbl.handleSortModel}
+          onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+          framed
+        />
+      ) : (
+        <EmptyState message='No animals match your filters' />
+      )}
     </Box>
   )
 }
@@ -419,7 +494,9 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
       }),
     [animals]
   )
-  const tbl = useSortableTable(data, { field: 'weight', sort: 'desc' })
+  const ctl = useSiteSearch(data)
+  const tbl = useSortableTable(ctl.filtered, { field: 'weight', sort: 'desc' })
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
@@ -480,17 +557,22 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
           />
         )}
       </Box>
-      <DetailTable
-        columns={columns}
-        rows={tbl.rows}
-        total={tbl.total}
-        paginationModel={tbl.paginationModel}
-        setPaginationModel={tbl.setPaginationModel}
-        sortModel={tbl.sortModel}
-        handleSortModel={tbl.handleSortModel}
-        onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-        framed
-      />
+      <TableControls ctl={ctl} />
+      {tbl.total ? (
+        <DetailTable
+          columns={columns}
+          rows={tbl.rows}
+          total={tbl.total}
+          paginationModel={tbl.paginationModel}
+          setPaginationModel={tbl.setPaginationModel}
+          sortModel={tbl.sortModel}
+          handleSortModel={tbl.handleSortModel}
+          onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+          framed
+        />
+      ) : (
+        <EmptyState message='No animals match your filters' />
+      )}
     </Box>
   )
 }
@@ -513,7 +595,9 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
       })),
     [animals]
   )
-  const tbl = useSortableTable(data, { field: 'bcs', sort: 'desc' })
+  const ctl = useSiteSearch(data)
+  const tbl = useSortableTable(ctl.filtered, { field: 'bcs', sort: 'desc' })
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
   const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
   const columns: GridColDef[] = [
@@ -596,17 +680,22 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
           />
         )}
       </Box>
-      <DetailTable
-        columns={columns}
-        rows={tbl.rows}
-        total={tbl.total}
-        paginationModel={tbl.paginationModel}
-        setPaginationModel={tbl.setPaginationModel}
-        sortModel={tbl.sortModel}
-        handleSortModel={tbl.handleSortModel}
-        onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-        framed
-      />
+      <TableControls ctl={ctl} />
+      {tbl.total ? (
+        <DetailTable
+          columns={columns}
+          rows={tbl.rows}
+          total={tbl.total}
+          paginationModel={tbl.paginationModel}
+          setPaginationModel={tbl.setPaginationModel}
+          sortModel={tbl.sortModel}
+          handleSortModel={tbl.handleSortModel}
+          onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+          framed
+        />
+      ) : (
+        <EmptyState message='No animals match your filters' />
+      )}
     </Box>
   )
 }
@@ -686,7 +775,8 @@ const CategoryPanel: React.FC<{
     const idx = Number(current.replace('t', ''))
     const item = types[idx]
     if (!item) return <EmptyState message='No data for this type' />
-    if (item.display === 'numeric') return <NumericTypePanel item={item} onAnimal={onAnimal} onBucket={bucket} />
+    if (item.display === 'numeric')
+      return <NumericTypePanel item={item} siteById={new Map((a.animals || []).map(an => [an.antzId, an.site]))} onAnimal={onAnimal} onBucket={bucket} />
 
     // Prototype rule: any non-numeric type shows the per-animal pill-history timeline.
     return <StripTypeTable key={item.type} a={a} category={category} item={item} onAnimal={onAnimal} />
@@ -761,6 +851,7 @@ const StripTypeTable: React.FC<{
   const { animalCell } = useCell()
 
   const [q, setQ] = useState('')
+  const [siteSel, setSiteSel] = useState<string | null>(null)
   const [entries, setEntries] = useState<EntriesFilter>('n10')
 
   const isText = item.display === 'text'
@@ -795,17 +886,21 @@ const StripTypeTable: React.FC<{
     [allRows]
   )
 
+  const stripSites = useMemo(() => Array.from(new Set(allRows.map(r => r.site).filter(Boolean))) as string[], [allRows])
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
-    if (!query) return allRows
 
-    return allRows.filter(r => `${r.name || ''} ${r.site || ''}`.toLowerCase().includes(query))
-  }, [allRows, q])
+    return allRows.filter(
+      r =>
+        (!query || `${r.name || ''} ${r.site || ''}`.toLowerCase().includes(query)) && (!siteSel || r.site === siteSel)
+    )
+  }, [allRows, q, siteSel])
 
   const tbl = useSortableTable(filtered, { field: 'latest', sort: 'desc' })
 
-  // Search or entries-filter changes must not strand the view on an out-of-range page.
-  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [q, entries]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Search / site / entries-filter changes must not strand the view on an out-of-range page.
+  useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [q, siteSel, entries]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // CC tone pairs: soft wash + the tone's readable ink.
   const chip = (label: string, sentiment: 'good' | 'bad' | 'neutral', text?: boolean) => {
@@ -890,6 +985,17 @@ const StripTypeTable: React.FC<{
         }
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {stripSites.length > 1 && (
+              <CategoryFilter
+                radius='999px'
+                width={180}
+                options={stripSites}
+                value={siteSel}
+                onChange={v => setSiteSel(v)}
+                placeholder='All sites'
+                icon='mdi:map-marker-outline'
+              />
+            )}
             <Select
               size='small'
               value={entries}
@@ -978,6 +1084,7 @@ const StripPanel: React.FC<{
         // Water intake keeps its original aggregate numeric panel (stats, distribution, per-animal drill).
         <NumericTypePanel
           item={current}
+          siteById={new Map((a.animals || []).map(an => [an.antzId, an.site]))}
           onAnimal={onAnimal}
           onBucket={(title, items) => onBucket?.(title, items && items.length ? `${items.length} animals` : undefined, items)}
         />
@@ -1063,13 +1170,14 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
 
   // Measurement outliers: numeric values >30% off the species average, any category.
   const outlierRows = useMemo(() => {
-    const rows: { antzId: string; name?: string; cat: string; metric: string; value: number; avg: number; dev: number; uom: string; absDev: number }[] = []
+    const siteById = new Map((a.animals || []).map(an => [an.antzId, an.site]))
+    const rows: { antzId: string; name?: string; site?: string; cat: string; metric: string; value: number; avg: number; dev: number; uom: string; absDev: number }[] = []
     for (const [cat, types] of Object.entries(a.catDetail || {})) {
       for (const t of types) {
         if (t.display !== 'numeric') continue
         for (const an of t.animals || []) {
           if (typeof an.pctVsAvg === 'number' && Math.abs(an.pctVsAvg) >= 30 && typeof an.value === 'number') {
-            rows.push({ antzId: an.id, name: an.name, cat, metric: t.type, value: an.value, avg: t.avg, dev: round1(an.pctVsAvg), uom: abbrevUnit(t.uom), absDev: Math.abs(an.pctVsAvg) })
+            rows.push({ antzId: an.id, name: an.name, site: siteById.get(an.id), cat, metric: t.type, value: an.value, avg: t.avg, dev: round1(an.pctVsAvg), uom: abbrevUnit(t.uom), absDev: Math.abs(an.pctVsAvg) })
           }
         }
       }
@@ -1078,9 +1186,12 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
     return rows
   }, [a])
 
+  const outlierCtl = useSiteSearch(outlierRows)
+
   // Sort on the real 'dev' column. A sortModel field with no matching column makes DataGrid
   // loop onSortModelChange → setState → "Maximum update depth exceeded" (the earlier crash).
-  const outlierTbl = useSortableTable(outlierRows, { field: 'dev', sort: 'desc' })
+  const outlierTbl = useSortableTable(outlierCtl.filtered, { field: 'dev', sort: 'desc' })
+  useEffect(() => outlierTbl.setPaginationModel(p => ({ ...p, page: 0 })), [outlierCtl.q, outlierCtl.site]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // The dot wears the tone's FILL, the count its readable INK — and warning is the
   // amber family, no longer sharing error's coral.
@@ -1280,17 +1391,24 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
       {outlierRows.length > 0 && (
         <Box>
           <SectionLabel sub={`Values more than 30% from the species average · ${outlierRows.length} flagged`}>Measurement Outliers</SectionLabel>
-          <DetailTable
-            columns={outlierCols}
-            rows={outlierTbl.rows}
-            total={outlierTbl.total}
-            paginationModel={outlierTbl.paginationModel}
-            setPaginationModel={outlierTbl.setPaginationModel}
-            sortModel={outlierTbl.sortModel}
-            handleSortModel={outlierTbl.handleSortModel}
-            onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
-            framed
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <TableControls ctl={outlierCtl} />
+            {outlierTbl.total ? (
+              <DetailTable
+                columns={outlierCols}
+                rows={outlierTbl.rows}
+                total={outlierTbl.total}
+                paginationModel={outlierTbl.paginationModel}
+                setPaginationModel={outlierTbl.setPaginationModel}
+                sortModel={outlierTbl.sortModel}
+                handleSortModel={outlierTbl.handleSortModel}
+                onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
+                framed
+              />
+            ) : (
+              <EmptyState message='No animals match your filters' />
+            )}
+          </Box>
         </Box>
       )}
     </Box>
@@ -1487,7 +1605,14 @@ const ALERTS = '__alerts__'
 
 const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assessments }) => {
   const a = assessments
-  const [sub, setSub] = useState<string>(POPULATION)
+  // Default landing = Physical Health (stakeholder call 2026-08-27). Population keeps its
+  // first slot in the tab row; only the initial selection moves. The effect covers data
+  // that arrives after mount — once seeded, a manual pick of Population sticks.
+  const [sub, setSub] = useState<string>(
+    () => Object.keys(a?.catDetail || {}).find(cat => /physical/i.test(cat)) || POPULATION
+  )
+
+
   const [animalDrill, setAnimalDrill] = useState<AssessmentAnimal | null>(null)
   const [bucket, setBucket] = useState<{ title: string; subtitle?: string; items?: any[]; unit?: string } | null>(null)
 
@@ -1510,6 +1635,12 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
       return (counts[y] || 0) - (counts[x] || 0)
     })
   }, [a])
+
+  const physicalCat = categories.find(cat => /physical/i.test(cat))
+  useEffect(() => {
+    if (physicalCat) setSub(prev => (prev === POPULATION ? physicalCat : prev))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [physicalCat])
 
   const alertCount = useMemo(() => {
     const al = a?.alerts || {}

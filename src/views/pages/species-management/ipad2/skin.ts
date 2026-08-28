@@ -117,6 +117,11 @@ export const ROW_HOVER = '#f4f9f6' // row / option hover wash
 export const CORAL = '#d4553a' // deaths & the critical figure — never the alarm red
 export const LIST_GREEN = '#1f6b45' // population/births figures + filter accents
 export const DASH_INK = '#a9b3ad' // the em-dash / absent-figure ink
+
+// Banner tag hues (user-specified 2026-08-28) — the sex/chip tags under the hero strip.
+export const BANNER_TAG_MALE = '#00afd6'
+export const BANNER_TAG_FEMALE = '#fa6140' // = customColors.Tertiary
+export const BANNER_TAG_UNSEXED = '#e93353'
 export const FIELD_BG = '#f4f6f4' // the search field's quiet fill
 export const RIBBON_FEMALE = '#8fd9ae' // sex ribbon: female step
 export const RIBBON_UNSEXED = '#dcebe1' // sex ribbon: the pale undetermined step

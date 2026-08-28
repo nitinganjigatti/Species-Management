@@ -43,7 +43,7 @@ const stripParen = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim()
 const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Overview', value: 'overview' },
   { labelKey: 'Profile', value: 'profile' },
-  { labelKey: 'Pairing', value: 'pairing' },
+  { labelKey: 'Enclosure Demographics', value: 'pairing' },
   { labelKey: 'Housing', value: 'housing' },
   { labelKey: 'Circle of Life', value: 'circle' },
   { labelKey: 'Assessments', value: 'assessments' },
@@ -291,14 +291,12 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // either sex is zero, because absence is not an assessment.
   const ratioStr = m > 0 && f > 0 ? `1 M : ${(f / m).toFixed(1)} F` : null
 
-  // Banner stat cells (Figma 23:371) — value colour is semantic per column:
-  // Animals = antzNotes80 yellow, Male/Female = PrimaryContainer green,
-  // Site/Enclosure = Secondary teal. Labels are the Figma's exact singular forms.
+  // Banner stat cells — THREE (user call 2026-08-28: sex counts moved to the tag row
+  // below): Animals = antzNotes80 yellow, Site = PrimaryContainer green (inherited from
+  // the retired sex cells), Enclosure = Secondary teal.
   const bannerCells: { label: string; value: string; color: string }[] = [
     { label: 'Animals', value: (h?.total ?? 0).toLocaleString(), color: skin.BANNER_YELLOW },
-    { label: 'Male', value: m.toLocaleString(), color: skin.BANNER_GREEN },
-    { label: 'Female', value: f.toLocaleString(), color: skin.BANNER_GREEN },
-    { label: 'Site', value: (h?.sites ?? 0).toLocaleString(), color: skin.BANNER_TEAL },
+    { label: 'Site', value: (h?.sites ?? 0).toLocaleString(), color: skin.BANNER_GREEN },
     { label: 'Enclosure', value: (h?.enclosures ?? 0).toLocaleString(), color: skin.BANNER_TEAL }
   ]
 
@@ -462,8 +460,8 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             boxShadow: skin.BANNER_PHOTO_SHADOW,
             width: 212,
             height: 216,
-            borderRadius: '22px',
-            [LANDSCAPE]: { width: 284, height: 289, borderRadius: '28px' }
+            borderRadius: '14px',
+            [LANDSCAPE]: { width: 284, height: 289, borderRadius: '16px' }
           }}
         >
           {heroPhoto ? (
@@ -546,8 +544,8 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                   px: '14px',
                   py: '8px',
                   borderRadius: '999px',
-                  backgroundColor: skin.ROW_HOVER,
-                  border: `1px solid ${skin.HAIR}`,
+                  backgroundColor: 'rgba(255,255,255,0.10)',
+                  border: '1px solid rgba(255,255,255,0.18)',
                   whiteSpace: 'nowrap'
                 }}
               >
@@ -563,7 +561,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                     }}
                   />
                 )}
-                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: skin.INK2 }}>
+                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: '#ffffff' }}>
                   IUCN · {iucnEntry?.code || iucnName}
                 </Typography>
               </Box>
@@ -577,12 +575,12 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                   px: '14px',
                   py: '8px',
                   borderRadius: '999px',
-                  backgroundColor: skin.ROW_HOVER,
-                  border: `1px solid ${skin.HAIR}`,
+                  backgroundColor: 'rgba(255,255,255,0.10)',
+                  border: '1px solid rgba(255,255,255,0.18)',
                   whiteSpace: 'nowrap'
                 }}
               >
-                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: skin.INK2 }}>
+                <Typography sx={{ fontSize: '14px', fontWeight: 500, lineHeight: 'normal', color: '#ffffff' }}>
                   CITES · {stripParen(h.citesAppendix)}
                 </Typography>
               </Box>
@@ -625,35 +623,49 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             </Box>
           </Box>
 
-          {/* One-line stats — Sex ratio · Unsexed (hidden at zero) · Chipped. The 36px
-              container gap keeps spacing right however many groups render. */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '36px', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
-            {ratioStr && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
-                  Sex ratio
+          {/* Tag row (user call 2026-08-28, replaces the one-line stats): Male · Female ·
+              Unsexed (hidden at zero) · Chipped as LIGHT pills — the style the IUCN/CITES
+              pills wore (swapped by user call: identity pills went glass, stats went light). */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
+            {(
+              [
+                { text: `M - ${m.toLocaleString()}`, color: skin.BANNER_TAG_MALE },
+                { text: `F - ${f.toLocaleString()}`, color: skin.BANNER_TAG_FEMALE },
+                ...((h?.total ?? 0) - m - f > 0
+                  ? [{ text: `U - ${((h?.total ?? 0) - m - f).toLocaleString()}`, color: skin.BANNER_TAG_UNSEXED }]
+                  : []),
+                ...(typeof h?.chippedPct === 'number'
+                  ? [
+                      {
+                        // 100% stands alone; anything less carries the (derived) head-count too.
+                        text:
+                          h.chippedPct >= 100
+                            ? 'Chipped - 100%'
+                            : `Chipped - ${h.chippedPct}% (${Math.round(((h?.total ?? 0) * h.chippedPct) / 100).toLocaleString()})`,
+                        color: skin.INK2
+                      }
+                    ]
+                  : [])
+              ] as { text: string; color: string }[]
+            ).map(t => (
+              <Box
+                key={t.text}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  whiteSpace: 'nowrap',
+                  px: '14px',
+                  py: '7px',
+                  borderRadius: '999px',
+                  backgroundColor: skin.ROW_HOVER,
+                  border: `1px solid ${skin.HAIR}`
+                }}
+              >
+                <Typography sx={{ fontSize: '15px', fontWeight: 700, lineHeight: 'normal', fontVariantNumeric: 'tabular-nums', color: t.color }}>
+                  {t.text}
                 </Typography>
-                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>{ratioStr}</Typography>
               </Box>
-            )}
-            {(h?.total ?? 0) - m - f > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
-                  Unsexed
-                </Typography>
-                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>
-                  {((h?.total ?? 0) - m - f).toLocaleString()}
-                </Typography>
-              </Box>
-            )}
-            {typeof h?.chippedPct === 'number' && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                <Typography sx={{ fontSize: '13px', fontWeight: 400, lineHeight: 'normal', color: '#ffffff', opacity: 0.72 }}>
-                  Chipped
-                </Typography>
-                <Typography sx={{ fontSize: '17px', fontWeight: 700, lineHeight: 'normal', color: '#ffffff' }}>{h.chippedPct}%</Typography>
-              </Box>
-            )}
+            ))}
           </Box>
         </Box>
       </Box>

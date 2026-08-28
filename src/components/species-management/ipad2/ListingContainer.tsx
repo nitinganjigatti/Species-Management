@@ -111,9 +111,10 @@ const FACET_FIELD: Partial<Record<keyof SpeciesFilters, keyof SpeciesRow>> = {
 }
 
 // Section order for the left filter rail (Analysis is prepended in the rail itself).
+// Class is NOT here — on this screen it lives outside as the table-heading tabs
+// (All · Birds · Mammals · Reptiles · Others), never inside the filter sheet.
 const RAIL_KEYS: (keyof SpeciesFilters)[] = [
   'Category',
-  'Class',
   'Order',
   'Family',
   'Genus',
@@ -180,7 +181,71 @@ const IpadListingContainer = () => {
     return a ? new Set(a.speciesIds) : null
   }, [alertKey, dashboard])
 
-  const columns = useMemo(() => buildSpeciesColumns(theme, analysis), [theme, analysis])
+  // ── Class tabs (portrait table heading) ──
+  // Birds / Mammals / Reptiles surfaced by taxonomy-name match (only when the collection
+  // actually holds them); every remaining class rides the Others tab, biggest collections
+  // first. A tab pick is EXCLUSIVE on the Class facet — it replaces any sheet-picked
+  // classes — while every other facet stays put.
+  const classTabData = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const r of allRows) if (r.class_name) counts.set(r.class_name, (counts.get(r.class_name) || 0) + 1)
+    const names = Array.from(counts.keys())
+    const used = new Set<string>()
+    const featured: { label: string; value: string }[] = []
+    const feature = (label: string, re: RegExp) => {
+      const v = names.find(n => re.test(n))
+      if (v) {
+        featured.push({ label, value: v })
+        used.add(v)
+      }
+    }
+    feature('Birds', /aves|bird/i)
+    feature('Mammals', /mammal/i)
+    feature('Reptiles', /reptil/i)
+    const others = names.filter(n => !used.has(n)).sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0))
+
+    return { featured, others }
+  }, [allRows])
+
+  // The filtered set with ONLY the Class facet lifted out — feeds the tab counts AND the
+  // stat strip, so picking a class tab never moves either (every other live filter still
+  // applies: sheet facets, search, alert, analysis).
+  const rowsSansClass = useMemo(() => {
+    let rows = applyFilters(allRows, { ...appliedFilters, Class: [] }, query)
+    if (alertIds) rows = rows.filter(r => alertIds.has(r.species_id))
+
+    return applyAnalysis(rows, analysis)
+  }, [allRows, appliedFilters, query, alertIds, analysis])
+
+  const classCounts = useMemo(() => {
+    const per = new Map<string, number>()
+    for (const r of rowsSansClass) per.set(r.class_name, (per.get(r.class_name) || 0) + 1)
+
+    return {
+      all: rowsSansClass.length,
+      featured: classTabData.featured.map(f => per.get(f.value) || 0),
+      others: classTabData.others.reduce((n, c) => n + (per.get(c) || 0), 0)
+    }
+  }, [rowsSansClass, classTabData])
+
+  // Site / IUCN header dropdowns — single-select, replaces that facet only.
+  const handleFacetSelect = useCallback((key: keyof SpeciesFilters, value: string | null) => {
+    setAppliedFilters(prev => ({ ...prev, [key]: value ? [value] : [] }))
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }, [])
+
+  const handleClassSelect = useCallback((values: string[]) => {
+    setAppliedFilters(prev => ({ ...prev, Class: values }))
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }, [])
+
+  // The Class column (beside CITES) shows only on the All and Others tabs — a single
+  // featured class (Birds/Mammals/Reptiles) makes the column pure repetition.
+  const showClassColumn = !(
+    appliedFilters.Class.length === 1 && classTabData.featured.some(f => f.value === appliedFilters.Class[0])
+  )
+
+  const columns = useMemo(() => buildSpeciesColumns(theme, analysis, showClassColumn), [theme, analysis, showClassColumn])
 
   const analysisYears = useMemo(() => availableYears(allRows), [allRows])
 
@@ -311,18 +376,19 @@ const IpadListingContainer = () => {
     setPaginationModel(prev => ({ ...prev, page: 0 }))
   }, [])
 
+  // Strip figures ride rowsSansClass, NOT filteredRows — the class tabs must never move
+  // the strip (user call 2026-08-28); sheet filters/search still do.
   const posture: PostureStats = useMemo(
     () => ({
-      species: filteredRows.length,
+      species: rowsSansClass.length,
       totalSpecies: allRows.length,
-      animals: filteredRows.reduce((n, r) => n + r.population, 0),
-      male: filteredRows.reduce((n, r) => n + (r.male || 0), 0),
-      female: filteredRows.reduce((n, r) => n + (r.female || 0), 0),
-      criticallyFew: filteredRows
-        .filter(r => r.population >= 1 && r.population <= 3)
-        .reduce((n, r) => n + r.population, 0)
+      animals: rowsSansClass.reduce((n, r) => n + r.population, 0),
+      sites: new Set(rowsSansClass.flatMap(r => r.sites)).size,
+      // Best available figure: the dump carries a per-species enclosure count only, so a
+      // mixed-species enclosure counts once per species living in it.
+      enclosures: rowsSansClass.reduce((n, r) => n + (r.enclosures || 0), 0)
     }),
-    [filteredRows, allRows]
+    [rowsSansClass, allRows]
   )
 
   // Upfront pill lanes — the major facets with their live option counts.
@@ -376,7 +442,9 @@ const IpadListingContainer = () => {
   // Bulk apply from the filter sheet (Diet-style CustomFilterDrawer fork) — replaces the
   // whole facet selection in one shot; the sheet stages its own draft until Apply.
   const handleApplyFilters = useCallback((sel: Record<string, string[]>) => {
-    setAppliedFilters({ ...EMPTY_FILTERS, ...(sel as Partial<SpeciesFilters>) })
+    // Class never rides the sheet — it belongs to the table-heading tabs, so an Apply
+    // (which replaces the whole facet selection) must not wipe the picked tab.
+    setAppliedFilters(prev => ({ ...EMPTY_FILTERS, ...(sel as Partial<SpeciesFilters>), Class: prev.Class }))
     setPaginationModel(prev => ({ ...prev, page: 0 }))
   }, [])
 
@@ -398,6 +466,9 @@ const IpadListingContainer = () => {
   const chips: AppliedChip[] = useMemo(() => {
     const out: AppliedChip[] = []
     for (const key of URL_FACET_KEYS) {
+      // The class tabs ARE the visible state for Class — a chip would double it (and an
+      // Others pick would flood the row with one chip per class).
+      if (key === 'Class') continue
       for (const value of appliedFilters[key]) {
         const disp =
           key === 'Population'
@@ -519,6 +590,12 @@ const IpadListingContainer = () => {
         filterSections={majorFilters}
         appliedFilters={appliedFilters}
         onToggleFacet={handleToggleFacet}
+        classTabs={classTabData.featured.map((f, i) => ({ ...f, count: classCounts.featured[i] }))}
+        otherClasses={classTabData.others}
+        classAllCount={classCounts.all}
+        classOthersCount={classCounts.others}
+        onClassSelect={handleClassSelect}
+        onFacetSelect={handleFacetSelect}
         onApplyFilters={handleApplyFilters}
         analysis={analysis}
         analysisYears={analysisYears}

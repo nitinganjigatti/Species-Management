@@ -7,7 +7,7 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { CellText, DetailTable, DrillSheet, EmptyState, StatusChip, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import { CategoryFilter, CellText, DetailTable, DrillSheet, EmptyState, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 
 /** Meta lines for the standard animal SheetRow (same card as Medical / Hospital). */
 const animalCaption = (a: AnimalRecord) =>
@@ -16,14 +16,16 @@ const animalCaption = (a: AnimalRecord) =>
     .join(' · ')
 const animalSubline = (a: AnimalRecord) => [a.enclosure, a.site].filter(Boolean).join(' · ')
 
-const toneForType = (type: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' => {
-  const t = type.toLowerCase()
-  if (t.includes('breeding ready')) return 'success'
-  if (t.includes('needs sexing') || t.includes('unsexed') || t.includes('mixed')) return 'warning'
-  if (t.includes('male')) return 'info'
-  if (t.includes('female')) return 'error'
+// Composition from the COUNTS, never the dataset's type labels (those carry the banned
+// "Breeding Ready" vocabulary). Plain text, no chip — same words as Enclosure Demographics.
+const compositionOf = (male: number, female: number, unsexed: number, total: number): string => {
+  if (total <= 0) return 'Empty'
+  if (male > 0 && female > 0) return 'Both sexes'
+  if (unsexed === total) return 'Needs sexing'
+  if (male > 0 && unsexed === 0) return 'All male'
+  if (female > 0 && unsexed === 0) return 'All female'
 
-  return 'neutral'
+  return 'Mixed' // one sex plus unsexed animals
 }
 
 interface HousingTabProps {
@@ -45,11 +47,15 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const [sheetPm, setSheetPm] = useState({ page: 0, pageSize: 10 })
   const [tableView, setTableView] = useState<'site' | 'enclosure'>('site')
   const [enclFilter, setEnclFilter] = useState<'all' | 'single' | 'male' | 'female' | 'unsexed'>('all')
+  const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
 
   const sites = housing?.sites || []
-  const isSite = tableView === 'site'
+  // Single-site species get NO site-wise view, no toggle, no site dropdown (stakeholder
+  // call 2026-08-27) — the tab opens straight on the enclosure table.
+  const multiSite = sites.length > 1
+  const isSite = multiSite && tableView === 'site'
   const query = q.trim().toLowerCase()
 
   // Site-wise rollup (one row per site) and the flat enclosure list (across all sites).
@@ -94,17 +100,18 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const filtered = useMemo(() => {
     if (isSite) return query ? siteRows.filter(r => r.name.toLowerCase().includes(query)) : siteRows
 
-    const list = enclFilter === 'all' ? allEnclosures : allEnclosures.filter(matchEncl)
+    let list = enclFilter === 'all' ? allEnclosures : allEnclosures.filter(matchEncl)
+    if (siteFilter) list = list.filter(e => e.site === siteFilter)
 
     return query
       ? list.filter(e => `${e.name} ${e.section || ''} ${e.type || ''} ${e.site || ''}`.toLowerCase().includes(query))
       : list
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSite, siteRows, allEnclosures, query, enclFilter])
+  }, [isSite, siteRows, allEnclosures, query, enclFilter, siteFilter])
 
   useEffect(() => {
     setPm(p => ({ ...p, page: 0 }))
-  }, [tableView, query, enclFilter])
+  }, [tableView, query, enclFilter, siteFilter])
 
   // Sheet 1 — the enclosures within the picked site.
   const sheetEnclosures = useMemo(() => {
@@ -140,45 +147,74 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       {v}
     </CellText>
   )
-  const num = (field: string): GridColDef => ({
+  // Numbers right-aligned (the 2026-08-27 table rule); zeros print the pale em dash;
+  // Total = bold list-green (the scan anchor, same as the listing).
+  const num = (field: string, opts?: { total?: boolean; header?: string }): GridColDef => ({
     width: 70,
     sortable: false,
+    align: 'right',
+    headerAlign: 'right',
     field,
-    headerName: field === 'male' ? 'M' : field === 'female' ? 'F' : field === 'unsexed' ? 'U' : field,
-    renderCell: (p: GridRenderCellParams) => txt(Number(p.row[field] || 0).toLocaleString(), undefined, 600)
+    headerName: opts?.header || (field === 'male' ? 'M' : field === 'female' ? 'F' : field === 'unsexed' ? 'U' : field),
+    renderCell: (p: GridRenderCellParams) => {
+      const n = Number(p.row[field] || 0)
+      if (opts?.total) return txt(n.toLocaleString(), skin.LIST_GREEN, 700)
+
+      return n > 0 ? txt(n.toLocaleString(), undefined, 600) : txt('—', skin.DASH_INK, 400)
+    }
   })
+
+  // Enclosure name with its site in small faint type beneath — the site-below-enclosure rule.
+  const enclosureCell = (p: GridRenderCellParams) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
+      <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+        {p.row.name}
+      </Typography>
+      {p.row.site ? (
+        <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
+          {p.row.site}
+        </Typography>
+      ) : null}
+    </Box>
+  )
+
+  // Composition = plain text from the counts (no chip, no "Breeding Ready" wording).
+  const compositionCol: GridColDef = {
+    width: 160,
+    sortable: false,
+    field: 'composition',
+    headerName: 'Composition',
+    renderCell: p => txt(compositionOf(Number(p.row.male || 0), Number(p.row.female || 0), Number(p.row.unsexed || 0), Number(p.row.total || 0)))
+  }
+
   const siteColumns: GridColDef[] = [
     { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
     { ...num('male'), flex: 1, minWidth: 64 },
     { ...num('female'), flex: 1, minWidth: 64 },
     { ...num('unsexed'), flex: 1, minWidth: 64 },
-    { flex: 1, minWidth: 80, sortable: false, field: 'total', headerName: 'Total', renderCell: p => txt(Number(p.row.total || 0).toLocaleString(), undefined, 600) },
-    { flex: 1, minWidth: 100, sortable: false, field: 'nEncl', headerName: 'Enclosures', renderCell: p => txt(Number(p.row.nEncl || 0).toLocaleString(), undefined, 600) },
-    { flex: 1, minWidth: 80, sortable: false, field: 'pairs', headerName: 'Pairs', renderCell: p => txt(Number(p.row.pairs || 0).toLocaleString(), undefined, 600) }
+    { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
+    { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
   ]
   const enclosureColumns: GridColDef[] = [
     { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
-    { minWidth: 200, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
-    { minWidth: 220, flex: 0.8, sortable: false, field: 'site', headerName: 'Site', renderCell: p => txt(p.row.site || '-') },
+    { minWidth: 240, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: enclosureCell },
+    compositionCol,
     num('male'),
     num('female'),
     num('unsexed'),
-    { width: 80, sortable: false, field: 'total', headerName: 'Total', renderCell: p => txt(Number(p.row.total || 0).toLocaleString(), undefined, 600) },
-    { width: 80, sortable: false, field: 'pairs', headerName: 'Pairs', renderCell: p => txt(Number(p.row.pairs || 0).toLocaleString(), undefined, 600) },
-    { width: 200, sortable: false, field: 'type', headerName: 'Type', renderCell: p => <StatusChip label={p.row.type} tone={toneForType(p.row.type)} /> }
+    { ...num('total', { total: true, header: 'Total' }), width: 96 }
   ]
 
-  // Sheet-1 columns: a single site's enclosures (no Site column needed).
+  // Sheet-1 columns: a single site's enclosures (the sheet title already names the site).
   const sheetColumns: GridColDef[] = [
     { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 200, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
+    compositionCol,
     num('male'),
     num('female'),
     num('unsexed'),
-    { width: 80, sortable: false, field: 'total', headerName: 'Total', renderCell: p => txt(Number(p.row.total || 0).toLocaleString(), undefined, 600) },
-    { width: 80, sortable: false, field: 'pairs', headerName: 'Pairs', renderCell: p => txt(Number(p.row.pairs || 0).toLocaleString(), undefined, 600) },
-    { width: 200, sortable: false, field: 'type', headerName: 'Type', renderCell: p => <StatusChip label={p.row.type} tone={toneForType(p.row.type)} /> }
+    { ...num('total', { total: true, header: 'Total' }), width: 96 }
   ]
 
   const start = pm.page * pm.pageSize
@@ -221,6 +257,19 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       <MenuItem value='female'>Female only</MenuItem>
       <MenuItem value='unsexed'>Unsexed only</MenuItem>
     </TextField>
+  )
+
+  // Site dropdown — enclosure view only, and only for multi-site species.
+  const siteFilterCtl = !isSite && multiSite && (
+    <CategoryFilter
+      radius='999px'
+      width={180}
+      options={sites.map(s => s.name)}
+      value={siteFilter}
+      onChange={v => setSiteFilter(v)}
+      placeholder='All sites'
+      icon='mdi:map-marker-outline'
+    />
   )
 
   const titleText = `${isSite ? 'Sites' : 'Enclosures'} · ${filtered.length.toLocaleString()}`
@@ -272,11 +321,12 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
               <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
                 {titleText}
               </Typography>
-              {viewToggle}
+              {multiSite && viewToggle}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
               {search}
               {enclFilterCtl}
+              {siteFilterCtl}
             </Box>
           </Box>
         )
@@ -287,8 +337,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         action={
           portrait ? undefined : (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {siteFilterCtl}
               {enclFilterCtl}
-              {viewToggle}
+              {multiSite && viewToggle}
               {search}
             </Box>
           )

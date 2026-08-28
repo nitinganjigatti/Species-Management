@@ -188,14 +188,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
   const yearItems = years.map(y => ({ value: y, label: String(y) }))
   const monthItems = MONTHS.map((m, i) => ({ value: i + 1, label: m }))
 
-  const readiness: CompositionSegment[] = [
-    { label: 'Can Breed', value: num(housing?.pairedEncl), onClick: go('pairing') },
-    { label: 'Needs Sexing', value: num(housing?.unsexedOnlyEncl), onClick: go('pairing') },
-    { label: 'Single-Sex', value: num(housing?.maleOnlyEncl) + num(housing?.femaleOnlyEncl), onClick: go('pairing') },
-    { label: 'Mixed', value: num(housing?.mixedEncl), onClick: go('pairing') }
-  ]
-  const readinessTotal = readiness.reduce((s, r) => s + r.value, 0)
-
   // Severity rides the meter's FILL (CC: tone as mark, never tone as type).
   const alertRows = alerts
     ? [
@@ -272,9 +264,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
         </Card>
       </Box>
 
-      {/* Row 2 — composition: sex (donut) · breeding (donut) · causes (pie) */}
+      {/* Row 2 — composition: sex (donut) · causes (pie). Breeding Readiness removed
+          entirely (stakeholder call 2026-08-27): wrong term for enclosure sex-composition,
+          "pairs" indefensible without parentage — the per-enclosure story lives in Housing
+          as a table instead. */}
       {grid(
-        '1fr 1fr 1fr',
+        '1fr 1fr',
         <>
           {animals.total ? (
             <SexDonut animals={animals as any} onClick={go('pairing')} />
@@ -283,19 +278,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ header, housing, births, deat
               <EmptyState />
             </SectionCard>
           )}
-
-          <Card title='Breeding Readiness' tab='pairing'>
-            {readinessTotal ? (
-              <>
-                <ProportionChart segments={readiness} variant='donut' />
-                <Typography variant='caption' sx={{ fontSize: '14px', color: skin.FAINT, display: 'block', mt: 1, textAlign: 'center' }}>
-                  {num(housing?.nEncl).toLocaleString()} enclosures · {num(housing?.nPairs).toLocaleString()} breedable pairs
-                </Typography>
-              </>
-            ) : (
-              <EmptyState />
-            )}
-          </Card>
 
           <Card title='Top Causes of Death' tab='circle'>
             {causes.length ? <ProportionChart segments={causes} variant='pie' /> : <EmptyState />}

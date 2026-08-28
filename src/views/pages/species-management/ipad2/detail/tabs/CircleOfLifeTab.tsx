@@ -7,7 +7,7 @@ import { alpha, useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
-import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import { BarColumns, FactRows, Slices } from 'src/views/pages/species-management/ipad2/marks'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad2/SpeciesFilterSheet'
@@ -21,18 +21,17 @@ import type {
 } from 'src/types/species-management/detail'
 import {
   AnimalCell,
+  CategoryFilter,
   CellText,
   ChartHoverCard,
   EmptyState,
   GRID_CELL_PAD,
   ListSheet,
-  SeasonalColumnChart,
   sheetPaperSx,
   SHEET_PX,
   SheetDrawer,
   thinScrollbarSx,
   SectionCard,
-  TrendAreaChart,
   TrendRangeTabs
 } from 'src/views/pages/species-management/ipad2/detail/detailUi'
 import type { ListRow, SheetView } from 'src/views/pages/species-management/ipad2/detail/detailUi'
@@ -63,12 +62,10 @@ const GenderPie: React.FC<{
   /** Slice click → the animals behind that slice ('Male' | 'Female' | otherLabel). */
   onSlice?: (label: string) => void
 }> = ({ male, female, other, otherLabel = 'Unsexed', title, centerLabel, accent, onSlice }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
   const raw = [
-    { label: 'Male', value: male, color: accent },
-    { label: 'Female', value: female, color: `${accent}CC` },
-    { label: otherLabel, value: other, color: `${accent}80` }
+    { label: 'Male', value: male, fill: accent },
+    { label: 'Female', value: female, fill: skin.mixOverWhite(accent, 0.72) },
+    { label: otherLabel, value: other, fill: skin.mixOverWhite(accent, 0.44) }
   ].filter(d => d.value > 0)
   const total = male + female + other
 
@@ -80,46 +77,31 @@ const GenderPie: React.FC<{
     )
   }
 
-  const options = {
-    chart: {
-      toolbar: { show: false },
-      // Spread, never `events: undefined` — an explicit undefined clobbers Apex's defaults.
-      ...(onSlice
-        ? { events: { dataPointSelection: (_e: any, _c: any, cfg: any) => { const d = raw[cfg?.dataPointIndex]; if (d) onSlice(d.label) } } }
-        : {})
-    },
-    states: { active: { filter: { type: 'none' } } },
-    labels: raw.map(d => d.label),
-    colors: raw.map(d => d.color),
-    stroke: { width: 2, colors: [theme.palette.background.paper] },
-    legend: { position: 'bottom' as const, labels: { colors: cc.OnSurfaceVariant } },
-    dataLabels: { enabled: true, formatter: (v: number) => `${Math.round(v)}%` },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '68%',
-          labels: {
-            show: true,
-            value: { fontSize: '1.75rem', fontWeight: 700, color: accent, offsetY: 2, formatter: () => total.toLocaleString() },
-            total: {
-              show: true,
-              label: centerLabel,
-              fontSize: '14px',
-              color: cc.neutralSecondary,
-              formatter: () => total.toLocaleString()
-            }
-          }
-        }
-      }
-    },
-    tooltip: { style: { fontSize: '16px' }, y: { formatter: (v: number) => v.toLocaleString() } }
-  }
-
   return (
     <SectionCard title={title}>
-      {/* Remount on data change — ApexCharts leaves the donut center label stale when only the series updates. */}
-      <Box sx={onSlice ? { '& .apexcharts-series path': { cursor: 'pointer' } } : undefined}>
-        <ReactApexcharts key={`${male}-${female}-${other}`} type='donut' height={260} options={options} series={raw.map(d => d.value)} />
+      <Slices
+        items={raw.map(d => ({ label: d.label, value: d.value }))}
+        centre={[total.toLocaleString(), centerLabel]}
+        fills={raw.map(d => d.fill)}
+        onSelect={onSlice ? sl => onSlice(sl.label) : undefined}
+      />
+      {/* Key wears the SAME opacity-ramp fills as the slices (SliceKey would re-derive hues). */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mt: 1, flexWrap: 'wrap' }}>
+        {raw.map(d => (
+          <Box
+            key={d.label}
+            onClick={onSlice ? () => onSlice(d.label) : undefined}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: onSlice ? 'pointer' : 'default' }}
+          >
+            <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: d.fill }} />
+            <Typography variant='body2' sx={{ color: skin.INK2 }}>
+              {d.label}
+            </Typography>
+            <Typography variant='body2' sx={{ fontWeight: 700, color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>
+              {d.value.toLocaleString()}
+            </Typography>
+          </Box>
+        ))}
       </Box>
     </SectionCard>
   )
@@ -296,7 +278,9 @@ const fmtYm = (k: string) => {
  *  `key` keeps the raw "YYYY-MM" so a clicked point can filter the day-level events. */
 const trendMonths = (byYearMonth: { label: string; value: number }[], preset: RangePreset) => {
   const n = preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : preset === 'last_3y' ? 36 : null
-  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value, key: d.label }))
+  // HARD RULE (2026-08-27): the trend pair shows the LATEST 12 bars, whatever the preset —
+  // All-time = the last 12 months holding data; presets window first, then cap.
+  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value, key: d.label })).slice(-12)
 
   const map = new Map(byYearMonth.map(d => [d.label, d.value]))
   const now = new Date()
@@ -307,7 +291,7 @@ const trendMonths = (byYearMonth: { label: string; value: number }[], preset: Ra
     out.push({ label: fmtYm(k), value: map.get(k) || 0, key: k })
   }
 
-  return out
+  return out.slice(-12)
 }
 
 // Section header — uppercase eyebrow with an optional right-side action (e.g. the shared trend-range tabs).
@@ -339,22 +323,58 @@ const TrendCard: React.FC<{
   empty: string
   /** Point click → that month's records sheet (index into `trend`). */
   onPoint?: (index: number) => void
-}> = ({ title, trend, color, name, empty, onPoint }) => (
-  <SectionCard title={title}>
-    {trend.length > 0 ? (
-      <TrendAreaChart
-        values={trend.map(d => d.value)}
-        labels={trend.map(d => d.label)}
-        color={color}
-        name={name}
-        flush
-        onPointClick={onPoint}
+}> = ({ title, trend, color, name, empty, onPoint }) => {
+  const nonzero = trend.filter(d => d.value > 0)
+
+  if (!trend.length || !nonzero.length) {
+    return (
+      <SectionCard title={title}>
+        <EmptyState message={empty} />
+      </SectionCard>
+    )
+  }
+
+  // Sparse guard (stakeholder call 2026-08-27): most species hold a handful of events —
+  // a one-dot chart says nothing, so under 3 populated points the events print as plain
+  // figures instead of a graph. The chart itself is UNCHANGED from the approved version —
+  // the same area trend (condensed two-line axis, handles all-time month series).
+  if (nonzero.length < 3) {
+    return (
+      <SectionCard title={title}>
+        <FactRows rows={nonzero.map(d => ({ label: d.label, value: d.value.toLocaleString() }))} />
+      </SectionCard>
+    )
+  }
+
+  // "Jan 1946" → "Jan\n46": BarColumns splits on \n and stacks month over 2-digit year.
+  const barLabel = (l: string) => {
+    const m = /^([A-Za-z]{3}) (\d{4})$/.exec(l)
+
+    return m ? `${m[1]}\n${m[2].slice(-2)}` : l
+  }
+
+  return (
+    <SectionCard title={title}>
+      {/* THE Overview mark (BarColumns): pale→full gradient bars, white ChartTip,
+          two-line month/year axis. Series is the capped latest-12 months. */}
+      <BarColumns
+        bars={trend.map(d => [barLabel(d.label), d.value] as [string, number])}
+        fill={color}
+        noun={name.toLowerCase()}
+        height={240}
+        smallLabels
+        onSelect={
+          onPoint
+            ? label => {
+                const i = trend.findIndex(d => barLabel(d.label) === label)
+                if (i >= 0) onPoint(i)
+              }
+            : undefined
+        }
       />
-    ) : (
-      <EmptyState message={empty} />
-    )}
-  </SectionCard>
-)
+    </SectionCard>
+  )
+}
 
 // Seasonal per-calendar-month card — ONE component for Breeding and Mortality so the
 // side-by-side pair renders identically (same chart, same Peak line, aligned axes).
@@ -367,8 +387,9 @@ const SeasonalPatternCard: React.FC<{
   onBarClick?: (label: string) => void
 }> = ({ title, data, color, name, empty, onBarClick }) => {
   const peak = data.reduce((best, d) => (d.value > (best?.value ?? -1) ? d : best), null as null | { label: string; value: number })
+  const nonzero = data.filter(d => d.value > 0)
 
-  if (!data.some(d => d.value > 0)) {
+  if (!nonzero.length) {
     return (
       <SectionCard title={title}>
         <EmptyState message={empty} />
@@ -376,15 +397,24 @@ const SeasonalPatternCard: React.FC<{
     )
   }
 
+  // Sparse guard — same rule as the trend cards: under 3 populated months, plain figures.
+  if (nonzero.length < 3) {
+    return (
+      <SectionCard title={title}>
+        <FactRows rows={nonzero.map(d => ({ label: d.label, value: d.value.toLocaleString() }))} />
+      </SectionCard>
+    )
+  }
+
   return (
     <SectionCard title={title}>
-      <SeasonalColumnChart
-        values={data.map(d => d.value)}
-        labels={data.map(d => d.label)}
-        color={color}
-        name={name}
+      <BarColumns
+        bars={data.map(d => [d.label, d.value] as [string, number])}
+        fill={color}
+        noun={name.toLowerCase()}
         height={220}
-        onBarClick={onBarClick}
+        smallLabels
+        onSelect={onBarClick ? label => onBarClick(String(label)) : undefined}
       />
       {peak && peak.value > 0 && (
         <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
@@ -540,43 +570,6 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvB
             )
           })
         })()}
-      </Box>
-    </SectionCard>
-  )
-}
-
-const AgeAtDeathCard: React.FC<{ deaths?: SpeciesDeaths }> = ({ deaths }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
-  const age = deaths?.ageAtDeath
-  const fmtYrs = (y?: number) => (y == null ? '—' : `${(+y).toFixed(1)} yrs`)
-
-  if (!age || (age.count || 0) <= 0) {
-    return (
-      <SectionCard title='Age at Death'>
-        <EmptyState message='No age-at-death data for this period' />
-      </SectionCard>
-    )
-  }
-
-  return (
-    <SectionCard title='Age at Death'>
-      <Box sx={{ display: 'flex', gap: 12, rowGap: 4, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Average', value: fmtYrs(age.avg), color: cc.OnSurfaceVariant },
-          { label: 'Youngest', value: fmtYrs(age.min), color: theme.palette.secondary.main },
-          { label: 'Oldest', value: fmtYrs(age.max), color: theme.palette.primary.main },
-          { label: 'Records', value: `${age.count}`, color: cc.neutralSecondary }
-        ].map(m => (
-          <Box key={m.label}>
-            <Typography variant='h5' sx={{ fontWeight: 700, color: m.color }}>
-              {m.value}
-            </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary }}>
-              {m.label}
-            </Typography>
-          </Box>
-        ))}
       </Box>
     </SectionCard>
   )
@@ -792,7 +785,10 @@ const AGE_BUCKETS: { label: string; lo: number; hi: number }[] = [
   { label: '60y +', lo: 60, hi: Infinity }
 ]
 
-const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
+// Age at Death — the clubbed Lifespan story (stakeholder call 2026-08-27: Death and
+// Lifespan are ONE section now). Figures on one line, the distribution as Naveen's
+// columns, each bucket drilling to its animals.
+const AgeAtDeathSection: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const [sheet, setSheet] = useState<SheetView | null>(null)
@@ -802,17 +798,11 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
   const stats = useMemo(() => {
     if (!aged.length) return null
     const adult = aged.filter(d => d.a >= 1)
-    const avgAdult = adult.length ? adult.reduce((s, d) => s + d.a, 0) / adult.length : null
-    const avgAll = aged.reduce((s, d) => s + d.a, 0) / aged.length
+    const avgAdult = adult.length ? adult.reduce((sum, d) => sum + d.a, 0) / adult.length : null
+    const avgAll = aged.reduce((sum, d) => sum + d.a, 0) / aged.length
     const max = Math.max(...aged.map(d => d.a))
-    const sex = { male: 0, female: 0, unsexed: 0 }
-    for (const d of aged) {
-      if (d.g === 'male') sex.male += 1
-      else if (d.g === 'female') sex.female += 1
-      else sex.unsexed += 1
-    }
 
-    return { avgAdult, avgAll, max, count: aged.length, sex }
+    return { avgAdult, avgAll, max, count: aged.length }
   }, [aged])
 
   const buckets = useMemo(
@@ -820,7 +810,13 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
     [aged]
   )
 
-  if (!stats) return <EmptyState message='No age-at-death data for this period' />
+  if (!stats) {
+    return (
+      <SectionCard title='Age at Death'>
+        <EmptyState message='No age-at-death data for this period' />
+      </SectionCard>
+    )
+  }
 
   const openBucket = (label: string, items: (LifecycleDeath & { a: number })[]) =>
     setSheet({
@@ -836,46 +832,40 @@ const LifespanView: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) => {
     })
 
   const fmtY = (y: number) => `${(+y).toFixed(1)}y`
-  const tiles = [
-    { value: stats.avgAdult != null ? fmtY(stats.avgAdult) : '—', label: 'Avg Adult Lifespan', color: theme.palette.secondary.main },
-    { value: fmtY(stats.max), label: 'Longest Lived', color: theme.palette.secondary.main },
-    { value: stats.count.toLocaleString(), label: 'Records', color: cc.neutralSecondary }
+  const figures = [
+    { label: 'Avg Adult Lifespan', value: stats.avgAdult != null ? fmtY(stats.avgAdult) : '—', color: theme.palette.secondary.main },
+    { label: 'Average', value: fmtY(stats.avgAll), color: cc.OnSurfaceVariant },
+    { label: 'Longest Lived', value: fmtY(stats.max), color: theme.palette.primary.main },
+    { label: 'Records', value: stats.count.toLocaleString(), color: cc.neutralSecondary }
   ]
 
   return (
-    <>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: 4, alignItems: 'stretch' }}>
-        <SectionCard title='Longevity' sx={{ height: '100%' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5, justifyContent: 'center', height: 'calc(100% - 44px)' }}>
-            {tiles.map(t => (
-              <Box key={t.label}>
-                <Typography variant='h5' sx={{ fontWeight: 700, color: t.color }}>
-                  {t.value}
-                </Typography>
-                <Typography variant='caption' sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {t.label}
-                </Typography>
-              </Box>
-            ))}
+    <SectionCard title='Age at Death'>
+      <Box sx={{ display: 'flex', gap: 12, rowGap: 4, flexWrap: 'wrap', mb: 4 }}>
+        {figures.map(m => (
+          <Box key={m.label}>
+            <Typography variant='h5' sx={{ fontWeight: 700, color: m.color }}>
+              {m.value}
+            </Typography>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {m.label}
+            </Typography>
           </Box>
-        </SectionCard>
-        <SectionCard title='Age at Death Distribution'>
-          <SeasonalColumnChart
-            values={buckets.map(b => b.items.length)}
-            labels={buckets.map(b => b.label)}
-            color={theme.palette.secondary.main}
-            name='Animals'
-            height={230}
-            onBarClick={label => {
-              const b = buckets.find(x => x.label === label)
-              if (b?.items.length) openBucket(b.label, b.items)
-            }}
-          />
-        </SectionCard>
+        ))}
       </Box>
+      <BarColumns
+        bars={buckets.map(b => [b.label, b.items.length] as [string, number])}
+        fill={theme.palette.secondary.main}
+        noun='animals'
+        height={220}
+        onSelect={label => {
+          const b = buckets.find(x => x.label === String(label))
+          if (b?.items.length) openBucket(b.label, b.items)
+        }}
+      />
 
       <ListSheet view={sheet} onClose={() => setSheet(null)} />
-    </>
+    </SectionCard>
   )
 }
 
@@ -1082,7 +1072,19 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
       necropsy
     ]
 
-  return [sl, animal, gender, site, encl, cause, necropsy]
+  // Deaths clubbed with lifespan: age-at-death (teal, the old Lifespan lead figure) and
+  // the death date ride the death table itself.
+  return [
+    sl,
+    animal,
+    { width: 130, sortable: false, field: 'a', headerName: 'Age at Death', renderCell: p => txt(p.row.a != null ? `${p.row.a}y` : '—', theme.palette.secondary.main, 700) } as GridColDef,
+    { width: 165, sortable: false, field: 'd', headerName: 'Date of Death', renderCell: (p: GridRenderCellParams) => <CellText noWrap>{p.row.d}</CellText> } as GridColDef,
+    gender,
+    site,
+    encl,
+    cause,
+    necropsy
+  ]
 }
 
 // ── Site-wise rollup (one row per site) ─────────────────────────────────────────
@@ -1253,9 +1255,10 @@ const TABLE_VIEWS: { key: 'animal' | 'site'; label: string; icon: string }[] = [
   { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' }
 ]
 const TABLE_MODES: { key: CircleSubTab; label: string; icon: string }[] = [
+  // Lifespan tab CLUBBED into Deaths (stakeholder call 2026-08-27) — age-at-death is a
+  // column + filter on the death table now, not a dataset of its own.
   { key: 'births', label: 'Births', icon: 'mdi:egg-outline' },
-  { key: 'deaths', label: 'Deaths', icon: 'mdi:grave-stone' },
-  { key: 'lifespan', label: 'Lifespan', icon: 'mdi:timer-sand' }
+  { key: 'deaths', label: 'Deaths', icon: 'mdi:grave-stone' }
 ]
 function PillToggle<T extends string>({
   items,
@@ -1321,19 +1324,46 @@ const AnimalEventsTable: React.FC<{
   const portrait = useMediaQuery('(orientation: portrait)')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
   const [q, setQ] = useState('')
+  // Table-scoped dropdowns (stakeholder call 2026-08-27): year-wise on both datasets,
+  // age-at-death bands on Deaths (the clubbed lifespan filter). They scope ONLY this
+  // table — the charts above stay on the PeriodBand.
+  const [year, setYear] = useState<string | null>(null)
+  const [ageBand, setAgeBand] = useState<string | null>(null)
+  useEffect(() => {
+    if (mode !== 'deaths') setAgeBand(null)
+  }, [mode])
   const query = q.trim().toLowerCase()
   const isSite = viewMode === 'site'
 
+  const yearOptions = useMemo(
+    () =>
+      Array.from(new Set(events.map(e => String(e.d || '').slice(0, 4)).filter(y => /^\d{4}$/.test(y)))).sort(
+        (a, b) => +b - +a
+      ),
+    [events]
+  )
+
+  const scoped = useMemo(() => {
+    let list = events
+    if (year) list = list.filter(e => String(e.d || '').startsWith(year))
+    if (mode === 'deaths' && ageBand) {
+      const b = AGE_BUCKETS.find(x => x.label === ageBand)
+      if (b) list = list.filter(e => typeof (e as any).a === 'number' && (e as any).a >= b.lo && (e as any).a < b.hi)
+    }
+
+    return list
+  }, [events, year, ageBand, mode])
+
   const hasBreed = mode === 'births' && events.some(e => (e as LifecycleBirth).b)
-  const siteRows = useMemo(() => buildSiteRows(events, mode), [events, mode])
+  const siteRows = useMemo(() => buildSiteRows(scoped, mode), [scoped, mode])
 
   const filtered = useMemo(() => {
     if (isSite) return query ? siteRows.filter(r => r.site.toLowerCase().includes(query)) : siteRows
 
-    return query ? events.filter(e => eventHaystack(e).includes(query)) : events
-  }, [isSite, siteRows, events, query])
+    return query ? scoped.filter(e => eventHaystack(e).includes(query)) : scoped
+  }, [isSite, siteRows, scoped, query])
 
-  useEffect(() => { setPm(p => ({ ...p, page: 0 })) }, [events, query, viewMode])
+  useEffect(() => { setPm(p => ({ ...p, page: 0 })) }, [events, query, viewMode, year, ageBand])
   const columns = useMemo(
     () => (isSite ? buildSiteColumns(mode, theme, hasBreed) : buildLifecycleColumns(mode, theme, hasBreed)),
     [isSite, mode, theme, hasBreed]
@@ -1400,15 +1430,42 @@ const AnimalEventsTable: React.FC<{
     />
   )
 
-  // Landscape: one row (toggle then search, right side of the header).
-  // Portrait: full-width search runs up to the right-aligned toggle.
+  const yearFilterCtl = yearOptions.length > 1 && (
+    <CategoryFilter
+      radius='999px'
+      width={140}
+      options={yearOptions}
+      value={year}
+      onChange={v => setYear(v)}
+      placeholder='All years'
+      icon='mdi:calendar-outline'
+    />
+  )
+  const ageFilterCtl = mode === 'deaths' && (
+    <CategoryFilter
+      radius='999px'
+      width={150}
+      options={AGE_BUCKETS.map(b => b.label)}
+      value={ageBand}
+      onChange={v => setAgeBand(v)}
+      placeholder='All ages'
+      icon='mdi:timer-sand'
+    />
+  )
+
+  // Landscape: one row (dropdowns, toggle, search on the header's right).
+  // Portrait: controls wrap — search stretches, dropdowns + toggle follow.
   const headerAction = portrait ? (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', flexWrap: 'wrap' }}>
       {searchField}
+      {yearFilterCtl}
+      {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
     </Box>
   ) : (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      {yearFilterCtl}
+      {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
       {searchField}
     </Box>
@@ -1713,15 +1770,14 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         sub='Same period · aligned months'
         action={<TrendRangeTabs value={range.preset} onPick={pickTrendRange} color={theme.palette.primary.main} />}
       />
-      {/* Orientation-driven (matches Overview's Births/Deaths row): the four
-          time/seasonal charts stack full-width in portrait, pair up in landscape. */}
+      {/* Two charts per row in BOTH orientations (user call 2026-08-28) — through the
+          gender pies; the month labels run one point smaller to fit the half-width cards. */}
       <Box
         sx={{
           display: 'grid',
           gap: 4,
           alignItems: 'stretch',
-          gridTemplateColumns: '1fr',
-          '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+          gridTemplateColumns: '1fr 1fr'
         }}
       >
         <TrendCard title='Births Over Time' trend={birthsTrend} color={theme.palette.primary.main} name='Births' empty='No birth data for this period' onPoint={openBirthPoint} />
@@ -1743,7 +1799,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           onBarClick={openMonth}
         />
       </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, alignItems: 'stretch' }}>
         <GenderPie
           title='Births by Gender'
           centerLabel='Births'
@@ -1765,19 +1821,24 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         />
       </Box>
 
-      {/* ── Deaths — detail analytics ── */}
+      {/* ── Deaths — detail analytics (lifespan clubbed IN — stakeholder call 2026-08-27:
+          Death + Lifespan are one story now, no separate Lifespan section) ── */}
       <SectionHeader title='Deaths — Detail' />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, alignItems: 'stretch' }}>
+      {/* Portrait: Survival Analysis and Cause of Death each take a full row;
+          landscape: the pair shares one row (user call 2026-08-28). */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 4,
+          alignItems: 'stretch',
+          gridTemplateColumns: '1fr',
+          '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
+        }}
+      >
         <SurvivalCard deaths={deathsData} onBarClick={openSurvivalBucket} />
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <AgeAtDeathCard deaths={deathsData} />
-          <CauseOfDeathCard deaths={deathsData} onOpenCause={openCause} />
-        </Box>
+        <CauseOfDeathCard deaths={deathsData} onOpenCause={openCause} />
       </Box>
-
-      {/* ── Lifespan ── */}
-      <SectionHeader title='Lifespan' />
-      <LifespanView deaths={hasEvents ? filteredDeaths : []} />
+      <AgeAtDeathSection deaths={hasEvents ? filteredDeaths : []} />
 
       {/* Animal / Site datatable — one table; the Births/Deaths/Lifespan tabs swap the dataset */}
       <AnimalEventsTable

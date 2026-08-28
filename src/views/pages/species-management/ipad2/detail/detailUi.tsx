@@ -710,7 +710,8 @@ export const CategoryFilter: React.FC<{
   height?: number
   placeholder?: string
   icon?: string
-}> = ({ options, value, onChange, width = 210, height = 44, placeholder = 'All categories', icon = 'mdi:shape-outline' }) => {
+  radius?: string
+}> = ({ options, value, onChange, width = 210, height = 44, placeholder = 'All categories', icon = 'mdi:shape-outline', radius = '8px' }) => {
   const c = cc(useTheme() as any)
 
   return (
@@ -734,8 +735,8 @@ export const CategoryFilter: React.FC<{
           }}
           sx={{
             bgcolor: 'background.paper',
-            borderRadius: '8px',
-            '& .MuiInputBase-root': { height },
+            borderRadius: radius,
+            '& .MuiInputBase-root': { height, borderRadius: radius },
             '& .MuiOutlinedInput-notchedOutline': { borderColor: c.SurfaceVariant }
           }}
         />

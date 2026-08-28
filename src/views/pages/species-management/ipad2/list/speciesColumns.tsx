@@ -11,16 +11,31 @@ import {
 /**
  * Column definitions for the Species Management listing — the CC table language.
  * Identity column carries the Red List dot + code inline after the common name; CITES is its
- * own plain-text column between Species and M·F·U·T. Column widths are sized so no header or figure ever clips —
- * the table scrolls sooner than it cuts a column. Only two figures on a row wear
- * colour: population/births in the list green, deaths in coral — colouring every number would
- * rank none of them. Zeros print as an em dash in the pale ink: a nil is a silence, not a finding.
+ * own plain-text column after Deaths (stakeholder call 2026-08-27). Population is the
+ * single-row M·F·U·T lane column — total bold list-green in the last lane (user kept
+ * this over a two-line Total experiment, 2026-08-28).
+ * Column widths are sized so no header or figure ever clips — the table scrolls sooner
+ * than it cuts a column. Only two figures on a row wear colour: population/births in the
+ * list green, deaths in coral — colouring every number would rank none of them. Zeros
+ * print as an em dash in the pale ink: a nil is a silence, not a finding.
  */
-// One lane of the M·F·U·T column — sized so a 4-digit count ("1,234") fits without
-// shifting its neighbours; every value left-aligns at its lane's start.
+// Lanes of the Total column's M F U line — shared by the header letters and every
+// row's numbers so each figure aligns under its own letter; a slot fits a 4-digit
+// count ("1,234") without shifting its neighbours. No dot separators — alignment separates.
 const SEX_SLOT_W = 48
 
-export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): GridColDef[] => {
+// renderHeader bypasses .MuiDataGrid-columnHeaderTitle, so both header lines carry the
+// table's native header spec verbatim (see the listing view's columnHeaderTitle rule).
+const SEX_HEAD_TYPE = {
+  fontSize: '13px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  color: skin.TABLE_HEAD_INK,
+  lineHeight: 1.2
+} as const
+
+export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter, showClass?: boolean): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
 
   const textCell = (value: string, color?: string, fontWeight?: number) => (
@@ -222,20 +237,12 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderCell: speciesNameCell
     },
     {
-      // Sized for the longest value the data carries ("Appendix I/II/III") — never clips.
-      width: 180,
-      sortable: false,
-      field: 'cites',
-      headerName: 'CITES',
-      renderCell: (params: GridRenderCellParams) => citesCell((params.row as SpeciesRow).cites)
-    },
-    {
       // Single sex/population column as FOUR aligned slots — M / F / U / T each get a
       // fixed-width, left-aligned lane sized for a 4-digit count ("1,234"), so every
       // row's M values line up under the M header letter (same for F/U/T). T = total,
-      // bold list-green so it still anchors the scan (the one always-worth-finding
-      // figure). Unsexed is the number an operator acts on — it keeps the darker ink
-      // while M/F sit muted. No dot separators — alignment separates.
+      // BOLD list-green so it anchors the scan (the one always-worth-finding figure).
+      // Unsexed is the number an operator acts on — it keeps the darker ink while M/F
+      // sit muted. No dot separators — alignment separates.
       width: 232,
       sortable: false,
       field: 'population',
@@ -243,11 +250,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderHeader: () => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {(['M', 'F', 'U', 'T'] as const).map(l => (
-            <Typography
-              key={l}
-              component='span'
-              sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '13px', fontWeight: 600, color: skin.TABLE_HEAD_INK }}
-            >
+            <Typography key={l} component='span' sx={{ ...SEX_HEAD_TYPE, width: SEX_SLOT_W, flexShrink: 0 }}>
               {l}
             </Typography>
           ))}
@@ -271,7 +274,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
             {seg(r.undetermined, r.undetermined > 0 ? skin.INK2 : skin.DASH_INK)}
             <Typography
               component='span'
-              sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '1rem', fontWeight: 600, color: skin.LIST_GREEN, fontVariantNumeric: 'tabular-nums' }}
+              sx={{ width: SEX_SLOT_W, flexShrink: 0, fontSize: '1rem', fontWeight: 700, color: skin.LIST_GREEN, fontVariantNumeric: 'tabular-nums' }}
             >
               {Number(r.population || 0).toLocaleString()}
             </Typography>
@@ -287,10 +290,10 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       renderCell: (params: GridRenderCellParams) => textCell(String(((params.row as SpeciesRow).sites || []).length), skin.INK2, 500)
     },
     {
-      width: 132,
+      width: 90,
       sortable: false,
       field: 'enclosures',
-      headerName: 'Enclosures',
+      headerName: 'Encl',
       renderCell: (params: GridRenderCellParams) =>
         textCell(Number((params.row as SpeciesRow).enclosures || 0).toLocaleString(), skin.INK2, 500)
     },
@@ -315,6 +318,31 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter): Gr
       headerName: 'Deaths',
       renderCell: (params: GridRenderCellParams) => figureCell(Number((params.row as SpeciesRow).deaths || 0), skin.CORAL)
     },
+    {
+      // Sized for the longest value the data carries ("Appendix I/II/III") — never clips.
+      width: 180,
+      sortable: false,
+      field: 'cites',
+      headerName: 'CITES',
+      renderCell: (params: GridRenderCellParams) => citesCell((params.row as SpeciesRow).cites)
+    },
+    // Beside CITES, only while the class tabs sit on All / Others — under a single
+    // featured class (Birds/Mammals/Reptiles) the column would repeat the tab.
+    ...(showClass
+      ? [
+          {
+            width: 150,
+            sortable: false,
+            field: 'class_name',
+            headerName: 'Class',
+            renderCell: (params: GridRenderCellParams) => {
+              const name = (params.row as SpeciesRow).class_name
+
+              return name ? textCell(name, skin.INK2, 500) : textCell('—', skin.DASH_INK)
+            }
+          } as GridColDef
+        ]
+      : []),
     {
       width: 90,
       sortable: false,

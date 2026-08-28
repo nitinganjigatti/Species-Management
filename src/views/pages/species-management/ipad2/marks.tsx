@@ -181,6 +181,7 @@ export function BarColumns({
   noun,
   height = 196,
   minSlot,
+  smallLabels,
   onSelect
 }: {
   bars: [string | number, number][]
@@ -191,6 +192,8 @@ export function BarColumns({
   height?: number
   /** When set, the chart scrolls horizontally with at least this many px per column. */
   minSlot?: number
+  /** One point smaller axis labels — for charts that run two-up in a portrait row. */
+  smallLabels?: boolean
   onSelect?: (label: string | number, value: number) => void
 }) {
   const { ref, play } = usePlay<HTMLDivElement>()
@@ -305,7 +308,7 @@ export function BarColumns({
             <Box key={String(label)} sx={{ maxWidth: 104, flex: 1, textAlign: 'center', minWidth: 0 }}>
               <Typography
                 component='span'
-                sx={{ display: 'block', fontSize: '12px', lineHeight: '16px', fontVariantNumeric: 'tabular-nums', color: skin.MUTED }}
+                sx={{ display: 'block', fontSize: smallLabels ? '11px' : '12px', lineHeight: '16px', fontVariantNumeric: 'tabular-nums', color: skin.MUTED }}
                 noWrap
               >
                 {line1}
@@ -313,7 +316,7 @@ export function BarColumns({
               {line2 && (
                 <Typography
                   component='span'
-                  sx={{ display: 'block', fontSize: '11px', lineHeight: '14px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}
+                  sx={{ display: 'block', fontSize: smallLabels ? '10px' : '11px', lineHeight: '14px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}
                   noWrap
                 >
                   {line2}
