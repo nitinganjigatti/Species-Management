@@ -506,6 +506,7 @@ export interface SpeciesBreeds {
 export type SpeciesDetailTab =
   | 'overview'
   | 'profile'
+  | 'population'
   | 'pairing'
   | 'housing'
   | 'circle'
@@ -514,6 +515,8 @@ export type SpeciesDetailTab =
   | 'medical'
   | 'hospital'
   | 'lab'
+  | 'mortality'
+  | 'necropsy'
   | 'identification'
   | 'breeds'
 

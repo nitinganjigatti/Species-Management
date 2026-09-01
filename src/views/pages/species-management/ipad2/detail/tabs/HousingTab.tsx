@@ -41,11 +41,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const portrait = useMediaQuery('(orientation: portrait)')
   const cc = theme.palette.customColors as Record<string, string>
   // Two stacked drill sheets: sheet 1 = a site's enclosures (table), sheet 2 = an enclosure's animals (cards).
-  const [enclSheet, setEnclSheet] = useState<{ site: string } | null>(null)
+  const [enclSheet, setEnclSheet] = useState<{ site: string; section?: string } | null>(null)
   const [animalSheet, setAnimalSheet] = useState<{ site: string; enclosure: string } | null>(null)
   const [animalQ, setAnimalQ] = useState('')
   const [sheetPm, setSheetPm] = useState({ page: 0, pageSize: 10 })
-  const [tableView, setTableView] = useState<'site' | 'enclosure'>('site')
+  const [tableView, setTableView] = useState<'site' | 'section' | 'enclosure'>('site')
   const [enclFilter, setEnclFilter] = useState<'all' | 'single' | 'male' | 'female' | 'unsexed'>('all')
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
@@ -56,6 +56,8 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   // call 2026-08-27) — the tab opens straight on the enclosure table.
   const multiSite = sites.length > 1
   const isSite = multiSite && tableView === 'site'
+  const isSection = tableView === 'section'
+  const isEncl = !isSite && !isSection
   const query = q.trim().toLowerCase()
 
   // Site-wise rollup (one row per site) and the flat enclosure list (across all sites).
@@ -77,6 +79,26 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     () => sites.flatMap(s => (s.enclosures || []).map(e => ({ ...e, site: s.name }))),
     [sites]
   )
+
+  // Section-wise rollup (2026-08-31): one row per (site, section), aggregated from the
+  // enclosure counts — same shape as siteRows so the num()/Total/Encl columns carry over.
+  const sectionRows = useMemo(() => {
+    const m = new Map<string, { name: string; site: string; male: number; female: number; unsexed: number; total: number; nEncl: number }>()
+    for (const e of allEnclosures) {
+      const sec = e.section || 'Unsectioned'
+      const key = `${e.site}|${sec}`
+      const r = m.get(key) || { name: sec, site: e.site, male: 0, female: 0, unsexed: 0, total: 0, nEncl: 0 }
+      r.male += Number(e.male || 0)
+      r.female += Number(e.female || 0)
+      r.unsexed += Number(e.unsexed || 0)
+      r.total += Number(e.total || 0)
+      r.nEncl += 1
+      m.set(key, r)
+    }
+
+    return Array.from(m.values()).sort((a, b) => a.site.localeCompare(b.site) || a.name.localeCompare(b.name))
+  }, [allEnclosures])
+  const multiSection = sectionRows.length > 1
 
   // Composition filters. "Single Sexed" = exactly one of M/F/U present; Male/Female/Unsexed = only that sex.
   const matchEncl = (e: any) => {
@@ -100,6 +122,12 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const filtered = useMemo(() => {
     if (isSite) return query ? siteRows.filter(r => r.name.toLowerCase().includes(query)) : siteRows
 
+    if (isSection) {
+      let list = siteFilter ? sectionRows.filter(r => r.site === siteFilter) : sectionRows
+
+      return query ? list.filter(r => `${r.name} ${r.site}`.toLowerCase().includes(query)) : list
+    }
+
     let list = enclFilter === 'all' ? allEnclosures : allEnclosures.filter(matchEncl)
     if (siteFilter) list = list.filter(e => e.site === siteFilter)
 
@@ -107,7 +135,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       ? list.filter(e => `${e.name} ${e.section || ''} ${e.type || ''} ${e.site || ''}`.toLowerCase().includes(query))
       : list
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSite, siteRows, allEnclosures, query, enclFilter, siteFilter])
+  }, [isSite, isSection, siteRows, sectionRows, allEnclosures, query, enclFilter, siteFilter])
 
   useEffect(() => {
     setPm(p => ({ ...p, page: 0 }))
@@ -118,7 +146,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     if (!enclSheet) return []
     const s = sites.find(x => x.name === enclSheet.site)
 
-    return (s?.enclosures || []).map(e => ({ ...e, site: enclSheet.site }))
+    return (s?.enclosures || [])
+      .filter(e => !enclSheet.section || (e.section || 'Unsectioned') === enclSheet.section)
+      .map(e => ({ ...e, site: enclSheet.site }))
   }, [sites, enclSheet])
   useEffect(() => {
     setSheetPm(p => ({ ...p, page: 0 }))
@@ -196,6 +226,17 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
     { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
   ]
+  // Section rows reuse the enclosure identity cell (name + site sub-line) and the
+  // site table's count columns, plus the Encl count.
+  const sectionColumns: GridColDef[] = [
+    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
+    { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Section', renderCell: enclosureCell },
+    { ...num('male'), flex: 1, minWidth: 64 },
+    { ...num('female'), flex: 1, minWidth: 64 },
+    { ...num('unsexed'), flex: 1, minWidth: 64 },
+    { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
+    { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
+  ]
   const enclosureColumns: GridColDef[] = [
     { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 240, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: enclosureCell },
@@ -225,7 +266,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const search = (
     <TextField
       size='small'
-      placeholder={isSite ? 'Search sites…' : 'Search enclosures…'}
+      placeholder={isSite ? 'Search sites…' : isSection ? 'Search sections…' : 'Search enclosures…'}
       value={q}
       onChange={e => setQ(e.target.value)}
       sx={{
@@ -238,7 +279,8 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     />
   )
 
-  const enclFilterCtl = !isSite && (
+  // Composition filter belongs to the enclosure grain only (sections aggregate it away).
+  const enclFilterCtl = isEncl && (
     <TextField
       select
       size='small'
@@ -259,7 +301,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     </TextField>
   )
 
-  // Site dropdown — enclosure view only, and only for multi-site species.
+  // Site dropdown — section + enclosure views, and only for multi-site species.
   const siteFilterCtl = !isSite && multiSite && (
     <CategoryFilter
       radius='999px'
@@ -272,7 +314,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     />
   )
 
-  const titleText = `${isSite ? 'Sites' : 'Enclosures'} · ${filtered.length.toLocaleString()}`
+  const titleText = `${isSite ? 'Sites' : isSection ? 'Sections' : 'Enclosures'} · ${filtered.length.toLocaleString()}`
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -280,18 +322,22 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
           search (right). Portrait: title + right-aligned toggle, then full-width search
           up to the right-aligned filter. */}
       {(() => {
+        // Toggle offers only the grains this species HAS: sites need >1 site, sections
+        // need >1 (site, section) pair; enclosure is always on. One option = no toggle.
+        const toggleItems = [
+          ...(multiSite ? [{ key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' }] : []),
+          ...(multiSection ? [{ key: 'section', label: 'Section-Wise', icon: 'mdi:floor-plan' }] : []),
+          { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
+        ]
         const viewToggle = (
             <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: '3px', gap: '2px', borderRadius: '999px', bgcolor: skin.TRACK, boxSizing: 'border-box' }}>
-              {[
-                { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' },
-                { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
-              ].map(v => {
-                const on = tableView === v.key
+              {toggleItems.map(v => {
+                const on = tableView === v.key || (!multiSite && tableView === 'site' && v.key === 'enclosure')
 
                 return (
                   <Box
                     key={v.key}
-                    onClick={() => setTableView(v.key as 'site' | 'enclosure')}
+                    onClick={() => setTableView(v.key as 'site' | 'section' | 'enclosure')}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -321,7 +367,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
               <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
                 {titleText}
               </Typography>
-              {multiSite && viewToggle}
+              {toggleItems.length > 1 && viewToggle}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
               {search}
@@ -339,7 +385,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {siteFilterCtl}
               {enclFilterCtl}
-              {multiSite && viewToggle}
+              {toggleItems.length > 1 && viewToggle}
               {search}
             </Box>
           )
@@ -347,7 +393,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       >
         {filtered.length ? (
           <DetailTable
-            columns={isSite ? siteColumns : enclosureColumns}
+            columns={isSite ? siteColumns : isSection ? sectionColumns : enclosureColumns}
             rows={rows}
             total={filtered.length}
             paginationModel={pm}
@@ -355,7 +401,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
             onRowClick={(params: { row: Record<string, any> }) =>
               isSite
                 ? setEnclSheet({ site: params.row.name })
-                : setAnimalSheet({ site: params.row.site, enclosure: params.row.name })
+                : isSection
+                  ? setEnclSheet({ site: params.row.site, section: params.row.name })
+                  : setAnimalSheet({ site: params.row.site, enclosure: params.row.name })
             }
           />
         ) : (
@@ -370,8 +418,8 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         open={!!enclSheet}
         onClose={() => setEnclSheet(null)}
         size='xxl'
-        title={enclSheet?.site}
-        eyebrow={`${sheetEnclosures.length} enclosure${sheetEnclosures.length === 1 ? '' : 's'} · click a row for its animals`}
+        title={enclSheet?.section || enclSheet?.site}
+        eyebrow={`${enclSheet?.section ? `${enclSheet.site} · ` : ''}${sheetEnclosures.length} enclosure${sheetEnclosures.length === 1 ? '' : 's'} · click a row for its animals`}
       >
         {sheetEnclosures.length ? (
           <DetailTable

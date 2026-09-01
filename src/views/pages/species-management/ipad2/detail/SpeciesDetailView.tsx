@@ -43,6 +43,7 @@ const stripParen = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim()
 const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Overview', value: 'overview' },
   { labelKey: 'Profile', value: 'profile' },
+  { labelKey: 'Population', value: 'population' },
   { labelKey: 'Enclosure Demographics', value: 'pairing' },
   { labelKey: 'Housing', value: 'housing' },
   { labelKey: 'Circle of Life', value: 'circle' },
@@ -50,6 +51,8 @@ const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Medical', value: 'medical' },
   { labelKey: 'Hospital', value: 'hospital' },
   { labelKey: 'Lab Module', value: 'lab' },
+  { labelKey: 'Mortality', value: 'mortality' },
+  { labelKey: 'Necropsy', value: 'necropsy' },
   { labelKey: 'Identification', value: 'identification' },
   { labelKey: 'Breeds', value: 'breeds' }
 ]
@@ -57,6 +60,7 @@ const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
 const TAB_ICONS: Record<string, string> = {
   overview: 'mdi:view-dashboard-outline',
   profile: 'mdi:card-account-details-outline',
+  population: 'mdi:paw',
   pairing: 'mdi:heart-outline',
   housing: 'mdi:home-outline',
   circle: 'mdi:autorenew',
@@ -64,6 +68,8 @@ const TAB_ICONS: Record<string, string> = {
   medical: 'mdi:medical-bag',
   hospital: 'mdi:hospital-building',
   lab: 'mdi:flask-outline',
+  mortality: 'mdi:grave-stone',
+  necropsy: 'mdi:file-search-outline',
   identification: 'mdi:identifier',
   breeds: 'mdi:dna',
   eggs: 'mdi:egg-outline'
@@ -425,11 +431,12 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           display: 'flex',
           alignItems: 'center',
           overflow: 'hidden',
-          borderRadius: '8px',
+          // Banner radius = the photo card's radius exactly (user call 2026-08-31).
+          borderRadius: '14px',
           background: skin.BANNER_GRAD,
-          p: '16px',
+          p: '24px',
           mb: 4,
-          [LANDSCAPE]: { p: '24px' }
+          [LANDSCAPE]: { p: '32px', borderRadius: '16px' }
         }}
       >
         {/* Figma 23:471 — the species photo runs full-bleed BEHIND the banner, the
@@ -507,9 +514,14 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             minWidth: 0,
             display: 'flex',
             flexDirection: 'column',
+            // Pinned to the photo's height (2026-08-31): the column used to run ~20px
+            // taller (its own py + row heights), so it drove the banner height and the
+            // centered photo picked up extra top/bottom space — the four insets only
+            // read equal when the photo alone sets the banner's height.
+            justifyContent: 'space-between',
             gap: '16px',
-            py: '16px',
-            [LANDSCAPE]: { gap: '24px' }
+            height: 216,
+            [LANDSCAPE]: { gap: '24px', height: 289 }
           }}
         >
           {/* Row 1 — name + binomial left, listing pills right */}
@@ -518,9 +530,11 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              // pr 0 (2026-08-31): rows end on the banner padding itself so the right
+              // inset equals the left/top/bottom (was padding+16 ≠ 24 everywhere else).
               pl: '16px',
-              pr: '8px',
-              [LANDSCAPE]: { pl: '24px', pr: '16px', height: 51 }
+              pr: 0,
+              [LANDSCAPE]: { pl: '24px', pr: 0, height: 51 }
             }}
           >
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -626,7 +640,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           {/* Tag row (user call 2026-08-28, replaces the one-line stats): Male · Female ·
               Unsexed (hidden at zero) · Chipped as LIGHT pills — the style the IUCN/CITES
               pills wore (swapped by user call: identity pills went glass, stats went light). */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', pl: '16px', pr: '8px', [LANDSCAPE]: { pl: '24px', pr: '16px' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', pl: '16px', pr: 0, [LANDSCAPE]: { pl: '24px', pr: 0 } }}>
             {(
               [
                 { text: `M - ${m.toLocaleString()}`, color: skin.BANNER_TAG_MALE },

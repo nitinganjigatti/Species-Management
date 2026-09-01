@@ -9,7 +9,6 @@ import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad2/skin'
 import { BarColumns, FactRows, Slices } from 'src/views/pages/species-management/ipad2/marks'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad2/SpeciesFilterSheet'
 import type {
   CircleSubTab,
@@ -24,8 +23,8 @@ import {
   CategoryFilter,
   CellText,
   ChartHoverCard,
+  DetailTable,
   EmptyState,
-  GRID_CELL_PAD,
   ListSheet,
   sheetPaperSx,
   SHEET_PX,
@@ -522,7 +521,7 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvB
                 key={b.key}
                 title={`${b.label} — ${b.desc}`}
                 rows={[
-                  { color: cc.Tertiary, label: 'Deaths', value: v.toLocaleString() },
+                  { color: skin.CORAL, label: 'Deaths', value: v.toLocaleString() },
                   { label: 'Share', value: `${pct}%` }
                 ]}
                 disabled={v === 0}
@@ -543,7 +542,8 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvB
                   })
                 }}
               >
-                <Typography variant='subtitle2' sx={{ fontWeight: 700, color: cc.Tertiary, opacity: v ? 1 : 0.4 }}>
+                {/* Figures wear the deep death ink (CC rule: brights are fills only). */}
+                <Typography variant='subtitle2' sx={{ fontWeight: 700, color: skin.CORAL, opacity: v ? 1 : 0.4 }}>
                   {v || '–'}
                 </Typography>
                 <Typography variant='caption' sx={{ color: cc.neutralSecondary, mb: 0.5, visibility: v > 0 ? 'visible' : 'hidden' }}>
@@ -554,12 +554,13 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvB
                     width: '100%',
                     maxWidth: 56,
                     height: bh,
-                    bgcolor: cc.Tertiary,
-                    opacity: b.opacity,
+                    // Lightness steps flattened over white (CC rule: never opacity) —
+                    // the band's old opacity value doubles as the mix strength.
+                    bgcolor: skin.mixOverWhite(cc.Tertiary, b.opacity),
                     borderRadius: '4px 4px 0 0'
                   }}
                 />
-                <Typography variant='caption' sx={{ fontWeight: 700, color: cc.Tertiary, mt: 0.75, whiteSpace: 'nowrap' }}>
+                <Typography variant='caption' sx={{ fontWeight: 700, color: skin.CORAL, mt: 0.75, whiteSpace: 'nowrap' }}>
                   {b.label}
                 </Typography>
                 <Typography variant='caption' sx={{ color: cc.neutralSecondary, textAlign: 'center', lineHeight: 1.2, mt: 0.25, minHeight: 32 }}>
@@ -609,27 +610,30 @@ const CauseOfDeathCard: React.FC<{ deaths?: SpeciesDeaths; onOpenCause: (manner:
     >
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
         {data.map(d => (
+          // Standard pill grammar (2026-08-31): white ground, hairline, quiet hover,
+          // count in the deep death ink — no brights as type, no green-tinted fill.
           <Box
             key={d.label}
             onClick={() => onOpenCause(d.label)}
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 1.25,
-              px: 4,
-              py: 1.25,
+              gap: 1.5,
+              px: 3.5,
+              height: 40,
               borderRadius: '999px',
-              border: `1px solid ${cc.SurfaceVariant}`,
-              backgroundColor: cc.Surface,
+              border: `1px solid ${skin.HAIR}`,
+              backgroundColor: '#ffffff',
               cursor: 'pointer',
-              transition: 'border-color .15s ease, background .15s ease',
-              '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.paper }
+              userSelect: 'none',
+              ...skin.cardPressSx,
+              '&:hover': { backgroundColor: skin.ROW_HOVER }
             }}
           >
-            <Typography variant='body2' sx={{ fontWeight: 500, color: cc.OnSurfaceVariant }}>
+            <Typography sx={{ fontSize: '15px', fontWeight: 500, color: skin.INK2, whiteSpace: 'nowrap' }}>
               {d.label}
             </Typography>
-            <Box component='span' sx={{ fontSize: '0.95rem', fontWeight: 700, color: cc.Tertiary, fontVariantNumeric: 'tabular-nums' }}>
+            <Box component='span' sx={{ fontSize: '15px', fontWeight: 700, color: skin.CORAL, fontVariantNumeric: 'tabular-nums' }}>
               {d.count}
             </Box>
           </Box>
@@ -1273,7 +1277,8 @@ function PillToggle<T extends string>({
   const cc = theme.palette.customColors as Record<string, string>
 
   return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: TABLE_CTRL_H, p: 0.75, borderRadius: '999px', border: `1px solid ${cc.OutlineVariant}`, bgcolor: theme.palette.background.paper }}>
+    // The standard view toggle (Housing grammar): sage track, white active pill, green-ink type.
+    <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: TABLE_CTRL_H, p: '3px', gap: '2px', borderRadius: '999px', bgcolor: skin.TRACK, boxSizing: 'border-box' }}>
       {items.map(v => {
         const on = value === v.key
 
@@ -1285,15 +1290,17 @@ function PillToggle<T extends string>({
               display: 'flex',
               alignItems: 'center',
               gap: 1.5,
-              px: 4,
+              px: 3.5,
               borderRadius: '999px',
               cursor: 'pointer',
-              bgcolor: on ? theme.palette.primary.main : 'transparent',
-              transition: 'all 0.15s ease'
+              whiteSpace: 'nowrap',
+              bgcolor: on ? '#ffffff' : 'transparent',
+              ...skin.cardPressSx,
+              transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
             }}
           >
-            <Icon icon={v.icon} fontSize='1.15rem' color={on ? theme.palette.common.white : cc.neutralSecondary} />
-            <Typography variant='body2' sx={{ fontWeight: 600, color: on ? theme.palette.common.white : cc.neutralSecondary, whiteSpace: 'nowrap' }}>
+            <Icon icon={v.icon} fontSize='1rem' color={on ? skin.ACCENT_INK : skin.MUTED} />
+            <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.ACCENT_INK : skin.MUTED, whiteSpace: 'nowrap' }}>
               {v.label}
             </Typography>
           </Box>
@@ -1423,10 +1430,13 @@ const AnimalEventsTable: React.FC<{
       value={q}
       onChange={e => setQ(e.target.value)}
       sx={{
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 240 }),
-        '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: theme.palette.background.paper }
+        // The standard quiet search pill (Housing/Population grammar).
+        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
+        '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
+        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
       }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: cc.neutralSecondary }} /> }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
     />
   )
 
@@ -1489,30 +1499,37 @@ const AnimalEventsTable: React.FC<{
 
   return (
     <SectionCard title={portrait ? stackedHeader : modeTabs} action={portrait ? undefined : headerAction}>
-      <CommonTable
-        columns={columns}
-        indexedRows={rows}
-        total={filtered.length}
-        loading={false}
-        paginationModel={pm}
-        setPaginationModel={setPm}
-        handleSortModel={() => {}}
-        searchValue=''
-        getRowHeight={() => 'auto'}
-        onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : () => {}}
-        externalTableStyle={{
-          '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, py: 2, display: 'flex', alignItems: 'center', fontSize: '16px' },
-          '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD },
-          // Never clip a header — wrap to two lines instead.
-          '& .MuiDataGrid-columnHeaderTitle': { fontSize: '15px', whiteSpace: 'normal', lineHeight: 1.2, overflow: 'visible', textOverflow: 'clip' },
-          '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
-          ...(isSite ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
-          '& .MuiDataGrid-cell[data-field="sl_no"]': { position: 'sticky', left: 0, zIndex: 3, backgroundColor: theme.palette.background.paper },
-          '& .MuiDataGrid-columnHeader[data-field="sl_no"]': { position: 'sticky', left: 0, zIndex: 5, backgroundColor: cc.customTableHeaderBg },
-          [`& .MuiDataGrid-cell[data-field="${stickyField}"]`]: { position: 'sticky', left: 64, zIndex: 3, backgroundColor: theme.palette.background.paper, borderRight: `1px solid ${cc.OutlineVariant}` },
-          [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: { position: 'sticky', left: 64, zIndex: 5, backgroundColor: cc.customTableHeaderBg, borderRight: `1px solid ${cc.OutlineVariant}` }
+      {/* Standard DetailTable (2026-08-31 alignment): No pinned at 0 by stickyField, the
+          animal/site identity column joins it at 64 via the wrapper (the sticky-pair pattern). */}
+      <Box
+        sx={{
+          [`& .MuiDataGrid-cell[data-field="${stickyField}"]`]: {
+            position: 'sticky',
+            left: 64,
+            zIndex: 3,
+            backgroundColor: '#ffffff',
+            borderRight: `1px solid ${skin.ROW_LINE}`
+          },
+          [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: {
+            position: 'sticky',
+            left: 64,
+            zIndex: 5,
+            backgroundColor: skin.TABLE_HEAD_BG,
+            borderRight: `1px solid ${skin.ROW_LINE}`
+          },
+          [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: skin.ROW_HOVER }
         }}
-      />
+      >
+        <DetailTable
+          columns={columns}
+          rows={rows}
+          total={filtered.length}
+          paginationModel={pm}
+          setPaginationModel={setPm}
+          stickyField='sl_no'
+          onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : undefined}
+        />
+      </Box>
     </SectionCard>
   )
 }

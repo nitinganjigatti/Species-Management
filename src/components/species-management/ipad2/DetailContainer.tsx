@@ -12,6 +12,7 @@ import type { SpeciesDetailTab } from 'src/types/species-management/detail'
 import SpeciesDetailView from 'src/views/pages/species-management/ipad2/detail/SpeciesDetailView'
 import OverviewTab from 'src/views/pages/species-management/ipad2/detail/tabs/OverviewTab'
 import ProfileTab from 'src/views/pages/species-management/ipad2/detail/tabs/ProfileTab'
+import PopulationTab from 'src/views/pages/species-management/ipad2/detail/tabs/PopulationTab'
 import PairingTab from 'src/views/pages/species-management/ipad2/detail/tabs/PairingTab'
 import HousingTab from 'src/views/pages/species-management/ipad2/detail/tabs/HousingTab'
 import CircleOfLifeTab from 'src/views/pages/species-management/ipad2/detail/tabs/CircleOfLifeTab'
@@ -20,6 +21,8 @@ import AssessmentsTab from 'src/views/pages/species-management/ipad2/detail/tabs
 import MedicalTab from 'src/views/pages/species-management/ipad2/detail/tabs/MedicalTab'
 import HospitalTab from 'src/views/pages/species-management/ipad2/detail/tabs/HospitalTab'
 import LabTab from 'src/views/pages/species-management/ipad2/detail/tabs/LabTab'
+import MortalityTab from 'src/views/pages/species-management/ipad2/detail/tabs/MortalityTab'
+import NecropsyTab from 'src/views/pages/species-management/ipad2/detail/tabs/NecropsyTab'
 import IdentificationTab from 'src/views/pages/species-management/ipad2/detail/tabs/IdentificationTab'
 import BreedsTab from 'src/views/pages/species-management/ipad2/detail/tabs/BreedsTab'
 import { V2TypeScale } from 'src/views/pages/species-management/ipad2/detail/detailUi'
@@ -45,6 +48,7 @@ const IpadDetailContainer = () => {
   const VALID_TABS: SpeciesDetailTab[] = [
     'overview',
     'profile',
+    'population',
     'pairing',
     'housing',
     'circle',
@@ -53,6 +57,8 @@ const IpadDetailContainer = () => {
     'medical',
     'hospital',
     'lab',
+    'mortality',
+    'necropsy',
     'identification',
     'breeds'
   ]
@@ -104,10 +110,18 @@ const IpadDetailContainer = () => {
 
   const profile = useTabQuery(['sm-profile', id], () => detailApi.getSpeciesProfile(id), tab === 'profile')
   const housing = useTabQuery(['sm-housing', id], () => detailApi.getSpeciesHousing(id), tab === 'housing' || tab === 'pairing' || tab === 'overview')
-  const animals = useTabQuery(['sm-animals', id], () => detailApi.getSpeciesAnimals(id), tab === 'housing' || tab === 'pairing')
+  const animals = useTabQuery(
+    ['sm-animals', id],
+    () => detailApi.getSpeciesAnimals(id),
+    tab === 'housing' || tab === 'pairing' || tab === 'population'
+  )
   const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview' || tab === 'eggs')
   const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle' || tab === 'overview')
-  const lifecycle = useTabQuery(['sm-lifecycle', id], () => detailApi.getSpeciesLifecycle(id), tab === 'circle' || tab === 'overview')
+  const lifecycle = useTabQuery(
+    ['sm-lifecycle', id],
+    () => detailApi.getSpeciesLifecycle(id),
+    tab === 'circle' || tab === 'overview' || tab === 'mortality' || tab === 'necropsy'
+  )
   const eggs = useTabQuery(['sm-eggs', id], () => getSpeciesEggs(id), tab === 'eggs')
   const breeding = useTabQuery(
     ['sm-breeding', id, header.data?.class, births.data?.total],
@@ -141,6 +155,12 @@ const IpadDetailContainer = () => {
         )
       case 'profile':
         return profile.isLoading ? <Loading /> : <ProfileTab profile={profile.data} header={header.data} />
+      case 'population':
+        return animals.isLoading ? (
+          <Loading />
+        ) : (
+          <PopulationTab animals={animals.data?.animals} totalAnimals={animals.data?.totalAnimals} />
+        )
       case 'pairing':
         return housing.isLoading ? <Loading /> : <PairingTab housing={housing.data} animals={animals.data?.animals} />
       case 'housing':
@@ -161,6 +181,10 @@ const IpadDetailContainer = () => {
         return clinical.isLoading ? <Loading /> : <HospitalTab clinical={clinical.data} />
       case 'lab':
         return clinical.isLoading ? <Loading /> : <LabTab clinical={clinical.data} />
+      case 'mortality':
+        return lifecycle.isLoading ? <Loading /> : <MortalityTab lifecycle={lifecycle.data} />
+      case 'necropsy':
+        return lifecycle.isLoading ? <Loading /> : <NecropsyTab lifecycle={lifecycle.data} />
       case 'identification':
         return identification.isLoading ? <Loading /> : <IdentificationTab ident={identification.data} />
       case 'breeds':
