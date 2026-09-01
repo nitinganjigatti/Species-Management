@@ -292,6 +292,10 @@ export interface ClinicalRecord {
   severity?: 'Low' | 'Medium' | 'High'
   severityFrom?: 'Low' | 'Medium' // case started milder and climbed → "Worsening" signal
   outcome?: 'died' // closed episode that ended in death, not recovery
+  // Clinical assessments only — long-standing condition. NOT in the sidecar data yet
+  // (2026-09-01): the UI slot exists (Chronic tag in the type sheet's animal rows) and
+  // renders as soon as the real API/data ships this field. No synthetic fill by user call.
+  chronic?: boolean
 }
 export interface ClinicalProgram {
   kind: 'type'

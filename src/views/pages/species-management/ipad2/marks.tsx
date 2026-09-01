@@ -182,6 +182,7 @@ export function BarColumns({
   height = 196,
   minSlot,
   smallLabels,
+  valueLabels,
   onSelect
 }: {
   bars: [string | number, number][]
@@ -194,6 +195,8 @@ export function BarColumns({
   minSlot?: number
   /** One point smaller axis labels — for charts that run two-up in a portrait row. */
   smallLabels?: boolean
+  /** Print each bar's count above it (deep-ink partner of the fill); zeros stay silent. */
+  valueLabels?: boolean
   onSelect?: (label: string | number, value: number) => void
 }) {
   const { ref, play } = usePlay<HTMLDivElement>()
@@ -276,6 +279,22 @@ export function BarColumns({
                   })
                 }}
               >
+                {valueLabels && v > 0 && (
+                  <Typography
+                    component='span'
+                    sx={{
+                      textAlign: 'center',
+                      mb: '3px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      lineHeight: 1,
+                      fontVariantNumeric: 'tabular-nums',
+                      color: skin.strokeOf(barFill)
+                    }}
+                  >
+                    {fmt(v)}
+                  </Typography>
+                )}
                 <Box
                   component='span'
                   sx={{

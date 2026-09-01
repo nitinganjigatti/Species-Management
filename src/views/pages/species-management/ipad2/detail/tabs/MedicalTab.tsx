@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Autocomplete, Box, IconButton, TextField, Tooltip, Typography, useMediaQuery } from '@mui/material'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Autocomplete, Box, IconButton, TextField, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import type { GridColDef } from '@mui/x-data-grid'
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import type {
   PreventiveDoseSpec,
@@ -24,7 +24,6 @@ import {
   SHEET_PX,
   EmptyState,
   FilterChip,
-  SeasonalColumnChart,
   SectionCard,
   Sheet,
   SheetEmpty,
@@ -35,12 +34,13 @@ import {
   SheetSection,
   SheetTabs,
   SheetStats,
-  StatTile,
   StatusChip,
   thinScrollbarSx,
   TrendAreaChart,
   TrendRangeTabs
 , SheetDrawer} from 'src/views/pages/species-management/ipad2/detail/detailUi'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
+import { BarColumns } from 'src/views/pages/species-management/ipad2/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad2/detail/useSortableTable'
 // App-standard filter drawer (the hospital Add-Patient animal-picker filter) — reused as-is.
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -51,7 +51,7 @@ import DashboardDateRange, {
   type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/ipad2/dashboard/DashboardDateRange'
-import { computeHotspots, computeOverviewSignals, INSIGHT_THRESHOLDS, type HealthSignal } from './medical/signals'
+import { computeOverviewSignals, type HealthSignal } from './medical/signals'
 import {
   buildPrescriptionProgram,
   rollupAnimals,
@@ -63,15 +63,13 @@ import {
 import SignalsBand from './medical/SignalsBand'
 import SickTrendCard from './medical/SickTrendCard'
 import SignalDrawer, { type SignalDrawerPayload } from './medical/SignalDrawer'
-import InsightsPanel from './medical/InsightsPanel'
 
-type TabKey = 'overview' | 'insights' | 'clinical' | 'vaccination' | 'deworming' | 'supplements' | 'prescription'
+type TabKey = 'overview' | 'clinical' | 'vaccination' | 'deworming' | 'supplements' | 'prescription'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /* ── merged Clinical domain model (Symptoms + Clinical Assessment in one tab) ── */
 type Domain = 'symptom' | 'assessment'
-type DomainTab = 'all' | Domain
 interface MergedRec extends ClinicalRecord {
   domain: Domain
 }
@@ -80,10 +78,6 @@ const DOMAIN_META: Record<Domain, { label: string; icon: string }> = {
   symptom: { label: 'Symptom', icon: 'mdi:emoticon-sad-outline' },
   assessment: { label: 'Assessment', icon: 'mdi:stethoscope' }
 }
-
-// Gravest first — index 0 wins when picking a condition's "worst active prognosis" dot.
-const PROGNOSIS_ORDER = ['Grave', 'Poor', 'Doubtful', 'Guarded', 'Favourable']
-const SEVERITY_ORDER = ['High', 'Medium', 'Low']
 
 /** Date-in-window test for the selected range. `from === null` (All time) passes everything. */
 const useWindow = (range: RangeSelection) => {
@@ -132,7 +126,6 @@ const monthForBar = (i: number, len: number, now: Date) => {
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'insights', label: 'Insights' },
   { key: 'clinical', label: 'Clinical' },
   { key: 'vaccination', label: 'Vaccination' },
   { key: 'deworming', label: 'Deworming' },
@@ -142,94 +135,63 @@ const TABS: { key: TabKey; label: string }[] = [
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
 
-// pill/dot label → [bg, border] from the medical-tag theme tokens (the Figma tag ramp).
-const medTagMap = (c: Record<string, string>): Record<string, [string, string]> => ({
-  Favourable: [c.medTagYellowBg, c.medTagYellowBorder],
-  Guarded: [c.medTagTealBg, c.medTagTealBorder],
-  Doubtful: [c.medTagOrangeBg, c.medTagOrangeBorder],
-  Poor: [c.medTagRedBg, c.medTagRedBorder],
-  Grave: [c.medTagMaroonBg, c.medTagMaroonBorder],
-  Low: [c.medTagTealBg, c.medTagTealBorder],
-  Medium: [c.medTagYellowBg, c.medTagYellowBorder],
-  High: [c.medTagOrangeBg, c.medTagOrangeBorder],
-  Overdue: [c.medTagOrangeBg, c.medTagOrangeBorder],
-  Upcoming: [c.medTagTealBg, c.medTagTealBorder]
-})
-
-/** Severity/prognosis tag pill in the exact Figma medTag colours (shared by drawers + the Clinical table). */
-const MedTagPill: React.FC<{ label: string }> = ({ label }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const [bg, border] = medTagMap(c)[label] || [c.Surface, c.OutlineVariant]
-  const text = label === 'Grave' ? c.medTagMaroonBorder : theme.palette.common.black
-
-  return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', px: '10px', py: '4px', borderRadius: 999, backgroundColor: bg, border: `0.5px solid ${border}`, whiteSpace: 'nowrap' }}>
-      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: text }}>{label}</Typography>
-    </Box>
-  )
-}
+// Data → display level names (Figma 67600:24868 scale, user-confirmed 2026-09-01):
+// severity Low/Medium/High shows as Mild/Moderate/High; Extreme is the 5th level, defined
+// but with no data yet; a missing level shows as "Not Assessed".
+const LEVEL_DISPLAY: Record<string, string> = { Low: 'Mild', Medium: 'Moderate' }
 
 /**
- * Condition tag: medTag colour = the record's severity (symptom) / prognosis (assessment),
- * domain icon inside the tag, tooltip spells it out ("Symptom · High"). No separate level column.
+ * Severity/prognosis tag — the exact Figma 67600:24868 pill (8px radius, 0.5px border,
+ * tinted fill, the level hue as border AND text; "Not Assessed" alone is a solid fill with
+ * white text). One color pair per rung, shared by the two scales:
+ * Mild=Favourable teal · Moderate=Guarded gold · High=Doubtful orange · Extreme=Poor red ·
+ * Grave maroon. Overdue/Upcoming/Died keep their pre-existing quiet pills.
  */
-const MedTagChip: React.FC<{ name: string; domain: Domain; level?: string }> = ({ name, domain, level }) => {
+const medTagSpec = (c: Record<string, string>): Record<string, { bg: string; hue: string; fg?: string }> => {
+  const teal = { bg: `${c.SecondaryContainer}66`, hue: c.addPrimary } // 40% #AFEFEB
+  const gold = { bg: `${c.Notes}33`, hue: c.moderateSecondary } // 20% #FCF4AE
+  const orange = { bg: `${c.TertiaryContainer}26`, hue: c.Tertiary } // 15% #FFBDA8
+  const red = { bg: `${c.ErrorContainer}66`, hue: c.Error } // 40% #FFD3D3
+
+  return {
+    'Not Assessed': { bg: c.Outline, hue: c.OnSurfaceVariant, fg: c.OnPrimary },
+    Mild: teal,
+    Moderate: gold,
+    High: orange,
+    Extreme: red,
+    Favourable: teal,
+    Guarded: gold,
+    Doubtful: orange,
+    Poor: red,
+    Grave: { bg: `${c.medTagMaroonBorder}0F`, hue: c.medTagMaroonBorder }, // 6% #4A0415
+    Overdue: { bg: c.medTagOrangeBg, hue: c.medTagOrangeBorder, fg: c.OnSurfaceVariant },
+    Upcoming: { bg: c.medTagTealBg, hue: c.medTagTealBorder, fg: c.OnSurfaceVariant }
+  }
+}
+
+/** The tag pill itself — pass the RAW data level ('Low', 'Guarded', …); display mapping is internal. */
+const MedTagPill: React.FC<{ label?: string }> = ({ label }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const [bg, border] = (level && medTagMap(c)[level]) || [c.Surface, c.OutlineVariant]
-  const text = level === 'Grave' ? c.medTagMaroonBorder : theme.palette.common.black
-  const meta = DOMAIN_META[domain]
+  const shown = label ? (LEVEL_DISPLAY[label] ?? label) : 'Not Assessed'
+  const spec = medTagSpec(c)[shown] ?? { bg: c.Surface, hue: c.OutlineVariant, fg: c.OnSurfaceVariant }
 
   return (
-    <Tooltip title={`${meta.label}${level ? ' • ' + level : ''}`} arrow>
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: '10px', py: '4px', borderRadius: 999, backgroundColor: bg, border: `0.5px solid ${border}`, whiteSpace: 'nowrap' }}>
-        <Icon icon={meta.icon} fontSize='0.95rem' color={text} />
-        <Typography sx={{ fontSize: '14px', fontWeight: 600, color: text }}>{name}</Typography>
-      </Box>
-    </Tooltip>
-  )
-}
-
-/** Distinct condition tags for one animal in one domain, each at its worst ACTIVE level (fallback: worst ever). */
-const worstOf = (recs: MergedRec[], domain: Domain): { name: string; level?: string }[] => {
-  const order = domain === 'symptom' ? SEVERITY_ORDER : PROGNOSIS_ORDER
-  const act: Record<string, number> = {}
-  const any: Record<string, number> = {}
-  const names: string[] = []
-  for (const r of recs) {
-    if (r.domain !== domain) continue
-    if (!names.includes(r.type)) names.push(r.type)
-    const lvl = domain === 'symptom' ? r.severity : r.prognosis
-    const rk = lvl ? order.indexOf(lvl) : -1
-    if (rk < 0) continue
-    if (any[r.type] == null || rk < any[r.type]) any[r.type] = rk
-    if (r.status === 'active' && (act[r.type] == null || rk < act[r.type])) act[r.type] = rk
-  }
-
-  return names.map(n => {
-    const rk = act[n] ?? any[n]
-
-    return { name: n, level: rk == null ? undefined : order[rk] }
-  })
-}
-
-/** First `max` condition tags (≤2 rows worst case) + "+N more" for an animal-wise cell. */
-const ChipsCell: React.FC<{ chips: { name: string; level?: string }[]; domain: Domain; max?: number }> = ({ chips, domain, max = 2 }) => {
-  const c = cc(useTheme() as any)
-  const shown = chips.slice(0, max)
-  const extra = chips.length - shown.length
-
-  return (
-    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', py: 1 }}>
-      {shown.map(t => (
-        <MedTagChip key={t.name} name={t.name} domain={domain} level={t.level} />
-      ))}
-      {extra > 0 && (
-        <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600, whiteSpace: 'nowrap' }}>
-          +{extra} more
-        </Typography>
-      )}
+    <Box
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        px: '12px',
+        py: '7px',
+        borderRadius: '8px',
+        backgroundColor: spec.bg,
+        border: `0.5px solid ${spec.hue}`,
+        whiteSpace: 'nowrap'
+      }}
+    >
+      <Typography sx={{ fontSize: '14px', fontWeight: 500, letterSpacing: '0.1px', color: spec.fg ?? spec.hue }}>
+        {shown}
+      </Typography>
     </Box>
   )
 }
@@ -262,15 +224,6 @@ const useCells = () => {
   return { txt, animalCell, c, theme }
 }
 
-/* ── layout helpers ───────────────────────────────────────────────────────── */
-const StatsRow: React.FC<{ children: React.ReactNode; cols?: number }> = ({ children, cols = 4 }) => (
-  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: `repeat(${cols}, 1fr)` }, gap: 3 }}>{children}</Box>
-)
-
-const ChartsRow: React.FC<{ children: React.ReactNode; md?: string }> = ({ children, md = 'repeat(2, 1fr)' }) => (
-  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md }, gap: 4 }}>{children}</Box>
-)
-
 /* ── animal-wise grouping + shared bits ───────────────────────────────────── */
 interface AniGroup {
   id: string
@@ -284,6 +237,47 @@ interface AniGroup {
   latest: string
   status: 'active' | 'resolved'
   records: any[]
+}
+
+/** One animal row inside the clinical type sheet (Active/Resolved lists). */
+interface SheetAnimalRow {
+  aid: string
+  name: string
+  site: string
+  enclosure: string
+  times: number
+  days?: number // active bout's running days
+  resolvedOn?: string // latest resolved date (resolved list)
+  date?: string // sort key: onset (active) / resolved date (resolved)
+  chronic?: boolean // assessments: any bout flagged chronic → tag on the title line
+}
+
+/** Compact inline "Chronic" tag — rides the title line after the animal's name (both status
+ *  tabs). Grave-family maroon per the Figma 67600:24868 scale; renders only when the data
+ *  says chronic (field not shipped yet — see ClinicalRecord.chronic). */
+const ChronicTag: React.FC = () => {
+  const c = cc(useTheme() as any)
+
+  return (
+    <Box
+      component='span'
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        ml: 1.5,
+        px: '8px',
+        py: '2px',
+        borderRadius: '6px',
+        backgroundColor: `${c.medTagMaroonBorder}0F`,
+        border: `0.5px solid ${c.medTagMaroonBorder}`,
+        verticalAlign: 'middle'
+      }}
+    >
+      <Typography component='span' sx={{ fontSize: '12px', fontWeight: 500, letterSpacing: '0.1px', color: c.medTagMaroonBorder }}>
+        Chronic
+      </Typography>
+    </Box>
+  )
 }
 
 /** Roll records up to one row per animal. `activeStatus` = the "needs attention" state
@@ -313,45 +307,6 @@ const groupByAnimal = (records: any[], dateKey: string, activeStatus: string): A
 // Shared height for the table-card header controls (view toggle + search) so they line up — matches Circle of Life.
 const TABLE_CTRL_H = 44
 
-const VIEW_OPTIONS: { key: 'animal' | 'record'; label: string; icon: string }[] = [
-  { key: 'animal', label: 'Animal-Wise', icon: 'mdi:paw' },
-  { key: 'record', label: 'Record-Wise', icon: 'mdi:format-list-bulleted' }
-]
-/** Segmented toggle — same pill styling as the Circle-of-Life table toggle. Generic over the option keys. */
-function ViewToggle<T extends string>({
-  view,
-  onChange,
-  options = VIEW_OPTIONS as unknown as { key: T; label: string; icon: string }[]
-}: {
-  view: T
-  onChange: (v: T) => void
-  options?: { key: T; label: string; icon: string }[]
-}) {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
-  return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: TABLE_CTRL_H, p: 0.75, borderRadius: '999px', border: `1px solid ${c.OutlineVariant}`, bgcolor: theme.palette.background.paper }}>
-      {options.map(v => {
-        const on = view === v.key
-
-        return (
-          <Box
-            key={v.key}
-            onClick={() => onChange(v.key)}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 4, borderRadius: '999px', cursor: 'pointer', bgcolor: on ? theme.palette.primary.main : 'transparent', transition: 'all 0.15s ease' }}
-          >
-            <Icon icon={v.icon} fontSize='1.15rem' color={on ? theme.palette.common.white : c.neutralSecondary} />
-            <Typography variant='body2' sx={{ fontWeight: 600, color: on ? theme.palette.common.white : c.neutralSecondary, whiteSpace: 'nowrap' }}>
-              {v.label}
-            </Typography>
-          </Box>
-        )
-      })}
-    </Box>
-  )
-}
-
 /** Table search box — same styling/behaviour as the Circle-of-Life table search. */
 export const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number; grow?: boolean }> = ({
   value,
@@ -361,51 +316,23 @@ export const TableSearch: React.FC<{ value: string; onChange: (v: string) => voi
   height = TABLE_CTRL_H,
   // grow: fill the available row width (portrait two-row headers) instead of the fixed width.
   grow = false
-}) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
-  return (
-    <TextField
-      size='small'
-      placeholder={placeholder}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      sx={{ ...(grow ? { flex: '1 1 auto', minWidth: 0 } : { width }), maxWidth: '100%', '& .MuiInputBase-root': { height, bgcolor: theme.palette.background.paper } }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: c.neutralSecondary }} /> }}
-    />
-  )
-}
-
-/** Case-insensitive substring match over an animal-ish record's identity fields. */
-const matchesQuery = (r: any, q: string) => {
-  const query = q.trim().toLowerCase()
-  if (!query) return true
-  const types = Array.isArray(r.types) ? r.types.join(' ') : r.type || ''
-
-  return `${r.name} ${r.aid} ${r.site} ${r.enclosure} ${types}`.toLowerCase().includes(query)
-}
-
-/** Number-first ranked list (rank badge · label · count · chevron) — replaces ranked bar charts. */
-/** First 2 type chips + "+N" — the conditions/items summary in an animal-wise row. */
-const TypeChips: React.FC<{ types: string[] }> = ({ types }) => {
-  const c = cc(useTheme() as any)
-  const shown = types.slice(0, 2)
-  const extra = types.length - shown.length
-
-  return (
-    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
-      {shown.map(t => (
-        <StatusChip key={t} label={t} tone='neutral' />
-      ))}
-      {extra > 0 && (
-        <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600 }}>
-          +{extra}
-        </Typography>
-      )}
-    </Box>
-  )
-}
+}) => (
+  // CC pill search (Mortality/Population grammar) — quiet FIELD_BG fill, no outline, focus ring.
+  <TextField
+    size='small'
+    placeholder={placeholder}
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    sx={{
+      ...(grow ? { flex: '1 1 auto', minWidth: 0 } : { width }),
+      maxWidth: '100%',
+      '& .MuiInputBase-root': { height, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
+      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+    }}
+    InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+  />
+)
 
 /** Per-animal side sheet: that animal's full clinical timeline (symptoms + assessments). */
 const AnimalRecordsDrawer: React.FC<{
@@ -537,23 +464,6 @@ const buildRollup = (clinical: SpeciesClinical | null | undefined, preventive: S
 
   return [...m.values()]
 }
-
-const PROGRAM_ICONS: Record<'vaccination' | 'deworming' | 'supplements', string> = {
-  vaccination: 'mdi:needle',
-  deworming: 'mdi:pill',
-  supplements: 'mdi:water'
-}
-
-/* Overdue-preventive stat-grid: program · total · four day-buckets · chevron */
-const OVERDUE_GRID = 'minmax(200px, 1.4fr) repeat(5, 1fr) 24px'
-const overdueHd = (c: Record<string, string>) => ({
-  fontSize: '14px',
-  fontWeight: 700,
-  letterSpacing: '0.07em',
-  textTransform: 'uppercase' as const,
-  textAlign: 'right' as const,
-  color: c.neutralSecondary
-})
 
 /** Combined per-animal timeline (clinical + preventive) for the Overview drill. */
 const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => void }> = ({ group, onClose }) => {
@@ -732,145 +642,93 @@ const OverviewPanel: React.FC<{
     [preventive, range]
   )
 
-  /* site concentration — Insights hotspot rule; the trend-card strip renders only when a site runs hot */
-  const hotspots = useMemo(() => computeHotspots(clinical, inWin), [clinical, range])
-  const hotSites = useMemo(
-    () =>
-      hotspots.rows
-        .filter(
-          r =>
-            (r.sickAnimals ?? 0) >= INSIGHT_THRESHOLDS.hotspotMinSick &&
-            r.value >= hotspots.avg * INSIGHT_THRESHOLDS.hotspotHotMult
-        )
-        .map(r => ({ site: r.label, count: r.sickAnimals ?? 0 })),
-    [hotspots]
+  /* the standard table columns (Housing anatomy + CoL grammar): No serial · Program ·
+     right-aligned numbers, em dash for zero, CORAL on the overdue total and the 90+ column */
+  const otxt = (v: React.ReactNode, color?: string, weight = 500) => (
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
   )
-  const allSiteAnimals = useMemo(() => hotspots.rows.flatMap(r => r.animals), [hotspots])
+  const bucketCol = (field: string, header: string, hot = false): GridColDef => ({
+    width: 130,
+    sortable: false,
+    align: 'right',
+    headerAlign: 'right',
+    field,
+    headerName: header,
+    renderCell: (p: GridRenderCellParams) => {
+      const n = Number(p.row[field] || 0)
+      if (!n) return otxt('—', skin.DASH_INK, 400)
+
+      return otxt(n.toLocaleString(), hot ? skin.CORAL : undefined, hot ? 700 : 600)
+    }
+  })
+  const overdueColumns: GridColDef[] = [
+    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => otxt(p.row.sl_no, c.neutralSecondary, 400) },
+    { minWidth: 200, flex: 1, sortable: false, field: 'program', headerName: 'Program', renderCell: p => otxt(p.row.program, c.OnSurfaceVariant, 600) },
+    {
+      width: 195,
+      sortable: false,
+      align: 'right',
+      headerAlign: 'right',
+      field: 'animals',
+      headerName: 'Overdue Animals',
+      renderCell: (p: GridRenderCellParams) => {
+        const n = Number(p.row.animals || 0)
+        if (!n) return otxt('—', skin.DASH_INK, 400)
+
+        return otxt(n.toLocaleString(), skin.CORAL, 700)
+      }
+    },
+    bucketCol('d30', '0–30 Days'),
+    bucketCol('d31', '31–60 Days'),
+    bucketCol('d61', '61–90 Days'),
+    bucketCol('d90', '90+ Days', true)
+  ]
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* 1 · verdict headline — the page's only stat; the number is the call to action.
-          The period control rides this row (Hospital pattern), not the tab bar. */}
-      <Box
-        sx={{ pt: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}
-      >
-        <Typography
-          sx={{ fontSize: { xs: '24px', md: '30px' }, fontWeight: 800, lineHeight: 1.25, color: c.OnSurfaceVariant }}
-        >
-          {sickNow.length ? (
-            <>
-              <Box
-                component='span'
-                onClick={openSickNow}
-                sx={{
-                  color: c.Tertiary,
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                  textUnderlineOffset: '6px',
-                  textDecorationThickness: '2.5px',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { opacity: 0.85 }
-                }}
-              >
-                {sickNow.length.toLocaleString()} {sickNow.length === 1 ? 'Animal' : 'Animals'}
-                <Icon icon='mdi:chevron-right' fontSize={26} style={{ verticalAlign: '-4px' }} />
-              </Box>{' '}
-              {sickNow.length === 1 ? 'Is' : 'Are'} Sick Right Now
-            </>
-          ) : (
-            'No Animals Are Sick Right Now'
-          )}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* 1 · one plain title (the verdict headline retired, 2026-09-01 review) —
+          the period control rides this row (Hospital pattern), not the tab bar. */}
+      <Box sx={{ pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+        <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
+          Medical Overview
         </Typography>
         <DashboardDateRange value={range} onChange={onRange} />
       </Box>
 
-      {/* 2 · three big attention cards */}
-      <SignalsBand signals={signals} onOpen={openSignal} />
+      {/* 2 · the stat strip (listing StatBand anatomy) — sick-now leads the three signals */}
+      <SignalsBand
+        cells={[
+          { key: 'sickNow', label: 'Sick Right Now', count: sickNow.length, onOpen: openSickNow },
+          ...signals.map(sig => ({ key: sig.key, label: sig.label, count: sig.count, onOpen: () => openSignal(sig) }))
+        ]}
+      />
 
-      {/* 3 · overdue preventive care — stat-grid table (V1): big numbers under quiet caps
-          headers, coral reserved for the 90+ column; each row opens its tab */}
-      <SectionCard title='Overdue Preventive Care' titleMb={2}>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Box sx={{ minWidth: 760 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: OVERDUE_GRID, gap: 3, alignItems: 'center', pb: 2.5, px: 1, borderBottom: `1px solid ${c.SurfaceVariant}` }}>
-              <Typography sx={{ ...overdueHd(c), textAlign: 'left' }}>Program</Typography>
-              <Typography sx={overdueHd(c)}>Overdue animals</Typography>
-              <Typography sx={overdueHd(c)}>0–30 days</Typography>
-              <Typography sx={overdueHd(c)}>31–60 days</Typography>
-              <Typography sx={overdueHd(c)}>61–90 days</Typography>
-              <Typography sx={{ ...overdueHd(c), color: c.Tertiary }}>90+ days</Typography>
-              <span />
-            </Box>
-            {overdueRows.map((row, i) => {
-              const num = (v: number, kind: 'total' | 'dim' | 'mid' | 'hot') => (
-                <Typography
-                  sx={{
-                    textAlign: 'right',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontSize: kind === 'total' ? '26px' : '24px',
-                    fontWeight: kind === 'total' || (kind === 'hot' && v > 0) ? 800 : kind === 'dim' ? 600 : 700,
-                    color:
-                      kind === 'hot' && v > 0
-                        ? c.Tertiary
-                        : kind === 'dim' || v === 0
-                        ? c.neutralSecondary
-                        : c.OnSurfaceVariant
-                  }}
-                >
-                  {v.toLocaleString()}
-                </Typography>
-              )
-
-              return (
-                <Box
-                  key={row.key}
-                  onClick={() => onGoToTab(row.key)}
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: OVERDUE_GRID,
-                    gap: 3,
-                    alignItems: 'center',
-                    py: 3.5,
-                    px: 1,
-                    borderBottom: i === overdueRows.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-                    cursor: 'pointer',
-                    '&:hover': { backgroundColor: c.Surface }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        width: 38,
-                        height: 38,
-                        flexShrink: 0,
-                        borderRadius: '10px',
-                        backgroundColor: c.displaybgPrimary,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Icon icon={PROGRAM_ICONS[row.key]} fontSize={17} color={c.OnPrimaryContainer} />
-                    </Box>
-                    <Typography sx={{ fontSize: '17px', fontWeight: 700, color: c.OnSurfaceVariant }} noWrap>
-                      {row.label}
-                    </Typography>
-                  </Box>
-                  {num(row.animals, 'total')}
-                  {num(row.b.d30, 'dim')}
-                  {num(row.b.d31, 'dim')}
-                  {num(row.b.d61, 'mid')}
-                  {num(row.b.d90, 'hot')}
-                  <Icon icon='mdi:chevron-right' fontSize={18} color={c.Outline} style={{ justifySelf: 'end' }} />
-                </Box>
-              )
-            })}
-          </Box>
-        </Box>
+      {/* 3 · overdue preventive care — the standard table (Housing SectionCard anatomy +
+          CoL column grammar): No serial, right-aligned numbers, em dash for zero, the
+          overdue total + hot 90+ column in CORAL; each row opens its program tab. */}
+      <SectionCard title='Overdue Preventive Care'>
+        <DetailTable
+          columns={overdueColumns}
+          rows={overdueRows.map((row, i) => ({
+            id: row.key,
+            sl_no: i + 1,
+            program: row.label,
+            animals: row.animals,
+            d30: row.b.d30,
+            d31: row.b.d31,
+            d61: row.b.d61,
+            d90: row.b.d90
+          }))}
+          total={overdueRows.length}
+          hideFooter
+          onRowClick={(params: { row: Record<string, any> }) => onGoToTab(params.row.id as TabKey)}
+        />
       </SectionCard>
 
       {/* 4 · sickness trend (+ conditional site-concentration strip) */}
-      <SickTrendCard clinical={clinical} preventive={preventive} hotSites={hotSites} allSiteAnimals={allSiteAnimals} />
+      <SickTrendCard clinical={clinical} preventive={preventive} />
 
       <SignalDrawer payload={signalDrill} onClose={() => setSignalDrill(null)} onAnimal={openSignalAnimal} />
       <OverviewAnimalDrawer group={drill} onClose={() => setDrill(null)} />
@@ -890,7 +748,6 @@ const wordingFor = (key: TabKey, _kind: string) => {
     // "due"/"due on" is BANNED for future items — future = "upcoming" (user rule 2026-07-14)
     dueLabel: 'Upcoming in 30 Days',
     dueShort: 'Upcoming',
-    neverLabel: 'Never Given',
     dueWord: 'upcoming',
     doseNoun: 'Doses given',
     statusLabels: { covered: 'Covered', due: 'Upcoming', overdue: 'Overdue', never: 'Never' } as Record<
@@ -916,11 +773,13 @@ const PreventiveStatStrip: React.FC<{
   w: ReturnType<typeof wordingFor>
   onPick: (t: StatusSheetTab) => void
 }> = ({ s, w, onPick }) => (
-  <StatsRow cols={3}>
-    <StatTile label={w.overdueLabel} value={s.overdue.toLocaleString()} tone='error' onClick={() => onPick('overdue')} />
-    <StatTile label={w.dueLabel} value={s.dueIn30.toLocaleString()} tone='neutral' onClick={() => onPick('due')} />
-    <StatTile label={w.neverLabel} value={s.never.toLocaleString()} tone='neutral' onClick={() => onPick('never')} />
-  </StatsRow>
+  // CC StatBand strip (2026-09-01 reskin sweep); Never Given removed same day.
+  <SignalsBand
+    cells={[
+      { key: 'overdue', label: w.overdueLabel, count: s.overdue, onOpen: () => onPick('overdue') },
+      { key: 'due', label: w.dueLabel, count: s.dueIn30, tone: 'neutral', onOpen: () => onPick('due') }
+    ]}
+  />
 )
 
 /* ── Most Used section — top 10 medicines by animals given; scrollable tabs + monthly trend ── */
@@ -928,6 +787,35 @@ const PreventiveStatStrip: React.FC<{
 const MOST_USED_PRESETS: RangePreset[] = ['last_6m', 'last_1y', 'last_2y', 'last_3y', 'all']
 const presetMonths = (p: RangePreset, total: number) =>
   p === 'last_6m' ? 6 : p === 'last_1y' ? 12 : p === 'last_2y' ? 24 : p === 'last_3y' ? 36 : total
+
+/** Pad the sidecar month axis ("Aug '23"…) with empty months up to TODAY — the punch-list
+ *  rolling rule: "Last 1 year" anchors at the current month, never at the last data month. */
+const padMonthsToNow = (months: string[]): string[] => {
+  if (!months.length) return months
+  const last = /^([A-Za-z]{3})\s*'(\d{2})$/.exec(months[months.length - 1].trim())
+  if (!last) return months
+  let y = 2000 + Number(last[2])
+  let m = MONTHS.indexOf(last[1])
+  if (m < 0) return months
+  const now = new Date()
+  const out = [...months]
+  while (y < now.getFullYear() || (y === now.getFullYear() && m < now.getMonth())) {
+    m++
+    if (m > 11) {
+      m = 0
+      y++
+    }
+    out.push(`${MONTHS[m]} '${String(y).slice(-2)}`)
+  }
+
+  return out
+}
+
+/** Zero-fill a per-month series to the padded axis length. */
+const padSeries = (s: number[], len: number) => (s.length >= len ? s : [...s, ...Array(len - s.length).fill(0)])
+
+/** "Aug '23" sidecar label → the two-line no-apostrophe axis form ("Aug\n23"). */
+const twoLineMonth = (m: string) => m.replace(" '", '\n')
 
 /** ISO dose date → its "Aug '23" month-label key (the sidecar months format). */
 const doseMonthLabel = (iso: string) => {
@@ -1077,7 +965,9 @@ const MostUsedSection: React.FC<{
 
   if (!months.length || (!top.length && !site)) return null
 
-  const n = Math.min(presetMonths(range.preset, months.length), months.length)
+  // Rolling windows anchor at TODAY (padded axis, zero-filled series).
+  const axisMonths = padMonthsToNow(months)
+  const n = Math.min(presetMonths(range.preset, axisMonths.length), axisMonths.length)
 
   // Two-row portrait header (shipped grammar): title row, then the site filter +
   // date range spread across a full-width controls row. Landscape keeps one row.
@@ -1158,13 +1048,13 @@ const MostUsedSection: React.FC<{
             >
               <Typography
                 variant='body1'
-                sx={{ fontWeight: 600, color: active ? theme.palette.primary.main : c.neutralSecondary, whiteSpace: 'nowrap' }}
+                sx={{ fontWeight: 600, color: active ? skin.ACCENT_INK : c.neutralSecondary, whiteSpace: 'nowrap' }}
               >
                 {x.t.name}
               </Typography>
               <Typography
                 variant='body1'
-                sx={{ fontWeight: 700, color: active ? theme.palette.primary.main : c.Outline, fontVariantNumeric: 'tabular-nums' }}
+                sx={{ fontWeight: 700, color: active ? skin.ACCENT_INK : c.Outline, fontVariantNumeric: 'tabular-nums' }}
               >
                 {x.given.toLocaleString()}
               </Typography>
@@ -1173,13 +1063,13 @@ const MostUsedSection: React.FC<{
         })}
       </Box>
       <TrendAreaChart
-        values={sel.series.slice(-n)}
-        labels={months.slice(-n)}
+        values={padSeries(sel.series, axisMonths.length).slice(-n)}
+        labels={axisMonths.slice(-n)}
         color={theme.palette.primary.main}
         name={w.doseNoun}
         height={260}
         onPointClick={i => {
-          const label = months.slice(-n)[i]
+          const label = axisMonths.slice(-n)[i]
           if (label) setMonthDrill({ label, site })
         }}
       />
@@ -1227,24 +1117,39 @@ const PreventiveIndex: React.FC<{
   const tbl = useSortableTable(rows, { field: 'd90', sort: 'desc' })
 
   const num = (v: number, color: string, weight = 600) => (
-    <Typography sx={{ fontSize: '18px', fontWeight: weight, color, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
+    <Typography sx={{ fontSize: '1rem', fontWeight: weight, color, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
   )
 
   const columns: GridColDef[] = [
-    // single-line name, no schedule subtitle (2026-07-31: headers and cells stay one line)
-    { field: 'name', headerName: w.typeCol, flex: 1, minWidth: 180, renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
-    // Overdue animals by age — the 2026-07-30 review's day buckets, 90+ carries the only red.
-    // Wide enough for ONE-line uppercase headers; counts at 18px (one step above CELL_FONT).
-    { field: 'd30', headerName: '0–30 Days', width: 150, renderCell: p => num(p.row.d30, p.row.d30 ? c.neutralSecondary : c.Outline) },
-    { field: 'd31', headerName: '31–60 Days', width: 160, renderCell: p => num(p.row.d31, p.row.d31 ? c.neutralSecondary : c.Outline) },
-    { field: 'd61', headerName: '61–90 Days', width: 160, renderCell: p => num(p.row.d61, p.row.d61 ? c.OnSurfaceVariant : c.Outline) },
-    { field: 'd90', headerName: '90+ Days', width: 150, renderCell: p => num(p.row.d90, p.row.d90 ? c.Tertiary : c.Outline, 700) },
-    {
-      field: 'sitesAffected',
-      headerName: 'Sites Affected',
-      width: 210,
-      renderCell: p => txt(`${p.row.sitesAffected} of ${p.row.sitesTotal} site${p.row.sitesTotal === 1 ? '' : 's'}`, c.neutralSecondary)
-    }
+    // single-line name, no schedule subtitle (2026-07-31: headers and cells stay one line).
+    // 2026-09-01: Sites Affected dropped, name column widened, bucket columns slimmed and
+    // right-aligned (the 2026-08-27 numbers-right rule), zeros → the pale em dash.
+    { field: 'name', headerName: w.typeCol, flex: 1, minWidth: 280, renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
+    // renderHeader forces ONE line (the kit's wrap-friendly header style breaks even at an
+    // en-dash); widths sized to fit header + sort arrow + cell pad so nothing clips.
+    ...([
+      ['d30', '0–30 D'],
+      ['d31', '31–60 D'],
+      ['d61', '61–90 D'],
+      ['d90', '90+ D']
+    ] as const).map(([field, headerName]): GridColDef => ({
+      field,
+      headerName,
+      renderHeader: () => (
+        <Typography component='span' sx={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.TABLE_HEAD_INK, whiteSpace: 'nowrap' }}>
+          {headerName}
+        </Typography>
+      ),
+      width: field === 'd90' ? 115 : 130,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => {
+        const v = Number(p.row[field] || 0)
+        if (!v) return txt('—', skin.DASH_INK)
+
+        return num(v, field === 'd90' ? skin.CORAL : c.neutralSecondary, field === 'd90' ? 700 : 600)
+      }
+    }))
   ]
 
   return (
@@ -1485,23 +1390,61 @@ const DoseHistoryDrawer: React.FC<{
           <SheetHeader avatar title={animal.name} subtitle={animal.site} onClose={onClose} />
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
             <SheetSection label={typeName} first noDivider>
+              {/* the PENDING dose leads (2026-09-01): scheduled date + how it stands today —
+                  the question an overdue/upcoming drill arrives with. Prescriptions have no
+                  schedule (showLate=false), so they never render this row. */}
+              {showLate && animal.nextDue && (animal.status === 'overdue' || animal.status === 'due') && (
+                <SheetRow
+                  icon={icon}
+                  iconSize={32}
+                  title={`Scheduled ${fmtDate(animal.nextDue)}`}
+                  caption={
+                    <Box
+                      component='span'
+                      sx={{ color: animal.status === 'overdue' ? skin.CORAL : c.OnSurfaceVariant, fontWeight: 600 }}
+                    >
+                      {animal.status === 'overdue' ? 'Overdue' : 'Upcoming'}
+                    </Box>
+                  }
+                  trailing={
+                    <>
+                      {animal.status === 'overdue' ? (
+                        <StatusChip label={`${animal.days ?? 0} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />
+                      ) : (
+                        <StatusChip
+                          label={animal.days == null ? 'Upcoming' : animal.days <= 0 ? 'Today' : `In ${animal.days} d`}
+                          tone={animal.days != null && animal.days <= 7 ? 'caution' : 'neutral'}
+                        />
+                      )}
+                      {/* the dose that's due — same fact the table's Scheduled column carries */}
+                      {rate && (
+                        <Typography variant='caption' sx={{ color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+                          {rate}
+                        </Typography>
+                      )}
+                    </>
+                  }
+                  last={animal.doses.length === 0}
+                />
+              )}
               {animal.doses.map((d, i) => {
                 const amt = animal.amounts?.[i]
                 const late = showLate ? doseLateDays(animal.aid, typeName, d) : 0
 
                 return (
+                  // ONE state grammar (2026-09-01): title mirrors the pending row's verb+date
+                  // ("Administered {date}"), punctuality beneath in the small-caps subline —
+                  // "Same Day" or "Delayed • N d". "Last Given"/"Late" wordings retired.
                   <SheetRow
                     key={i}
                     icon={icon}
                     iconSize={32}
-                    title={fmtDate(d)}
-                    // a delayed administration states its delay under the date (same fact —
-                    // and the same doseLateDays — as the Delayed chart's month sheet chips)
+                    title={`Administered ${fmtDate(d)}`}
+                    // normal case (user call 2026-09-01 — no all-caps), small/semibold/grey
                     caption={
-                      late > 0 ? (
-                        // administered late — dark grey (gold text is unreadable), never coral
-                        <Box component='span' sx={{ color: c.OnSurfaceVariant, fontWeight: 600 }}>
-                          Late • {late}d
+                      showLate ? (
+                        <Box component='span' sx={{ fontSize: '14px', fontWeight: 600, color: c.neutralSecondary }}>
+                          {late > 0 ? `Delayed • ${late} d` : 'Same Day'}
                         </Box>
                       ) : undefined
                     }
@@ -1580,12 +1523,18 @@ const MonthDosesDrawer: React.FC<{
                 key={`${r.a.aid}-${r.date}`}
                 avatar
                 title={r.a.name}
+                // three-line row (user call 2026-09-01): name+id · site · dates
                 caption={
-                  r.kind === 'missed'
-                    ? `Scheduled ${fmtDate(r.due)}`
-                    : r.gap > 0
-                    ? `Scheduled ${fmtDate(r.due)} • given ${fmtDate(r.date)}`
-                    : fmtDate(r.date) // on time — the chip already says so, the date is enough
+                  <>
+                    <Box component='span' sx={{ display: 'block' }}>{r.a.site}</Box>
+                    <Box component='span' sx={{ display: 'block' }}>
+                      {r.kind === 'missed'
+                        ? `Scheduled ${fmtDate(r.due)}`
+                        : r.gap > 0
+                          ? `Scheduled ${fmtDate(r.due)} • given ${fmtDate(r.date)}`
+                          : fmtDate(r.date) /* on time — the chip already says so */}
+                    </Box>
+                  </>
                 }
                 last={i === shown.length - 1}
                 onClick={() => onAnimal(r.a)}
@@ -1593,7 +1542,7 @@ const MonthDosesDrawer: React.FC<{
                 trailing={
                   r.kind === 'missed' ? (
                     // no "overdue" word — the tab already says it
-                    <StatusChip label={`${r.gap}d`} tone='error' />
+                    <StatusChip label={`${r.gap} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />
                   ) : r.gap > 0 ? (
                     // late but ADMINISTERED — yellow, never the overdue coral ('warning' maps
                     // to the same Tertiary as 'error' in this kit; 'caution' is the yellow)
@@ -1656,7 +1605,7 @@ const BucketDrawer: React.FC<{
                 last={i === data.animals.length - 1}
                 onClick={() => onAnimal(a)}
                 chevron
-                trailing={<StatusChip label={`${a.days ?? 0}d overdue`} tone='error' />}
+                trailing={<StatusChip label={`${a.days ?? 0} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />}
               />
             ))}
             {!data.animals.length && <SheetEmpty>No animals in this bucket.</SheetEmpty>}
@@ -1667,8 +1616,9 @@ const BucketDrawer: React.FC<{
   )
 }
 
-/* ── species-level status sheet — stat-tile click → Overdue / Upcoming / Never Given ── */
-type StatusSheetTab = 'overdue' | 'due' | 'never'
+/* ── species-level status sheet — stat-tile click → Overdue / Upcoming (Never Given removed
+   from every screen/scenario, user call 2026-09-01) ── */
+type StatusSheetTab = 'overdue' | 'due'
 type StatusSheetRow = { a: PreventiveTypeAnimal; type: PreventiveType; days: number }
 const STATUS_DAY_MS = 86400000
 const UPCOMING_WINDOWS = [
@@ -1768,14 +1718,13 @@ const PreventiveStatusSheet: React.FC<{
       )
     }
 
-    return { overdue: mk('overdue'), due: mk('due'), never: mk('never') }
+    return { overdue: mk('overdue'), due: mk('due') }
   }, [types, q, vaccines, windowDays, ageBuckets])
   const shown = lists[tab]
 
   const tabs: { key: StatusSheetTab; label: string }[] = [
     { key: 'overdue', label: `${w.overdueLabel} • ${lists.overdue.length}` },
-    { key: 'due', label: `${w.dueShort} • ${lists.due.length}` },
-    { key: 'never', label: `${w.neverLabel} • ${lists.never.length}` }
+    { key: 'due', label: `${w.dueShort} • ${lists.due.length}` }
   ]
 
   const windowLabel = UPCOMING_WINDOWS.find(o => o.value === windowDays)?.label ?? `Next ${windowDays} Days`
@@ -1876,7 +1825,7 @@ const PreventiveStatusSheet: React.FC<{
               chevron
               trailing={
                 tab === 'overdue' ? (
-                  <StatusChip label={`${r.days}d`} tone='error' />
+                  <StatusChip label={`${r.days} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />
                 ) : tab === 'due' ? (
                   // imminent = yellow attention, never coral — these doses aren't a failure
                   <StatusChip label={r.days <= 0 ? 'Today' : `In ${r.days}d`} tone={r.days <= 7 ? 'caution' : 'neutral'} />
@@ -1981,7 +1930,7 @@ const PreventiveDetail: React.FC<{
   const portrait = useMediaQuery('(orientation: portrait)')
   // ONE range drives both dose-administration panels (given | delayed) — they tell one story.
   const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
-  const [statusTab, setStatusTab] = useState<'all' | PreventiveTypeStatus>('all')
+  const [statusTab, setStatusTab] = useState<'overdue' | 'due'>('overdue')
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [drill, setDrill] = useState<PreventiveTypeAnimal | null>(null)
@@ -2068,55 +2017,35 @@ const PreventiveDetail: React.FC<{
     setMonthDrill({ label: `${m[1]} ${year}`, rows })
   }
 
-  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : months.length || 36)
-  const slice = (arr: number[], preset: RangePreset) => arr.slice(-monthsOf(preset))
-  const sliceLabels = (preset: RangePreset) => months.slice(-monthsOf(preset))
+  // Rolling windows anchor at TODAY: pad the axis (and series) up to the current month.
+  const axisMonths = useMemo(() => padMonthsToNow(months), [months])
+  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : axisMonths.length || 36)
+  const slice = (arr: number[], preset: RangePreset) => padSeries(arr, axisMonths.length).slice(-monthsOf(preset))
+  const sliceLabels = (preset: RangePreset) => axisMonths.slice(-monthsOf(preset))
   // >12 columns: thin the axis captions but keep full labels for tooltips
-  const counts: Record<'all' | PreventiveTypeStatus, number> = {
-    all: type.tracked,
-    covered: type.covered,
-    due: type.due,
-    overdue: type.overdue,
-    never: type.never
+  // Two tabs only — Overdue · Upcoming (All/Covered dropped 2026-09-01: the work lives here;
+  // coverage is the header ledger's job). Counts come from the ACTUAL animal list, never the
+  // sidecar's precomputed rollup (seen disagreeing: 90 vs 30) — tabs must match their rows.
+  const counts: Record<'due' | 'overdue', number> = {
+    due: type.animals.filter(a => a.status === 'due').length,
+    overdue: type.animals.filter(a => a.status === 'overdue').length
   }
-  const STATUS_TABS: { key: 'all' | PreventiveTypeStatus; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'covered', label: w.statusLabels.covered },
-    { key: 'due', label: w.statusLabels.due },
+  const STATUS_TABS: { key: 'due' | 'overdue'; label: string }[] = [
     { key: 'overdue', label: w.statusLabels.overdue },
-    { key: 'never', label: w.statusLabels.never }
+    { key: 'due', label: w.statusLabels.due }
   ]
-  const accents: Record<'all' | PreventiveTypeStatus, string> = {
-    all: c.OnSurfaceVariant,
-    covered: theme.palette.primary.dark,
-    due: theme.palette.secondary.main,
-    overdue: c.Tertiary,
-    never: c.neutralSecondary
-  }
 
   const rows = useMemo(() => {
     const query = q.trim().toLowerCase()
 
     return type.animals
-      .filter(a => (statusTab === 'all' || a.status === statusTab) && (!siteFilter || a.site === siteFilter) && (!query || `${a.name} ${a.aid} ${a.site}`.toLowerCase().includes(query)))
+      .filter(a => a.status === statusTab && (!siteFilter || a.site === siteFilter) && (!query || `${a.name} ${a.aid} ${a.site}`.toLowerCase().includes(query)))
       .map(a => ({ id: a.aid, ...a, doseCount: a.doses.length }))
   }, [type.animals, statusTab, siteFilter, q])
   const tbl = useSortableTable(rows, { field: 'nextDue', sort: 'asc' })
   const onQ = (v: string) => {
     setQ(v)
     tbl.setPaginationModel(p => ({ ...p, page: 0 }))
-  }
-
-  const statusPill = (a: PreventiveTypeAnimal) => {
-    const label =
-      a.status === 'overdue'
-        ? `${w.statusLabels.overdue} ${a.days ?? 0}d`
-        : a.status === 'due'
-        ? `${w.coverageLabel === 'On Schedule' ? 'Renew in' : 'in'} ${a.days ?? 0}d`
-        : w.statusLabels[a.status]
-    const tone = a.status === 'covered' ? 'success' : a.status === 'due' ? 'info' : a.status === 'overdue' ? 'error' : 'neutral'
-
-    return <StatusChip label={label} tone={tone as any} />
   }
 
   // Last-dose cell: date on top, given amount beneath (weight-based also states its rate).
@@ -2137,23 +2066,45 @@ const PreventiveDetail: React.FC<{
     )
   }
 
+  // Scheduled cell — date on top, the standard dose to give beneath (mirrors Last Dose).
+  const scheduledCell = (a: PreventiveTypeAnimal) => {
+    if (!a.nextDue) return txt('—', skin.DASH_INK)
+    const sub = doseRate(type.dose)
+
+    return (
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: '1rem', color: c.OnSurfaceVariant, whiteSpace: 'nowrap' }}>{fmtDate(a.nextDue)}</Typography>
+        {sub && (
+          <Typography sx={{ fontSize: '1rem', color: c.neutralSecondary, display: 'block', fontVariantNumeric: 'tabular-nums' }} noWrap>
+            {sub}
+          </Typography>
+        )}
+      </Box>
+    )
+  }
+
+  // The tab says the status, so no chip column; Overdue adds Delayed (days late, coral);
+  // Doses closes the row (user call 2026-09-01).
   const columns: GridColDef[] = [
     { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
     // standard animal cell (avatar · name · site) — the site lives here, not in its own column
     { field: 'name', headerName: 'Animal', flex: 1, minWidth: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
-    { field: 'doseCount', headerName: 'Doses', width: 110, renderCell: p => txt(p.row.doseCount || '—', c.neutralSecondary, 600) },
     { field: 'lastGiven', headerName: 'Last Dose', width: 190, renderCell: p => lastDoseCell(p.row) },
-    {
-      field: 'nextDue',
-      headerName: 'Scheduled',
-      width: 170,
-      // A row is EITHER upcoming OR overdue — one scheduled date, and the Status chip says
-      // which side of it we're on. So the column is the neutral fact ("Scheduled"), in neutral
-      // ink; labelling it "Upcoming" contradicted every overdue row.
-      renderCell: p => txt(p.row.nextDue ? fmtDate(p.row.nextDue) : '—', c.neutralSecondary)
-    },
-    // left-aligned like every other column (user rule: nothing right-aligns)
-    { field: 'status', headerName: 'Status', width: 190, renderCell: p => statusPill(p.row) }
+    { field: 'nextDue', headerName: 'Scheduled', width: 180, renderCell: p => scheduledCell(p.row) },
+    ...(statusTab === 'overdue'
+      ? [
+          {
+            field: 'days',
+            headerName: 'Delayed',
+            width: 130,
+            align: 'right',
+            headerAlign: 'right',
+            renderCell: (p: GridRenderCellParams) =>
+              p.row.days != null ? txt(`${Number(p.row.days).toLocaleString()} d`, skin.CORAL, 700) : txt('—', skin.DASH_INK)
+          } as GridColDef
+        ]
+      : []),
+    { field: 'doseCount', headerName: 'Doses', width: 110, align: 'right', headerAlign: 'right', renderCell: p => (p.row.doseCount ? txt(p.row.doseCount, c.neutralSecondary, 600) : txt('—', skin.DASH_INK)) }
   ]
 
   const statusTabs = (
@@ -2161,7 +2112,6 @@ const PreventiveDetail: React.FC<{
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', ...thinScrollbarSx(theme) }}>
       {STATUS_TABS.map(m => {
         const active = statusTab === m.key
-        const accent = accents[m.key]
 
         return (
           <Box
@@ -2172,12 +2122,12 @@ const PreventiveDetail: React.FC<{
             }}
             role='tab'
             aria-selected={active}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, flexShrink: 0, borderBottom: '2.5px solid', borderColor: active ? accent : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? accent : c.OutlineVariant } }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, flexShrink: 0, borderBottom: '2.5px solid', borderColor: active ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? skin.ACCENT_FILL : c.OutlineVariant } }}
           >
-            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? skin.ACCENT_INK : c.neutralSecondary, whiteSpace: 'nowrap' }}>
               {m.label}
             </Typography>
-            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? accent : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? skin.ACCENT_INK : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
               {counts[m.key].toLocaleString()}
             </Typography>
           </Box>
@@ -2202,100 +2152,82 @@ const PreventiveDetail: React.FC<{
             <Box component='span' sx={{ color: type.overdue ? c.Tertiary : c.neutralSecondary, fontWeight: type.overdue ? 700 : 400 }}>
               {type.overdue} {w.overdueWord}
             </Box>{' '}
-            • {type.due} {w.dueWord} • {type.never} {w.statusLabels.never.toLowerCase()}
+            • {type.due} {w.dueWord}
           </Typography>
         </Box>
       </Box>
 
-      {/* One chart (2026-07-30 review): administered stacked with missed — full bar height =
-          due that month. Right panel: this vaccine's overdue animals bucketed by age → sheet. */}
+      {/* Administered ONLY (2026-08-27 punch-list): gradient columns with the count on every
+          month; overdue never rides the plot — it has its own section below (user call
+          2026-09-01: two separate sections, no repeated ledger line). */}
       <SectionCard
-        title='Doses • Administered vs Overdue'
-        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={theme.palette.primary.dark} />}
+        title='Doses Administered'
+        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={skin.ACCENT_INK} />}
         titleMb={3}
       >
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 300px' }, gap: 6, alignItems: 'stretch' }}>
-          <Box sx={{ minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', mb: 2 }}>
-              {[
-                { color: theme.palette.primary.main, label: 'Administered' },
-                { color: c.Tertiary, label: 'Overdue' }
-              ].map(l => (
-                <Box key={l.label} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: l.color, flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: '16px', color: c.neutralSecondary }}>{l.label}</Typography>
-                </Box>
-              ))}
-            </Box>
-            <SeasonalColumnChart
-              values={slice(derivedDosesPerMonth, doseRange)}
-              labels={sliceLabels(doseRange)}
-              color={theme.palette.primary.main}
-              name={w.doseNoun}
-              series2={{ values: slice(derivedMissedPerMonth, doseRange), name: 'Overdue', color: c.Tertiary }}
-              height={250}
-              padLeft={0}
-              onBarClick={onDoseMonth}
-              tooltipRows={i => {
-                const adm = slice(derivedDosesPerMonth, doseRange)[i] ?? 0
-                const miss = slice(derivedMissedPerMonth, doseRange)[i] ?? 0
+        <BarColumns
+          bars={sliceLabels(doseRange).map((m, i) => [twoLineMonth(m), slice(derivedDosesPerMonth, doseRange)[i] ?? 0] as [string, number])}
+          fill={skin.ACCENT_FILL}
+          noun='doses'
+          height={250}
+          minSlot={64}
+          valueLabels
+          onSelect={label => {
+            const m = sliceLabels(doseRange).find(x => twoLineMonth(x) === label)
+            if (m) onDoseMonth(m)
+          }}
+        />
+      </SectionCard>
 
-                return [
-                  { color: theme.palette.primary.main, label: 'Administered', value: adm.toLocaleString() },
-                  ...(miss ? [{ color: c.Tertiary, label: 'Overdue', value: miss.toLocaleString() }] : []),
-                  { label: 'Total', value: (adm + miss).toLocaleString() }
-                ]
-              }}
-            />
-          </Box>
+      {/* Overdue by Age — its OWN titled section (2026-08-27 punch-list): animal-wise lateness
+          buckets counted from today, as StatBand cells (2026-09-01 — the bare-row layout was
+          rejected). Cell tap → that bucket's animal list. NOTE: cells count the per-vaccine
+          animal list; the sidecar's precomputed type.overdue can disagree (90 vs 30 seen in
+          review) — total intentionally NOT shown here until that pipeline is reconciled. */}
+      <SectionCard title='Overdue by Age' titleMb={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))`, gap: 3 }}>
+          {buckets.map((b, i) => {
+            const live = b.animals.length > 0
 
-          <Box sx={{ borderLeft: { xs: 'none', md: `1px solid ${c.SurfaceVariant}` }, pl: { xs: 0, md: 6 } }}>
-            <Typography sx={{ fontSize: '14px', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: c.neutralSecondary }}>
-              Overdue by Age
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '36px',
-                fontWeight: 800,
-                lineHeight: 1.15,
-                color: type.overdue ? c.Tertiary : c.neutralSecondary,
-                fontVariantNumeric: 'tabular-nums'
-              }}
-            >
-              {type.overdue.toLocaleString()}
-            </Typography>
-            {buckets.map((b, i) => (
+            return (
+              // each bucket = its own quiet tile (2026-09-01: hairline cells read too empty)
               <Box
                 key={b.label}
-                onClick={b.animals.length ? () => setBucketDrill({ label: b.label, animals: b.animals }) : undefined}
+                onClick={live ? () => setBucketDrill({ label: b.label, animals: b.animals }) : undefined}
                 sx={{
+                  px: '18px',
+                  py: '14px',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 3,
-                  py: 3,
-                  px: 1,
-                  borderBottom: i === buckets.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-                  cursor: b.animals.length ? 'pointer' : 'default',
-                  '&:hover': b.animals.length ? { backgroundColor: c.Surface } : undefined
+                  flexDirection: 'column',
+                  gap: '9px',
+                  borderRadius: '12px',
+                  backgroundColor: skin.FIELD_BG,
+                  border: `1px solid ${skin.HAIR}`,
+                  ...(live && { cursor: 'pointer', ...skin.cardPressSx, '&:hover': { backgroundColor: skin.ROW_HOVER } })
                 }}
               >
-                <Typography sx={{ flex: 1, fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }}>
+                <Typography sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}>
                   {b.label}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '22px',
-                    fontWeight: 800,
-                    fontVariantNumeric: 'tabular-nums',
-                    color: b.animals.length ? [c.neutralSecondary, c.neutralSecondary, c.OnSurfaceVariant, c.Tertiary][i] : c.Outline
-                  }}
-                >
-                  {b.animals.length}
-                </Typography>
-                {b.animals.length > 0 && <Icon icon='mdi:chevron-right' fontSize={17} color={c.Outline} />}
+                {/* chevron = the house "this opens something" affordance (Overview card grammar) */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      lineHeight: 1.05,
+                      letterSpacing: '-0.6px',
+                      fontVariantNumeric: 'tabular-nums',
+                      color: !live ? skin.DASH_INK : i === buckets.length - 1 ? skin.CORAL : skin.VALUE
+                    }}
+                  >
+                    {b.animals.length.toLocaleString()}
+                  </Typography>
+                  {live && <Icon icon='mdi:chevron-right' fontSize={20} color={skin.FAINT} />}
+                </Box>
               </Box>
-            ))}
-          </Box>
+            )
+          })}
         </Box>
       </SectionCard>
 
@@ -2941,7 +2873,9 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
     { field: 'lastGiven', headerName: 'Last Given', width: 170, renderCell: p => txt(p.row.lastGiven ? fmtDate(p.row.lastGiven) : '—', c.neutralSecondary) }
   ]
 
-  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : rx.months.length || 36)
+  // Rolling windows anchor at TODAY (padded axis — same rule as the preventive detail).
+  const rxAxis = useMemo(() => padMonthsToNow(rx.months), [rx.months])
+  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : rxAxis.length || 36)
   const n = monthsOf(doseRange)
 
   return (
@@ -2956,49 +2890,32 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
         </Typography>
       </Box>
 
-      <StatsRow cols={4}>
-        <StatTile label='Animals' value={med.tracked.toLocaleString()} tone='neutral' />
-        <StatTile label='Prescriptions' value={med.courses.toLocaleString()} tone='neutral' />
-        <StatTile label='Doses Given' value={med.dosesGiven.toLocaleString()} tone='neutral' />
-        <StatTile label='Doses Missed' value={med.dosesMissed.toLocaleString()} tone='error' />
-      </StatsRow>
+      <SignalsBand
+        cells={[
+          { key: 'animals', label: 'Animals', count: med.tracked, tone: 'neutral' },
+          { key: 'courses', label: 'Prescriptions', count: med.courses, tone: 'neutral' },
+          { key: 'given', label: 'Doses Given', count: med.dosesGiven, tone: 'neutral' },
+          { key: 'missed', label: 'Doses Missed', count: med.dosesMissed }
+        ]}
+      />
 
-      {/* Administered stacked with missed (skipped + stopped) — full bar = scheduled that month.
-          The prescription analog of vaccination's Administered-vs-Overdue chart. */}
+      {/* Administered ONLY (2026-08-27 punch-list pattern) — missed lives in the stat strip
+          and the month drill, not in the plot. */}
       <SectionCard
-        title='Doses • Administered vs Missed'
-        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={theme.palette.primary.dark} />}
+        title='Doses Administered'
+        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={skin.ACCENT_INK} />}
         titleMb={3}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', mb: 2 }}>
-          {[
-            { color: theme.palette.primary.main, label: 'Administered' },
-            { color: c.Tertiary, label: 'Missed' }
-          ].map(l => (
-            <Box key={l.label} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: l.color, flexShrink: 0 }} />
-              <Typography sx={{ fontSize: '16px', color: c.neutralSecondary }}>{l.label}</Typography>
-            </Box>
-          ))}
-        </Box>
-        <SeasonalColumnChart
-          values={med.dosesPerMonth.slice(-n)}
-          labels={rx.months.slice(-n)}
-          color={theme.palette.primary.main}
-          name='Administered'
-          series2={{ values: med.missedPerMonth.slice(-n), name: 'Missed', color: c.Tertiary }}
+        <BarColumns
+          bars={rxAxis.slice(-n).map((m, i) => [twoLineMonth(m), padSeries(med.dosesPerMonth, rxAxis.length).slice(-n)[i] ?? 0] as [string, number])}
+          fill={skin.ACCENT_FILL}
+          noun='doses'
           height={250}
-          padLeft={0}
-          onBarClick={(label: string) => setMonthDrill({ label })}
-          tooltipRows={(i: number) => {
-            const adm = med.dosesPerMonth.slice(-n)[i] ?? 0
-            const miss = med.missedPerMonth.slice(-n)[i] ?? 0
-
-            return [
-              { color: theme.palette.primary.main, label: 'Administered', value: adm.toLocaleString() },
-              ...(miss ? [{ color: c.Tertiary, label: 'Missed', value: miss.toLocaleString() }] : []),
-              { label: 'Scheduled', value: (adm + miss).toLocaleString() }
-            ]
+          minSlot={64}
+          valueLabels
+          onSelect={label => {
+            const m = rxAxis.slice(-n).find(x => twoLineMonth(x) === label)
+            if (m) setMonthDrill({ label: m })
           }}
         />
       </SectionCard>
@@ -3066,20 +2983,22 @@ const PrescriptionIndex: React.FC<{ rx: RxProgram; onPick: (name: string) => voi
   }, [rx])
 
   const num = (v: number, color: string, weight = 600) => (
-    <Typography sx={{ fontSize: '18px', fontWeight: weight, color, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
+    <Typography sx={{ fontSize: '1rem', fontWeight: weight, color, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
   )
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Medicine', flex: 1, minWidth: 200, renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
-    { field: 'animalsN', headerName: 'Animals', width: 130, renderCell: p => num(p.row.animalsN, c.neutralSecondary) },
-    { field: 'courses', headerName: 'Prescriptions', width: 180, renderCell: p => num(p.row.courses, c.neutralSecondary) },
+    { field: 'animalsN', headerName: 'Animals', width: 130, align: 'right', headerAlign: 'right', renderCell: p => (p.row.animalsN ? num(p.row.animalsN, c.neutralSecondary) : txt('—', skin.DASH_INK)) },
+    { field: 'courses', headerName: 'Prescriptions', width: 180, align: 'right', headerAlign: 'right', renderCell: p => (p.row.courses ? num(p.row.courses, c.neutralSecondary) : txt('—', skin.DASH_INK)) },
     {
       field: 'given30',
       headerName: 'Last 30 Days',
       width: 160,
-      renderCell: p => num(p.row.given30, p.row.given30 ? (p.row.given30 >= hot30 ? c.Tertiary : c.OnSurfaceVariant) : c.Outline, p.row.given30 >= hot30 ? 700 : 600)
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => (p.row.given30 ? num(p.row.given30, p.row.given30 >= hot30 ? skin.CORAL : c.OnSurfaceVariant, p.row.given30 >= hot30 ? 700 : 600) : txt('—', skin.DASH_INK))
     },
-    { field: 'given60', headerName: 'Last 60 Days', width: 160, renderCell: p => num(p.row.given60, p.row.given60 ? c.neutralSecondary : c.Outline) },
+    { field: 'given60', headerName: 'Last 60 Days', width: 160, align: 'right', headerAlign: 'right', renderCell: p => (p.row.given60 ? num(p.row.given60, c.neutralSecondary) : txt('—', skin.DASH_INK)) },
     { field: 'lastGiven', headerName: 'Last Given', width: 160, renderCell: p => txt(p.row.lastGiven ? fmtDate(p.row.lastGiven) : '—', c.neutralSecondary) }
   ]
 
@@ -3109,38 +3028,15 @@ const PrescriptionIndex: React.FC<{ rx: RxProgram; onPick: (name: string) => voi
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <StatsRow cols={5}>
-        <StatTile
-          label='Prescriptions'
-          value={rx.summary.prescriptions.toLocaleString()}
-          tone='neutral'
-          onClick={() => setStatusSheet('courses')}
-        />
-        <StatTile
-          label='Animals Treated'
-          value={rx.summary.animalsTreated.toLocaleString()}
-          tone='neutral'
-          onClick={() => setStatusSheet('animals')}
-        />
-        <StatTile
-          label='Given in Last 30 Days'
-          value={rx.summary.given30.toLocaleString()}
-          tone='neutral'
-          onClick={() => setStatusSheet('d30')}
-        />
-        <StatTile
-          label='Given in Last 60 Days'
-          value={rx.summary.given60.toLocaleString()}
-          tone='neutral'
-          onClick={() => setStatusSheet('d60')}
-        />
-        <StatTile
-          label='Doses Missed'
-          value={rx.summary.dosesMissed.toLocaleString()}
-          tone='error'
-          onClick={() => setStatusSheet('missed')}
-        />
-      </StatsRow>
+      <SignalsBand
+        cells={[
+          { key: 'courses', label: 'Prescriptions', count: rx.summary.prescriptions, tone: 'neutral', onOpen: () => setStatusSheet('courses') },
+          { key: 'animals', label: 'Animals Treated', count: rx.summary.animalsTreated, tone: 'neutral', onOpen: () => setStatusSheet('animals') },
+          { key: 'd30', label: 'Given in Last 30 Days', count: rx.summary.given30, tone: 'neutral', onOpen: () => setStatusSheet('d30') },
+          { key: 'd60', label: 'Given in Last 60 Days', count: rx.summary.given60, tone: 'neutral', onOpen: () => setStatusSheet('d60') },
+          { key: 'missed', label: 'Doses Missed', count: rx.summary.dosesMissed, onOpen: () => setStatusSheet('missed') }
+        ]}
+      />
       <RxStatusSheet openTab={statusSheet} rx={rx} onClose={() => setStatusSheet(null)} />
       {/* Portrait: title row, then full-width search (shipped two-row grammar). */}
       <SectionCard
@@ -3196,155 +3092,25 @@ const PrescriptionPanel: React.FC<{ rx: RxProgram }> = ({ rx }) => {
   )
 }
 
-/** Rounded pill: type name + a metric value. Optional `dot` = worst-active-prognosis marker. */
-const ChipTag: React.FC<{
-  label: string
-  value: React.ReactNode
-  valueColor: string
-  /** [bg, border] from the medical-tag ramp — the pill wears its worst severity/prognosis. */
-  tint?: [string, string]
-  onClick?: () => void
-}> = ({ label, value, valueColor, tint, onClick }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
-  return (
-    <Box
-      onClick={onClick}
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 1.25,
-        px: 4,
-        py: 1.25,
-        borderRadius: '999px',
-        border: `1px solid ${tint ? tint[1] : c.SurfaceVariant}`,
-        backgroundColor: tint ? tint[0] : theme.palette.background.paper,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'box-shadow .15s ease',
-        '&:hover': onClick ? { boxShadow: '0 2px 8px rgba(31,81,91,0.14)' } : undefined
-      }}
-    >
-      <Typography variant='body2' sx={{ fontWeight: 500, color: c.OnSurfaceVariant }}>
-        {label}
-      </Typography>
-      <Box component='span' sx={{ fontSize: '0.95rem', fontWeight: 700, color: valueColor, fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </Box>
-    </Box>
-  )
-}
-
-/**
- * Type list for the stat-tile side sheet, rendered with the standard antz DetailTable (DataGrid):
- * Symptom · Records · Animals · Recurrence, sortable headers, standard row height/colours.
- * Every row is clickable → filters the animal table.
- */
-const TypeTable: React.FC<{
-  items: { name: string; count: number; animals: number; category?: string }[]
-  noun: string
-  // MUST reference a real column field below — a sortModel field with no matching column throws
-  // DataGrid's "Maximum update depth exceeded" crash.
-  initialSort?: { field: 'count' | 'animals' | 'ratio' | 'name'; sort: 'asc' | 'desc' }
-  onPick: (name: string) => void
-}> = ({ items, noun, initialSort = { field: 'count', sort: 'desc' }, onPick }) => {
-  const { txt, c, theme } = useCells()
-  const rows = useMemo(
-    () =>
-      items.map((d, i) => ({ id: i, name: d.name, category: d.category, count: d.count, animals: d.animals, ratio: d.count / Math.max(1, d.animals) })),
-    [items]
-  )
-  const tbl = useSortableTable(rows, initialSort)
-  const hasCategory = items.some(d => d.category)
-
-  const columns: GridColDef[] = [
-    { field: 'name', headerName: noun === 'symptoms' ? 'Symptom' : 'Assessment', flex: 1, minWidth: 200, renderCell: p => txt(p.row.name, undefined, 600) },
-    ...(hasCategory
-      ? [
-          {
-            field: 'category',
-            headerName: 'Category',
-            width: 170,
-            renderCell: (p: any) => txt(p.row.category || '—', c.neutralSecondary)
-          } as GridColDef
-        ]
-      : []),
-    {
-      field: 'count',
-      headerName: 'Records',
-      width: 120,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: p => txt(p.row.count.toLocaleString(), undefined, 700)
-    },
-    {
-      field: 'animals',
-      headerName: 'Animals',
-      width: 120,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: p => txt(p.row.animals.toLocaleString(), c.neutralSecondary, 600)
-    },
-    {
-      field: 'ratio',
-      headerName: 'Recurrence',
-      width: 140,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: p => txt(`${p.row.ratio.toFixed(1)}×`, theme.palette.primary.dark, 700)
-    }
-  ]
-
-  if (!items.length) {
-    return (
-      <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-        No {noun} in this group.
-      </Typography>
-    )
-  }
-
-  return (
-    <DetailTable
-      columns={columns}
-      rows={tbl.rows}
-      total={tbl.total}
-      paginationModel={tbl.paginationModel}
-      setPaginationModel={tbl.setPaginationModel}
-      sortModel={tbl.sortModel}
-      handleSortModel={tbl.handleSortModel}
-      onRowClick={p => onPick(p.row.name)}
-    />
-  )
-}
-
-/* ═══════════════════════════════════════════════ Clinical panel (merged Symptoms + Clinical Assessment) */
 const ClinicalMergedPanel: React.FC<{
   symptoms?: ClinicalProgram
   diagnosis?: ClinicalProgram
   range: RangeSelection
 }> = ({ symptoms, diagnosis, range }) => {
-  const { txt, animalCell, c, theme } = useCells()
-  const tagColors = medTagMap(c)
+  const { txt, c } = useCells()
   const portrait = useMediaQuery('(orientation: portrait)')
 
-  // table scoping
-  const [domainTab, setDomainTab] = useState<DomainTab>('all')
-  const [typeFilter, setTypeFilter] = useState<{ domain: Domain; name: string } | null>(null)
-  const [monthFilter, setMonthFilter] = useState<{ idx: number; y: number; m: number; label: string } | null>(null)
-  const [statusFilter, setStatusFilter] = useState<'active' | 'resolved' | null>(null)
-  const [sevFilter, setSevFilter] = useState<string | null>(null)
-  const [progFilter, setProgFilter] = useState<string | null>(null)
-  const [view, setView] = useState<'animal' | 'record'>('animal')
+  // 2026-08-27 stakeholder restructure: TWO sub-tabs (Symptoms / Clinical Assessment),
+  // each ONE condition-wise table. Top chips, overview cards, animal/record toggle,
+  // status column and level dropdowns all retired.
+  const [domain, setDomain] = useState<Domain>('symptom')
   const [q, setQ] = useState('')
-  // ranked panels (Top Symptoms | Top Conditions)
-  const [symCat, setSymCat] = useState<string | null>(null)
-  const [condCat, setCondCat] = useState<string | null>(null)
-  const [viewAll, setViewAll] = useState<Domain | null>(null)
-  // sheets / drawers
+  // bottom sheet (row tap): month graph + conditional Active/Resolved animal tabs
   const [typeSheet, setTypeSheet] = useState<{ domain: Domain; name: string } | null>(null)
   const [sheetRange, setSheetRange] = useState<RangePreset>('last_1y')
+  const [sheetTab, setSheetTab] = useState<'active' | 'resolved'>('active')
+  const [sheetMonth, setSheetMonth] = useState<{ y: number; m: number; label: string } | null>(null)
   const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
-  const tableRef = useRef<HTMLDivElement>(null)
 
   const inWin = useWindow(range)
   const all = range.preset === 'all'
@@ -3360,41 +3126,6 @@ const ClinicalMergedPanel: React.FC<{
 
     return out
   }, [symptoms, diagnosis, all, range])
-
-  // ── stat band (both domains; 'All time' trusts the precomputed summaries) ──
-  const symActive = all ? symptoms?.summary.active ?? 0 : windowed.filter(r => r.domain === 'symptom' && r.status === 'active').length
-  const diagActive = all ? diagnosis?.summary.active ?? 0 : windowed.filter(r => r.domain === 'assessment' && r.status === 'active').length
-  const affected = new Set(windowed.map(r => r.aid)).size
-  const totalCases = all
-    ? (symptoms?.summary.active ?? 0) + (symptoms?.summary.resolved ?? 0) + (diagnosis?.summary.active ?? 0) + (diagnosis?.summary.resolved ?? 0)
-    : windowed.length
-  const totalResolved = all
-    ? (symptoms?.summary.resolved ?? 0) + (diagnosis?.summary.resolved ?? 0)
-    : windowed.filter(r => r.status === 'resolved').length
-  const recoveredPct = totalCases ? Math.round((totalResolved / totalCases) * 100) : 0
-
-  // Worst ACTIVE level per type (falls back to worst overall) → the pill tint from the
-  // medical-tag ramp. Symptoms rank by severity (High…Low), assessments by prognosis (Grave…Favourable).
-  const worstLevel = useMemo(() => {
-    const rankOf = (r: MergedRec) =>
-      r.domain === 'assessment' ? PROGNOSIS_ORDER.indexOf(r.prognosis ?? '') : SEVERITY_ORDER.indexOf(r.severity ?? '')
-    const act: Record<string, number> = {}
-    const any: Record<string, number> = {}
-    for (const r of windowed) {
-      const rk = rankOf(r)
-      if (rk < 0) continue
-      const key = `${r.domain}|${r.type}`
-      if (any[key] == null || rk < any[key]) any[key] = rk
-      if (r.status === 'active' && (act[key] == null || rk < act[key])) act[key] = rk
-    }
-
-    return (domain: Domain, type: string): string | undefined => {
-      const rk = act[`${domain}|${type}`] ?? any[`${domain}|${type}`]
-      if (rk == null) return undefined
-
-      return domain === 'assessment' ? PROGNOSIS_ORDER[rk] : SEVERITY_ORDER[rk]
-    }
-  }, [windowed])
 
   // ── ranked types per domain (windowed), each carrying its category ──
   const rankTypes = (domain: Domain, prog?: ClinicalProgram) => {
@@ -3414,86 +3145,41 @@ const ClinicalMergedPanel: React.FC<{
   const symTypes = useMemo(() => rankTypes('symptom', symptoms), [windowed, all, symptoms])
   const condTypes = useMemo(() => rankTypes('assessment', diagnosis), [windowed, all, diagnosis])
 
+  // Recurring Animals per type — animals with 2+ bouts of that symptom/assessment in the
+  // window (the ×N animals the sheet already marks; the column ranks where it concentrates).
+  const recurringOf = useMemo(() => {
+    const perType = new Map<string, Map<string, number>>()
+    for (const r of windowed) {
+      const k = `${r.domain}|${r.type}`
+      const m = perType.get(k) ?? new Map<string, number>()
+      m.set(r.aid, (m.get(r.aid) ?? 0) + 1)
+      perType.set(k, m)
+    }
+    const out = new Map<string, number>()
+    for (const [k, m] of perType) out.set(k, [...m.values()].filter(n => n >= 2).length)
 
-  const catsOf = (list: { category: string }[]) => Array.from(new Set(list.map(t => t.category))).sort()
-  const symCats = useMemo(() => catsOf(symTypes), [symTypes])
-  const condCats = useMemo(() => catsOf(condTypes), [condTypes])
+    return out
+  }, [windowed])
 
-  const filterTypes = <T extends { name: string; category: string }>(list: T[], cat: string | null, tq: string): T[] =>
-    list.filter(t => (!cat || t.category === cat) && (!tq.trim() || t.name.toLowerCase().includes(tq.trim().toLowerCase())))
-  const symShown = useMemo(() => filterTypes(symTypes, symCat, ''), [symTypes, symCat])
-  const condShown = useMemo(() => filterTypes(condTypes, condCat, ''), [condTypes, condCat])
+  // ── condition-wise rows: ONE row per symptom/assessment (the 2026-08-27 pivot) ──
+  const types = domain === 'symptom' ? symTypes : condTypes
+  const shown = useMemo(() => {
+    const query = q.trim().toLowerCase()
 
-  const PILL_LIMIT = 12
-
-  const scrollToTable = () => setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
-
-  // Pill click → scope the table to that type + open the graph sheet (fresh at 1Y).
-  const pickType = (domain: Domain, name: string) => {
-    setDomainTab(domain)
-    setTypeFilter({ domain, name })
-    setStatusFilter(null)
-    setMonthFilter(null)
-    setSheetRange('last_1y')
-    setTypeSheet({ domain, name })
-  }
-
-  // Stat-tile click → scope the table below (kept behaviour).
-  const scopeTable = (domain: DomainTab, status: 'active' | 'resolved' | null) => {
-    setDomainTab(domain)
-    setStatusFilter(status)
-    setTypeFilter(null)
-    setMonthFilter(null)
-    scrollToTable()
-  }
-
-  const inMonth = (dateStr: string) => {
-    if (!monthFilter) return true
-    const d = new Date(dateStr)
-
-    return d.getFullYear() === monthFilter.y && d.getMonth() === monthFilter.m
-  }
-
-  // ── combined table scoping (status/type/month/category apply before the domain tabs count) ──
-  // Severity/prognosis each scope only their OWN domain's records: Severity=High keeps High
-  // symptoms while assessments stay intact (unless the prognosis filter is also set).
-  const base = useMemo(() => {
-    let s = windowed
-    if (statusFilter) s = s.filter(r => r.status === statusFilter)
-    if (typeFilter) s = s.filter(r => r.domain === typeFilter.domain && r.type === typeFilter.name)
-    if (monthFilter) s = s.filter(r => inMonth(r.date))
-    if (sevFilter) s = s.filter(r => r.domain !== 'symptom' || r.severity === sevFilter)
-    if (progFilter) s = s.filter(r => r.domain !== 'assessment' || r.prognosis === progFilter)
-
-    return s
-  }, [windowed, statusFilter, typeFilter, monthFilter, sevFilter, progFilter])
-  const searched = useMemo(() => (q.trim() ? base.filter(r => matchesQuery(r, q)) : base), [base, q])
-  const counts: Record<DomainTab, number> = useMemo(
-    () => ({
-      all: searched.length,
-      symptom: searched.filter(r => r.domain === 'symptom').length,
-      assessment: searched.filter(r => r.domain === 'assessment').length
-    }),
-    [searched]
+    return query ? types.filter(t => t.name.toLowerCase().includes(query)) : types
+  }, [types, q])
+  const rows = useMemo(
+    () =>
+      shown.map(t => ({
+        id: t.name,
+        name: t.name,
+        animals: t.animals,
+        count: t.count,
+        recurring: recurringOf.get(`${domain}|${t.name}`) ?? 0
+      })),
+    [shown, domain, recurringOf]
   )
-  const scoped = useMemo(() => (domainTab === 'all' ? searched : searched.filter(r => r.domain === domainTab)), [searched, domainTab])
-  const scopedNoQ = useMemo(() => (domainTab === 'all' ? base : base.filter(r => r.domain === domainTab)), [base, domainTab])
-
-  const recordRows = useMemo(() => scoped.map((r, i) => ({ ...r, id: i })), [scoped])
-  // Animal-wise groups keep the animal's FULL record set; the search then matches whole groups.
-  // Each group gets per-domain condition tags at their worst active severity/prognosis.
-  const animalRows = useMemo(() => {
-    const grouped = groupByAnimal(scopedNoQ, 'date', 'active').map(g => ({
-      ...g,
-      symChips: worstOf(g.records as MergedRec[], 'symptom'),
-      asmChips: worstOf(g.records as MergedRec[], 'assessment')
-    }))
-
-    return q.trim() ? grouped.filter(g => matchesQuery(g, q)) : grouped
-  }, [scopedNoQ, q])
-
-  const tbl = useSortableTable(recordRows, { field: 'date', sort: 'desc' })
-  const atbl = useSortableTable(animalRows, { field: 'active', sort: 'desc' })
+  const table = useSortableTable(rows, { field: 'animals', sort: 'desc' })
 
   // Row click (either view) → that animal's FULL clinical timeline, rebuilt from the
   // un-chip-filtered window. Filters find the animal; the drawer shows the whole story —
@@ -3502,22 +3188,13 @@ const ClinicalMergedPanel: React.FC<{
     const g = groupByAnimal(windowed.filter(r => r.aid === aid), 'date', 'active')[0]
     if (g) setAnimalDrill(g)
   }
-  const onQ = (v: string) => {
-    setQ(v)
-    tbl.setPaginationModel(p => ({ ...p, page: 0 }))
-    atbl.setPaginationModel(p => ({ ...p, page: 0 }))
-  }
-  const resetPages = () => {
-    tbl.setPaginationModel(p => ({ ...p, page: 0 }))
-    atbl.setPaginationModel(p => ({ ...p, page: 0 }))
-  }
-  const onSev = (v: string | null) => {
-    setSevFilter(v)
-    resetPages()
-  }
-  const onProg = (v: string | null) => {
-    setProgFilter(v)
-    resetPages()
+
+  // Row tap → the bottom sheet, fresh at 1Y with no month scope.
+  const openType = (name: string) => {
+    setSheetRange('last_1y')
+    setSheetMonth(null)
+    setSheetTab('active')
+    setTypeSheet({ domain, name })
   }
 
   // Per-type graph sheet: distinct animals affected per month. The sheet has its own
@@ -3546,135 +3223,120 @@ const ClinicalMergedPanel: React.FC<{
     }
   }, [typeSheet, symptoms, diagnosis, sheetRange])
 
-  // Bar click → close the sheet, filter table by type + that month, Record-wise, scroll to it.
+  // Bar click → scope the animal list below to that month (tap again / ✕ chip to clear).
   const onSheetBar = (i: number) => {
-    if (!sheetSeries || !typeSheet) return
+    if (!sheetSeries) return
     const mf = monthForBar(i, sheetSeries.series.length, new Date())
-    setDomainTab(typeSheet.domain)
-    setTypeFilter(typeSheet)
-    setStatusFilter(null)
-    setMonthFilter({ idx: i, y: mf.y, m: mf.m, label: mf.label })
-    setView('record')
-    setTypeSheet(null)
-    scrollToTable()
-  }
-  const onSheetViewAll = () => {
-    if (!typeSheet) return
-    setDomainTab(typeSheet.domain)
-    setTypeFilter(typeSheet)
-    setMonthFilter(null)
-    setStatusFilter(null)
-    setTypeSheet(null)
-    scrollToTable()
+    setSheetMonth(prev => (prev && prev.y === mf.y && prev.m === mf.m ? null : mf))
   }
 
-  /* ── cells / columns ── */
-  const domainCell = (domain: Domain) => {
-    const meta = DOMAIN_META[domain]
-    const color = domain === 'symptom' ? c.Tertiary : theme.palette.secondary.main
+  // Animal groups for the open type — same range window as the chart, further scoped by a
+  // bar-picked month. Active = a bout still running (an animal with mixed bouts is Active —
+  // currently sick is the operative fact); Resolved = every bout closed, stamped with the
+  // latest resolved date (onset + duration; the data has no clock time).
+  const sheetAnimals = useMemo(() => {
+    if (!typeSheet) return null
+    const now = new Date()
+    const src = (typeSheet.domain === 'symptom' ? symptoms : diagnosis)?.records ?? []
+    let recs = src.filter(r => r.type === typeSheet.name)
+    let n = sheetRange === 'last_2y' ? 24 : sheetRange === 'last_3y' ? 36 : 12
+    if (sheetRange === 'all' && recs.length) {
+      const earliest = recs.reduce((min, r) => (r.date < min ? r.date : min), recs[0].date)
+      const ed = new Date(earliest)
+      n = Math.max(12, (now.getFullYear() - ed.getFullYear()) * 12 + (now.getMonth() - ed.getMonth()) + 1)
+    }
+    const winStart = new Date(now.getFullYear(), now.getMonth() - (n - 1), 1)
+    recs = recs.filter(r => new Date(r.date) >= winStart)
+    if (sheetMonth) {
+      recs = recs.filter(r => {
+        const d = new Date(r.date)
 
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Icon icon={meta.icon} fontSize='1.1rem' color={color} />
-        <Typography variant='body2' sx={{ fontWeight: 600, color }}>
-          {meta.label}
-        </Typography>
-      </Box>
-    )
-  }
+        return d.getFullYear() === sheetMonth.y && d.getMonth() === sheetMonth.m
+      })
+    }
+    const byAid = new Map<string, { name: string; site: string; enclosure: string; recs: ClinicalRecord[] }>()
+    for (const r of recs) {
+      const g = byAid.get(r.aid) ?? { name: r.name, site: r.site, enclosure: r.enclosure, recs: [] }
+      g.recs.push(r)
+      byAid.set(r.aid, g)
+    }
+    const active: SheetAnimalRow[] = []
+    const resolved: SheetAnimalRow[] = []
+    for (const [aid, g] of byAid) {
+      const chronic = g.recs.some(r => !!r.chronic)
+      const act = [...g.recs.filter(r => r.status === 'active')].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
+      if (act) {
+        active.push({ aid, name: g.name, site: g.site, enclosure: g.enclosure, times: g.recs.length, days: act.durationDays, date: act.date, chronic })
+      } else {
+        const end = g.recs.map(r => addDays(r.date, r.durationDays)).sort().pop()!
+        resolved.push({ aid, name: g.name, site: g.site, enclosure: g.enclosure, times: g.recs.length, resolvedOn: end, date: end, chronic })
+      }
+    }
+    active.sort((a, b) => ((a.date ?? '') < (b.date ?? '') ? 1 : -1))
+    resolved.sort((a, b) => ((a.date ?? '') < (b.date ?? '') ? 1 : -1))
 
-  // Record-wise: the Type cell IS the colored tag (severity/prognosis + domain icon) — no
-  // separate level column. Domain column only on the All tab (redundant on a single-domain tab).
+    return { active, resolved }
+  }, [typeSheet, symptoms, diagnosis, sheetRange, sheetMonth])
+
+  /* ── the ONE table's columns (Housing anatomy + CoL grammar): No serial · type name ·
+     right-aligned counts · quiet severity/prognosis type. No status column (2026-08-27). ── */
+  const nameHeader = domain === 'symptom' ? 'Symptom' : 'Clinical Assessment'
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
-    { field: 'name', headerName: 'Animal', width: 240, renderCell: p => animalCell(p.row.name, p.row.site) },
-    ...(domainTab === 'all'
-      ? [{ field: 'domain', headerName: 'Domain', width: 160, renderCell: (p: any) => domainCell(p.row.domain) } as GridColDef]
-      : []),
+    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
+    { minWidth: 240, flex: 1, field: 'name', headerName: nameHeader, renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
     {
-      field: 'type',
-      headerName: 'Type',
-      flex: 1,
-      minWidth: 220,
-      renderCell: p => <MedTagChip name={p.row.type} domain={p.row.domain} level={p.row.domain === 'symptom' ? p.row.severity : p.row.prognosis} />
+      width: 130,
+      align: 'right',
+      headerAlign: 'right',
+      field: 'animals',
+      headerName: 'Animals',
+      renderCell: (p: GridRenderCellParams) => txt(Number(p.row.animals || 0).toLocaleString(), undefined, 700)
     },
-    { field: 'category', headerName: 'Category', width: 170, renderCell: p => txt(p.row.category || '—', c.neutralSecondary) },
     {
-      field: 'status',
-      headerName: 'Status',
+      width: 130,
+      align: 'right',
+      headerAlign: 'right',
+      field: 'count',
+      headerName: 'Records',
+      renderCell: (p: GridRenderCellParams) => txt(Number(p.row.count || 0).toLocaleString(), c.neutralSecondary, 600)
+    },
+    {
+      // narrow by user call — the header wraps to two right-aligned lines (kit handles it)
       width: 140,
-      renderCell: p => <StatusChip label={p.row.status === 'active' ? 'Active' : 'Resolved'} tone={p.row.status === 'active' ? 'error' : 'success'} />
-    },
-    { field: 'durationDays', headerName: 'Duration', width: 145, renderCell: p => txt(`${p.row.durationDays}d`, c.neutralSecondary) },
-    { field: 'date', headerName: 'Date', width: 150, renderCell: p => txt(fmtDate(p.row.date), c.neutralSecondary) }
-  ]
+      align: 'right',
+      headerAlign: 'right',
+      field: 'recurring',
+      headerName: 'Recurring Animals',
+      renderCell: (p: GridRenderCellParams) => {
+        const n = Number(p.row.recurring || 0)
+        if (!n) return txt('—', skin.DASH_INK)
 
-  // Animal-wise: separate Symptoms / Clinical Assessments tag columns on All; a single-domain
-  // tab drops the other column. Widths sized so NO header ever truncates.
-  const chipCol = (field: 'symChips' | 'asmChips', headerName: string, domain: Domain): GridColDef => ({
-    field,
-    headerName,
-    flex: 1,
-    minWidth: 250,
-    sortable: false,
-    renderCell: p => (p.row[field].length ? <ChipsCell chips={p.row[field]} domain={domain} /> : txt('—', c.neutralSecondary))
-  })
-  const animalColumns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
-    { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
-    ...(domainTab !== 'assessment' ? [chipCol('symChips', 'Symptoms', 'symptom')] : []),
-    ...(domainTab !== 'symptom' ? [chipCol('asmChips', 'Clinical Assessments', 'assessment')] : []),
-    { field: 'count', headerName: 'Records', width: 160, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.count, c.neutralSecondary) },
-    { field: 'active', headerName: 'Active', width: 140, align: 'center', headerAlign: 'center', renderCell: p => txt(p.row.active, p.row.active ? c.Tertiary : c.neutralSecondary, 700) },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 150,
-      renderCell: p => (p.row.active ? <StatusChip label='Active' tone='error' /> : <StatusChip label='Recovered' tone='success' />)
+        return txt(n.toLocaleString(), skin.CORAL, 700)
+      }
     }
   ]
 
-  /* ── table header: left domain tabs (CoL table-tab pattern) + active filter chips ── */
-  const DOMAIN_TABS: { key: DomainTab; label: string; icon: string }[] = [
-    { key: 'all', label: 'All', icon: 'mdi:format-list-bulleted' },
-    { key: 'symptom', label: 'Symptoms', icon: DOMAIN_META.symptom.icon },
-    { key: 'assessment', label: 'Assessments', icon: DOMAIN_META.assessment.icon }
-  ]
-  const accents: Record<DomainTab, string> = { all: c.OnSurfaceVariant, symptom: c.Tertiary, assessment: theme.palette.secondary.main }
+  /* ── card header: the two underline sub-tabs (Necropsy pattern) + the standard search pill ── */
   const domainTabs = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', minWidth: 0, ...thinScrollbarSx(theme) }}>
-      {DOMAIN_TABS.map(m => {
-        const active = domainTab === m.key
-        const accent = accents[m.key]
+    <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {(
+        [
+          { key: 'symptom', label: 'Symptoms', n: symTypes.length },
+          { key: 'assessment', label: 'Clinical Assessment', n: condTypes.length }
+        ] as { key: Domain; label: string; n: number }[]
+      ).map(t => {
+        const on = domain === t.key
 
         return (
           <Box
-            key={m.key}
-            onClick={() => {
-              setDomainTab(m.key)
-              if (m.key === 'all') setView('animal') // All has no view toggle — Animal-wise only
-            }}
+            key={t.key}
+            onClick={() => setDomain(t.key)}
             role='tab'
-            aria-selected={active}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.25,
-              py: 0.5,
-              flexShrink: 0,
-              borderBottom: '2.5px solid',
-              borderColor: active ? accent : 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              '&:hover': { borderColor: active ? accent : c.OutlineVariant }
-            }}
+            aria-selected={on}
+            sx={{ py: 1.5, mb: '-1px', borderBottom: '2.5px solid', borderColor: on ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer' }}
           >
-            <Icon icon={m.icon} fontSize='1.25rem' color={active ? accent : c.Outline} />
-            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? accent : c.neutralSecondary, whiteSpace: 'nowrap' }}>
-              {m.label}
-            </Typography>
-            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? accent : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
-              {counts[m.key].toLocaleString()}
+            <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : c.neutralSecondary }}>
+              {t.label} ({t.n.toLocaleString()})
             </Typography>
           </Box>
         )
@@ -3682,277 +3344,190 @@ const ClinicalMergedPanel: React.FC<{
     </Box>
   )
 
-  // Active-filter chips live in their own row UNDER the tabs header, never beside the tabs.
-  const filterChipsRow = (typeFilter || monthFilter || statusFilter || sevFilter || progFilter) && (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-      {statusFilter && <FilterChip label={statusFilter === 'active' ? 'Active' : 'Resolved'} onClear={() => setStatusFilter(null)} />}
-      {typeFilter && <FilterChip label={typeFilter.name} onClear={() => setTypeFilter(null)} />}
-      {monthFilter && <FilterChip label={monthFilter.label} onClear={() => setMonthFilter(null)} />}
-      {sevFilter && <FilterChip label={`Severity: ${sevFilter}`} onClear={() => setSevFilter(null)} />}
-      {progFilter && <FilterChip label={`Prognosis: ${progFilter}`} onClear={() => setProgFilter(null)} />}
-      <Typography
-        variant='caption'
-        onClick={() => {
-          setTypeFilter(null)
-          setMonthFilter(null)
-          setStatusFilter(null)
-          setSevFilter(null)
-          setProgFilter(null)
-        }}
-        sx={{ color: theme.palette.secondary.main, cursor: 'pointer', fontWeight: 600 }}
-      >
-        Clear
-      </Typography>
-    </Box>
+  const search = (
+    <TextField
+      size='small'
+      placeholder={domain === 'symptom' ? 'Search symptoms…' : 'Search assessments…'}
+      value={q}
+      onChange={e => setQ(e.target.value)}
+      sx={{
+        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
+        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
+        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+      }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+    />
   )
 
-  // All tab: Animal-wise only, no dropdowns — just search. Symptoms tab: Severity dropdown;
-  // Assessments tab: Prognosis dropdown; both domain tabs keep the Animal/Record toggle.
-  // Landscape: tabs left, controls right (one row). Portrait: tabs row, then full-width
-  // search running into the right-aligned dropdown + toggle (shipped two-row grammar).
-  const levelCtl =
-    domainTab === 'symptom' ? (
-      <CategoryFilter
-        options={SEVERITY_ORDER}
-        value={sevFilter}
-        onChange={onSev}
-        width={165}
-        placeholder='Severity'
-        icon={DOMAIN_META.symptom.icon}
-      />
-    ) : domainTab === 'assessment' ? (
-      <CategoryFilter
-        options={[...PROGNOSIS_ORDER].reverse()}
-        value={progFilter}
-        onChange={onProg}
-        width={180}
-        placeholder='Prognosis'
-        icon={DOMAIN_META.assessment.icon}
-      />
-    ) : null
-  const toggleCtl = domainTab !== 'all' && <ViewToggle view={view} onChange={setView} />
-  const searchCtl = <TableSearch value={q} onChange={onQ} placeholder='Search animal, site…' grow={portrait} />
-  const tableAction = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-      {levelCtl}
-      {toggleCtl}
-      {searchCtl}
-    </Box>
-  )
-  const stackedTableHeader = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+  const stackedHeader = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
       {domainTabs}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-        {searchCtl}
-        {levelCtl}
-        {toggleCtl}
-      </Box>
+      {search}
     </Box>
   )
-
-  /* ── one ranked-types panel (heading + Category dropdown + search share the row) ── */
-  const typePanel = (
-    domain: Domain,
-    title: string,
-    types: { name: string; count: number; animals: number; category: string }[],
-    shown: { name: string; count: number; animals: number; category: string }[],
-    cat: string | null,
-    setCat: (v: string | null) => void,
-    cats: string[]
-  ) => (
-    <SectionCard
-      title={
-        <Typography sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-          {title}{' '}
-          <Box component='span' sx={{ fontSize: '15px', fontWeight: 500, color: c.neutralSecondary }}>
-            • {types.length} types
-          </Box>
-        </Typography>
-      }
-      action={<CategoryFilter options={cats} value={cat} onChange={setCat} width={185} height={36} />}
-      titleMb={3}
-    >
-      {shown.length ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          {shown.slice(0, PILL_LIMIT).map(t => (
-            <ChipTag
-              key={t.name}
-              label={t.name}
-              value={t.animals.toLocaleString()}
-              valueColor={c.OnSurfaceVariant}
-              tint={(() => {
-                const lv = worstLevel(domain, t.name)
-
-                return lv ? tagColors[lv] : undefined
-              })()}
-              onClick={() => pickType(domain, t.name)}
-            />
-          ))}
-          <Box
-            onClick={() => setViewAll(domain)}
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1,
-              px: 4,
-              py: 1.25,
-              borderRadius: '999px',
-              border: `1px dashed ${c.Outline}`,
-              cursor: 'pointer',
-              transition: 'border-color .15s ease',
-              '&:hover': { borderColor: theme.palette.primary.main }
-            }}
-          >
-            <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.primary.dark }}>
-              {shown.length > PILL_LIMIT ? `+${shown.length - PILL_LIMIT} more` : 'View all'}
-            </Typography>
-            <Icon icon='mdi:chevron-right' fontSize={16} color={theme.palette.primary.dark} />
-          </Box>
-        </Box>
-      ) : (
-        <Typography variant='body2' sx={{ color: c.neutralSecondary }}>
-          No records.
-        </Typography>
-      )}
-    </SectionCard>
-  )
-
-  const sheetTypeCol = typeSheet?.domain === 'assessment' ? 'Clinical Assessment' : 'Symptom'
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Row 1 · ONE stat band across both domains — tiles scope the table below */}
-      <StatsRow cols={4}>
-        <StatTile label='Animals Affected' value={affected.toLocaleString()} tone='neutral' onClick={() => scopeTable('all', null)} />
-        <StatTile label='Active Symptoms' value={symActive.toLocaleString()} tone='error' onClick={() => scopeTable('symptom', 'active')} />
-        <StatTile label='Active Assessments' value={diagActive.toLocaleString()} tone='error' onClick={() => scopeTable('assessment', 'active')} />
-        <StatTile label='Resolved' value={`${recoveredPct}%`} tone='success' onClick={() => scopeTable('all', 'resolved')} />
-      </StatsRow>
-
-      {/* Row 2 · Top symptoms | Top conditions side by side */}
-      <ChartsRow md='repeat(2, 1fr)'>
-        {typePanel('symptom', 'Top Symptoms', symTypes, symShown, symCat, setSymCat, symCats)}
-        {typePanel('assessment', 'Clinical Assessments', condTypes, condShown, condCat, setCondCat, condCats)}
-      </ChartsRow>
-
-      {/* Row 3 · ONE combined table */}
-      <Box ref={tableRef}>
-        <SectionCard title={portrait ? stackedTableHeader : domainTabs} action={portrait ? undefined : tableAction} titleMb={2}>
-          {filterChipsRow}
-          {view === 'animal' ? (
-            <DetailTable
-              columns={animalColumns}
-              rows={atbl.rows}
-              total={atbl.total}
-              paginationModel={atbl.paginationModel}
-              setPaginationModel={atbl.setPaginationModel}
-              sortModel={atbl.sortModel}
-              handleSortModel={atbl.handleSortModel}
-              onRowClick={(p: { row: AniGroup }) => openAnimal(p.row.aid)}
-              rowHeight={88}
-            />
-          ) : (
-            <DetailTable
-              columns={columns}
-              rows={tbl.rows}
-              total={tbl.total}
-              paginationModel={tbl.paginationModel}
-              setPaginationModel={tbl.setPaginationModel}
-              sortModel={tbl.sortModel}
-              handleSortModel={tbl.handleSortModel}
-              onRowClick={(p: { row: MergedRec }) => openAnimal(p.row.aid)}
-            />
-          )}
-        </SectionCard>
-      </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* the ONE table per sub-tab (2026-08-27 restructure) */}
+      <SectionCard title={portrait ? stackedHeader : domainTabs} action={portrait ? undefined : search} titleMb={2}>
+        {table.total ? (
+          <DetailTable
+            columns={columns}
+            rows={table.rows}
+            total={table.total}
+            paginationModel={table.paginationModel}
+            setPaginationModel={table.setPaginationModel}
+            sortModel={table.sortModel}
+            handleSortModel={table.handleSortModel}
+            onRowClick={(p: { row: { name: string } }) => openType(p.row.name)}
+          />
+        ) : (
+          <EmptyState
+            message={
+              q.trim()
+                ? 'Nothing matches your search'
+                : domain === 'symptom'
+                  ? 'No symptoms recorded for this species'
+                  : 'No clinical assessments recorded for this species'
+            }
+          />
+        )}
+      </SectionCard>
 
       <AnimalRecordsDrawer group={animalDrill} onClose={() => setAnimalDrill(null)} />
 
-      {/* side sheet · full type list for a panel ("View all N") */}
-      <SheetDrawer
-        open={!!viewAll}
-        onClose={() => setViewAll(null)}
-        PaperProps={{ sx: sheetPaperSx('xl') }}
-      >
-        {viewAll && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ px: SHEET_PX, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-              <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
-                {viewAll === 'symptom' ? 'All Symptoms' : 'All Clinical Assessments'}
-              </Typography>
-              <IconButton onClick={() => setViewAll(null)} size='small'>
-                <Icon icon='mdi:close' />
-              </IconButton>
-            </Box>
-            <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, py: 3 }}>
-              <TypeTable
-                items={viewAll === 'symptom' ? symShown : condShown}
-                noun={viewAll === 'symptom' ? 'symptoms' : 'assessments'}
-                onPick={name => {
-                  const dom = viewAll
-                  setViewAll(null)
-                  pickType(dom, name)
-                }}
-              />
-            </Box>
-          </Box>
-        )}
-      </SheetDrawer>
+      {/* row tap → bottom sheet: month-wise graph on top, conditional Active/Resolved animal list below */}
+      <SheetDrawer open={!!typeSheet} onClose={() => setTypeSheet(null)} PaperProps={{ sx: sheetPaperSx('xxl') }}>
+        {typeSheet &&
+          sheetSeries &&
+          sheetAnimals &&
+          (() => {
+            const act = sheetAnimals.active
+            const res = sheetAnimals.resolved
+            // Tabs render ONLY when the statuses mix (Necropsy rule); otherwise a quiet ledger line.
+            const shownTab: 'active' | 'resolved' = act.length && res.length ? sheetTab : act.length ? 'active' : 'resolved'
+            const list = shownTab === 'active' ? act : res
 
-      {/* wide side sheet · per-type 12-month graph (distinct animals affected) */}
-      <SheetDrawer
-        open={!!typeSheet}
-        onClose={() => setTypeSheet(null)}
-        PaperProps={{ sx: sheetPaperSx('xxl') }}
-      >
-        {typeSheet && sheetSeries && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ px: SHEET_PX, py: 3, borderBottom: `1px solid ${c.SurfaceVariant}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant='caption' sx={{ color: c.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
-                  {sheetTypeCol}
-                </Typography>
-                <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.01em', color: c.OnSurfaceVariant }} noWrap>
-                  {typeSheet.name}
-                </Typography>
-              </Box>
-              <IconButton onClick={() => setTypeSheet(null)} size='small'>
-                <Icon icon='mdi:close' />
-              </IconButton>
-            </Box>
-            <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, py: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 4 }}>
-                <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
-                  Animals affected
-                </Typography>
-                <TrendRangeTabs value={sheetRange} onPick={setSheetRange} color={theme.palette.secondary.main} />
-              </Box>
-              <SeasonalColumnChart
-                values={sheetSeries.series.map(s => s.value)}
-                labels={sheetSeries.series.map(s => s.label)}
-                color={theme.palette.secondary.main}
-                name='Animals affected'
-                height={240}
-                padLeft={0}
-                onBarClick={(_label, i) => onSheetBar(i)}
-              />
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3, mt: 5 }}>
-                <StatTile label='Animals Affected' value={sheetSeries.totalAnimals.toLocaleString()} tone='info' />
-                <StatTile label='Total Cases' value={sheetSeries.totalEpisodes.toLocaleString()} tone='neutral' />
-                <StatTile label='Peak Month' value={sheetSeries.peakLabel} tone='neutral' />
-              </Box>
-              <Box
-                onClick={onSheetViewAll}
-                sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 4, cursor: 'pointer', color: theme.palette.secondary.main }}
-              >
-                <Typography variant='caption' sx={{ fontWeight: 600, color: 'inherit' }}>
-                  View all months in table
-                </Typography>
-                <Icon icon='mdi:chevron-right' fontSize={16} />
-              </Box>
-            </Box>
-          </Box>
-        )}
+            return (
+              <Sheet>
+                <SheetHeader
+                  title={typeSheet.name}
+                  subtitle={`${sheetSeries.totalAnimals.toLocaleString()} animals • ${sheetSeries.totalEpisodes.toLocaleString()} records`}
+                  onClose={() => setTypeSheet(null)}
+                />
+                <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                  {/* pb keeps clear air between the month axis and the status tabs */}
+                  <Box sx={{ px: SHEET_PX, pt: 4, pb: 6 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+                      <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
+                        Animals Affected by Month
+                      </Typography>
+                      <TrendRangeTabs
+                        value={sheetRange}
+                        onPick={p => {
+                          setSheetRange(p)
+                          setSheetMonth(null)
+                        }}
+                        color={skin.ACCENT_INK}
+                      />
+                    </Box>
+                    {/* Naveen's columns mark (house gradient bars) — axis = month over bare
+                        2-digit year; a bar tap scopes the animal list to that month. */}
+                    <BarColumns
+                      bars={sheetSeries.series.map(s => {
+                        const [mon, yr] = s.label.split(' ')
+
+                        return [`${mon}\n${yr.slice(2)}`, s.value] as [string, number]
+                      })}
+                      fill={skin.CORAL}
+                      noun='animals'
+                      height={220}
+                      minSlot={72}
+                      onSelect={label => {
+                        const i = sheetSeries.series.findIndex(s => {
+                          const [mon, yr] = s.label.split(' ')
+
+                          return `${mon}\n${yr.slice(2)}` === label
+                        })
+                        if (i >= 0) onSheetBar(i)
+                      }}
+                    />
+                  </Box>
+                  {act.length && res.length ? (
+                    <SheetTabs
+                      tabs={[
+                        { key: 'active' as const, label: `Active (${act.length.toLocaleString()})` },
+                        { key: 'resolved' as const, label: `Resolved (${res.length.toLocaleString()})` }
+                      ]}
+                      value={shownTab}
+                      onPick={setSheetTab}
+                    />
+                  ) : (
+                    <Box sx={{ px: SHEET_PX, pt: 3, pb: 2, borderBottom: `1px solid ${c.SurfaceVariant}` }}>
+                      <Typography variant='body2' sx={{ color: skin.MUTED }}>
+                        {act.length ? `${act.length.toLocaleString()} active` : `All ${res.length.toLocaleString()} resolved`}
+                      </Typography>
+                    </Box>
+                  )}
+                  {sheetMonth && (
+                    <Box sx={{ px: SHEET_PX, pt: 3 }}>
+                      <FilterChip label={sheetMonth.label} onClear={() => setSheetMonth(null)} />
+                    </Box>
+                  )}
+                  <Box sx={{ px: SHEET_PX, pb: 3 }}>
+                    {list.length ? (
+                      list.map((a, i) => (
+                        <SheetRow
+                          key={a.aid}
+                          avatar
+                          title={
+                            a.chronic ? (
+                              <>
+                                {a.name}
+                                <ChronicTag />
+                              </>
+                            ) : (
+                              a.name
+                            )
+                          }
+                          titleCount={a.times}
+                          caption={`${a.enclosure} • ${a.site}`}
+                          trailing={
+                            // Tones per user call 2026-09-01: Active = green, Resolved = grey.
+                            shownTab === 'active' ? (
+                              <StatusChip label={`Active · ${a.days ?? 0} d`} tone='success' />
+                            ) : (
+                              // Resolved: the tag rides the TITLE line, the date sits on the
+                              // CAPTION line (encl • site) — SheetRow's trailing column stacks
+                              // them; the 24px line-height pins the date to the second row.
+                              // The sidecar has no clock time — dd MMM yyyy only.
+                              <>
+                                {/* chip pinned inside a 24px band = the title line's height;
+                                    the date then starts exactly where the caption row starts
+                                    (kit gap 3px + 1px = the caption's 4px top margin). */}
+                                <Box sx={{ height: 24, display: 'flex', alignItems: 'center' }}>
+                                  <StatusChip label='Resolved' tone='neutral' />
+                                </Box>
+                                <Typography sx={{ fontSize: '14px', lineHeight: '24px', mt: '1px', color: skin.FAINT, whiteSpace: 'nowrap' }}>
+                                  {fmtDate(a.resolvedOn)}
+                                </Typography>
+                              </>
+                            )
+                          }
+                          chevron
+                          last={i === list.length - 1}
+                          onClick={() => openAnimal(a.aid)}
+                        />
+                      ))
+                    ) : (
+                      <SheetEmpty>No animals in this month</SheetEmpty>
+                    )}
+                  </Box>
+                </Box>
+              </Sheet>
+            )
+          })()}
       </SheetDrawer>
     </Box>
   )
@@ -4003,8 +3578,6 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
     if (tab === 'overview')
       return <OverviewPanel preventive={preventive} clinical={clinical} range={range} onRange={setRange} onGoToTab={setTab} />
 
-    if (tab === 'insights') return <InsightsPanel clinical={clinical} preventive={preventive} range={range} />
-
     if (tab === 'clinical') {
       const sym = clinical?.programs?.symptoms
       const diag = clinical?.programs?.diagnosis
@@ -4028,10 +3601,12 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderBottom: `1px solid ${c.SurfaceVariant}` }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderBottom: `1px solid ${skin.HAIR}` }}>
         <SubTabs tab={tab} onChange={setTab} />
         {/* Overview carries the period control on its headline row instead */}
-        {tab !== 'overview' && (
+        {/* Only Clinical consumes the page window; preventive/prescription screens carry
+            their own preset range tabs (1Y·2Y·3Y·All — the punch-list's presets-only rule). */}
+        {tab === 'clinical' && (
           <Box sx={{ pb: 1.5 }}>
             <DashboardDateRange value={range} onChange={setRange} />
           </Box>

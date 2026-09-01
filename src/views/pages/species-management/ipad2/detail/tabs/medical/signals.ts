@@ -364,7 +364,7 @@ export const computeSignals = (
     },
     {
       key: 'repeat',
-      label: 'Repeat-Sick Animals',
+      label: 'Repeat Sick',
       severity: 'watch',
       icon: 'mdi:repeat',
       count: repeat.length,
@@ -456,7 +456,7 @@ export const computeOverviewSignals = (
   const repeatAnimals = [...merged.values()]
   const repeatCard: HealthSignal = {
     key: 'repeat',
-    label: 'Repeat-Sick Animals',
+    label: 'Repeat Sick',
     severity: 'watch',
     icon: 'mdi:repeat',
     count: repeatAnimals.length,
@@ -877,7 +877,7 @@ export const computeSickTrend = (clinical: SpeciesClinical | null | undefined, m
     for (const g of byAid.values()) {
       const latest = [...g.recs].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
       ;(g.carried ? carriedRows : freshRows).push(
-        toAnimalRow(latest, g.carried ? 'Already sick when the month began' : 'Fell sick this month')
+        toAnimalRow(latest, g.carried ? 'Already sick' : 'Newly sick')
       )
     }
     freshRows.sort(newestFirst)

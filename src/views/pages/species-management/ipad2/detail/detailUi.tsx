@@ -1316,14 +1316,17 @@ export const StatTile: React.FC<{
 }
 
 /** Status / category chip in a semantic tone. */
-export const StatusChip: React.FC<{ label: React.ReactNode; tone?: Tone; fg?: string; size?: 'small' | 'medium' }> = ({
-  label,
-  tone = 'neutral',
-  fg: fgOverride,
-  size = 'small'
-}) => {
+export const StatusChip: React.FC<{
+  label: React.ReactNode
+  tone?: Tone
+  fg?: string
+  /** Optional wash override — e.g. a paler mix when the tone's standard soft reads too loud. */
+  bg?: string
+  size?: 'small' | 'medium'
+}> = ({ label, tone = 'neutral', fg: fgOverride, bg: bgOverride, size = 'small' }) => {
   const tones = useTone()
-  const { bg, fg } = tones(tone)
+  const { bg: toneBg, fg } = tones(tone)
+  const bg = bgOverride ?? toneBg
 
   return (
     <Box
@@ -1488,6 +1491,9 @@ export const DetailTable: React.FC<{
           textOverflow: 'clip'
         },
         '& .MuiDataGrid-columnHeaderTitleContainerContent': { overflow: 'visible' },
+        // A wrapped header ignores headerAlign (it only positions the container) — keep
+        // right-aligned columns' header TEXT right-aligned too when it breaks to two lines.
+        '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderTitle': { textAlign: 'right' },
         ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
         ...stickyStyle
       }}

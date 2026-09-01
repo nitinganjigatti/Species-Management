@@ -1,93 +1,83 @@
 'use client'
 
 /*
- * Attention signals on the Medical Overview — V6 (2026-07-30 review): exactly three big
- * cards (repeat-sick, undiagnosed, severe), mobile-safe, no severity-zoned layout. Big
- * count + one-line hint + "View animals"; click → SignalDrawer. All three render even at
- * zero (a quiet confirmation), the whole band collapses to an all-clear strip only when
- * there is no clinical data at all.
+ * Medical Overview stat strip — the listing StatBand anatomy verbatim (one white CC card,
+ * full-height hairline dividers, 10px caps label over the 24px figure). Sick Right Now
+ * leads, then the three attention signals. Counts wear CORAL (the critical-figure ink,
+ * never the alarm red); zeros go quiet in the dash ink. Cell tap → SignalDrawer.
+ * Replaces the old verdict headline + big-card band (2026-09-01 review).
  */
 import React from 'react'
 import { Box, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
-import type { HealthSignal } from './signals'
+import * as skin from 'src/views/pages/species-management/ipad2/skin'
 
-const cc = (theme: any) => theme.palette.customColors as Record<string, string>
-
-const BigCard: React.FC<{ sig: HealthSignal; onOpen: (s: HealthSignal) => void }> = ({ sig, onOpen }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const live = sig.count > 0
-
-  return (
-    <Box
-      onClick={live ? () => onOpen(sig) : undefined}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        borderRadius: '10px',
-        border: `1px solid ${c.SurfaceVariant}`,
-        backgroundColor: theme.palette.background.paper,
-        p: 5,
-        ...(live && {
-          cursor: 'pointer',
-          transition: 'transform .15s ease, box-shadow .15s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 16px rgba(31,81,91,0.12)',
-            '& .sig-go': { backgroundColor: c.BgTeritary, color: c.Tertiary, borderColor: c.BgTeritary }
-          }
-        })
-      }}
-    >
-      {live && (
-        <Box
-          className='sig-go'
-          sx={{
-            position: 'absolute',
-            top: 18,
-            right: 16,
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            border: `1px solid ${c.SurfaceVariant}`,
-            backgroundColor: c.Surface,
-            color: c.OnSurfaceVariant,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background .15s ease, color .15s ease'
-          }}
-        >
-          <Icon icon='mdi:chevron-right' fontSize={20} />
-        </Box>
-      )}
-      <Typography
-        sx={{
-          fontSize: '40px',
-          fontWeight: 800,
-          lineHeight: 1,
-          color: live ? c.Tertiary : c.neutralSecondary,
-          fontVariantNumeric: 'tabular-nums'
-        }}
-      >
-        {sig.count.toLocaleString()}
-      </Typography>
-      <Typography sx={{ fontSize: '18px', fontWeight: 700, color: c.OnSurfaceVariant, mt: 3 }}>{sig.label}</Typography>
-      <Typography sx={{ fontSize: '16px', color: c.neutralSecondary, mt: 1, lineHeight: 1.5 }}>
-        {live ? sig.hint : 'None in this window'}
-      </Typography>
-    </Box>
-  )
+export interface SignalCell {
+  key: string
+  label: string
+  count: number
+  /** 'critical' (default) inks the figure CORAL; 'neutral' keeps the warm VALUE ink —
+   *  for plain volume stats (doses given, animals treated) that aren't an alarm. */
+  tone?: 'critical' | 'neutral'
+  onOpen?: () => void
 }
 
-const SignalsBand: React.FC<{ signals: HealthSignal[]; onOpen: (s: HealthSignal) => void }> = ({ signals, onOpen }) => (
-  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4, alignItems: 'stretch' }}>
-    {signals.map(sig => (
-      <BigCard key={sig.key} sig={sig} onOpen={onOpen} />
-    ))}
+const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
+  <Box
+    sx={{
+      ...skin.cardSx,
+      overflow: 'hidden',
+      display: 'grid',
+      gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))`
+    }}
+  >
+    {cells.map((cell, i) => {
+      const live = cell.count > 0
+
+      return (
+        <Box
+          key={cell.key}
+          onClick={live ? cell.onOpen : undefined}
+          sx={{
+            px: '24px',
+            py: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '9px',
+            borderLeft: i === 0 ? 'none' : `1px solid ${skin.HAIR}`,
+            ...(live &&
+              cell.onOpen && {
+                cursor: 'pointer',
+                ...skin.cardPressSx,
+                '&:hover': { backgroundColor: skin.ROW_HOVER }
+              })
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '13px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: skin.FAINT
+            }}
+          >
+            {cell.label}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '24px',
+              fontWeight: 800,
+              lineHeight: 1.05,
+              letterSpacing: '-0.6px',
+              fontVariantNumeric: 'tabular-nums',
+              color: !live ? skin.DASH_INK : cell.tone === 'neutral' ? skin.VALUE : skin.CORAL
+            }}
+          >
+            {cell.count.toLocaleString()}
+          </Typography>
+        </Box>
+      )
+    })}
   </Box>
 )
 
