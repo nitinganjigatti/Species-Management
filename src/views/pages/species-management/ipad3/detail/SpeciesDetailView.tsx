@@ -11,7 +11,16 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, IconButton, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
-import { HERO_PHOTOS } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import {
+  HERO_PHOTOS,
+  Sheet,
+  SheetDrawer,
+  SheetHeader,
+  SheetRow,
+  SheetSearch,
+  sheetPaperSx,
+  SHEET_PX
+} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { SpeciesDetailHeader, SpeciesDetailTab } from 'src/types/species-management/detail'
 
 export interface DetailAlerts {
@@ -53,9 +62,7 @@ const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Hospital', value: 'hospital' },
   { labelKey: 'Lab Module', value: 'lab' },
   { labelKey: 'Mortality', value: 'mortality' },
-  { labelKey: 'Necropsy', value: 'necropsy' },
-  { labelKey: 'Identification', value: 'identification' },
-  { labelKey: 'Breeds', value: 'breeds' }
+  { labelKey: 'Necropsy', value: 'necropsy' }
 ]
 
 const TAB_ICONS: Record<string, string> = {
@@ -71,8 +78,6 @@ const TAB_ICONS: Record<string, string> = {
   lab: 'mdi:flask-outline',
   mortality: 'mdi:grave-stone',
   necropsy: 'mdi:file-search-outline',
-  identification: 'mdi:identifier',
-  breeds: 'mdi:dna',
   eggs: 'mdi:egg-outline'
 }
 
@@ -90,9 +95,14 @@ const CCTabs: React.FC<{
   tabs: { labelKey: string; value: SpeciesDetailTab }[]
   active: SpeciesDetailTab
   onChange: (tab: SpeciesDetailTab) => void
-}> = ({ tabs, active, onChange }) => {
+  /** Opens the tab-navigator sheet — rendered as a STICKY first item so it stays reachable
+   *  however far the rail is scrolled (user call 2026-09-02). */
+  onMenu?: () => void
+}> = ({ tabs, active, onChange, onMenu }) => {
   const btns = useRef(new Map<string, HTMLElement | null>())
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null)
+  // true once the rail is horizontally scrolled — tabs are sliding under the menu button
+  const [railScrolled, setRailScrolled] = useState(false)
 
   useLayoutEffect(() => {
     const el = btns.current.get(active)
@@ -123,6 +133,7 @@ const CCTabs: React.FC<{
   return (
     <Box
       role='tablist'
+      onScroll={e => setRailScrolled((e.target as HTMLElement).scrollLeft > 0)}
       sx={{
         position: 'relative',
         display: 'flex',
@@ -138,6 +149,43 @@ const CCTabs: React.FC<{
         WebkitOverflowScrolling: 'touch'
       }}
     >
+      {onMenu && (
+        <Box
+          onClick={onMenu}
+          role='button'
+          aria-label='All tabs'
+          sx={{
+            position: 'sticky',
+            left: 0,
+            zIndex: 2,
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            px: '14px',
+            mr: 1,
+            cursor: 'pointer',
+            // ::before is the button's real surface: it bleeds over the track's 6px padding
+            // on every side, so the block runs edge-to-edge (no gap for tabs to peek
+            // through) and carries the scrolled-under shadow once tabs slide beneath.
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: -6,
+              bottom: -6,
+              left: -6,
+              right: 0,
+              zIndex: -1,
+              backgroundColor: '#ffffff',
+              borderRadius: '10px 0 0 10px',
+              boxShadow: railScrolled ? '10px 0 12px -8px rgba(0,0,0,0.28)' : 'none',
+              transition: `background-color ${skin.DUR_FAST} ${skin.EASE}, box-shadow ${skin.DUR_FAST} ${skin.EASE}`
+            },
+            '&:hover::before': { backgroundColor: '#f4f3ef' }
+          }}
+        >
+          <Icon icon='mdi:menu' fontSize='1.25rem' color={skin.TAB_ICON_OFF} />
+        </Box>
+      )}
       {pill && (
         <Box
           aria-hidden
@@ -261,6 +309,14 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // everything unpins (the in-flow hero is visible again).
   const [scrolled, setScrolled] = useState(false)
   const [headerRevealed, setHeaderRevealed] = useState(false)
+
+  // Tab-navigator sheet (menu button in the rail): all tabs, searchable, tap to jump.
+  const [navOpen, setNavOpen] = useState(false)
+  const [navQ, setNavQ] = useState('')
+  const openNav = () => {
+    setNavQ('')
+    setNavOpen(true)
+  }
 
   // Anchor on the in-flow tabs row (Band 3): the pinned stack engages exactly
   // when that row crosses the top of the viewport, so the sticky tabs take over
@@ -412,7 +468,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           {/* Pinned tabs — horizontal view only (rail view keeps its own sticky rail) */}
           {view === 'horizontal' && (
             <Box sx={{ p: 2, '& > div': { boxShadow: 'none' } }}>
-              <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} />
+              <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} onMenu={openNav} />
             </Box>
           )}
         </Box>
@@ -684,7 +740,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
       {/* Band 3 — Tabs (horizontal view only). The ref anchors the sticky-stack trigger. */}
       {view === 'horizontal' && (
         <Box ref={tabsAnchorRef} sx={{ mb: 4 }}>
-          <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} />
+          <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} onMenu={openNav} />
         </Box>
       )}
 
@@ -746,6 +802,37 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>{children}</Box>
         </Box>
       )}
+
+      {/* Tab navigator — the rail's menu button opens every tab as a searchable list. */}
+      <SheetDrawer open={navOpen} onClose={() => setNavOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
+        <Sheet>
+          {/* No leading icon chip — with one it reads as the first list item, not a header
+              (user call 2026-09-02). Title + count line only. */}
+          <SheetHeader title='All Tabs' stats={[{ label: 'Tabs', value: TABS.length }]} onClose={() => setNavOpen(false)} />
+          <SheetSearch value={navQ} onChange={setNavQ} placeholder='Search tabs…' />
+          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
+            {TABS.filter(t => !navQ.trim() || t.labelKey.toLowerCase().includes(navQ.trim().toLowerCase())).map(
+              (t, i, arr) => {
+                const on = t.value === activeTab
+
+                return (
+                  <SheetRow
+                    key={t.value}
+                    icon={TAB_ICONS[t.value] || 'mdi:circle-small'}
+                    title={t.labelKey}
+                    trailing={on ? <Icon icon='mdi:check-circle' fontSize='1.4rem' color={skin.ACCENT_FILL} /> : undefined}
+                    last={i === arr.length - 1}
+                    onClick={() => {
+                      onTabChange(t.value)
+                      setNavOpen(false)
+                    }}
+                  />
+                )
+              }
+            )}
+          </Box>
+        </Sheet>
+      </SheetDrawer>
     </Box>
   )
 }

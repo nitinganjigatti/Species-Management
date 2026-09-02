@@ -24,8 +24,6 @@ import HospitalTab from 'src/views/pages/species-management/ipad3/detail/tabs/Ho
 import LabTab from 'src/views/pages/species-management/ipad3/detail/tabs/LabTab'
 import MortalityTab from 'src/views/pages/species-management/ipad3/detail/tabs/MortalityTab'
 import NecropsyTab from 'src/views/pages/species-management/ipad3/detail/tabs/NecropsyTab'
-import IdentificationTab from 'src/views/pages/species-management/ipad3/detail/tabs/IdentificationTab'
-import BreedsTab from 'src/views/pages/species-management/ipad3/detail/tabs/BreedsTab'
 import { V2TypeScale } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
 // Backend endpoints don't exist yet — don't hammer with retries; surface empty states instead.
@@ -59,17 +57,12 @@ const IpadDetailContainer = () => {
     'hospital',
     'lab',
     'mortality',
-    'necropsy',
-    'identification',
-    'breeds'
+    'necropsy'
   ]
   const initialTab = ((): SpeciesDetailTab => {
     const q = searchParams?.get('tab') as SpeciesDetailTab | null
 
-    // TEMPORARY (2026-09-02): Lab module under active work — land on it by default so every
-    // entry/refresh goes straight there. Explicit ?tab= deep-links still win. Revert the
-    // fallback to 'overview' when the Lab work wraps (grep this date).
-    return q && VALID_TABS.includes(q) ? q : 'lab'
+    return q && VALID_TABS.includes(q) ? q : 'overview'
   })()
   const [tab, setTab] = useState<SpeciesDetailTab>(initialTab)
 
@@ -140,8 +133,6 @@ const IpadDetailContainer = () => {
   const assessments = useTabQuery(['sm-assessments', id], () => detailApi.getSpeciesAssessments(id), tab === 'assessments')
   const preventive = useTabQuery(['sm-preventive', id], () => detailApi.getSpeciesPreventive(id), tab === 'medical')
   const clinical = useTabQuery(['sm-clinical', id], () => detailApi.getSpeciesClinical(id), tab === 'medical' || tab === 'hospital' || tab === 'lab')
-  const identification = useTabQuery(['sm-identification', id], () => detailApi.getSpeciesIdentification(id), tab === 'identification')
-  const breeds = useTabQuery(['sm-breeds', id], () => detailApi.getSpeciesBreeds(id), tab === 'breeds')
 
   const renderTab = () => {
     switch (tab) {
@@ -193,10 +184,6 @@ const IpadDetailContainer = () => {
         return lifecycle.isLoading ? <Loading /> : <MortalityTab lifecycle={lifecycle.data} />
       case 'necropsy':
         return lifecycle.isLoading ? <Loading /> : <NecropsyTab lifecycle={lifecycle.data} />
-      case 'identification':
-        return identification.isLoading ? <Loading /> : <IdentificationTab ident={identification.data} />
-      case 'breeds':
-        return breeds.isLoading ? <Loading /> : <BreedsTab breeds={breeds.data} />
       default:
         return null
     }

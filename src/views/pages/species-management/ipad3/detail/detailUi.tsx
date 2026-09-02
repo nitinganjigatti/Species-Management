@@ -1002,15 +1002,16 @@ export const SheetSearch: React.FC<{ value: string; onChange: (v: string) => voi
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          px: 2.5,
-          py: 2.25,
-          borderRadius: '8px',
-          border: `1px solid ${c.SurfaceVariant}`,
-          // white, never transparent — sheets sit on the mint ground (2026-09-01)
-          backgroundColor: skin.SEARCH_BG
+          px: 4,
+          height: skin.CONTROL_H,
+          borderRadius: '999px',
+          // contextual search rule (fixed at source 2026-09-02): the fill follows the
+          // SURFACE — sheet bodies are WHITE, so the search is the grey FIELD_BG
+          // borderless pill (white+hairline is only for the mint ground).
+          backgroundColor: skin.FIELD_BG
         }}
       >
-        <Icon icon='mdi:magnify' fontSize={18} color={c.Outline} />
+        <Icon icon='mdi:magnify' fontSize={18} color={skin.FAINT} />
         <Box
           component='input'
           value={value}
@@ -1021,7 +1022,7 @@ export const SheetSearch: React.FC<{ value: string; onChange: (v: string) => voi
             outline: 'none',
             flex: 1,
             fontFamily: 'inherit',
-            fontSize: '14px',
+            fontSize: '15px',
             color: c.OnSurfaceVariant,
             backgroundColor: 'transparent',
             '&::placeholder': { color: c.neutralSecondary }
