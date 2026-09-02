@@ -7,14 +7,72 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { CategoryFilter, CellText, DetailTable, DrillSheet, EmptyState, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import {
+  SiteFilterSelect,
+  AnimalCardRow,
+  AnimalIdCard,
+  CategoryFilter,
+  CellText,
+  DetailTable,
+  DrillSheet,
+  EmptyState,
+  HeroPhotoContext,
+  RowMetaText,
+  SectionCard,
+  synthAnimalIdentity
+} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
-/** Meta lines for the standard animal SheetRow (same card as Medical / Hospital). */
-const animalCaption = (a: AnimalRecord) =>
-  [a.gender ? a.gender.charAt(0).toUpperCase() + a.gender.slice(1) : null, a.age, a.weight != null ? `${a.weight} kg` : null]
-    .filter(Boolean)
-    .join(' · ')
-const animalSubline = (a: AnimalRecord) => [a.enclosure, a.site].filter(Boolean).join(' · ')
+/** The standard animal card row (2026-09-02), driven by the RECORD's real fields: gender →
+ *  badge, ring/chip + AID → identifiers, name only when AID is the sole identifier. The kit's
+ *  AnimalCardRow synthesizes identity from the aid alone, so this keeps its exact row chrome
+ *  but feeds AnimalIdCard the real data (synth fills only the photo-presence slot). The sheet
+ *  is scoped to ONE enclosure — site + enclosure stay OFF the card (the header names them);
+ *  age/weight, which the card doesn't carry, ride as right-aligned meta lines. */
+// Thin adapter over the kit AnimalCardRow: REAL AnimalRecord fields in, per the contract.
+// Enclosure + site stay OFF these cards — the sheet is scoped to one enclosure.
+const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, last }) => {
+  const theme = useTheme() as any
+  const c = theme.palette.customColors as Record<string, string>
+
+  const tag: AnimalTagKind = a.gender === 'male' ? 'male' : a.gender === 'female' ? 'female' : 'undetermined'
+  const primary: AnimalCardId | null = a.ring
+    ? { label: 'Ring', value: a.ring }
+    : a.chip
+      ? { label: 'Chip', value: a.chip }
+      : null
+  const identifiers: AnimalCardId[] = primary
+    ? [primary, { label: 'AID', value: a.antzId }]
+    : [{ label: 'AID', value: a.antzId }]
+
+  // Max 2 identifiers render (AID always counts) — a chip crowded out by a ring rides as meta.
+  // Age/weight live IN the card component now (its right stat block, empty values
+  // self-hide) — meta keeps only the chip crowded out by a ring.
+  const meta = [a.ring && a.chip ? `Chip: ${a.chip}` : null].filter(Boolean) as string[]
+
+  return (
+    <AnimalCardRow
+      aid={a.antzId}
+      identifiers={identifiers}
+      tag={tag}
+      name={a.name && a.name !== a.antzId ? a.name : undefined}
+      age={a.age}
+      weight={a.weight}
+      meta={
+        meta.length > 0 ? (
+          <>
+            {meta.map((m, i) => (
+              <RowMetaText key={i} strong={i === 0}>
+                {m}
+              </RowMetaText>
+            ))}
+          </>
+        ) : undefined
+      }
+      last={last}
+    />
+  )
+}
 
 // Composition from the COUNTS, never the dataset's type labels (those carry the banned
 // "Breeding Ready" vocabulary). Plain text, no chip — same words as Enclosure Demographics.
@@ -289,8 +347,8 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       sx={{
         minWidth: 150,
         '& .MuiInputBase-root': { height: 44, bgcolor: '#ffffff', borderRadius: '999px', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
       }}
     >
       <MenuItem value='all'>All</MenuItem>
@@ -303,14 +361,12 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
 
   // Site dropdown — section + enclosure views, and only for multi-site species.
   const siteFilterCtl = !isSite && multiSite && (
-    <CategoryFilter
-      radius='999px'
-      width={180}
-      options={sites.map(s => s.name)}
+    // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+    <SiteFilterSelect
+      sites={sites.map(st => ({ site: st.name, caption: `${st.total.toLocaleString()} animals • ${st.enclosures.length.toLocaleString()} enclosures` }))}
       value={siteFilter}
       onChange={v => setSiteFilter(v)}
-      placeholder='All sites'
-      icon='mdi:map-marker-outline'
+      allCaption={`${sites.reduce((n, st) => n + st.total, 0).toLocaleString()} animals`}
     />
   )
 
@@ -438,7 +494,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         )}
       </DrillSheet>
 
-      {/* Sheet 2 — stacked on top — the animals in one enclosure (standard SheetRow card) */}
+      {/* Sheet 2 — stacked on top — the animals in one enclosure (standard animal card rows) */}
       <DrillSheet
         open={!!animalSheet}
         onClose={() => setAnimalSheet(null)}
@@ -465,14 +521,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         {animalFiltered.length ? (
           <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
             {animalFiltered.map((a, i) => (
-              <SheetRow
-                key={a.antzId || i}
-                avatar
-                title={a.name || a.antzId}
-                caption={animalCaption(a)}
-                subline={animalSubline(a)}
-                last={i === animalFiltered.length - 1}
-              />
+              <RealAnimalCardRow key={a.antzId || i} a={a} last={i === animalFiltered.length - 1} />
             ))}
           </Box>
         ) : (

@@ -19,13 +19,17 @@ import type {
   SpeciesLifecycle
 } from 'src/types/species-management/detail'
 import {
+  idTypeLabel,
   AnimalCell,
+  AnimalIdCard,
   CategoryFilter,
   CellText,
   ChartHoverCard,
   DetailTable,
   EmptyState,
+  HeroPhotoContext,
   ListSheet,
+  synthAnimalIdentity,
   sheetPaperSx,
   SHEET_PX,
   SheetDrawer,
@@ -44,7 +48,7 @@ import { EMPTY_ANALYSIS, type AnalysisFilter } from 'src/views/pages/species-man
 
 
 // Shared height for the period controls (toggle / dropdowns / gender filter) so they all align.
-export const CTRL_H = 48
+export const CTRL_H = skin.CONTROL_H // 44 — ONE control height everywhere (user call 2026-09-02; was 48)
 // Shared height for the table-card header controls (view toggle + search) so they line up.
 const TABLE_CTRL_H = 44
 
@@ -142,9 +146,9 @@ export const GenderFilter: React.FC<{ selected: string[]; onChange: (s: string[]
           flexShrink: 0,
           color: selected.length ? skin.LIST_GREEN : skin.INK2,
           bgcolor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
-          borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR,
+          borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.DROPDOWN_BORDER,
           '&:hover': {
-            borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.TRACK,
+            borderColor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.DROPDOWN_BORDER_HOVER,
             bgcolor: selected.length ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
           }
         }}
@@ -434,6 +438,14 @@ const monthOf = (s?: string) => Number(String(s || '').slice(5, 7)) // "YYYY-MM.
 /* ── chart drill sheets — standard ListSheet rows off the raw day-level events ──
    Events name the animal when the record has one (idv/aid → avatar row); group or
    unnamed records lead with the enclosure. Trailing = the event date. */
+// dd MMM yyyy — the module's hard date rule; sheet trailing dates go through this.
+const fmtD = (iso?: string) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+
+  return isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 const trail = (txt: string) => (
   <Typography
     sx={{ fontSize: '15px', fontWeight: 700, color: 'customColors.OnSurfaceVariant', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
@@ -445,24 +457,61 @@ const capWord = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : un
 const sumK = (recs: { k?: number }[]) => recs.reduce((s, r) => s + (r.k || 1), 0)
 const byDateDesc = <T extends { d: string }>(recs: T[]) => [...recs].sort((a, b) => (a.d < b.d ? 1 : -1))
 
-const birthRow = (e: LifecycleBirth, i: number): ListRow => ({
-  key: `${e.aid || 'b'}-${e.d}-${i}`,
-  isAnimal: !!(e.idv || e.aid),
-  title: e.idv || e.e || e.s || 'Unrecorded animal',
-  caption: [capWord(e.g), e.b, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') || undefined,
-  subline: e.idv || e.aid ? e.e : undefined,
-  trailing: trail(e.d)
-})
-const deathRow = (e: LifecycleDeath, i: number): ListRow => ({
-  key: `${e.aid || 'd'}-${e.d}-${i}`,
-  isAnimal: !!(e.idv || e.aid),
-  title: e.idv || e.e || e.s || 'Unrecorded animal',
-  caption:
-    [e.m, e.y && e.y !== 'NA' ? `Necropsy ${e.y}` : null, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') ||
-    undefined,
-  subline: e.idv || e.aid ? e.e : undefined,
-  trailing: trail(e.d)
-})
+// Real gender → card badge kind (anything unlabelled reads Undetermined).
+const genderTag = (g?: string): ListRow['tag'] => (g === 'male' ? 'male' : g === 'female' ? 'female' : 'undetermined')
+
+/* Animal-card upgrade (2026-09-02): rows WITH an aid render as the standard AnimalCardRow
+ * (ListSheet does the swap) — real gender badge on births, maroon mortality badge on
+ * deaths, real enclosure + site on the card (these chart drills span sites — no site
+ * scope). Card rows keep in the caption only what the card cannot say (breed, cause,
+ * necropsy, group count). Group / idv-only rows WITHOUT an aid keep the classic avatar row. */
+const birthRow = (e: LifecycleBirth, i: number): ListRow => {
+  const card = !!e.aid
+
+  return {
+    key: `${e.aid || 'b'}-${e.d}-${i}`,
+    isAnimal: !!(e.idv || e.aid),
+    title: e.idv || e.e || e.s || 'Unrecorded animal',
+    caption: [card ? null : capWord(e.g), e.b, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') || undefined,
+    subline: !card && (e.idv || e.aid) ? e.e : undefined,
+    trailing: trail(fmtD(e.d)),
+    ...(card
+      ? {
+          aid: e.aid,
+          enclosure: e.e,
+          site: e.s,
+          tag: genderTag(e.g),
+          name: e.idv && e.idv !== e.aid ? e.idv : undefined
+        }
+      : null)
+  }
+}
+const deathRow = (e: LifecycleDeath, i: number): ListRow => {
+  const card = !!e.aid
+
+  return {
+    key: `${e.aid || 'd'}-${e.d}-${i}`,
+    isAnimal: !!(e.idv || e.aid),
+    title: e.idv || e.e || e.s || 'Unrecorded animal',
+    // card list rows: ONE item per right-side row (kit splits on the bullet) —
+    // date leads (trailing), then Cause, then Necropsy ONLY when one exists (no NA row).
+    caption: card
+      ? [e.m ? `Cause: ${e.m}` : null, e.y && e.y !== 'NA' ? `Necropsy: ${e.y}` : null].filter(Boolean).join(' • ') || undefined
+      : [e.m, e.y && e.y !== 'NA' ? `Necropsy ${e.y}` : null, (e.k || 1) > 1 ? `${e.k} animals` : null].filter(Boolean).join(' • ') ||
+        undefined,
+    subline: !card && (e.idv || e.aid) ? e.e : undefined,
+    trailing: trail(fmtD(e.d)),
+    ...(card
+      ? {
+          aid: e.aid,
+          enclosure: e.e,
+          site: e.s,
+          tag: 'mortality' as const,
+          name: e.idv && e.idv !== e.aid ? e.idv : undefined
+        }
+      : null)
+  }
+}
 
 // Survival Analysis — accession → death, bucketed (mirrors the prototype's 5-band chart).
 // Bands live at module scope so the drill-sheet opener reuses the same ranges
@@ -893,12 +942,13 @@ export const RangeSelect: React.FC<{
       renderValue={v => (v === '' ? anyLabel : items.find(i => String(i.value) === v)?.label ?? String(v))}
       IconComponent={SelectChevron}
       sx={{
+        height: skin.CONTROL_H,
         minWidth: 84,
         bgcolor: '#ffffff',
         borderRadius: '999px',
-        '& .MuiSelect-select': { py: 0.85, color: skin.INK2, fontSize: '15px', fontWeight: 500 },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+        '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
       }}
       MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320, borderRadius: '10px' } } } }}
     >
@@ -1001,7 +1051,9 @@ export const PeriodBand: React.FC<{
 const necStatusOf = (y?: string): 'Pending' | 'Completed' | 'NA' => (y === 'Completed' ? 'Completed' : y === 'Pending' ? 'Pending' : 'NA')
 const genderLabel = (g?: string) => (g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Unsexed')
 
-// Compact animal identity cell — delegates to the shared AnimalCell (single copy in detailUi).
+// Compact animal identity cell — the classic AnimalCell. Kept ONLY for rows/cells that
+// cannot wear the standard card: no-aid group/unnamed events and the parent reference
+// columns (Mother/Father are supplementary cells, not the row's animal).
 const AnimalIdCell: React.FC<{ aid?: string; idv?: string; idn?: string }> = ({ aid, idv, idn }) => {
   const name = idv || idn || (aid ? `Animal ${aid}` : 'Unknown')
 
@@ -1012,24 +1064,60 @@ const AnimalIdCell: React.FC<{ aid?: string; idv?: string; idn?: string }> = ({ 
   )
 }
 
-const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): GridColDef[] => {
+// Standard animal card cell (2026-09-02) — real fields beat synthesis: the record's own
+// AID (plus its local identifier when that is a tag, e.g. "Ring"; a plain "Name" rides
+// name — shown only when AID is the sole identifier), real gender badge on births / maroon mortality badge on deaths+lifespan,
+// real enclosure; site only when the visible list spans >1 site (the card's hard rule).
+const AnimalCardCell: React.FC<{ row: any; mode: CircleSubTab; showSite: boolean }> = ({ row, mode, showSite }) => {
+  const heroPhoto = React.useContext(HeroPhotoContext)
+  const s = synthAnimalIdentity(String(row.aid))
+  const named = !row.idn || /name/i.test(String(row.idn))
+  const identifiers =
+    !named && row.idv
+      ? [
+          { label: idTypeLabel(String(row.idn)), value: String(row.idv) },
+          { label: 'AID', value: String(row.aid) }
+        ]
+      : [{ label: 'AID', value: String(row.aid) }]
+  const name = row.idv || undefined
+
+  return (
+    <AnimalIdCard
+      identifiers={identifiers}
+      enclosure={row.e}
+      site={showSite ? row.s : undefined}
+      tag={mode === 'births' ? genderTag(row.g) : 'mortality'}
+      name={named && name && name !== row.aid ? String(name) : undefined}
+      photo={s.hasPhoto ? heroPhoto?.src : undefined}
+      photoPos={heroPhoto?.bgPos}
+    />
+  )
+}
+
+const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean, multiSite: boolean, allAid: boolean): GridColDef[] => {
   const cc = theme.palette.customColors as Record<string, string>
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
     <CellText color={color} weight={weight}>
       {v}
     </CellText>
   )
-  const sl: GridColDef = { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) }
+  // Standard animal card column (2026-09-02): serial No dropped, identity = AnimalIdCard.
+  // The card carries enclosure (+ site when the list spans sites) — no separate columns.
+  // No-aid group/unnamed events do NOT force a card: they keep the compact cell.
   const animal: GridColDef = {
-    width: 240,
+    flex: 1,
+    minWidth: 380,
     sortable: false,
     field: 'animal',
     headerName: 'Animal Name & ID',
-    renderCell: p => <AnimalIdCell aid={p.row.aid} idv={p.row.idv} idn={p.row.idn} />
+    renderCell: p =>
+      p.row.aid ? (
+        <AnimalCardCell row={p.row} mode={mode} showSite={multiSite} />
+      ) : (
+        <AnimalIdCell aid={p.row.aid} idv={p.row.idv} idn={p.row.idn} />
+      )
   }
   const gender: GridColDef = { width: 110, sortable: false, field: 'g', headerName: 'Gender', renderCell: p => txt(genderLabel(p.row.g)) }
-  const site: GridColDef = { width: 200, sortable: false, field: 's', headerName: 'Site', renderCell: p => txt(p.row.s) }
-  const encl: GridColDef = { width: 180, sortable: false, field: 'e', headerName: 'Enclosure', renderCell: p => txt(p.row.e) }
   const cause: GridColDef = { width: 170, sortable: false, field: 'm', headerName: 'Cause of Death', renderCell: p => txt(p.row.m, cc.Tertiary, 600) }
   const necropsy: GridColDef = {
     width: 150,
@@ -1054,12 +1142,11 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
 
   if (mode === 'births')
     return [
-      sl,
       animal,
       { width: 165, sortable: false, field: 'd', headerName: 'Date of Birth', renderCell: p => <CellText noWrap>{p.row.d}</CellText> },
-      gender,
-      site,
-      encl,
+      // Every-row gender badge on the card ⇒ the Gender column dedupes away; it stays
+      // whenever no-aid rows (no badge) are in the list, so nothing is lost.
+      ...(allAid ? [] : [gender]),
       ...(hasBreed ? [{ width: 130, sortable: false, field: 'b', headerName: 'Breed', renderCell: (p: GridRenderCellParams) => txt(p.row.b) } as GridColDef] : []),
       parent('mother', 'Mother'),
       parent('father', 'Father')
@@ -1067,13 +1154,11 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
 
   if (mode === 'lifespan')
     return [
-      sl,
       animal,
       { width: 120, sortable: false, field: 'a', headerName: 'Age at Death', renderCell: p => txt(p.row.a != null ? `${p.row.a}y` : '-', theme.palette.secondary.main, 700) },
       { width: 165, sortable: false, field: 'd', headerName: 'Date of Death', renderCell: p => <CellText noWrap>{p.row.d}</CellText> },
+      // Death rows wear the mortality badge (never gender) — the Gender column stays.
       gender,
-      site,
-      encl,
       cause,
       necropsy
     ]
@@ -1081,13 +1166,10 @@ const buildLifecycleColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean
   // Deaths clubbed with lifespan: age-at-death (teal, the old Lifespan lead figure) and
   // the death date ride the death table itself.
   return [
-    sl,
     animal,
     { width: 130, sortable: false, field: 'a', headerName: 'Age at Death', renderCell: p => txt(p.row.a != null ? `${p.row.a}y` : '—', theme.palette.secondary.main, 700) } as GridColDef,
     { width: 165, sortable: false, field: 'd', headerName: 'Date of Death', renderCell: (p: GridRenderCellParams) => <CellText noWrap>{p.row.d}</CellText> } as GridColDef,
     gender,
-    site,
-    encl,
     cause,
     necropsy
   ]
@@ -1366,6 +1448,12 @@ const AnimalEventsTable: React.FC<{
   const hasBreed = mode === 'births' && events.some(e => (e as LifecycleBirth).b)
   const siteRows = useMemo(() => buildSiteRows(scoped, mode), [scoped, mode])
 
+  // Card context (site rule): the card wears Site only when the list the user sees spans
+  // >1 site — a site-scoped list never repeats its own scope on every row. `allAid`
+  // decides whether the Gender column can dedupe into the card's badge (births).
+  const multiSite = useMemo(() => new Set(scoped.map(e => e.s).filter(Boolean)).size > 1, [scoped])
+  const allAid = useMemo(() => scoped.length > 0 && scoped.every(e => !!e.aid), [scoped])
+
   const filtered = useMemo(() => {
     if (isSite) return query ? siteRows.filter(r => r.site.toLowerCase().includes(query)) : siteRows
 
@@ -1374,13 +1462,11 @@ const AnimalEventsTable: React.FC<{
 
   useEffect(() => { setPm(p => ({ ...p, page: 0 })) }, [events, query, viewMode, year, ageBand])
   const columns = useMemo(
-    () => (isSite ? buildSiteColumns(mode, theme, hasBreed) : buildLifecycleColumns(mode, theme, hasBreed)),
-    [isSite, mode, theme, hasBreed]
+    () => (isSite ? buildSiteColumns(mode, theme, hasBreed) : buildLifecycleColumns(mode, theme, hasBreed, multiSite, allAid)),
+    [isSite, mode, theme, hasBreed, multiSite, allAid]
   )
   const start = pm.page * pm.pageSize
   const rows = (filtered as any[]).slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
-
-  const stickyField = isSite ? 'site' : 'animal'
 
   // Left-side mode tabs (replace the "Animals · N" heading): underline tabs in the domain
   // accents with live row counts — Births green · Deaths orange · Lifespan teal.
@@ -1501,37 +1587,18 @@ const AnimalEventsTable: React.FC<{
 
   return (
     <SectionCard title={portrait ? stackedHeader : modeTabs} action={portrait ? undefined : headerAction}>
-      {/* Standard DetailTable (2026-08-31 alignment): No pinned at 0 by stickyField, the
-          animal/site identity column joins it at 64 via the wrapper (the sticky-pair pattern). */}
-      <Box
-        sx={{
-          [`& .MuiDataGrid-cell[data-field="${stickyField}"]`]: {
-            position: 'sticky',
-            left: 64,
-            zIndex: 3,
-            backgroundColor: '#ffffff',
-            borderRight: `1px solid ${skin.ROW_LINE}`
-          },
-          [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: {
-            position: 'sticky',
-            left: 64,
-            zIndex: 5,
-            backgroundColor: skin.TABLE_HEAD_BG,
-            borderRight: `1px solid ${skin.ROW_LINE}`
-          },
-          [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: skin.ROW_HOVER }
-        }}
-      >
-        <DetailTable
-          columns={columns}
-          rows={rows}
-          total={filtered.length}
-          paginationModel={pm}
-          setPaginationModel={setPm}
-          stickyField='sl_no'
-          onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : undefined}
-        />
-      </Box>
+      {/* Standard DetailTable: animal view pins the card column via stickyFields (No column
+          dropped — the card IS the identity); site view keeps the No + Site sticky pair. */}
+      <DetailTable
+        columns={columns}
+        rows={rows}
+        total={filtered.length}
+        paginationModel={pm}
+        setPaginationModel={setPm}
+        stickyFields={isSite ? ['sl_no', 'site'] : ['animal']}
+        rowHeight={isSite ? undefined : 146}
+        onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : undefined}
+      />
     </SectionCard>
   )
 }

@@ -58,8 +58,8 @@ export default function DashboardSpeciesPicker({
             '& .MuiInputBase-root': { borderRadius: '999px', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
             '& .MuiInputBase-input::placeholder': { color: skin.INK2, opacity: 1 },
             '& .MuiAutocomplete-popupIndicator': { color: skin.INK2 },
-            '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER },
             '&:hover .MuiInputBase-root': { backgroundColor: skin.ROW_HOVER }
           }}
         />

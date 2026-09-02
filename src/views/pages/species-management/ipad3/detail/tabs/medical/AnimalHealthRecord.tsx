@@ -533,13 +533,14 @@ const AnimalHealthRecord: React.FC<{
                   onChange={ev => setTab(ev.target.value as typeof tab)}
                   IconComponent={SelectChevron}
                   sx={{
+                    height: skin.CONTROL_H,
                     minWidth: 280,
                     borderRadius: '999px',
                     bgcolor: '#ffffff',
                     fontSize: '16px',
-                    '& .MuiSelect-select': { py: 2, color: skin.INK2, fontWeight: 500 },
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK },
+                    '& .MuiSelect-select': { color: skin.INK2, fontWeight: 500 },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER },
                     // portrait: the filter spans the full timeline width (two-row header grammar)
                     '@media (orientation: portrait)': { width: '100%' }
                   }}

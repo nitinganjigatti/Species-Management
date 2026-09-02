@@ -131,14 +131,36 @@ export const CORAL = '#d4553a' // deaths & the critical figure — never the ala
 export const LIST_GREEN = '#1f6b45' // population/births figures + filter accents
 export const DASH_INK = '#a9b3ad' // the em-dash / absent-figure ink
 
+// ── Animal identity card (Figma Antz-Mobile 38280:31073, adopted 2026-09-02) ──
+// The mobile app's animal-card grammar: 84px photo/placeholder block with a gender
+// badge riding its top-left corner + a max-2 identifier stack (primary bold navy).
+// Badge fills are the MOBILE tag scale (MD3_Antz) — NOT the banner sex hues below;
+// scoped to the card while the two systems coexist (Medical preventive tables first).
+export const ANIMAL_TAG: Record<string, string> = {
+  male: '#00d6c9', // = MD3_Antz/Secondary
+  female: '#fc917a',
+  undetermined: '#f07187', // "UD"
+  indetermined: '#79d5e9', // "ID"
+  group: '#66a786', // wider chip, carries the group count ("G 12")
+  mortality: '#4a0415' // = MD3_Antz/OnErrorContainer — dead animals
+}
+export const CARD_ID_INK = '#1f515b' // primary-identifier ink (= TAB_PILL navy / MD3 OnPrimaryContainer)
+export const CARD_PLACEHOLDER_BG = GROUND // no-photo block = the mint displaybgPrimary (#e8f4f2)
+
 // Banner tag hues (user-specified 2026-08-28) — the sex/chip tags under the hero strip.
 export const BANNER_TAG_MALE = '#00afd6'
 export const BANNER_TAG_FEMALE = '#fa6140' // = customColors.Tertiary
 export const BANNER_TAG_UNSEXED = '#e93353'
-// Search fills are CONTEXTUAL (user standard 2026-09-01, screens AND bottom sheets):
-// on the mint GROUND (incl. sheet bodies) a search is SEARCH_BG white + HAIR outline;
-// inside a white card/section it's the quiet FIELD_BG grey with no outline.
+// Search fills are CONTEXTUAL — the rule keys on the SURFACE BEHIND the search
+// (user standard 2026-09-01, clarified 2026-09-02): on a WHITE surface (cards, white
+// Sheet bodies) it's the quiet FIELD_BG grey with no outline; on the mint/sage GROUND
+// (page ground, sage drill sheets) it's SEARCH_BG white + HAIR outline.
 export const FIELD_BG = '#f4f6f4' // quiet fill — searches in white sections + tiles
+// Dropdown triggers wear ONE border everywhere (user call 2026-09-02: the darker grey,
+// never the HAIR hairline — three different weights on one row read as three components).
+export const DROPDOWN_BORDER = '#c3cec7' // = antz OutlineVariant
+export const CONTROL_H = 44 // ONE height for every dropdown/search control in a row
+export const DROPDOWN_BORDER_HOVER = '#839d8d' // = antz Outline
 export const SEARCH_BG = '#ffffff' // search fill on the mint ground / sheet bodies
 export const RIBBON_FEMALE = '#8fd9ae' // sex ribbon: female step
 export const RIBBON_UNSEXED = '#dcebe1' // sex ribbon: the pale undetermined step

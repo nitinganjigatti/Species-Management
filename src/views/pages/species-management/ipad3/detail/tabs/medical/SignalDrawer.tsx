@@ -10,11 +10,12 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
+  AnimalCardRow,
+  RowMetaText,
   Sheet,
   SheetEmpty,
   SheetFilterBar,
   SheetHeader,
-  SheetRow,
   SheetSection,
   sheetPaperSx,
   SHEET_PX
@@ -80,20 +81,17 @@ const StatusPill: React.FC<{ label: string; tone?: SignalAnimal['pillTone'] }> =
   )
 }
 
-/** One signal animal → the standard SheetRow. Caption = condition (emphasized) + date + detail,
- *  plus an optional chip whose tooltip lists items (see SignalAnimal.chip). */
+/** One signal animal → the standard AnimalCardRow (2026-09-02). Identity lives in the card
+ *  (real enclosure; site stays OFF the card — the site section header / dropdown already says
+ *  it); condition + date + detail become right-aligned meta lines, plus the optional chip
+ *  whose tooltip lists items (see SignalAnimal.chip). */
 const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void }> = ({ a, last, onClick }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const parts = [a.date ? fmtDate(a.date) : '', a.detail].filter(Boolean).join(' • ')
-  const captionText = [a.condition, parts].filter(Boolean).join(' • ')
-  const caption = a.chip ? (
+  // one item per row (card-list hard rule): date and detail each take their own line
+  const parts = [a.date ? fmtDate(a.date) : '', a.detail].filter(Boolean)
+  const chipNode = a.chip ? (
     <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 2, minWidth: 0, maxWidth: '100%' }}>
-      {captionText && (
-        <Box component='span' sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {captionText}
-        </Box>
-      )}
       <Tooltip
         arrow
         enterTouchDelay={0}
@@ -144,20 +142,31 @@ const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void
         </Box>
       </Tooltip>
     </Box>
-  ) : (
-    captionText || undefined
-  )
+  ) : null
 
   return (
-    <SheetRow
-      avatar
-      title={a.name}
-      caption={caption}
-      subline={a.enclosure}
+    <AnimalCardRow
+      aid={a.aid}
+      enclosure={a.enclosure}
       last={last}
       onClick={onClick}
       chevron={!!onClick}
       trailing={a.pill ? <StatusPill label={a.pill} tone={a.pillTone} /> : undefined}
+      meta={
+        <>
+          {a.condition && (
+            <RowMetaText strong wrap>
+              {a.condition}
+            </RowMetaText>
+          )}
+          {parts.map((line, li) => (
+            <RowMetaText key={li} wrap>
+              {line}
+            </RowMetaText>
+          ))}
+          {chipNode}
+        </>
+      }
     />
   )
 }

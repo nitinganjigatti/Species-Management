@@ -3,9 +3,10 @@
 // iPad 3 Population tab (3rd tab, 2026-08-31, rebuilt on the HOUSING section anatomy
 // after the first cut drifted off-standard) — the species' full animal list as ONE
 // SectionCard: title + count left, controls in the card header (Housing's exact
-// landscape/portrait split), the standard frameless DetailTable inside. Columns open
-// with the No serial + the shared AnimalCell (avatar + name + AID sub-line) exactly
-// like Circle of Life's events table, and both stay sticky while the rest scrolls.
+// landscape/portrait split), the standard frameless DetailTable inside. The identity
+// column is the standard AnimalIdCard (2026-09-02 rollout): gender badge + real
+// chip/ring + AID identifiers + Encl/Site lines, sticky while the rest scrolls
+// (Site rides the card only when the visible list spans >1 site).
 // Controls per the approved wireframe: pill search + Site dropdown upfront, the rest
 // (Sex · Enclosure · Age band · Chipped) behind a "Filters" button opening the
 // standard SpeciesFilterSheet (bottom sheet portrait / side sheet landscape).
@@ -24,14 +25,18 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
-  AnimalCell,
+  SiteFilterSelect,
+  AnimalIdCard,
   CategoryFilter,
   CellText,
   DetailTable,
   EmptyState,
   FilterChip,
-  SectionCard
+  HeroPhotoContext,
+  SectionCard,
+  synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
 interface PopulationTabProps {
@@ -58,12 +63,28 @@ const ageBandOf = (age?: string): (typeof AGE_BANDS)[number] => {
 
 const chipOf = (a: AnimalRecord): string => a.chip || a.ring || ''
 
+// Card badge from the REAL gender field — anything not male/female prints Unsexed (UD).
+const tagOf = (g?: string): 'male' | 'female' | 'undetermined' =>
+  g === 'male' ? 'male' : g === 'female' ? 'female' : 'undetermined'
+
+// Card identifiers from REAL fields — max two, AID always included, real tag primary.
+// Chip beats ring when both exist (same priority the old Chip/Ring column used), and
+// records with NO real identifier fall back to the deterministic synth set.
+const cardIdentifiers = (a: AnimalRecord): AnimalCardId[] => {
+  const aidId = { label: 'AID', value: a.antzId }
+  if (a.chip) return [{ label: 'Chip', value: a.chip }, aidId]
+  if (a.ring) return [{ label: 'Ring', value: a.ring }, aidId]
+
+  return synthAnimalIdentity(a.antzId).identifiers
+}
+
 /* ── the tab ─────────────────────────────────────────────────────────────── */
 
 const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const portrait = useMediaQuery('(orientation: portrait)')
+  const heroPhoto = React.useContext(HeroPhotoContext)
 
   const all = useMemo(() => animals || [], [animals])
 
@@ -129,9 +150,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
       filtered.map(a => ({
         ...a,
         animal: a.name || a.antzId,
-        sex: genderLabel(a.gender),
-        ageNum: a.age && Number.isFinite(Number(a.age)) ? Number(a.age) : undefined,
-        chipId: chipOf(a)
+        ageNum: a.age && Number.isFinite(Number(a.age)) ? Number(a.age) : undefined
       })),
     [filtered]
   )
@@ -153,7 +172,18 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
 
   const capped = (totalAnimals ?? all.length) > all.length
 
-  /* ── columns — the CoL events-table grammar: No serial + shared AnimalCell ── */
+  /* ── columns — the standard AnimalIdCard identity column + Age ─────────────── */
+
+  // Site rides the card ONLY when the list the user sees spans more than one site
+  // (no site filter active AND >1 distinct site among the visible rows).
+  const showSite = useMemo(
+    () => !site && new Set(filtered.map(a => a.site).filter(Boolean)).size > 1,
+    [site, filtered]
+  )
+
+  // Enclosure suppression (scope rule): a list the user has narrowed to exactly ONE
+  // enclosure via the facet doesn't repeat that enclosure on every card — the chip says it.
+  const showEnclosure = (extra.enclosure || []).length !== 1
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
     <CellText color={color} weight={weight}>
@@ -163,40 +193,35 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
 
   const columns: GridColDef[] = useMemo(
     () => [
-      { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: (p: any) => txt(p.row.sl_no, cc.neutralSecondary, 400) },
       {
-        width: 240,
+        flex: 1,
+        minWidth: 380,
         field: 'animal',
         headerName: 'Animal Name & ID',
-        renderCell: (p: any) => (
-          <Box sx={{ py: 1 }}>
-            <AnimalCell name={p.row.animal} sub={`AID: ${p.row.antzId}`} size={40} />
-          </Box>
-        )
+        renderCell: (p: any) => {
+          const a = p.row as AnimalRecord
+
+          return (
+            <AnimalIdCard
+              identifiers={cardIdentifiers(a)}
+              enclosure={showEnclosure ? a.enclosure : undefined}
+              site={showSite ? a.site : undefined}
+              tag={tagOf(a.gender)}
+              name={a.name && a.name !== a.antzId ? a.name : undefined}
+              // card's own stat block: numeric dump ages print as "Ny"; empty values self-hide
+              age={p.row.ageNum != null ? `${p.row.ageNum % 1 === 0 ? p.row.ageNum : p.row.ageNum.toFixed(1)}y` : (a.age || '').trim()}
+              weight={a.weight}
+              photo={synthAnimalIdentity(a.antzId).hasPhoto ? heroPhoto?.src : undefined}
+              photoPos={heroPhoto?.bgPos}
+            />
+          )
+        }
       },
-      { width: 110, field: 'sex', headerName: 'Gender', renderCell: (p: any) => txt(p.row.sex) },
-      {
-        width: 100,
-        field: 'ageNum',
-        headerName: 'Age',
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: (p: any) =>
-          p.row.ageNum != null
-            ? txt(`${p.row.ageNum % 1 === 0 ? p.row.ageNum : p.row.ageNum.toFixed(1)}y`, skin.VALUE)
-            : txt('—', cc.neutralSecondary)
-      },
-      { width: 200, field: 'site', headerName: 'Site', renderCell: (p: any) => txt(p.row.site || '—') },
-      { width: 200, field: 'enclosure', headerName: 'Enclosure', renderCell: (p: any) => txt(p.row.enclosure || '—') },
-      {
-        width: 170,
-        field: 'chipId',
-        headerName: 'Chip / Ring ID',
-        renderCell: (p: any) => (p.row.chipId ? txt(p.row.chipId) : txt('—', cc.neutralSecondary))
-      }
+      // Age + weight moved INTO the card's right stat block (user call 2026-09-02) —
+      // no separate Age column; empty values drop their own line, never a dash.
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cc]
+    [cc, showSite, showEnclosure, heroPhoto]
   )
 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
@@ -218,14 +243,12 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   )
 
   const siteFilterCtl = multiSite && (
-    <CategoryFilter
-      radius='999px'
-      width={180}
-      options={sites}
+    // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+    <SiteFilterSelect
+      sites={sites.map(name => ({ site: name, caption: `${all.filter(a => a.site === name).length.toLocaleString()} animals` }))}
       value={site}
       onChange={v => setSite(v)}
-      placeholder='All sites'
-      icon='mdi:map-marker-outline'
+      allCaption={`${all.length.toLocaleString()} animals`}
     />
   )
 
@@ -320,38 +343,17 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
         )}
 
         {table.total ? (
-          // No pinned at 0 by DetailTable; the AnimalCell column joins it at 64 with the
-          // same surface/header/hover tokens (the CoL sticky-pair pattern).
-          <Box
-            sx={{
-              '& .MuiDataGrid-cell[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 3,
-                backgroundColor: '#ffffff',
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-columnHeader[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 5,
-                backgroundColor: skin.TABLE_HEAD_BG,
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="animal"]': { backgroundColor: skin.ROW_HOVER }
-            }}
-          >
-            <DetailTable
-              columns={columns}
-              rows={table.rows}
-              total={table.total}
-              paginationModel={table.paginationModel}
-              setPaginationModel={table.setPaginationModel}
-              sortModel={table.sortModel}
-              handleSortModel={table.handleSortModel}
-              stickyField='sl_no'
-            />
-          </Box>
+          <DetailTable
+            columns={columns}
+            rows={table.rows}
+            total={table.total}
+            paginationModel={table.paginationModel}
+            setPaginationModel={table.setPaginationModel}
+            sortModel={table.sortModel}
+            handleSortModel={table.handleSortModel}
+            stickyFields={['animal']}
+            rowHeight={146}
+          />
         ) : (
           <EmptyState message='No animals match your filters' />
         )}

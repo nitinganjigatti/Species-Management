@@ -6,6 +6,7 @@ import { Box, CircularProgress } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 
 import * as detailApi from 'src/lib/api/species-management/detail'
+import { HeroPhotoContext, HERO_PHOTOS } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { getSpeciesEggs } from 'src/lib/api/species-management/eggs'
 import { getSpeciesBreeding } from 'src/lib/api/species-management/breeding-eggs'
 import type { SpeciesDetailTab } from 'src/types/species-management/detail'
@@ -176,7 +177,11 @@ const IpadDetailContainer = () => {
       case 'assessments':
         return assessments.isLoading ? <Loading /> : <AssessmentsTab assessments={assessments.data} />
       case 'medical':
-        return preventive.isLoading || clinical.isLoading ? <Loading /> : <MedicalTab preventive={preventive.data} clinical={clinical.data} />
+        return preventive.isLoading || clinical.isLoading ? (
+          <Loading />
+        ) : (
+          <MedicalTab preventive={preventive.data} clinical={clinical.data} speciesId={id} />
+        )
       case 'hospital':
         return clinical.isLoading ? <Loading /> : <HospitalTab clinical={clinical.data} />
       case 'lab':
@@ -200,18 +205,21 @@ const IpadDetailContainer = () => {
 
   return (
     <V2TypeScale>
-      <SpeciesDetailView
-        header={header.data}
-        speciesId={id}
-        activeTab={tab}
-        onTabChange={setTab}
-        onBack={() => router.push('/species-management/ipad-3/list/')}
-        showEggs={showEggs}
-        alerts={alerts}
-        onAlertClick={() => setTab('assessments')}
-      >
-        {renderTab()}
-      </SpeciesDetailView>
+      {/* One provider for every tab: AnimalIdCard/AnimalCardRow photo variants resolve here. */}
+      <HeroPhotoContext.Provider value={HERO_PHOTOS[String(id)]}>
+        <SpeciesDetailView
+          header={header.data}
+          speciesId={id}
+          activeTab={tab}
+          onTabChange={setTab}
+          onBack={() => router.push('/species-management/ipad-3/list/')}
+          showEggs={showEggs}
+          alerts={alerts}
+          onAlertClick={() => setTab('assessments')}
+        >
+          {renderTab()}
+        </SpeciesDetailView>
+      </HeroPhotoContext.Provider>
     </V2TypeScale>
   )
 }

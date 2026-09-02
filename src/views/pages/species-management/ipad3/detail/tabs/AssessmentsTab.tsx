@@ -9,13 +9,15 @@ import type { AssessmentAnimal, CatTypeItem, SpeciesAssessments } from 'src/type
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import {
-  AnimalCell,
+  SiteFilterSelect,
+  AnimalIdCard,
   CategoryFilter,
   CellText,
   DetailTable,
   DrillSheet,
   EmptyState,
   EntityListDrawer,
+  HeroPhotoContext,
   IntelligenceCard,
   RangeBar,
   SectionCard,
@@ -23,6 +25,7 @@ import {
   SheetRow,
   Sparkline,
   StatTile,
+  synthAnimalIdentity,
   TileGrid,
   VBarChart
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -172,6 +175,7 @@ const trendVol = (history?: { d: string; v: number }[]): { trend: number | null;
 const useCell = () => {
   const theme = useTheme() as any
   const c = cc(theme)
+  const heroPhoto = React.useContext(HeroPhotoContext)
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
     <CellText color={color} weight={weight}>
@@ -179,8 +183,32 @@ const useCell = () => {
     </CellText>
   )
 
-  /** Animal identity cell — delegates to the shared AnimalCell (single copy in detailUi). */
-  const animalCell = (name?: string, site?: string) => <AnimalCell name={name} sub={site} />
+  /** Standard animal identity CARD cell (2026-09-02 rollout). Real record fields beat
+   * synthesis (gender → badge, enclosure); synthAnimalIdentity fills the demo-data gaps
+   * (identifiers, photo, missing gender/enclosure). `showSite` follows the site row rule:
+   * only when the visible list spans more than one site. */
+  const animalCardCell = (
+    row: { antzId?: string; id?: string; name?: string; gender?: string; enclosure?: string; site?: string },
+    showSite?: boolean
+  ) => {
+    const aid = row.antzId || row.id || ''
+    const s = synthAnimalIdentity(aid)
+    const g = (row.gender || '').trim().toLowerCase()
+    const tag = row.gender ? (g === 'male' ? ('male' as const) : g === 'female' ? ('female' as const) : ('undetermined' as const)) : s.tag
+    const displayName = row.name && row.name !== aid ? row.name : undefined
+
+    return (
+      <AnimalIdCard
+        identifiers={s.identifiers}
+        enclosure={row.enclosure || s.enclosure}
+        site={showSite ? row.site : undefined}
+        tag={tag}
+        name={displayName || undefined}
+        photo={s.hasPhoto ? heroPhoto?.src : undefined}
+        photoPos={heroPhoto?.bgPos}
+      />
+    )
+  }
 
   /** Signed % with direction arrow, tinted green up / orange down / neutral flat. */
   const trendCell = (pct: number | null) => {
@@ -220,7 +248,7 @@ const useCell = () => {
     </Box>
   )
 
-  return { txt, animalCell, trendCell, trendSparkCell, c, theme }
+  return { txt, animalCardCell, trendCell, trendSparkCell, c, theme }
 }
 
 /* ------------------------------------------------------------- shared table controls */
@@ -264,15 +292,8 @@ const TableControls: React.FC<{
       InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
     />
     {ctl.sites.length > 1 && (
-      <CategoryFilter
-        radius='999px'
-        width={180}
-        options={ctl.sites}
-        value={ctl.site}
-        onChange={v => ctl.setSite(v)}
-        placeholder='All sites'
-        icon='mdi:map-marker-outline'
-      />
+      // THE standard site dropdown (2026-09-02): bottom-sheet picker
+      <SiteFilterSelect sites={ctl.sites.map(name => ({ site: name }))} value={ctl.site} onChange={v => ctl.setSite(v)} />
     )}
   </Box>
 )
@@ -280,7 +301,7 @@ const TableControls: React.FC<{
 /* ------------------------------------------------------------------ Population table */
 
 const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: string) => void }> = ({ animals, onAnimal }) => {
-  const { txt, animalCell, trendCell, c } = useCell()
+  const { txt, animalCardCell, trendCell, c } = useCell()
 
   const data = useMemo(
     () =>
@@ -291,6 +312,7 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
           antzId: a.antzId,
           name: a.name || a.antzId,
           site: a.site,
+          enclosure: a.enclosure,
           gender: a.gender,
           weight: a.latestWeight ?? null,
           bcs: a.latestBcs != null ? Number(a.latestBcs) : null,
@@ -309,14 +331,15 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
 
   const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showCardSite = !ctl.site && ctl.sites.length > 1
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
     {
       field: 'name',
       headerName: 'Animal',
       flex: 1,
-      minWidth: 210,
-      renderCell: p => animalCell(p.row.name, p.row.site)
+      minWidth: 380,
+      renderCell: p => animalCardCell(p.row, showCardSite)
     },
     { field: 'weight', headerName: 'Weight', flex: 0.5, minWidth: 140, renderCell: p => txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600) },
     { field: 'bcs', headerName: 'BCS', flex: 0.4, minWidth: 104, renderCell: p => txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600) },
@@ -337,6 +360,8 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
         ) : (
@@ -364,7 +389,7 @@ const NumericTypePanel: React.FC<{
   onAnimal: (id: string) => void
   onBucket: (title: string, items?: any[]) => void
 }> = ({ item, siteById, onAnimal, onBucket }) => {
-  const { txt, animalCell, trendSparkCell, c, theme } = useCell()
+  const { txt, animalCardCell, trendSparkCell, c, theme } = useCell()
 
   const data = useMemo(
     () =>
@@ -394,9 +419,10 @@ const NumericTypePanel: React.FC<{
     return txt(`${pct > 0 ? '+' : ''}${round1(pct)}%`, color, 600)
   }
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showCardSite = !ctl.site && ctl.sites.length > 1
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row, showCardSite) },
     {
       field: 'value',
       headerName: `Trend${item.uom ? ` (${abbrevUnit(item.uom)})` : ''}`,
@@ -465,6 +491,8 @@ const NumericTypePanel: React.FC<{
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
         ) : (
@@ -478,7 +506,7 @@ const NumericTypePanel: React.FC<{
 /* ------------------------------------------------------------------ Weight & BCS synthetic panels */
 
 const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({ a, onAnimal, onBucket }) => {
-  const { txt, animalCell, trendCell, trendSparkCell, c } = useCell()
+  const { txt, animalCardCell, trendCell, trendSparkCell, c } = useCell()
   const animals = (a.animals || []).filter(an => an.weightHistory?.length)
 
   const data = useMemo(
@@ -490,6 +518,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
           antzId: an.antzId,
           name: an.name || an.antzId,
           site: an.site,
+          enclosure: an.enclosure,
           gender: an.gender,
           weight: an.latestWeight ?? null,
           spark: series(an.weightHistory),
@@ -504,9 +533,10 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
   const tbl = useSortableTable(ctl.filtered, { field: 'weight', sort: 'desc' })
   useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showCardSite = !ctl.site && ctl.sites.length > 1
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row, showCardSite) },
     {
       field: 'weight',
       headerName: 'Weight Trend',
@@ -574,6 +604,8 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
         ) : (
@@ -585,7 +617,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
 }
 
 const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void; onBucket: (title: string, items?: any[]) => void }> = ({ a, onAnimal, onBucket }) => {
-  const { txt, animalCell, trendSparkCell, c, theme } = useCell()
+  const { txt, animalCardCell, trendSparkCell, c, theme } = useCell()
   const animals = (a.animals || []).filter(an => an.bcsHistory?.length || an.latestBcs != null)
 
   const data = useMemo(
@@ -594,6 +626,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
         antzId: an.antzId,
         name: an.name || an.antzId,
         site: an.site,
+        enclosure: an.enclosure,
         gender: an.gender,
         bcs: an.latestBcs != null ? Number(an.latestBcs) : null,
         spark: series(an.bcsHistory),
@@ -607,9 +640,10 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
   useEffect(() => tbl.setPaginationModel(p => ({ ...p, page: 0 })), [ctl.q, ctl.site]) // eslint-disable-line react-hooks/exhaustive-deps
   const bcsColor = (v: number) => (v >= 2.5 && v <= 3.5 ? undefined : skin.CORAL)
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showCardSite = !ctl.site && ctl.sites.length > 1
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name, p.row.site) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row, showCardSite) },
     {
       field: 'bcs',
       headerName: 'BCS Trend',
@@ -698,6 +732,8 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
         ) : (
@@ -856,7 +892,7 @@ const StripTypeTable: React.FC<{
 }> = ({ a, category, item, onAnimal }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const { animalCell } = useCell()
+  const { animalCardCell } = useCell()
 
   const [q, setQ] = useState('')
   const [siteSel, setSiteSel] = useState<string | null>(null)
@@ -884,7 +920,16 @@ const StripTypeTable: React.FC<{
         if (cutoff) readings = readings.filter(r => r.d >= cutoff)
         if (readings.length > cap) readings = readings.slice(0, cap)
 
-        return { id: an.antzId, name: an.name, site: an.site, readings, latest: readings[0]?.d || '' }
+        return {
+          id: an.antzId,
+          antzId: an.antzId,
+          name: an.name,
+          gender: an.gender,
+          enclosure: an.enclosure,
+          site: an.site,
+          readings,
+          latest: readings[0]?.d || ''
+        }
       })
       .filter(r => r.readings.length > 0)
   }, [a, category, item, entries])
@@ -963,8 +1008,10 @@ const StripTypeTable: React.FC<{
   )
   const perReadingW = isText ? 230 : 170
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showCardSite = !siteSel && stripSites.length > 1
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Animal', width: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
+    { field: 'name', headerName: 'Animal', width: 380, renderCell: p => animalCardCell(p.row, showCardSite) },
     {
       field: 'latest',
       headerName: `${item.type} assessment`,
@@ -994,15 +1041,8 @@ const StripTypeTable: React.FC<{
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             {stripSites.length > 1 && (
-              <CategoryFilter
-                radius='999px'
-                width={180}
-                options={stripSites}
-                value={siteSel}
-                onChange={v => setSiteSel(v)}
-                placeholder='All sites'
-                icon='mdi:map-marker-outline'
-              />
+              // THE standard site dropdown (2026-09-02): bottom-sheet picker
+              <SiteFilterSelect sites={stripSites.map(name => ({ site: name }))} value={siteSel} onChange={v => setSiteSel(v)} />
             )}
             <Select
               size='small'
@@ -1010,12 +1050,13 @@ const StripTypeTable: React.FC<{
               onChange={e => setEntries(e.target.value as EntriesFilter)}
               IconComponent={SelectChevron}
               sx={{
+                height: skin.CONTROL_H,
                 minWidth: 160,
                 bgcolor: '#ffffff',
                 borderRadius: '999px',
                 '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
               }}
             >
               {ENTRIES_FILTERS.map(f => (
@@ -1049,9 +1090,9 @@ const StripTypeTable: React.FC<{
             total={tbl.total}
             paginationModel={tbl.paginationModel}
             setPaginationModel={tbl.setPaginationModel}
-            rowHeight={84}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
             onRowClick={p => onAnimal(p.row.id)}
-            stickyField='name'
+            stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
           />
         ) : (
           <EmptyState message='No matching animals' />
@@ -1136,7 +1177,7 @@ const SectionLabel: React.FC<{ children: React.ReactNode; sub?: React.ReactNode 
 const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup) => void; onAnimal: (id: string) => void }> = ({ a, onOpenGroup, onAnimal }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const { animalCell, txt } = useCell()
+  const { animalCardCell, txt } = useCell()
   const al = a.alerts || {}
 
   const groups: AlertGroup[] = useMemo(() => {
@@ -1215,9 +1256,10 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
 
   if (!groups.length && !changesByCat.length && !outlierRows.length) return <EmptyState message='No alerts for this species' />
 
+  // Site rides the card only when the visible list spans more than one site.
+  const showOutlierSite = !outlierCtl.site && outlierCtl.sites.length > 1
   const outlierCols: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 56, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary, 400) },
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 190, renderCell: p => animalCell(p.row.name) },
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row, showOutlierSite) },
     {
       field: 'metric',
       headerName: 'Metric',
@@ -1411,6 +1453,8 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                 setPaginationModel={outlierTbl.setPaginationModel}
                 sortModel={outlierTbl.sortModel}
                 handleSortModel={outlierTbl.handleSortModel}
+                rowHeight={146} // 94px animal-card block + breathing room (table standard)
+                stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
                 onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
               />
             ) : (

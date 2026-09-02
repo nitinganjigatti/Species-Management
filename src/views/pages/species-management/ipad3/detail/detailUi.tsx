@@ -271,6 +271,340 @@ export const AnimalCell: React.FC<{ name?: string; sub?: string; avatar?: string
   )
 }
 
+/* ── Animal identity card (Figma Antz-Mobile 38280:31073, adopted 2026-09-02) ──
+ *  The mobile app's animal card, ported as THE richer identity cell: photo (or mint
+ *  placeholder + logomark watermark) with a gender/status badge on its top-left corner,
+ *  beside a text stack of max TWO identifiers (primary first, bold navy — AID counts
+ *  toward the two) then Encl: and Site:. The photo's expand affordance is deliberately
+ *  NOT built yet (user: "that expand option i will discuss later").
+ *  HARD RULE (user, 2026-09-02): the Site row renders ONLY when the surrounding list
+ *  spans more than one site (All-sites view / multi-site scope). A list already scoped
+ *  to a single site must NOT repeat the site on every card — callers omit `site` then.
+ *  First surface: Medical preventive detail tables; adopt elsewhere only on user call. */
+export type AnimalTagKind = 'male' | 'female' | 'undetermined' | 'indetermined' | 'group' | 'mortality'
+
+// Badge letter per tag — group renders "G {count}", mortality keeps the mobile "M".
+const TAG_LETTER: Record<AnimalTagKind, string> = {
+  male: 'M',
+  female: 'F',
+  undetermined: 'UD',
+  indetermined: 'ID',
+  group: 'G',
+  mortality: 'M'
+}
+
+export interface AnimalCardId {
+  label: string // "Ear Tag" · "AID" · "Ring" · …
+  value: string
+}
+
+export const AnimalIdCard: React.FC<{
+  /** Ordered identifiers, PRIMARY FIRST — only the first two render (AID included). */
+  identifiers: AnimalCardId[]
+  enclosure?: string
+  site?: string
+  tag?: AnimalTagKind
+  /** Group size — renders inside the badge ("G 12"); group tag only. */
+  groupCount?: number
+  photo?: string
+  /** objectPosition framing for the photo crop (same idea as the banner's bgPos). */
+  photoPos?: string
+  /** Identity block edge — 94 default (mobile's 84 + 10 per user call 2026-09-02). */
+  size?: number
+  /** Inline extras after the primary identifier (×N repeat marker, Chronic tag …). */
+  titleExtra?: React.ReactNode
+  /** The animal's real display name. HARD RULE (user, 2026-09-02): shown ONLY when the
+   *  card has a single identifier line (AID alone) — it then takes the second line.
+   *  With two identifiers the name does not render at all. */
+  name?: string
+  /** Age / weight — the card's right-aligned stat block (user call 2026-09-02): age strong
+   *  on top, weight quiet beneath as "N kg". A missing/empty value drops its OWN line —
+   *  never an empty "kg" or a dash. Surfaces that don't need them simply omit the props. */
+  age?: string
+  weight?: string
+}> = ({ identifiers, enclosure, site, tag, groupCount, photo, photoPos, size = 94, titleExtra, name, age, weight }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const ids = identifiers.slice(0, 2)
+  const nameLine = ids.length < 2 && name && !ids.some(id => id.value === name) ? name : undefined
+  const ageLine = (age || '').trim()
+  // normalize the unit: some records carry "2169.59 kg", others a bare number — strip any
+  // trailing "kg" so the card appends it exactly once
+  const weightLine = String(weight ?? '')
+    .trim()
+    .replace(/\s*kgs?\.?$/i, '')
+    .trim()
+
+  return (
+    // width 100% so the age/weight stat block can right-align inside table cells
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0, width: '100%' }}>
+      {/* identity block — photo or the mint placeholder with the logomark watermark */}
+      <Box
+        sx={{
+          position: 'relative',
+          width: size,
+          height: size,
+          flexShrink: 0,
+          borderRadius: '8px',
+          overflow: 'hidden',
+          backgroundColor: skin.CARD_PLACEHOLDER_BG
+        }}
+      >
+        {photo ? (
+          <Box
+            component='img'
+            src={photo}
+            alt=''
+            sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: photoPos || 'center', display: 'block' }}
+          />
+        ) : (
+          // no-photo fallback: the logomark CENTERED in the mint block (user call 2026-09-02)
+          <Box
+            component='img'
+            src='/images/branding/Antz_logomark_h_color.svg'
+            alt=''
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              m: 'auto',
+              width: Math.round(size * 0.5),
+              opacity: 0.5
+            }}
+          />
+        )}
+        {tag === 'mortality' ? (
+          // the REAL mortality badge asset (SVG/Mortality Badge.svg — "M" + icon on the
+          // maroon plate, straight from Figma), not a re-drawn letter chip
+          <Box
+            component='img'
+            src='/images/species/mortality-badge.svg'
+            alt='Mortality'
+            sx={{ position: 'absolute', top: 4, left: 4, height: 24, display: 'block' }}
+          />
+        ) : tag ? (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 4,
+              left: 4,
+              minWidth: 24,
+              height: 24,
+              px: tag === 'group' ? 1.25 : 0,
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: skin.ANIMAL_TAG[tag]
+            }}
+          >
+            <Typography sx={{ fontSize: 10, fontWeight: 600, lineHeight: 1, color: '#ffffff', whiteSpace: 'nowrap' }}>
+              {tag === 'group' && groupCount != null ? `G ${groupCount}` : TAG_LETTER[tag]}
+            </Typography>
+          </Box>
+        ) : null}
+      </Box>
+
+      {/* identifier stack — primary bold navy, everything else the quiet dark green */}
+      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {ids.map((id, i) => (
+          <Box key={id.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontSize: i === 0 ? CELL_FONT : '0.9375rem',
+                fontWeight: i === 0 ? 600 : 500,
+                color: i === 0 ? skin.CARD_ID_INK : c.OnSurfaceVariant
+              }}
+              noWrap
+            >
+              {id.label}: {id.value}
+            </Typography>
+            {i === 0 && titleExtra}
+          </Box>
+        ))}
+        {nameLine && (
+          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.OnSurfaceVariant }} noWrap>
+            {nameLine}
+          </Typography>
+        )}
+        {enclosure && (
+          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.OnSurfaceVariant }} noWrap>
+            Encl: {enclosure}
+          </Typography>
+        )}
+        {site && (
+          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.OnSurfaceVariant }} noWrap>
+            Site: {site}
+          </Typography>
+        )}
+      </Box>
+
+      {/* age / weight stat block — right-aligned; each line only when it has a value */}
+      {(ageLine || weightLine) && (
+        <Box sx={{ ml: 'auto', pl: 2, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'right' }}>
+          {ageLine && (
+            <Typography sx={{ fontSize: CELL_FONT, fontWeight: 500, color: c.OnSurfaceVariant, whiteSpace: 'nowrap' }}>
+              {ageLine}
+            </Typography>
+          )}
+          {weightLine && (
+            <Typography sx={{ fontSize: '0.9375rem', color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {weightLine} kg
+            </Typography>
+          )}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+/** Species with a real hero photo (single copy — the detail banner AND the animal card's
+ *  photo variant both resolve here). bgPos frames the crop on the face. */
+export const HERO_PHOTOS: Record<string, { src: string; bgPos: string }> = {
+  '2150': { src: '/images/species/2150.jpg', bgPos: 'center 38%' },
+  '449': { src: '/images/species/449.jpg', bgPos: 'center 10%' }
+}
+
+/** Species hero photo for the AnimalIdCard photo variant — a tab provides it ONCE at its
+ *  root (value = HERO_PHOTOS[speciesId]) and every card row below resolves it, so sheet
+ *  components don't thread photo props four levels deep. */
+export const HeroPhotoContext = React.createContext<{ src: string; bgPos: string } | undefined>(undefined)
+
+/* ── AnimalIdCard identity synthesis (DEMO DATA, 2026-09-02) ─────────────────
+ * The species sidecars are synthetic and carry no gender / extra identifiers, so the
+ * card fields derive DETERMINISTICALLY from the aid (stable across renders and tabs).
+ * Identifier rules (user spec): one identifier is primary and leads bold; max TWO show,
+ * AID included — tag-primary → tag then AID · AID-primary → AID then tag · AID-only →
+ * one line. A real API later replaces this helper with actual fields. */
+const ENCL_POOL = ['North Paddock', 'Willow Yard', 'Cedar Hollow', 'Creek Run', 'Fern Grove', 'Basalt Ridge', 'Mangrove Walk', 'Sunrise Bay']
+const aidHash = (s: string) => {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+
+  return h
+}
+export const synthAnimalIdentity = (aid: string) => {
+  const h = aidHash(aid)
+  const g = h % 100
+  const tag: AnimalTagKind = g < 42 ? 'male' : g < 84 ? 'female' : g < 94 ? 'undetermined' : 'indetermined'
+
+  const aidId = { label: 'AID', value: aid }
+  const mix = (h >> 4) % 10 // 0-5 tag primary · 6-7 AID primary + tag · 8-9 AID only
+  const tagLabel = (h >> 2) % 3 === 0 ? 'Ring' : 'Ear Tag'
+  const tagValue = tagLabel === 'Ring' ? `R-${1000 + (h % 9000)}` : String(100000 + (h % 900000))
+  const identifiers =
+    mix >= 8 ? [aidId] : mix >= 6 ? [aidId, { label: tagLabel, value: tagValue }] : [{ label: tagLabel, value: tagValue }, aidId]
+
+  return { tag, identifiers, enclosure: ENCL_POOL[(h >> 3) % ENCL_POOL.length], hasPhoto: h % 10 < 6 }
+}
+
+/** Display label for an identifier type on the animal card — the data says "Micro chip" /
+ *  "Microchip" / "Transponder", the card says "Chip" (user call 2026-09-02). */
+export const idTypeLabel = (raw?: string): string => {
+  const t = (raw || '').toLowerCase()
+  if (t.includes('chip') || t.includes('transponder')) return 'Chip'
+  if (t.includes('ring')) return 'Ring'
+
+  return raw || 'ID'
+}
+
+/** Quiet right-aligned meta line for AnimalCardRow's trailing column (dates, medicine names). */
+export const RowMetaText: React.FC<{ children?: React.ReactNode; strong?: boolean; wrap?: boolean }> = ({
+  children,
+  strong,
+  wrap
+}) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Typography
+      sx={{
+        fontSize: '0.9375rem',
+        color: strong ? c.OnSurfaceVariant : c.neutralSecondary,
+        textAlign: 'right',
+        ...(wrap ? {} : { whiteSpace: 'nowrap' })
+      }}
+    >
+      {children}
+    </Typography>
+  )
+}
+
+/** THE standard sheet/list row for animal listings (2026-09-02): AnimalIdCard left,
+ *  trailing chip + quiet meta lines right-aligned, chevron for navigational rows.
+ *  Identity fields come from synthAnimalIdentity(aid) — pass `enclosure`/`site` to
+ *  override with REAL data where the record carries it. Site follows the card's hard
+ *  rule: pass it only when the surrounding list spans more than one site. */
+export const AnimalCardRow: React.FC<{
+  aid: string
+  site?: string
+  enclosure?: string
+  tag?: AnimalTagKind
+  /** REAL identifiers override (max 2, primary first) — synthesis only fills the gap when
+   *  the record carries no identifier data ("real fields beat synthesis"). */
+  identifiers?: AnimalCardId[]
+  titleExtra?: React.ReactNode
+  /** Real display name — renders only when AID is the sole identifier (card's hard rule). */
+  name?: string
+  /** Age / weight — forwarded to the card's right stat block (empty values self-hide). */
+  age?: string
+  weight?: string
+  /** Top-right chip(s). */
+  trailing?: React.ReactNode
+  /** Quiet lines under the chip (RowMetaText or any node), right-aligned.
+   *  HARD RULE (user, 2026-09-02): ONE item per line — pass stacked RowMetaText lines,
+   *  never bullet-joined strings. (List rows only; tables keep their column grammar.) */
+  meta?: React.ReactNode
+  chevron?: boolean
+  last?: boolean
+  onClick?: () => void
+  size?: number
+}> = ({ aid, site, enclosure, tag, identifiers, titleExtra, name, age, weight, trailing, meta, chevron, last, onClick, size }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const heroPhoto = React.useContext(HeroPhotoContext)
+  const s = synthAnimalIdentity(aid)
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        py: 4,
+        borderBottom: last ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+        ...(onClick ? { cursor: 'pointer', '&:hover': { backgroundColor: c.Surface } } : {})
+      }}
+    >
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <AnimalIdCard
+          identifiers={identifiers ?? s.identifiers}
+          // synth enclosure only backfills SYNTH-identity rows — a real-data caller
+          // (identifiers passed) omitting enclosure means "scoped, don't show one"
+          enclosure={identifiers ? enclosure : enclosure ?? s.enclosure}
+          site={site}
+          tag={tag ?? s.tag}
+          titleExtra={titleExtra}
+          name={name}
+          age={age}
+          weight={weight}
+          photo={s.hasPhoto ? heroPhoto?.src : undefined}
+          photoPos={heroPhoto?.bgPos}
+          size={size}
+        />
+      </Box>
+      {(trailing != null || meta != null) && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1.5, flexShrink: 0, maxWidth: '45%' }}>
+          {trailing}
+          {meta}
+        </Box>
+      )}
+      {chevron && onClick && <Icon icon='mdi:chevron-right' fontSize='1.25rem' color={c.Outline} />}
+    </Box>
+  )
+}
+
 const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** "2025-07" → "Jul '25"; passes through anything that isn't a YYYY-MM string. */
@@ -742,8 +1076,8 @@ export const CategoryFilter: React.FC<{
             '& .MuiInputBase-root': { height, borderRadius: radius, fontSize: '15px', fontWeight: 500, color: skin.INK2 },
             '& .MuiInputBase-input::placeholder': { color: skin.INK2, opacity: 1 },
             '& .MuiAutocomplete-popupIndicator': { color: skin.INK2 },
-            '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER },
             '&:hover .MuiInputBase-root': { backgroundColor: skin.ROW_HOVER }
           }}
         />
@@ -764,6 +1098,288 @@ export const CategoryFilter: React.FC<{
  * and the search collapses to an icon-only square at the row's end so both dropdowns share the row.
  * The expanded search still overlays everything.
  */
+/** THE standard site dropdown (user call 2026-09-02, promoted from Medical's
+ *  SiteFilterControl): a Gender-pill trigger that opens a BOTTOM-SHEET picker — searchable
+ *  site list, per-site caption (each surface supplies its own count wording), "All Sites"
+ *  row, check-circle selected state. Every screen-level site filter in iPad 3 renders
+ *  this; sheet-internal facets keep SheetFilterBar. */
+export interface SiteFilterOption {
+  site: string
+  caption?: React.ReactNode
+}
+
+export const SiteFilterSelect: React.FC<{
+  sites: SiteFilterOption[]
+  value: string | null
+  onChange: (v: string | null) => void
+  /** Caption under the "All Sites" row (e.g. "246 animals"). */
+  allCaption?: React.ReactNode
+  /** Total shown in the sheet header stat (defaults to the option count). */
+  sitesTotal?: number
+}> = ({ sites, value, onChange, allCaption, sitesTotal }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [open, setOpen] = useState(false)
+  const [siteQ, setSiteQ] = useState('')
+
+  const filtered = siteQ.trim() ? sites.filter(s => s.site.toLowerCase().includes(siteQ.trim().toLowerCase())) : sites
+  const pick = (v: string | null) => {
+    onChange(v)
+    setOpen(false)
+    setSiteQ('')
+  }
+
+  const row = (opts: { key: string; selected: boolean; onClick: () => void; icon: string; title: string; caption?: React.ReactNode; last: boolean }) => (
+    <Box
+      key={opts.key}
+      onClick={opts.onClick}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        py: 4,
+        borderBottom: opts.last ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+        cursor: 'pointer',
+        '&:hover': { backgroundColor: c.Surface }
+      }}
+    >
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          flexShrink: 0,
+          borderRadius: '8px',
+          backgroundColor: c.displaybgPrimary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Icon icon={opts.icon} fontSize={20} color={c.OnPrimaryContainer} />
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
+          {opts.title}
+        </Typography>
+        {opts.caption != null && opts.caption !== '' && (
+          <Typography
+            sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
+            noWrap
+          >
+            {opts.caption}
+          </Typography>
+        )}
+      </Box>
+      {opts.selected ? (
+        <Icon icon='mdi:check-circle' fontSize={20} color={theme.palette.primary.dark} />
+      ) : (
+        <Icon icon='mdi:chevron-right' fontSize={16} color={c.Outline} />
+      )}
+    </Box>
+  )
+
+  return (
+    <>
+      {/* Trigger = the Gender-pill dropdown grammar (2026-09-01): ink label + ink chevron
+          on a white hairline pill; the applied state wears Gender's green tint. */}
+      <Box
+        onClick={() => setOpen(true)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          px: 3,
+          height: 44,
+          flexShrink: 0,
+          borderRadius: '999px',
+          border: `1px solid ${value ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.DROPDOWN_BORDER}`,
+          backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+          cursor: 'pointer',
+          transition: 'border-color .15s ease, background-color .15s ease',
+          '&:hover': {
+            borderColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.DROPDOWN_BORDER_HOVER,
+            backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
+          }
+        }}
+      >
+        <Typography sx={{ fontSize: '15px', fontWeight: 500, maxWidth: 180, color: value ? skin.LIST_GREEN : skin.INK2 }} noWrap>
+          {value ?? 'All sites'}
+        </Typography>
+        <Icon icon='mdi:chevron-down' fontSize='1.25rem' color={value ? skin.LIST_GREEN : skin.INK2} />
+      </Box>
+
+      <SheetDrawer open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
+        <Sheet>
+          <SheetHeader title='Sites' stats={[{ label: 'Sites', value: sitesTotal ?? sites.length }]} onClose={() => setOpen(false)} />
+          <SheetSearch value={siteQ} onChange={setSiteQ} placeholder='Search sites…' />
+          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
+            {!siteQ.trim() &&
+              row({
+                key: '__all',
+                selected: value == null,
+                onClick: () => pick(null),
+                icon: 'mdi:map-marker-multiple-outline',
+                title: 'All Sites',
+                caption: allCaption,
+                last: filtered.length === 0
+              })}
+            {filtered.map((s, i) =>
+              row({
+                key: s.site,
+                selected: value === s.site,
+                onClick: () => pick(value === s.site ? null : s.site),
+                icon: 'mdi:map-marker-outline',
+                title: s.site,
+                caption: s.caption,
+                last: i === filtered.length - 1
+              })
+            )}
+            {filtered.length === 0 && siteQ.trim() && (
+              <Typography variant='body2' sx={{ color: c.neutralSecondary, textAlign: 'center', mt: 4 }}>
+                No sites match.
+              </Typography>
+            )}
+          </Box>
+        </Sheet>
+      </SheetDrawer>
+    </>
+  )
+}
+
+/** Collapsible card-header search (user calls 2026-09-02): rests as a COMPACT pill the
+ *  same width as the dropdowns beside it (never a bare icon), sits FIRST in its controls
+ *  row; on tap it expands to cover the WHOLE row (the row must be position:relative), and
+ *  collapses back when the user leaves it — a live query stays visible, truncated, in the
+ *  compact pill so an active filter is never hidden. In-card grammar: FIELD_BG borderless. */
+export const CollapsibleSearch: React.FC<{
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  /** Resting pill width — match the neighbouring dropdown (CategoryFilter default 210). */
+  collapsedWidth?: number
+  /** Elastic mode (user call 2026-09-02): the resting pill FILLS the row's spare width —
+   *  dropdowns keep their content size and the search absorbs/yields the remainder. */
+  grow?: boolean
+  /** Fill follows the SURFACE BEHIND the search (the fixed contextual rule): default =
+   *  FIELD_BG grey borderless for WHITE surfaces (cards, white sheet bodies); 'ground' =
+   *  white + hairline for the mint/sage ground (page ground, sage drill sheets). */
+  variant?: 'card' | 'ground'
+}> = ({ value, onChange, placeholder = 'Search…', collapsedWidth = 210, grow = false, variant = 'card' }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const fillSx =
+    variant === 'ground'
+      ? { backgroundColor: skin.SEARCH_BG, border: `1px solid ${skin.HAIR}` }
+      : { backgroundColor: skin.FIELD_BG }
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  // leaving the search collapses it — the query itself survives in the compact pill
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  return (
+    <>
+      {/* resting pill — dropdown-sized, keeps the row's rhythm */}
+      <Box
+        onClick={() => setOpen(true)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          height: 44,
+          ...(grow ? { flex: '1 1 auto', minWidth: 160 } : { width: collapsedWidth }),
+          maxWidth: '100%',
+          px: 3,
+          borderRadius: '999px',
+          ...fillSx,
+          cursor: 'pointer',
+          flexShrink: 0,
+          visibility: open ? 'hidden' : 'visible'
+        }}
+      >
+        <Icon icon='mdi:magnify' fontSize={20} color={skin.FAINT} style={{ flexShrink: 0 }} />
+        <Typography sx={{ fontSize: '15px', color: value ? c.OnSurfaceVariant : c.neutralSecondary, minWidth: 0 }} noWrap>
+          {value || placeholder}
+        </Typography>
+        {value && (
+          <IconButton
+            size='small'
+            onClick={e => {
+              e.stopPropagation()
+              onChange('')
+            }}
+            sx={{ ml: 'auto', color: c.Outline, p: 0.25 }}
+          >
+            <Icon icon='mdi:close' fontSize={16} />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* expanded — covers the WHOLE controls row (row provides position:relative) */}
+      {open && (
+        <Box
+          ref={wrapRef}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 3,
+            borderRadius: '999px',
+            ...fillSx,
+            '&:focus-within': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+          }}
+        >
+          <Icon icon='mdi:magnify' fontSize={20} color={skin.FAINT} style={{ flexShrink: 0 }} />
+          <Box
+            component='input'
+            ref={inputRef}
+            value={value}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+            placeholder={placeholder}
+            sx={{
+              border: 'none',
+              outline: 'none',
+              flex: 1,
+              minWidth: 0,
+              fontFamily: 'inherit',
+              fontSize: '15px',
+              color: c.OnSurfaceVariant,
+              backgroundColor: 'transparent',
+              '&::placeholder': { color: c.neutralSecondary }
+            }}
+          />
+          <IconButton
+            size='small'
+            onClick={() => {
+              onChange('')
+              setOpen(false)
+            }}
+            sx={{ color: c.Outline }}
+          >
+            <Icon icon='mdi:close' fontSize={18} />
+          </IconButton>
+        </Box>
+      )}
+    </>
+  )
+}
+
 export const SheetFilterBar: React.FC<{
   search: string
   onSearch: (v: string) => void
@@ -794,160 +1410,27 @@ export const SheetFilterBar: React.FC<{
   facet2Placeholder = 'All',
   facet2Icon = 'mdi:map-marker-outline'
 }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const expanded = open || search.trim().length > 0
-
-  // Focus the field when it expands.
-  useEffect(() => {
-    if (expanded) inputRef.current?.focus()
-  }, [expanded])
-
-  // Click-away: collapse only when the query is empty (a live query stays visible).
-  useEffect(() => {
-    if (!expanded) return
-    const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node) && search.trim().length === 0) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDown)
-
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [expanded, search])
-
-  const collapse = () => {
-    onSearch('')
-    setOpen(false)
-  }
-
   const twoFacets = !!facet2Options && !!onFacet2
 
   return (
-    <Box ref={wrapRef} sx={{ px: SHEET_PX, pt: 2 }}>
+    // ONE row, the Hospital-table grammar (user call 2026-09-02): the ELASTIC search pill
+    // leads and fills the spare width; the facet dropdowns sit content-sized on the right.
+    // Tapping the search expands it over the whole row (hence position:relative).
+    <Box sx={{ px: SHEET_PX, pt: 2 }}>
       <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        {twoFacets ? (
-          <>
-            {/* second facet first (Site), then the primary facet (Enclosure) — search shrinks to an icon */}
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <CategoryFilter
-                options={facet2Options!}
-                value={facet2Value}
-                onChange={onFacet2!}
-                width='100%'
-                icon={facet2Icon}
-                placeholder={facet2Placeholder}
-              />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <CategoryFilter
-                options={facetOptions}
-                value={facetValue}
-                onChange={onFacet}
-                width='100%'
-                icon={facetIcon}
-                placeholder={facetPlaceholder}
-              />
-            </Box>
-            <Box
-              onClick={() => setOpen(true)}
-              sx={{
-                width: 44,
-                height: 44,
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '8px',
-                border: `1px solid ${c.SurfaceVariant}`,
-                backgroundColor: skin.SEARCH_BG,
-                cursor: 'pointer',
-                '&:hover': { borderColor: c.OutlineVariant }
-              }}
-            >
-              <Icon icon='mdi:magnify' fontSize={20} color={c.Outline} />
-            </Box>
-          </>
-        ) : (
-          <>
-            {/* collapsed: left search affordance — half the row */}
-            <Box
-              onClick={() => setOpen(true)}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                height: 44,
-                px: 2,
-                borderRadius: '8px',
-                border: `1px solid ${c.SurfaceVariant}`,
-                backgroundColor: skin.SEARCH_BG,
-                cursor: 'pointer',
-                flex: 1,
-                minWidth: 0,
-                color: c.neutralSecondary,
-                '&:hover': { borderColor: c.OutlineVariant }
-              }}
-            >
-              <Icon icon='mdi:magnify' fontSize={18} color={c.Outline} />
-              <Typography sx={{ fontSize: '14px', color: c.neutralSecondary }}>Search</Typography>
-            </Box>
-
-            {/* dropdown — half the row */}
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <CategoryFilter
-                options={facetOptions}
-                value={facetValue}
-                onChange={onFacet}
-                width='100%'
-                icon={facetIcon}
-                placeholder={facetPlaceholder}
-              />
-            </Box>
-          </>
+        {/* Sheet bodies are WHITE (background.paper) → the on-white search grammar applies:
+            the quiet FIELD_BG grey pill, borderless — same as the card tables. */}
+        <CollapsibleSearch value={search} onChange={onSearch} placeholder={searchPlaceholder} grow />
+        {twoFacets && (
+          <CategoryFilter
+            options={facet2Options!}
+            value={facet2Value}
+            onChange={onFacet2!}
+            icon={facet2Icon}
+            placeholder={facet2Placeholder}
+          />
         )}
-
-        {/* expanded: search input overlays the whole row */}
-        {expanded && (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 2.5,
-              borderRadius: '8px',
-              border: `1px solid ${c.OutlineVariant}`,
-              bgcolor: theme.palette.background.paper
-            }}
-          >
-            <Icon icon='mdi:magnify' fontSize={18} color={c.Outline} />
-            <Box
-              component='input'
-              ref={inputRef}
-              value={search}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearch(e.target.value)}
-              placeholder={searchPlaceholder}
-              sx={{
-                border: 'none',
-                outline: 'none',
-                flex: 1,
-                minWidth: 0,
-                fontFamily: 'inherit',
-                fontSize: '14px',
-                color: c.OnSurfaceVariant,
-                backgroundColor: 'transparent',
-                '&::placeholder': { color: c.neutralSecondary }
-              }}
-            />
-            <IconButton size='small' onClick={collapse} sx={{ color: c.Outline }}>
-              <Icon icon='mdi:close' fontSize={18} />
-            </IconButton>
-          </Box>
-        )}
+        <CategoryFilter options={facetOptions} value={facetValue} onChange={onFacet} icon={facetIcon} placeholder={facetPlaceholder} />
       </Box>
     </Box>
   )
@@ -1085,6 +1568,21 @@ export type ListRow = {
   subline?: string
   trailing?: React.ReactNode
   onOpen?: () => void
+  /** Animal-card upgrade (2026-09-02): when an animal row carries `aid`, ListSheet renders
+   *  the standard AnimalCardRow instead of the avatar SheetRow — caption/subline become the
+   *  right-aligned meta lines. `tag` overrides the synth gender badge (e.g. 'mortality' on
+   *  death lists); `enclosure`/`site` override synth with real data (site only when the
+   *  list spans >1 site — the card's hard rule). Rows WITHOUT aid (group/unnamed events)
+   *  keep the classic avatar row. */
+  aid?: string
+  enclosure?: string
+  site?: string
+  tag?: AnimalTagKind
+  /** REAL identifiers override — same contract as AnimalCardRow's. */
+  identifiers?: AnimalCardId[]
+  titleExtra?: React.ReactNode
+  /** Real display name — renders only when AID is the sole identifier (card's hard rule). */
+  name?: string
 }
 
 export type SheetView = {
@@ -1109,19 +1607,49 @@ export const ListSheet: React.FC<{ view: SheetView | null; onClose: () => void }
         {view.tabs && view.tab && view.onTab && <SheetTabs tabs={view.tabs} value={view.tab} onPick={view.onTab} />}
         <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
           {view.rows.length ? (
-            view.rows.map((r, i) => (
-              <SheetRow
-                key={r.key}
-                {...(r.isAnimal ? { avatar: true } : { icon: view.rowIcon ?? 'mdi:egg-outline' })}
-                title={r.title}
-                caption={r.caption}
-                subline={r.subline}
-                last={i === view.rows.length - 1}
-                trailing={r.trailing}
-                onClick={r.onOpen}
-                chevron={!!r.onOpen}
-              />
-            ))
+            view.rows.map((r, i) =>
+              r.isAnimal && r.aid ? (
+                <AnimalCardRow
+                  key={r.key}
+                  aid={r.aid}
+                  enclosure={r.enclosure}
+                  site={r.site}
+                  tag={r.tag}
+                  identifiers={r.identifiers}
+                  titleExtra={r.titleExtra}
+                  // animal ListRows carry the display name as `title` — same hard rule applies
+                  name={r.name ?? r.title}
+                  // HARD RULE (user, 2026-09-02): card LIST rows show ONE item per right-side
+                  // row — bullet-joined caption strings are split into stacked lines (first
+                  // line strong). Tables are exempt (columns are their finalized grammar).
+                  meta={
+                    <>
+                      {[...(r.caption ? r.caption.split(' • ') : []), ...(r.subline ? r.subline.split(' • ') : [])].map((line, li) => (
+                        <RowMetaText key={li} strong={li === 0} wrap>
+                          {line}
+                        </RowMetaText>
+                      ))}
+                    </>
+                  }
+                  last={i === view.rows.length - 1}
+                  trailing={r.trailing}
+                  onClick={r.onOpen}
+                  chevron={!!r.onOpen}
+                />
+              ) : (
+                <SheetRow
+                  key={r.key}
+                  {...(r.isAnimal ? { avatar: true } : { icon: view.rowIcon ?? 'mdi:egg-outline' })}
+                  title={r.title}
+                  caption={r.caption}
+                  subline={r.subline}
+                  last={i === view.rows.length - 1}
+                  trailing={r.trailing}
+                  onClick={r.onOpen}
+                  chevron={!!r.onOpen}
+                />
+              )
+            )
           ) : (
             <EmptyState message='Nothing to list here.' />
           )}
@@ -1421,6 +1949,10 @@ export const DetailTable: React.FC<{
   handleSortModel?: (model: any) => void
   /** Pin this column to the left while the rest scrolls horizontally (species-list pattern). */
   stickyField?: string
+  /** Pin SEVERAL leading columns (in column order) while the rest scrolls — offsets are
+   *  computed from the columns' width/minWidth. HARD RULE (user, 2026-09-02): any table
+   *  that can scroll horizontally pins its No + Animal/identity columns this way. */
+  stickyFields?: string[]
   /** NAVEEN'S RULE: a table never stands on the sage — pass `framed` when the table sits
    *  directly on the page/sheet ground so it gets its own white surface. Tables already
    *  inside a white card stay frameless (a frame-in-frame reads boxed). */
@@ -1437,30 +1969,74 @@ export const DetailTable: React.FC<{
   sortModel,
   handleSortModel,
   stickyField,
+  stickyFields,
   framed = false
 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
 
-  const stickyStyle = stickyField
-    ? {
-        [`& .MuiDataGrid-cell[data-field="${stickyField}"]`]: {
-          position: 'sticky',
-          left: 0,
-          zIndex: 3,
-          backgroundColor: '#ffffff',
-          borderRight: `1px solid ${skin.ROW_LINE}`
-        },
-        [`& .MuiDataGrid-columnHeader[data-field="${stickyField}"]`]: {
-          position: 'sticky',
-          left: 0,
-          zIndex: 5,
-          backgroundColor: skin.TABLE_HEAD_BG,
-          borderRight: `1px solid ${skin.ROW_LINE}`
-        },
-        [`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${stickyField}"]`]: { backgroundColor: skin.ROW_HOVER }
+  // Pinned-left columns: the multi-column `stickyFields` (legacy single `stickyField`
+  // folds into the same path). Left offsets accumulate the pinned columns' declared
+  // width/minWidth in COLUMN order; only the last pinned column wears the hairline.
+  const pinFields = stickyFields?.length ? stickyFields : stickyField ? [stickyField] : []
+  const pinned = pinFields.length ? columns.filter(col => pinFields.includes(col.field)) : []
+
+  // Scrolled-under cue: once the table is horizontally scrolled, columns slide BENEATH
+  // the pinned ones. ONE continuous gradient strip is overlaid along the pinned edge
+  // (headers + all rows as a single piece) — never per-cell boxShadow, which reads as a
+  // shadow on every row separately. Position is MEASURED from the last pinned header
+  // cell so flex-width identity columns stay accurate.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [shadowRect, setShadowRect] = useState<{ left: number; top: number; height: number } | null>(null)
+  useEffect(() => {
+    if (!pinned.length) return
+    const wrap = wrapRef.current
+    const scroller = wrap?.querySelector('.MuiDataGrid-virtualScroller')
+    const main = wrap?.querySelector('.MuiDataGrid-main')
+    const lastField = pinned[pinned.length - 1].field
+    if (!wrap || !scroller || !main) return
+    const measure = () => {
+      if ((scroller as HTMLElement).scrollLeft > 0) {
+        const cell = wrap.querySelector(`.MuiDataGrid-columnHeader[data-field="${lastField}"]`)
+        const wr = wrap.getBoundingClientRect()
+        const mr = main.getBoundingClientRect()
+        const cr = cell?.getBoundingClientRect()
+        setShadowRect(cr ? { left: cr.right - wr.left, top: mr.top - wr.top, height: mr.height } : null)
+      } else {
+        setShadowRect(null)
       }
-    : {}
+    }
+    measure()
+    scroller.addEventListener('scroll', measure, { passive: true })
+
+    return () => scroller.removeEventListener('scroll', measure)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinned.length, rows])
+
+  const stickyStyle: Record<string, any> = {}
+  if (pinned.length) {
+    let left = 0
+    pinned.forEach((col, i) => {
+      const last = i === pinned.length - 1
+      const edge = last ? { borderRight: `1px solid ${skin.ROW_LINE}` } : {}
+      stickyStyle[`& .MuiDataGrid-cell[data-field="${col.field}"]`] = {
+        position: 'sticky',
+        left,
+        zIndex: 3,
+        backgroundColor: '#ffffff',
+        ...edge
+      }
+      stickyStyle[`& .MuiDataGrid-columnHeader[data-field="${col.field}"]`] = {
+        position: 'sticky',
+        left,
+        zIndex: 5,
+        backgroundColor: skin.TABLE_HEAD_BG,
+        ...edge
+      }
+      stickyStyle[`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${col.field}"]`] = { backgroundColor: skin.ROW_HOVER }
+      left += col.width ?? col.minWidth ?? 100
+    })
+  }
 
   const table = (
     <CommonTable
@@ -1509,12 +2085,35 @@ export const DetailTable: React.FC<{
     />
   )
 
+  // The scrolled-under cue — one uninterrupted strip spanning header + every row.
+  const edgeShadow = shadowRect ? (
+    <Box
+      sx={{
+        position: 'absolute',
+        pointerEvents: 'none',
+        zIndex: 6,
+        width: 14,
+        left: shadowRect.left,
+        top: shadowRect.top,
+        height: shadowRect.height,
+        background: 'linear-gradient(to right, rgba(0,0,0,0.14), rgba(0,0,0,0))'
+      }}
+    />
+  ) : null
+
   return framed ? (
-    <Box sx={{ backgroundColor: '#ffffff', border: `1px solid ${skin.HAIR}`, borderRadius: '12px', overflow: 'hidden', p: 2 }}>
+    <Box
+      ref={wrapRef}
+      sx={{ position: 'relative', backgroundColor: '#ffffff', border: `1px solid ${skin.HAIR}`, borderRadius: '12px', overflow: 'hidden', p: 2 }}
+    >
       {table}
+      {edgeShadow}
     </Box>
   ) : (
-    table
+    <Box ref={wrapRef} sx={{ position: 'relative' }}>
+      {table}
+      {edgeShadow}
+    </Box>
   )
 }
 
@@ -1650,12 +2249,19 @@ export const EntityListDrawer: React.FC<{
   onItemClick?: (id: string) => void
   onClose: () => void
 }> = ({ open, title, subtitle, unit, items = [], isClickable, onItemClick, onClose }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const heroPhoto = React.useContext(HeroPhotoContext)
+  // `sub` is the item's site — the card wears it only when the list spans >1 (hard rule)
+  const multiSite = new Set(items.map(it => it.sub).filter(Boolean)).size > 1
+
   return (
     <DrillSheet open={open} onClose={onClose} title={title} eyebrow={subtitle} size='md'>
       {/* One white card holding the rows — the sheet's sage ground frames it. */}
       <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
         {items.map((it, i) => {
           const clickable = !!onItemClick && (!isClickable || isClickable(it.id))
+          const s = synthAnimalIdentity(it.id)
 
           return (
             <Box
@@ -1673,7 +2279,17 @@ export const EntityListDrawer: React.FC<{
               }}
             >
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <AnimalCell name={it.name || it.id} sub={it.sub} size={42} />
+                {/* the standard animal card (2026-09-02) — synth identity from the id;
+                    the display name renders only when AID is the sole identifier */}
+                <AnimalIdCard
+                  identifiers={s.identifiers}
+                  enclosure={s.enclosure}
+                  site={multiSite ? it.sub : undefined}
+                  tag={s.tag}
+                  name={it.name && it.name !== it.id ? it.name : undefined}
+                  photo={s.hasPhoto ? heroPhoto?.src : undefined}
+                  photoPos={heroPhoto?.bgPos}
+                />
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
                 {it.value != null && (

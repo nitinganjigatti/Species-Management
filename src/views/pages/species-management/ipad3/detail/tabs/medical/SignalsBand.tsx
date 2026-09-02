@@ -18,6 +18,8 @@ export interface SignalCell {
   /** 'critical' (default) inks the figure CORAL; 'neutral' keeps the warm VALUE ink —
    *  for plain volume stats (doses given, animals treated) that aren't an alarm. */
   tone?: 'critical' | 'neutral'
+  /** Quiet context line under the figure ("worst 4×", "mortality rate 3%") — optional. */
+  hint?: string
   onOpen?: () => void
 }
 
@@ -75,6 +77,11 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
           >
             {cell.count.toLocaleString()}
           </Typography>
+          {cell.hint && (
+            <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {cell.hint}
+            </Typography>
+          )}
         </Box>
       )
     })}

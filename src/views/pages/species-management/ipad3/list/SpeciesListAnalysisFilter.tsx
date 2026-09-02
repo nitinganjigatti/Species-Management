@@ -60,17 +60,17 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
     gap: 0.85,
     pl: 2.25,
     pr: 2.5,
-    py: 1.2,
+    height: skin.CONTROL_H,
     borderRadius: '999px',
     cursor: 'pointer',
     border: '1px solid',
-    borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR,
+    borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.DROPDOWN_BORDER,
     bgcolor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
     color: active ? skin.LIST_GREEN : skin.INK2,
     transition: `all ${skin.DUR_FAST} ${skin.EASE}`,
     userSelect: 'none' as const,
     '&:hover': {
-      borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.TRACK,
+      borderColor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.DROPDOWN_BORDER_HOVER,
       bgcolor: active ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
     }
   })
@@ -95,8 +95,8 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
         bgcolor: '#ffffff',
         borderRadius: '999px',
         '& .MuiSelect-select': { py: 0.85, color: skin.INK2, fontSize: '0.875rem' },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
       }}
       MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320, borderRadius: '10px' } } } }}
     >

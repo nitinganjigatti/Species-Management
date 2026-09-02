@@ -14,7 +14,21 @@ import type { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
-import { CategoryFilter, CellText, DetailTable, DrillSheet, EmptyState, SectionCard, SheetRow } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import {
+  SiteFilterSelect,
+  AnimalCardRow,
+  AnimalIdCard,
+  CategoryFilter,
+  CellText,
+  DetailTable,
+  DrillSheet,
+  EmptyState,
+  HeroPhotoContext,
+  RowMetaText,
+  SectionCard,
+  synthAnimalIdentity
+} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
 interface EncRow {
   name: string
@@ -42,14 +56,58 @@ const compositionOf = (male: number, female: number, unsexed: number, total: num
 // Dropdown order — most actionable states first.
 const COMPOSITIONS = ['Both sexes', 'All male', 'All female', 'Needs sexing', 'Mixed', 'Empty']
 
-/** Meta lines for the standard animal SheetRow (same card as Medical / Hospital). */
-const animalCaption = (a: AnimalRecord) =>
-  [a.gender ? a.gender.charAt(0).toUpperCase() + a.gender.slice(1) : null, a.age, a.weight != null ? `${a.weight} kg` : null]
-    .filter(Boolean)
-    .join(' · ')
-const animalSubline = (a: AnimalRecord) => [a.enclosure, a.site].filter(Boolean).join(' · ')
+/** The standard animal card row (2026-09-02), driven by the RECORD's real fields: gender →
+ *  badge, ring/chip + AID → identifiers, name only when AID is the sole identifier. The kit's
+ *  AnimalCardRow synthesizes identity from the aid alone, so this keeps its exact row chrome
+ *  but feeds AnimalIdCard the real data (synth fills only the photo-presence slot). The sheet
+ *  is scoped to ONE enclosure — site + enclosure stay OFF the card (the header names them);
+ *  age/weight, which the card doesn't carry, ride as right-aligned meta lines. */
+// Thin adapter over the kit AnimalCardRow: REAL AnimalRecord fields in, per the contract.
+// Enclosure + site stay OFF these cards — the sheet is scoped to one enclosure.
+const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, last }) => {
+  const theme = useTheme() as any
+  const c = theme.palette.customColors as Record<string, string>
 
-// The animals in one enclosure (standard SheetRow cards, like Assessments).
+  const tag: AnimalTagKind = a.gender === 'male' ? 'male' : a.gender === 'female' ? 'female' : 'undetermined'
+  const primary: AnimalCardId | null = a.ring
+    ? { label: 'Ring', value: a.ring }
+    : a.chip
+      ? { label: 'Chip', value: a.chip }
+      : null
+  const identifiers: AnimalCardId[] = primary
+    ? [primary, { label: 'AID', value: a.antzId }]
+    : [{ label: 'AID', value: a.antzId }]
+
+  // Max 2 identifiers render (AID always counts) — a chip crowded out by a ring rides as meta.
+  // Age/weight live IN the card component now (its right stat block, empty values
+  // self-hide) — meta keeps only the chip crowded out by a ring.
+  const meta = [a.ring && a.chip ? `Chip: ${a.chip}` : null].filter(Boolean) as string[]
+
+  return (
+    <AnimalCardRow
+      aid={a.antzId}
+      identifiers={identifiers}
+      tag={tag}
+      name={a.name && a.name !== a.antzId ? a.name : undefined}
+      age={a.age}
+      weight={a.weight}
+      meta={
+        meta.length > 0 ? (
+          <>
+            {meta.map((m, i) => (
+              <RowMetaText key={i} strong={i === 0}>
+                {m}
+              </RowMetaText>
+            ))}
+          </>
+        ) : undefined
+      }
+      last={last}
+    />
+  )
+}
+
+// The animals in one enclosure (standard animal card rows, like Medical).
 const EnclosureAnimalsDrawer: React.FC<{
   open: boolean
   site?: string
@@ -96,14 +154,7 @@ const EnclosureAnimalsDrawer: React.FC<{
       {filtered.length ? (
         <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
           {filtered.map((a, i) => (
-            <SheetRow
-              key={a.antzId || i}
-              avatar
-              title={a.name || a.antzId}
-              caption={animalCaption(a)}
-              subline={animalSubline(a)}
-              last={i === filtered.length - 1}
-            />
+            <RealAnimalCardRow key={a.antzId || i} a={a} last={i === filtered.length - 1} />
           ))}
         </Box>
       ) : (
@@ -255,17 +306,15 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
           icon='mdi:gender-male-female'
         />
         {siteNames.length > 1 && (
-          <CategoryFilter
-            radius='999px'
-            width={180}
-            options={siteNames}
+          // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+          <SiteFilterSelect
+            sites={siteNames.map(name => ({ site: name, caption: `${allRows.filter(r => r.site === name).length.toLocaleString()} enclosures` }))}
             value={site}
             onChange={v => {
               setSite(v)
               setPm(p => ({ ...p, page: 0 }))
             }}
-            placeholder='All sites'
-            icon='mdi:map-marker-outline'
+            allCaption={`${allRows.length.toLocaleString()} enclosures`}
           />
         )}
           </Box>

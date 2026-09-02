@@ -106,7 +106,7 @@ export default function DashboardDateRange({
     const s = props.start ? fmt(props.start) : ''
     const e = props.end ? ` – ${fmt(props.end)}` : ''
 
-    return <TextField size='small' inputRef={ref} {...props} value={`${s}${e}`} sx={{ width: 220 }} />
+    return <TextField size='small' inputRef={ref} {...props} value={`${s}${e}`} sx={{ width: 220, '& .MuiInputBase-root': { height: skin.CONTROL_H } }} />
   })
 
   return (
@@ -118,11 +118,12 @@ export default function DashboardDateRange({
         IconComponent={SelectChevron}
         sx={{
           minWidth: selectMinWidth,
+          height: skin.CONTROL_H, // uniform control height (user call 2026-09-02)
           bgcolor: '#ffffff',
           borderRadius: '999px',
           '& .MuiSelect-select': { color: skin.INK2, fontSize: '15px', fontWeight: 500 },
-          '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.HAIR },
-          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.TRACK }
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
         }}
       >
         {PRESETS.filter(p => !presets || presets.includes(p.key)).map(p => (

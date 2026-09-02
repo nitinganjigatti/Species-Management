@@ -1,9 +1,10 @@
 'use client'
 
-// iPad 3 Necropsy tab (2026-08-31) — the deaths viewed through the necropsy lens:
-// only records with a necropsy status of Pending or Completed (NA excluded), as ONE
-// SectionCard table on the Housing anatomy + CoL column grammar (No serial + shared
-// AnimalCell, both sticky). Status counts print as a quiet caption under the header.
+// iPad 3 Necropsy tab (2026-08-31, animal-card standard 2026-09-02) — the deaths viewed
+// through the necropsy lens: only records with a necropsy status of Pending or Completed
+// (NA excluded), as ONE SectionCard table on the Housing anatomy. Identity column is the
+// standard AnimalIdCard (sticky, tag='mortality', real idn/idv > synth; Site column
+// folded onto the card). Status counts print as a quiet caption under the header.
 // Real data only — the sidecar carries just the status flag (no findings/date/vet);
 // richer synthesized fields deferred until asked.
 //
@@ -20,13 +21,18 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { LifecycleDeath, SpeciesLifecycle } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
+  SiteFilterSelect,
+  idTypeLabel,
   AnimalCell,
+  AnimalIdCard,
   CategoryFilter,
   CellText,
   DetailTable,
   EmptyState,
   FilterChip,
-  SectionCard
+  HeroPhotoContext,
+  SectionCard,
+  synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
@@ -62,6 +68,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
   // Widened at use so TS keeps the union (the const's literal null otherwise narrows to never).
   const detailsRoute = NECROPSY_DETAILS_ROUTE as ((aid: string) => string) | null
   const portrait = useMediaQuery('(orientation: portrait)')
+  const heroPhoto = React.useContext(HeroPhotoContext)
 
   // Necropsy scope: only deaths where a necropsy exists or is owed (NA = out of scope).
   const all = useMemo(() => (lifecycle?.deaths || []).filter(e => necStatusOf(e.y) !== 'NA'), [lifecycle])
@@ -170,18 +177,42 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
     </CellText>
   )
 
+  // Card shows site only when the visible list spans >1 site (hard site rule) — the Site
+  // column is dropped either way (single-site lists don't repeat their scope per row).
+  const cardShowsSite = multiSite && !site
+
   const columns: GridColDef[] = useMemo(
     () => [
-      { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: (p: any) => txt(p.row.sl_no, cc.neutralSecondary, 400) },
       {
-        width: 240,
+        flex: 1,
+        minWidth: 380,
         field: 'animal',
         headerName: 'Animal Name & ID',
-        renderCell: (p: any) => (
-          <Box sx={{ py: 1 }}>
-            <AnimalCell name={p.row.animal} sub={p.row.aid ? `AID: ${p.row.aid}` : undefined} size={40} />
-          </Box>
-        )
+        renderCell: (p: any) => {
+          // No-aid rows keep the classic cell — the card's identity synthesis needs an aid.
+          if (!p.row.aid) return <AnimalCell name={p.row.animal} size={40} />
+          const s = synthAnimalIdentity(p.row.aid)
+          // Real identifiers beat synthesis: the sidecar's idn/idv pair (e.g. "Micro chip")
+          // leads with AID second; records without one fall back to the synth set.
+          const identifiers =
+            p.row.idn && p.row.idv
+              ? [
+                  { label: idTypeLabel(p.row.idn), value: p.row.idv },
+                  { label: 'AID', value: p.row.aid }
+                ]
+              : s.identifiers
+
+          return (
+            <AnimalIdCard
+              identifiers={identifiers}
+              enclosure={p.row.e || s.enclosure}
+              site={cardShowsSite ? p.row.s : undefined}
+              tag='mortality' // death list: the maroon badge, never gender
+              photo={s.hasPhoto ? heroPhoto?.src : undefined}
+              photoPos={heroPhoto?.bgPos}
+            />
+          )
+        }
       },
       { width: 165, field: 'd', headerName: 'Date of Death', renderCell: (p: any) => <CellText noWrap>{p.row.date}</CellText> },
       { width: 170, field: 'm', headerName: 'Cause of Death', renderCell: (p: any) => txt(p.row.m || '—', cc.Tertiary, 600) },
@@ -195,11 +226,10 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
 
           return txt(s, color, 600)
         }
-      },
-      { width: 200, field: 's', headerName: 'Site', renderCell: (p: any) => txt(p.row.s || '—') }
+      }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cc, theme]
+    [cc, theme, cardShowsSite, heroPhoto]
   )
 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
@@ -221,14 +251,12 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
   )
 
   const siteFilterCtl = multiSite && (
-    <CategoryFilter
-      radius='999px'
-      width={180}
-      options={sites}
+    // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+    <SiteFilterSelect
+      sites={sites.map(name => ({ site: name, caption: `${all.filter(e => e.s === name).length.toLocaleString()} records` }))}
       value={site}
       onChange={v => setSite(v)}
-      placeholder='All sites'
-      icon='mdi:map-marker-outline'
+      allCaption={`${all.length.toLocaleString()} records`}
     />
   )
 
@@ -370,40 +398,20 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
         )}
 
         {table.total ? (
-          // No pinned at 0 by DetailTable; AnimalCell joins it at 64 (the CoL sticky pair).
-          <Box
-            sx={{
-              '& .MuiDataGrid-cell[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 3,
-                backgroundColor: '#ffffff',
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-columnHeader[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 5,
-                backgroundColor: skin.TABLE_HEAD_BG,
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="animal"]': { backgroundColor: skin.ROW_HOVER }
-            }}
-          >
-            <DetailTable
-              columns={columns}
-              rows={table.rows}
-              total={table.total}
-              paginationModel={table.paginationModel}
-              setPaginationModel={table.setPaginationModel}
-              sortModel={table.sortModel}
-              handleSortModel={table.handleSortModel}
-              stickyField='sl_no'
-              onRowClick={
-                detailsRoute ? (p: any) => p.row.aid && window.location.assign(detailsRoute(p.row.aid)) : undefined
-              }
-            />
-          </Box>
+          <DetailTable
+            columns={columns}
+            rows={table.rows}
+            total={table.total}
+            paginationModel={table.paginationModel}
+            setPaginationModel={table.setPaginationModel}
+            sortModel={table.sortModel}
+            handleSortModel={table.handleSortModel}
+            stickyFields={['animal']}
+            rowHeight={146}
+            onRowClick={
+              detailsRoute ? (p: any) => p.row.aid && window.location.assign(detailsRoute(p.row.aid)) : undefined
+            }
+          />
         ) : (
           <EmptyState message='No necropsies match your filters' />
         )}

@@ -17,7 +17,13 @@ import type {
 import type { ClinicalProgram, ClinicalRecord, SpeciesClinical } from 'src/lib/api/species-management/detail'
 import {
   CategoryFilter,
-  AnimalCell,
+  AnimalIdCard,
+  AnimalCardRow,
+  SiteFilterSelect,
+  RowMetaText,
+  HeroPhotoContext,
+  synthAnimalIdentity,
+  HERO_PHOTOS,
   CellText,
   DetailTable,
   sheetPaperSx,
@@ -218,11 +224,10 @@ const useCells = () => {
     </CellText>
   )
 
-  // Animal identity cell — delegates to the shared AnimalCell (single copy in detailUi).
-  const animalCell = (name?: string, site?: string) => <AnimalCell name={name} sub={site} />
-
-  return { txt, animalCell, c, theme }
+  return { txt, c, theme }
 }
+
+// Animal-card identity synthesis (DEMO) lives in the kit — synthAnimalIdentity(aid).
 
 /* ── animal-wise grouping + shared bits ───────────────────────────────────── */
 interface AniGroup {
@@ -886,18 +891,11 @@ const MostUsedMonthDrawer: React.FC<{
           />
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
             {shown.map((x, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={x.a.aid}
-                avatar
-                title={x.a.name}
-                caption={
-                  <>
-                    <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                      {x.a.site}
-                    </Box>
-                    <Box component='span' sx={{ display: 'block' }}>{fmtDate(x.date)}</Box>
-                  </>
-                }
+                aid={x.a.aid}
+                site={!site && siteOptions.length > 1 ? x.a.site : undefined}
+                meta={<RowMetaText>{fmtDate(x.date)}</RowMetaText>}
                 last={i === shown.length - 1}
                 onClick={() => setDrill(x.a)}
                 chevron
@@ -1199,6 +1197,9 @@ const PreventiveIndex: React.FC<{
 /** Per-site chips — stats AND the site filter in one. Sorted worst coverage first. */
 /** Site filter — dropdown-style trigger beside the table search; opens a standard side sheet
  *  listing every site (coverage % + overdue) with search. Picking a row filters the table. */
+/** Medical's site dropdown — a thin adapter over the kit's SiteFilterSelect (THE standard
+ *  site dropdown, 2026-09-02): supplies the coverage • overdue captions, keeps its old API
+ *  so Medical + Eggs call sites stay untouched. */
 export const SiteFilterControl: React.FC<{
   sites: PreventiveTypeSite[]
   sitesTotal: number
@@ -1211,145 +1212,28 @@ export const SiteFilterControl: React.FC<{
 }> = ({ sites, sitesTotal, tracked, value, onChange, overdueWord, caption }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const [open, setOpen] = useState(false)
-  const [siteQ, setSiteQ] = useState('')
-
-  const filtered = siteQ.trim() ? sites.filter(s => s.site.toLowerCase().includes(siteQ.trim().toLowerCase())) : sites
-  const pick = (v: string | null) => {
-    onChange(v)
-    setOpen(false)
-    setSiteQ('')
-  }
-
-  const row = (opts: {
-    key: string
-    selected: boolean
-    onClick: () => void
-    icon: string
-    title: string
-    caption: React.ReactNode
-    last: boolean
-  }) => (
-    <Box
-      key={opts.key}
-      onClick={opts.onClick}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        py: 4,
-        borderBottom: opts.last ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-        cursor: 'pointer',
-        '&:hover': { backgroundColor: c.Surface }
-      }}
-    >
-      <Box
-        sx={{
-          width: 40,
-          height: 40,
-          flexShrink: 0,
-          borderRadius: '8px',
-          backgroundColor: c.displaybgPrimary,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Icon icon={opts.icon} fontSize={20} color={c.OnPrimaryContainer} />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: c.OnSurfaceVariant }} noWrap>
-          {opts.title}
-        </Typography>
-        <Typography
-          sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
-          noWrap
-        >
-          {opts.caption}
-        </Typography>
-      </Box>
-      {opts.selected ? (
-        <Icon icon='mdi:check-circle' fontSize={20} color={theme.palette.primary.dark} />
-      ) : (
-        <Icon icon='mdi:chevron-right' fontSize={16} color={c.Outline} />
-      )}
-    </Box>
-  )
 
   return (
-    <>
-      {/* Trigger = the Gender-pill dropdown grammar (2026-09-01): ink label + ink chevron
-          on a white hairline pill; the applied state wears Gender's green tint. */}
-      <Box
-        onClick={() => setOpen(true)}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          px: 3,
-          height: TABLE_CTRL_H,
-          borderRadius: '999px',
-          border: `1px solid ${value ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.HAIR}`,
-          backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
-          cursor: 'pointer',
-          transition: 'border-color .15s ease, background-color .15s ease',
-          '&:hover': {
-            borderColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.TRACK,
-            backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
-          }
-        }}
-      >
-        <Typography sx={{ fontSize: '15px', fontWeight: 500, maxWidth: 180, color: value ? skin.LIST_GREEN : skin.INK2 }} noWrap>
-          {value ?? 'All sites'}
-        </Typography>
-        <Icon icon='mdi:chevron-down' fontSize='1.25rem' color={value ? skin.LIST_GREEN : skin.INK2} />
-      </Box>
-
-      <SheetDrawer open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
-        <Sheet>
-          <SheetHeader title='Sites' stats={[{ label: 'Sites', value: sitesTotal }]} onClose={() => setOpen(false)} />
-          <SheetSearch value={siteQ} onChange={setSiteQ} placeholder='Search sites…' />
-          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
-            {!siteQ.trim() &&
-              row({
-                key: '__all',
-                selected: value == null,
-                onClick: () => pick(null),
-                icon: 'mdi:map-marker-multiple-outline',
-                title: 'All Sites',
-                caption: `${tracked.toLocaleString()} animals`,
-                last: filtered.length === 0
-              })}
-            {filtered.map((s, i) =>
-              row({
-                key: s.site,
-                selected: value === s.site,
-                onClick: () => pick(value === s.site ? null : s.site),
-                icon: 'mdi:map-marker-outline',
-                title: s.site,
-                caption: caption ? (
-                  caption(s)
-                ) : (
-                  <>
-                    <Box component='span' sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{s.coveragePct}%</Box>
-                    {' • '}
-                    <Box component='span' sx={{ color: s.overdue ? c.Tertiary : c.neutralSecondary, fontWeight: s.overdue ? 700 : 600 }}>
-                      {s.overdue} {overdueWord}
-                    </Box>
-                  </>
-                ),
-                last: i === filtered.length - 1
-              })
-            )}
-            {filtered.length === 0 && siteQ.trim() && (
-              <Typography variant='body2' sx={{ color: c.neutralSecondary, textAlign: 'center', mt: 4 }}>
-                No sites match.
-              </Typography>
-            )}
-          </Box>
-        </Sheet>
-      </SheetDrawer>
-    </>
+    <SiteFilterSelect
+      value={value}
+      onChange={onChange}
+      sitesTotal={sitesTotal}
+      allCaption={`${tracked.toLocaleString()} animals`}
+      sites={sites.map(st => ({
+        site: st.site,
+        caption: caption ? (
+          caption(st)
+        ) : (
+          <>
+            <Box component='span' sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{st.coveragePct}%</Box>
+            {' • '}
+            <Box component='span' sx={{ color: st.overdue ? c.Tertiary : c.neutralSecondary, fontWeight: st.overdue ? 700 : 600 }}>
+              {st.overdue} {overdueWord}
+            </Box>
+          </>
+        )
+      }))}
+    />
   )
 }
 
@@ -1523,27 +1407,14 @@ const MonthDosesDrawer: React.FC<{
           />
           <SheetTabs tabs={tabs} value={tab} onPick={setTab} />
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
+            {/* Standard animal-card rows (user call 2026-09-02): AnimalIdCard left, status chip
+                + ONE date right (administered date only — the "Scheduled • given" pair retired;
+                Overdue rows keep their scheduled date since nothing was given). */}
             {shown.map((r, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={`${r.a.aid}-${r.date}`}
-                avatar
-                title={r.a.name}
-                // three-line row (user call 2026-09-01): name+id · site · dates
-                caption={
-                  <>
-                    <Box component='span' sx={{ display: 'block' }}>{r.a.site}</Box>
-                    <Box component='span' sx={{ display: 'block' }}>
-                      {r.kind === 'missed'
-                        ? `Scheduled ${fmtDate(r.due)}`
-                        : r.gap > 0
-                          ? `Scheduled ${fmtDate(r.due)} • given ${fmtDate(r.date)}`
-                          : fmtDate(r.date) /* on time — the chip already says so */}
-                    </Box>
-                  </>
-                }
-                last={i === shown.length - 1}
-                onClick={() => onAnimal(r.a)}
-                chevron
+                aid={r.a.aid}
+                site={new Set(rows.map(x => x.a.site)).size > 1 ? r.a.site : undefined}
                 trailing={
                   r.kind === 'missed' ? (
                     // no "overdue" word — the tab already says it
@@ -1556,6 +1427,10 @@ const MonthDosesDrawer: React.FC<{
                     <StatusChip label='On Time' tone='success' />
                   )
                 }
+                meta={<RowMetaText>{r.kind === 'missed' ? `Scheduled ${fmtDate(r.due)}` : fmtDate(r.date)}</RowMetaText>}
+                last={i === shown.length - 1}
+                onClick={() => onAnimal(r.a)}
+                chevron
               />
             ))}
             {shown.length === 0 && <SheetEmpty>No records in this group.</SheetEmpty>}
@@ -1602,11 +1477,10 @@ const BucketDrawer: React.FC<{
           />
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
             {data.animals.map((a, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={a.aid}
-                avatar
-                title={a.name}
-                caption={a.site}
+                aid={a.aid}
+                site={new Set(data.animals.map(x => x.site)).size > 1 ? a.site : undefined}
                 last={i === data.animals.length - 1}
                 onClick={() => onAnimal(a)}
                 chevron
@@ -1803,28 +1677,10 @@ const PreventiveStatusSheet: React.FC<{
         )}
         <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
           {shown.map((r, i) => (
-            <SheetRow
+            <AnimalCardRow
               key={`${r.type.name}-${r.a.aid}`}
-              avatar
-              title={r.a.name}
-              // line 2: medicine • site in dark grey; line 3 (Upcoming only): the date in the
-              // standard muted caption style — the two lines differ by color alone
-              caption={
-                <>
-                  <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                    {r.type.name}
-                    <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                      •
-                    </Box>
-                    {r.a.site}
-                  </Box>
-                  {tab === 'due' && r.a.nextDue && (
-                    <Box component='span' sx={{ display: 'block' }}>
-                      {fmtDate(r.a.nextDue)}
-                    </Box>
-                  )}
-                </>
-              }
+              aid={r.a.aid}
+              site={new Set(shown.map(x => x.a.site)).size > 1 ? r.a.site : undefined}
               last={i === shown.length - 1}
               onClick={() => setDrill(r)}
               chevron
@@ -1835,6 +1691,13 @@ const PreventiveStatusSheet: React.FC<{
                   // imminent = yellow attention, never coral — these doses aren't a failure
                   <StatusChip label={r.days <= 0 ? 'Today' : `In ${r.days}d`} tone={r.days <= 7 ? 'caution' : 'neutral'} />
                 ) : undefined
+              }
+              // medicine + (Upcoming only) its date — the identity lines live in the card
+              meta={
+                <>
+                  <RowMetaText strong>{r.type.name}</RowMetaText>
+                  {tab === 'due' && r.a.nextDue && <RowMetaText>{fmtDate(r.a.nextDue)}</RowMetaText>}
+                </>
               }
             />
           ))}
@@ -1926,9 +1789,10 @@ const PreventiveDetail: React.FC<{
   months: string[]
   w: ReturnType<typeof wordingFor>
   icon: string
+  speciesId?: number | string
   onBack: () => void
-}> = ({ type, months, w, icon, onBack }) => {
-  const { txt, animalCell, c, theme } = useCells()
+}> = ({ type, months, w, icon, speciesId, onBack }) => {
+  const { txt, c, theme } = useCells()
 
   // Portrait: the status tabs + site filter + search don't fit one header row —
   // stack as two deliberate rows (tabs / full-width search + right-aligned filter).
@@ -2090,12 +1954,32 @@ const PreventiveDetail: React.FC<{
 
   // The tab says the status, so no chip column; Overdue adds Delayed (days late, coral);
   // Doses closes the row (user call 2026-09-01).
+  // Animal card (Figma Antz-Mobile 38280:31073) — THIS table is the pilot surface
+  // (user call 2026-09-02): photo/placeholder block + max-2 identifiers + Encl + Site.
+  // Identity fields are deterministic demo synthesis until the API carries them.
+  const heroPhoto = HERO_PHOTOS[String(speciesId ?? '')]
+  // HARD RULE: the card's Site row only when the list spans >1 site — a specific site
+  // filter (or a single-site species) already says the site once, above the table.
+  const showCardSite = !siteFilter && (type.sites?.length ?? 0) > 1
+  const animalCardCell = (a: PreventiveTypeAnimal) => {
+    const s = synthAnimalIdentity(a.aid)
+
+    return (
+      <AnimalIdCard
+        identifiers={s.identifiers}
+        enclosure={s.enclosure}
+        site={showCardSite ? a.site : undefined}
+        tag={s.tag}
+        photo={s.hasPhoto ? heroPhoto?.src : undefined}
+        photoPos={heroPhoto?.bgPos}
+      />
+    )
+  }
+
   const columns: GridColDef[] = [
-    { field: 'sl_no', headerName: 'No', width: 72, sortable: false, renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
-    // standard animal cell (avatar · name · site) — the site lives here, not in its own column
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
-    { field: 'lastGiven', headerName: 'Last Dose', width: 190, renderCell: p => lastDoseCell(p.row) },
-    { field: 'nextDue', headerName: 'Scheduled', width: 180, renderCell: p => scheduledCell(p.row) },
+    // the animal card carries encl + site — the site lives here, not in its own column
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row) },
+    // column order (user call 2026-09-02): No · Animal · Delayed · Scheduled · Last Dose
     ...(statusTab === 'overdue'
       ? [
           {
@@ -2109,7 +1993,8 @@ const PreventiveDetail: React.FC<{
           } as GridColDef
         ]
       : []),
-    { field: 'doseCount', headerName: 'Doses', width: 110, align: 'right', headerAlign: 'right', renderCell: p => (p.row.doseCount ? txt(p.row.doseCount, c.neutralSecondary, 600) : txt('—', skin.DASH_INK)) }
+    { field: 'nextDue', headerName: 'Scheduled', width: 180, renderCell: p => scheduledCell(p.row) },
+    { field: 'lastGiven', headerName: 'Last Dose', width: 190, renderCell: p => lastDoseCell(p.row) }
   ]
 
   const statusTabs = (
@@ -2286,6 +2171,8 @@ const PreventiveDetail: React.FC<{
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + 26px top/bottom breathing room
+            stickyFields={['name']} // HARD RULE: identity columns pinned when the table scrolls
             onRowClick={(p: { row: PreventiveTypeAnimal }) => setDrill(p.row)}
           />
         ) : (
@@ -2309,7 +2196,12 @@ const PreventiveDetail: React.FC<{
   )
 }
 
-const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram; months: string[] }> = ({ tab, prog, months }) => {
+const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram; months: string[]; speciesId?: number | string }> = ({
+  tab,
+  prog,
+  months,
+  speciesId
+}) => {
   const [selected, setSelected] = useState<string | null>(null)
   const w = wordingFor(tab, prog.kind)
   const icon = PROGRAM_ICON[tab] ?? 'mdi:medical-bag'
@@ -2318,7 +2210,7 @@ const PreventivePanel: React.FC<{ tab: TabKey; prog: PreventiveProgram; months: 
   if (!prog.types?.length) return <EmptyState message={`No ${w.typeNoun} data for this species`} />
 
   return sel ? (
-    <PreventiveDetail key={sel.name} type={sel} months={months} w={w} icon={icon} onBack={() => setSelected(null)} />
+    <PreventiveDetail key={sel.name} type={sel} months={months} w={w} icon={icon} speciesId={speciesId} onBack={() => setSelected(null)} />
   ) : (
     <PreventiveIndex
       prog={prog}
@@ -2548,93 +2440,69 @@ const RxStatusSheet: React.FC<{
         <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
           {tab === 'courses' &&
             lists.courses.map((cr, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={`${cr.aid}-${cr.medicine}-${cr.start}`}
-                avatar
-                title={cr.name}
-                caption={
-                  <>
-                    <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                      {cr.medicine}
-                      <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                        •
-                      </Box>
-                      {cr.site}
-                    </Box>
-                    <Box component='span' sx={{ display: 'block' }}>Started {fmtDate(cr.start)}</Box>
-                  </>
-                }
+                aid={cr.aid}
+                site={new Set(lists.courses.map(x => x.site)).size > 1 ? cr.site : undefined}
                 last={i === lists.courses.length - 1}
                 onClick={() => drillCourse(cr.aid, cr.medicine)}
                 chevron
                 trailing={countText(cr.doses, cr.doses === 1 ? 'dose' : 'doses')}
+                meta={
+                  <>
+                    <RowMetaText strong>{cr.medicine}</RowMetaText>
+                    <RowMetaText>Started {fmtDate(cr.start)}</RowMetaText>
+                  </>
+                }
               />
             ))}
           {tab === 'animals' &&
             lists.animals.map((a, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={a.aid}
-                avatar
-                title={a.name}
-                caption={
-                  <>
-                    <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                      {a.medicines.length === 1 ? a.medicines[0] : `${a.medicines.length} medicines`}
-                      <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                        •
-                      </Box>
-                      {a.site}
-                    </Box>
-                    <Box component='span' sx={{ display: 'block' }}>Last given {fmtDate(a.lastGiven)}</Box>
-                  </>
-                }
+                aid={a.aid}
+                site={new Set(lists.animals.map(x => x.site)).size > 1 ? a.site : undefined}
                 last={i === lists.animals.length - 1}
                 onClick={() => setAnimalDrill(a)}
                 chevron
                 trailing={countText(a.courses, a.courses === 1 ? 'prescription' : 'prescriptions')}
+                meta={
+                  <>
+                    <RowMetaText strong>{a.medicines.length === 1 ? a.medicines[0] : `${a.medicines.length} medicines`}</RowMetaText>
+                    <RowMetaText>Last given {fmtDate(a.lastGiven)}</RowMetaText>
+                  </>
+                }
               />
             ))}
           {(tab === 'd30' || tab === 'd60') &&
             lists[tab].map((r, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={`${r.med.name}-${r.a.aid}`}
-                avatar
-                title={r.a.name}
-                caption={
-                  <>
-                    <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                      {r.med.name}
-                      <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                        •
-                      </Box>
-                      {r.a.site}
-                    </Box>
-                    <Box component='span' sx={{ display: 'block' }}>{fmtDate(r.a.lastGiven)}</Box>
-                  </>
-                }
+                aid={r.a.aid}
+                site={new Set(lists[tab].map(x => x.a.site)).size > 1 ? r.a.site : undefined}
                 last={i === lists[tab].length - 1}
                 onClick={() => setDrill({ a: r.a, med: r.med })}
                 chevron
+                meta={
+                  <>
+                    <RowMetaText strong>{r.med.name}</RowMetaText>
+                    <RowMetaText>{fmtDate(r.a.lastGiven)}</RowMetaText>
+                  </>
+                }
               />
             ))}
           {tab === 'missed' &&
             lists.missed.map((x, i) => (
-              <SheetRow
+              <AnimalCardRow
                 key={`${x.med.name}-${x.m.aid}-${x.m.date}`}
-                avatar
-                title={x.m.name}
-                caption={
+                aid={x.m.aid}
+                site={new Set(lists.missed.map(y => y.m.site)).size > 1 ? x.m.site : undefined}
+                meta={
+                  // one item per row (card-list hard rule)
                   <>
-                    <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                      {x.med.name}
-                      <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                        •
-                      </Box>
-                      {x.m.site}
-                    </Box>
-                    <Box component='span' sx={{ display: 'block' }}>
-                      {x.m.reason} • {fmtDate(x.m.date)}
-                    </Box>
+                    <RowMetaText strong>{x.med.name}</RowMetaText>
+                    <RowMetaText>{x.m.reason}</RowMetaText>
+                    <RowMetaText>{fmtDate(x.m.date)}</RowMetaText>
                   </>
                 }
                 last={i === lists.missed.length - 1}
@@ -2784,18 +2652,11 @@ const RxMonthDrawer: React.FC<{
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
             {tab === 'given' &&
               shownGiven.map((g, i) => (
-                <SheetRow
+                <AnimalCardRow
                   key={`${g.a.aid}-${g.date}`}
-                  avatar
-                  title={g.a.name}
-                  caption={
-                    <>
-                      <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                        {g.a.site}
-                      </Box>
-                      <Box component='span' sx={{ display: 'block' }}>{fmtDate(g.date)}</Box>
-                    </>
-                  }
+                  aid={g.a.aid}
+                  site={!site && siteOptions.length > 1 ? g.a.site : undefined}
+                  meta={<RowMetaText>{fmtDate(g.date)}</RowMetaText>}
                   last={i === shownGiven.length - 1}
                   onClick={() => setDrill(g.a)}
                   chevron
@@ -2803,20 +2664,14 @@ const RxMonthDrawer: React.FC<{
               ))}
             {tab === 'missed' &&
               shownMissed.map((m, i) => (
-                <SheetRow
+                <AnimalCardRow
                   key={`${m.aid}-${m.date}`}
-                  avatar
-                  title={m.name}
-                  caption={
+                  aid={m.aid}
+                  site={!site && siteOptions.length > 1 ? m.site : undefined}
+                  meta={
                     <>
-                      <Box component='span' sx={{ display: 'block', color: c.OnSurfaceVariant }}>
-                        {m.reason}
-                        <Box component='span' sx={{ fontSize: '15px', lineHeight: 1, mx: 1, verticalAlign: '-1px' }}>
-                          •
-                        </Box>
-                        {m.site}
-                      </Box>
-                      <Box component='span' sx={{ display: 'block' }}>{fmtDate(m.date)}</Box>
+                      <RowMetaText strong>{m.reason}</RowMetaText>
+                      <RowMetaText>{fmtDate(m.date)}</RowMetaText>
                     </>
                   }
                   last={i === shownMissed.length - 1}
@@ -2842,7 +2697,8 @@ const RxMonthDrawer: React.FC<{
 /** Screen 2 — one medicine: header stats, doses-per-month trend (point → month sheet), animal
  *  list → dose dates. No schedule concepts — the frame is who got it, how much, how recently. */
 const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () => void }> = ({ med, rx, onBack }) => {
-  const { txt, animalCell, c, theme } = useCells()
+  const { txt, c, theme } = useCells()
+  const heroPhoto = React.useContext(HeroPhotoContext)
   const portrait = useMediaQuery('(orientation: portrait)')
   const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
   const [q, setQ] = useState('')
@@ -2870,8 +2726,29 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
     tbl.setPaginationModel(p => ({ ...p, page: 0 }))
   }
 
+  // Standard animal-card column (2026-09-02): identity card carries encl + site.
+  const showCardSite = new Set(med.animals.map(a => a.site)).size > 1
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 260, renderCell: p => animalCell(p.row.name, p.row.site) },
+    {
+      field: 'name',
+      headerName: 'Animal',
+      flex: 1,
+      minWidth: 380,
+      renderCell: p => {
+        const s = synthAnimalIdentity(p.row.aid)
+
+        return (
+          <AnimalIdCard
+            identifiers={s.identifiers}
+            enclosure={s.enclosure}
+            site={showCardSite ? p.row.site : undefined}
+            tag={s.tag}
+            photo={s.hasPhoto ? heroPhoto?.src : undefined}
+            photoPos={heroPhoto?.bgPos}
+          />
+        )
+      }
+    },
     { field: 'courses', headerName: 'Prescriptions', width: 180, renderCell: p => txt(p.row.courses, c.neutralSecondary, 600) },
     { field: 'doseCount', headerName: 'Doses', width: 120, renderCell: p => txt(p.row.doseCount, c.neutralSecondary, 600) },
     // date only — the given amount lives in the dose-history sheet, not this table
@@ -2950,6 +2827,8 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
+            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            stickyFields={['name']} // HARD RULE: identity columns pinned when the table scrolls
             onRowClick={(p: { row: PreventiveTypeAnimal }) => setDrill(p.row)}
           />
         ) : (
@@ -3101,7 +2980,8 @@ const ClinicalMergedPanel: React.FC<{
   symptoms?: ClinicalProgram
   diagnosis?: ClinicalProgram
   range: RangeSelection
-}> = ({ symptoms, diagnosis, range }) => {
+  onRange: (r: RangeSelection) => void
+}> = ({ symptoms, diagnosis, range, onRange }) => {
   const { txt, c } = useCells()
   const portrait = useMediaQuery('(orientation: portrait)')
 
@@ -3374,6 +3254,15 @@ const ClinicalMergedPanel: React.FC<{
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* headline row — title left, period control right (the Medical Overview pattern;
+          moved off the tab bar on user call 2026-09-02) */}
+      <Box sx={{ pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+        <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
+          Clinical
+        </Typography>
+        <DashboardDateRange value={range} onChange={onRange} />
+      </Box>
+
       {/* the ONE table per sub-tab (2026-08-27 restructure) */}
       <SectionCard title={portrait ? stackedHeader : domainTabs} action={portrait ? undefined : search} titleMb={2}>
         {table.total ? (
@@ -3483,21 +3372,21 @@ const ClinicalMergedPanel: React.FC<{
                   <Box sx={{ px: SHEET_PX, pb: 3 }}>
                     {list.length ? (
                       list.map((a, i) => (
-                        <SheetRow
+                        <AnimalCardRow
                           key={a.aid}
-                          avatar
-                          title={
-                            a.chronic ? (
-                              <>
-                                {a.name}
-                                <ChronicTag />
-                              </>
-                            ) : (
-                              a.name
-                            )
+                          aid={a.aid}
+                          enclosure={a.enclosure}
+                          site={new Set(list.map(x => x.site)).size > 1 ? a.site : undefined}
+                          titleExtra={
+                            <>
+                              {a.times > 1 && (
+                                <Typography component='span' sx={{ fontSize: '0.9375rem', color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+                                  ×{a.times}
+                                </Typography>
+                              )}
+                              {a.chronic ? <ChronicTag /> : null}
+                            </>
                           }
-                          titleCount={a.times}
-                          caption={`${a.enclosure} • ${a.site}`}
                           trailing={
                             // Tones per user call 2026-09-01: Active = green, Resolved = grey.
                             shownTab === 'active' ? (
@@ -3569,9 +3458,11 @@ const SubTabs: React.FC<{ tab: TabKey; onChange: (t: TabKey) => void }> = ({ tab
 interface Props {
   preventive?: SpeciesPreventive | null
   clinical?: SpeciesClinical | null
+  /** Resolves the species hero photo for the AnimalCard's photo variant (demo). */
+  speciesId?: number | string
 }
 
-const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
+const MedicalTab: React.FC<Props> = ({ preventive, clinical, speciesId }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [tab, setTab] = useState<TabKey>('overview')
@@ -3589,7 +3480,7 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
       const has = (p?: ClinicalProgram) => !!p && (p.records.length > 0 || p.summary.animalsAffected > 0)
       if (!has(sym) && !has(diag)) return <EmptyState message='No clinical data for this species' />
 
-      return <ClinicalMergedPanel symptoms={sym} diagnosis={diag} range={range} />
+      return <ClinicalMergedPanel symptoms={sym} diagnosis={diag} range={range} onRange={setRange} />
     }
 
     if (tab === 'prescription') {
@@ -3601,24 +3492,22 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical }) => {
     const prog = preventive?.programs?.[tab]
     if (!prog || !prog.summary.animalsTracked) return <EmptyState message='No preventive-care data for this species' />
 
-    return <PreventivePanel key={tab} tab={tab} prog={prog} months={preventive?.months ?? []} />
+    return <PreventivePanel key={tab} tab={tab} prog={prog} months={preventive?.months ?? []} speciesId={speciesId} />
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderBottom: `1px solid ${skin.HAIR}` }}>
-        <SubTabs tab={tab} onChange={setTab} />
-        {/* Overview carries the period control on its headline row instead */}
-        {/* Only Clinical consumes the page window; preventive/prescription screens carry
-            their own preset range tabs (1Y·2Y·3Y·All — the punch-list's presets-only rule). */}
-        {tab === 'clinical' && (
-          <Box sx={{ pb: 1.5 }}>
-            <DashboardDateRange value={range} onChange={setRange} />
-          </Box>
-        )}
+    // Hero photo provided ONCE for every AnimalCardRow / AnimalIdCard in this tab's tree
+    <HeroPhotoContext.Provider value={HERO_PHOTOS[String(speciesId ?? '')]}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderBottom: `1px solid ${skin.HAIR}` }}>
+          {/* The period control never rides this tab bar (user call 2026-09-02): Overview and
+              Clinical both carry it on their own headline row; preventive/prescription screens
+              carry their own preset range tabs (1Y·2Y·3Y·All — the presets-only rule). */}
+          <SubTabs tab={tab} onChange={setTab} />
+        </Box>
+        {renderPanel()}
       </Box>
-      {renderPanel()}
-    </Box>
+    </HeroPhotoContext.Provider>
   )
 }
 

@@ -1,9 +1,10 @@
 'use client'
 
-// iPad 3 Mortality tab (2026-08-31) — every death on record as ONE SectionCard table,
-// built on the Housing section anatomy + the Circle of Life column grammar (the
-// standard: No serial + shared AnimalCell, both sticky, rest scrolls). Circle of Life
-// KEEPS its own deaths table — this tab is the dedicated full-list view.
+// iPad 3 Mortality tab (2026-08-31, animal-card standard 2026-09-02) — every death on
+// record as ONE SectionCard table on the Housing section anatomy. Identity column is the
+// standard AnimalIdCard (sticky, tag='mortality', real idn/idv > synth; Site/Enclosure
+// columns folded onto the card). Circle of Life KEEPS its own deaths table — this tab is
+// the dedicated full-list view.
 // Controls: pill search + Site dropdown upfront; Sex · Year · Cause of Death ·
 // Age band · Necropsy status behind the standard "Filters" sheet (SpeciesFilterSheet,
 // bottom sheet portrait / side sheet landscape).
@@ -21,13 +22,18 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { LifecycleDeath, SpeciesLifecycle } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
+  SiteFilterSelect,
+  idTypeLabel,
   AnimalCell,
+  AnimalIdCard,
   CategoryFilter,
   CellText,
   DetailTable,
   EmptyState,
   FilterChip,
-  SectionCard
+  HeroPhotoContext,
+  SectionCard,
+  synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
@@ -75,6 +81,7 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
   // Widened at use so TS keeps the union (the const's literal null otherwise narrows to never).
   const detailsRoute = MORTALITY_DETAILS_ROUTE as ((aid: string) => string) | null
   const portrait = useMediaQuery('(orientation: portrait)')
+  const heroPhoto = React.useContext(HeroPhotoContext)
 
   const all = useMemo(() => lifecycle?.deaths || [], [lifecycle])
 
@@ -168,18 +175,42 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
     </CellText>
   )
 
+  // Card shows site only when the visible list spans >1 site (hard site rule) — the Site
+  // column is dropped either way (single-site lists don't repeat their scope per row).
+  const cardShowsSite = multiSite && !site
+
   const columns: GridColDef[] = useMemo(
     () => [
-      { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: (p: any) => txt(p.row.sl_no, cc.neutralSecondary, 400) },
       {
-        width: 240,
+        flex: 1,
+        minWidth: 380,
         field: 'animal',
         headerName: 'Animal Name & ID',
-        renderCell: (p: any) => (
-          <Box sx={{ py: 1 }}>
-            <AnimalCell name={p.row.animal} sub={p.row.aid ? `AID: ${p.row.aid}` : undefined} size={40} />
-          </Box>
-        )
+        renderCell: (p: any) => {
+          // No-aid rows keep the classic cell — the card's identity synthesis needs an aid.
+          if (!p.row.aid) return <AnimalCell name={p.row.animal} size={40} />
+          const s = synthAnimalIdentity(p.row.aid)
+          // Real identifiers beat synthesis: the sidecar's idn/idv pair (e.g. "Micro chip")
+          // leads with AID second; records without one fall back to the synth set.
+          const identifiers =
+            p.row.idn && p.row.idv
+              ? [
+                  { label: idTypeLabel(p.row.idn), value: p.row.idv },
+                  { label: 'AID', value: p.row.aid }
+                ]
+              : s.identifiers
+
+          return (
+            <AnimalIdCard
+              identifiers={identifiers}
+              enclosure={p.row.e || s.enclosure}
+              site={cardShowsSite ? p.row.s : undefined}
+              tag='mortality' // death list: the maroon badge, never gender
+              photo={s.hasPhoto ? heroPhoto?.src : undefined}
+              photoPos={heroPhoto?.bgPos}
+            />
+          )
+        }
       },
       {
         width: 130,
@@ -189,8 +220,6 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
       },
       { width: 165, field: 'd', headerName: 'Date of Death', renderCell: (p: any) => <CellText noWrap>{p.row.date}</CellText> },
       { width: 110, field: 'sex', headerName: 'Gender', renderCell: (p: any) => txt(p.row.sex) },
-      { width: 200, field: 's', headerName: 'Site', renderCell: (p: any) => txt(p.row.s || '—') },
-      { width: 180, field: 'e', headerName: 'Enclosure', renderCell: (p: any) => txt(p.row.e || '—') },
       { width: 170, field: 'm', headerName: 'Cause of Death', renderCell: (p: any) => txt(p.row.m || '—', cc.Tertiary, 600) },
       {
         width: 150,
@@ -205,7 +234,7 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cc, theme]
+    [cc, theme, cardShowsSite, heroPhoto]
   )
 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
@@ -227,14 +256,12 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
   )
 
   const siteFilterCtl = multiSite && (
-    <CategoryFilter
-      radius='999px'
-      width={180}
-      options={sites}
+    // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+    <SiteFilterSelect
+      sites={sites.map(name => ({ site: name, caption: `${all.filter(e => e.s === name).length.toLocaleString()} deaths` }))}
       value={site}
       onChange={v => setSite(v)}
-      placeholder='All sites'
-      icon='mdi:map-marker-outline'
+      allCaption={`${all.length.toLocaleString()} deaths`}
     />
   )
 
@@ -328,40 +355,20 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ lifecycle }) => {
         )}
 
         {table.total ? (
-          // No pinned at 0 by DetailTable; AnimalCell joins it at 64 (the CoL sticky pair).
-          <Box
-            sx={{
-              '& .MuiDataGrid-cell[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 3,
-                backgroundColor: '#ffffff',
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-columnHeader[data-field="animal"]': {
-                position: 'sticky',
-                left: 64,
-                zIndex: 5,
-                backgroundColor: skin.TABLE_HEAD_BG,
-                borderRight: `1px solid ${skin.ROW_LINE}`
-              },
-              '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="animal"]': { backgroundColor: skin.ROW_HOVER }
-            }}
-          >
-            <DetailTable
-              columns={columns}
-              rows={table.rows}
-              total={table.total}
-              paginationModel={table.paginationModel}
-              setPaginationModel={table.setPaginationModel}
-              sortModel={table.sortModel}
-              handleSortModel={table.handleSortModel}
-              stickyField='sl_no'
-              onRowClick={
-                detailsRoute ? (p: any) => p.row.aid && window.location.assign(detailsRoute(p.row.aid)) : undefined
-              }
-            />
-          </Box>
+          <DetailTable
+            columns={columns}
+            rows={table.rows}
+            total={table.total}
+            paginationModel={table.paginationModel}
+            setPaginationModel={table.setPaginationModel}
+            sortModel={table.sortModel}
+            handleSortModel={table.handleSortModel}
+            stickyFields={['animal']}
+            rowHeight={146}
+            onRowClick={
+              detailsRoute ? (p: any) => p.row.aid && window.location.assign(detailsRoute(p.row.aid)) : undefined
+            }
+          />
         ) : (
           <EmptyState message='No deaths match your filters' />
         )}

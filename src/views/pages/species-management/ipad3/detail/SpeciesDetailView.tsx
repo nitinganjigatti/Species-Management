@@ -11,6 +11,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, IconButton, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
+import { HERO_PHOTOS } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { SpeciesDetailHeader, SpeciesDetailTab } from 'src/types/species-management/detail'
 
 export interface DetailAlerts {
@@ -307,11 +308,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   ]
 
   // Species with a real hero photo — everything else gets the antz logomark card.
-  // bgPos frames the full-bleed banner crop per photo (where the face is).
-  const HERO_PHOTOS: Record<string, { src: string; bgPos: string }> = {
-    '2150': { src: '/images/species/2150.jpg', bgPos: 'center 38%' },
-    '449': { src: '/images/species/449.jpg', bgPos: 'center 10%' }
-  }
+  // Single copy in detailUi (the animal card's photo variant resolves there too).
   const heroPhoto = HERO_PHOTOS[String(speciesId)]
 
   // The IUCN pill's dot carries the Red List category's own published fill — the

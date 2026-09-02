@@ -6,8 +6,10 @@ import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import type { SpeciesEggs } from 'src/types/species-management/detail'
 import {
-  AnimalCell,
+  AnimalIdCard,
   ChartHoverCard,
+  HeroPhotoContext,
+  synthAnimalIdentity,
   DetailTable,
   EmptyState,
   SectionCard,
@@ -262,6 +264,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
 
   // Portrait: roster tabs + site filter + search stack as two rows (Medical-tab pattern).
   const portrait = useMediaQuery('(orientation: portrait)')
+  const heroPhoto = React.useContext(HeroPhotoContext)
   const [openFemale, setOpenFemale] = useState<FemaleRow | null>(null)
   const [rosterTab, setRosterTabRaw] = useState<'all' | 'none' | 'one' | 'twoPlus'>('all')
   const [q, setQRaw] = useState('')
@@ -313,6 +316,13 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     return roster.slice(start, start + pm.pageSize).map(f => ({ ...f, id: f.antzId }))
   }, [roster, pm.page, pm.pageSize])
 
+  /* site rides the card ONLY when the list the user sees spans >1 site (hard rule):
+     a site-filtered roster — or a species held at one site — omits it */
+  const rosterMultiSite = useMemo(
+    () => !siteFilter && new Set(roster.map(f => f.site).filter(Boolean)).size > 1,
+    [roster, siteFilter]
+  )
+
   /* laying-calendar peak: the best consecutive 3-month window */
   const peak = useMemo(() => {
     const m = s.monthlyLaid
@@ -347,21 +357,43 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
   const sheetView: SheetView | null = useMemo(() => {
     if (!sheet) return null
     const layers = s.females_rows.filter(f => f.eggs > 0)
-    // The project's sheet animal-row convention (Vaccination pattern): avatar • name •
-    // enclosure · site caption • trailing • chevron. Unnamed animals get the ID-type subline
-    // so a bare transponder number is labelled.
-    const row = (f: FemaleRow, trailing?: React.ReactNode): ListRow => ({
-      key: f.antzId,
-      isAnimal: true,
-      title: f.name,
-      caption: f.site, // site only — enclosure comes back when a drill needs it (2026-08-05)
-      subline: f.name === f.identifier ? f.idType : undefined, // only when no mock name exists — label the bare identifier
-      trailing,
-      onOpen: () => setOpenFemale(f)
-    })
+    // Standard animal-card rows (2026-09-02): aid → AnimalCardRow in ListSheet; every
+    // per-female list wears the female badge. Real enclosure rides the card; site only
+    // when the list the user sees spans more than one site (the card's hard rule).
+    const multiSite = (list: FemaleRow[]) => new Set(list.map(f => f.site).filter(Boolean)).size > 1
+    const row = (f: FemaleRow, showSite: boolean, trailing?: React.ReactNode): ListRow => {
+      // REAL identifier beats synthesis — same mapping as the roster table's card cell,
+      // so a female's identity reads identically in the table and her drill sheets.
+      const t = (f.idType || '').toLowerCase()
+      const idLabel = t.includes('ring') ? 'Ring' : t.includes('chip') || t.includes('transponder') ? 'Chip' : f.idType || 'ID'
+      const hasRealId = !!f.identifier && f.identifier !== f.antzId
+
+      return {
+        key: f.antzId,
+        isAnimal: true,
+        aid: f.antzId,
+        tag: 'female',
+        title: f.name,
+        enclosure: f.enclosure,
+        site: showSite ? f.site : undefined,
+        identifiers: hasRealId
+          ? [
+              { label: idLabel, value: f.identifier },
+              { label: 'AID', value: f.antzId }
+            ]
+          : undefined,
+        // ListSheet passes `title` as the card's name — shown only when AID is the
+        // sole identifier (the card's hard rule); with two identifiers it stays hidden.
+        trailing,
+        onOpen: () => setOpenFemale(f)
+      }
+    }
 
     switch (sheet.kind) {
-      case 'fertility':
+      case 'fertility': {
+        const list = [...layers].sort((a, b) => a.fertile / a.eggs - b.fertile / b.eggs)
+        const ms = multiSite(list)
+
         return {
           title: 'Fertility by Female',
           icon: 'mdi:egg-outline',          stats: [
@@ -369,11 +401,13 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             { label: 'Rate', value: `${s.fertilityPct}%` }
           ],
           // no % in sheet rows (2026-08-05) — the count pair is enough; coral ONLY for total failure
-          rows: [...layers]
-            .sort((a, b) => a.fertile / a.eggs - b.fertile / b.eggs)
-            .map(f => row(f, trail(`${f.fertile} of ${f.eggs}`, f.fertile === 0)))
+          rows: list.map(f => row(f, ms, trail(`${f.fertile} of ${f.eggs}`, f.fertile === 0)))
         }
-      case 'hatchOfFertile':
+      }
+      case 'hatchOfFertile': {
+        const list = layers.filter(f => f.fertile > 0).sort((a, b) => a.hatched / a.fertile - b.hatched / b.fertile)
+        const ms = multiSite(list)
+
         return {
           title: 'Hatch of Fertile by Female',
           icon: 'mdi:egg-outline',          stats: [
@@ -381,12 +415,13 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             { label: 'Rate', value: `${s.hatchOfFertilePct}%` }
           ],
           // no % in sheet rows (2026-08-05) — the count pair is enough; coral ONLY for total failure
-          rows: layers
-            .filter(f => f.fertile > 0)
-            .sort((a, b) => a.hatched / a.fertile - b.hatched / b.fertile)
-            .map(f => row(f, trail(`${f.hatched} of ${f.fertile}`, f.hatched === 0)))
+          rows: list.map(f => row(f, ms, trail(`${f.hatched} of ${f.fertile}`, f.hatched === 0)))
         }
-      case 'eggsByFemale':
+      }
+      case 'eggsByFemale': {
+        const list = [...layers].sort((a, b) => b.eggs - a.eggs)
+        const ms = multiSite(list)
+
         return {
           title: 'Eggs & Clutches by Female',
           icon: 'mdi:egg-outline',          stats: [
@@ -394,10 +429,12 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             { label: 'Clutches', value: clutchTotal },
             { label: 'Avg / clutch', value: s.avgClutchSize }
           ],
-          rows: [...layers].sort((a, b) => b.eggs - a.eggs).map(f => row(f, trail(`${f.eggs} eggs • ${f.clutches} clutches`)))
+          rows: list.map(f => row(f, ms, trail(`${f.eggs} eggs • ${f.clutches} clutches`)))
         }
+      }
       case 'femalesLaid': {
         const list = femTab === 'laid' ? s.females_rows.filter(f => f.laid) : s.females_rows.filter(f => !f.laid)
+        const ms = multiSite(list)
 
         return {
           title: 'Females This Season',
@@ -411,7 +448,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           ],
           tab: femTab,
           onTab: setFemTab,
-          rows: list.map(f => row(f, femTab === 'laid' ? trail(`${f.eggs} eggs`) : undefined))
+          rows: list.map(f => row(f, ms, femTab === 'laid' ? trail(`${f.eggs} eggs`) : undefined))
         }
       }
       case 'month': {
@@ -419,6 +456,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
         const list = s.females_rows
           .filter(f => (f.monthly[m] || 0) > 0)
           .sort((a, b) => (b.monthly[m] || 0) - (a.monthly[m] || 0))
+        const ms = multiSite(list)
 
         return {
           title: `${MONTH_FULL[m]} — Eggs`,
@@ -427,7 +465,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             { label: 'Fertile', value: s.monthlyFertile[m] },
             { label: 'Hatched', value: s.monthlyHatched[m] }
           ],
-          rows: list.map(f => row(f, trail(`laid ${f.monthly[m]} • hatched ${f.monthlyHatched[m] || 0}`)))
+          rows: list.map(f => row(f, ms, trail(`laid ${f.monthly[m]} • hatched ${f.monthlyHatched[m] || 0}`)))
         }
       }
       case 'outcome': {
@@ -437,6 +475,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
         const total = oc === 'hatched' ? s.hatched : oc === 'died' ? s.fertile - s.hatched : s.laid - s.fertile
         const title = oc === 'hatched' ? 'Hatched — by Female' : oc === 'died' ? 'Died Developing — by Female' : 'Infertile — by Female'
         const list = layers.filter(f => val(f) > 0).sort((a, b) => val(b) - val(a))
+        const ms = multiSite(list)
 
         return {
           title,
@@ -448,6 +487,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           rows: list.map(f =>
             row(
               f,
+              ms,
               trail(
                 oc === 'hatched'
                   ? `${f.hatched} of ${f.eggs} eggs`
@@ -462,14 +502,41 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     }
   }, [sheet, femTab, s, clutchTotal]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* standard animal card cell (2026-09-02): real identifier (chip/ring) beats synthesis —
+     AID always rides; the display name shows only when AID is the sole identifier */
+  const femaleCardCell = (f: FemaleRow) => {
+    const syn = synthAnimalIdentity(f.antzId)
+    const hasRealId = !!f.identifier && f.identifier !== f.antzId
+    const t = (f.idType || '').toLowerCase()
+    const idLabel = t.includes('ring') ? 'Ring' : t.includes('chip') || t.includes('transponder') ? 'Chip' : f.idType || 'ID'
+    const identifiers = hasRealId
+      ? [
+          { label: idLabel, value: f.identifier },
+          { label: 'AID', value: f.antzId }
+        ]
+      : syn.identifiers
+
+    return (
+      <AnimalIdCard
+        identifiers={identifiers}
+        enclosure={f.enclosure ?? syn.enclosure}
+        site={rosterMultiSite ? f.site : undefined}
+        tag='female'
+        name={f.name !== f.identifier && f.name !== f.antzId ? f.name : undefined}
+        photo={syn.hasPhoto ? heroPhoto?.src : undefined}
+        photoPos={heroPhoto?.bgPos}
+      />
+    )
+  }
+
   const femaleCols: GridColDef[] = [
     {
-      minWidth: 260,
-      flex: 2,
+      minWidth: 380,
+      flex: 1,
       sortable: false,
       field: 'name',
       headerName: 'Female',
-      renderCell: (p: GridRenderCellParams) => <AnimalCell name={p.row.name} sub={`${p.row.enclosure} • ${p.row.site}`} size={40} />
+      renderCell: (p: GridRenderCellParams) => femaleCardCell(p.row as FemaleRow)
     },
     {
       minWidth: 170,
@@ -739,6 +806,8 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           columns={femaleCols}
           rows={femaleRows}
           total={roster.length}
+          rowHeight={146}
+          stickyFields={['name']}
           paginationModel={pm}
           setPaginationModel={setPm}
           onRowClick={(p: any) => setOpenFemale(p.row)}

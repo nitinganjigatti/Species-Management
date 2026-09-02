@@ -9,26 +9,34 @@
  */
 import React, { useMemo, useState } from 'react'
 import { Box, Typography, useMediaQuery } from '@mui/material'
-import { alpha, lighten, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import type { SpeciesClinical } from 'src/lib/api/species-management/detail'
 import type { GridColDef } from '@mui/x-data-grid'
 import {
+  SiteFilterSelect,
+  AnimalIdCard,
+  CategoryFilter,
   CellText,
+  CollapsibleSearch,
   DetailTable,
-  Donut,
   EmptyState,
+  HeroPhotoContext,
   SectionCard,
+  synthAnimalIdentity,
+  thinScrollbarSx,
   TrendAreaChart,
-  TrendRangeTabs,
-  useTone
+  TrendRangeTabs
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import DashboardDateRange, {
   resolveRange,
   type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
+import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import SignalDrawer, { type SignalDrawerPayload } from './medical/SignalDrawer'
+import SignalsBand from './medical/SignalsBand'
 import AnimalHealthRecord from './medical/AnimalHealthRecord'
 import type { SignalAnimal } from './medical/signals'
 import {
@@ -65,7 +73,7 @@ const admissionRow = (a: Admission): SignalAnimal => ({
   condition: a.condition,
   detail: '',
   date: a.admittedOn,
-  pill: a.outcome === 'died' ? 'Died' : a.status === 'active' ? `Admitted • ${a.durationDays} d` : `Discharged • ${a.durationDays} d`,
+  pill: a.outcome === 'died' ? 'Died' : a.status === 'active' ? `Admitted • ${a.durationDays} D` : `Discharged • ${a.durationDays} D`,
   pillTone: a.outcome === 'died' ? 'error' : a.status === 'active' ? 'warning' : 'success'
 })
 
@@ -98,34 +106,252 @@ const AreaSpark: React.FC<{ values: number[]; color: string; width?: number; hei
   )
 }
 
-/* ── donut legend row (count + share, tone dot) ──────────────────────────── */
-const LegendRow: React.FC<{ tone: Parameters<ReturnType<typeof useTone>>[0]; label: string; value: number; total: number; sub?: string }> = ({
-  tone,
-  label,
-  value,
-  total,
-  sub
+const fmtDate = (v?: string) => {
+  if (!v) return '—'
+  const d = new Date(v)
+
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+const addDays = (iso: string, days: number) => new Date(new Date(iso).getTime() + days * 86400000).toISOString().slice(0, 10)
+
+/* ── Hospitalised Animals — the tab's working list (user call 2026-09-02, replacing the
+ *  Outcomes donut + Admissions-by-Hospital rollup): Admitted / Discharged / Mortality tabs
+ *  over the standard animal-card table. Search + Site + Hospital dropdowns filter every
+ *  tab; counts follow the filters; the recovery ledger keeps the donut's one real fact.
+ *  Row → the animal's full health record. */
+type AdmTab = 'admitted' | 'discharged' | 'mortality'
+
+const AdmissionsSection: React.FC<{ admissions: Admission[]; portrait: boolean; onAnimal: (aid: string) => void }> = ({
+  admissions,
+  portrait,
+  onAnimal
 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  const tones = useTone()
-  const pct = total ? Math.round((value / total) * 100) : 0
+  const heroPhoto = React.useContext(HeroPhotoContext)
+  const [tab, setTab] = useState<AdmTab>('admitted')
+  const [q, setQ] = useState('')
+  const [site, setSite] = useState<string | null>(null)
+  const [hospital, setHospital] = useState<string | null>(null)
+  // the section's OWN period filter (user call 2026-09-02) — defaults to All time and works
+  // on the full admission history, independent of the page window up top
+  const [range, setRange] = useState<RangeSelection>({ preset: 'all', start: null, end: null })
+  const inWin = useWindow(range)
+
+  const sites = useMemo(() => Array.from(new Set(admissions.map(a => a.site).filter(Boolean))).sort(), [admissions])
+  const hospitals = useMemo(() => Array.from(new Set(admissions.map(a => a.hospital).filter(Boolean))).sort(), [admissions])
+
+  // search + dropdowns scope EVERY tab — the tab counts follow so a tab never lies about its rows
+  const scoped = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+
+    return admissions.filter(
+      a =>
+        inWin(a.admittedOn) &&
+        (!site || a.site === site) &&
+        (!hospital || a.hospital === hospital) &&
+        (!needle || `${a.name} ${a.aid} ${a.site} ${a.hospital} ${a.condition}`.toLowerCase().includes(needle))
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admissions, site, hospital, q, range])
+
+  const statusOf = (a: Admission): AdmTab => (a.outcome === 'died' ? 'mortality' : a.status === 'active' ? 'admitted' : 'discharged')
+  const counts = useMemo(() => {
+    const n: Record<AdmTab, number> = { admitted: 0, discharged: 0, mortality: 0 }
+    for (const a of scoped) n[statusOf(a)]++
+
+    return n
+  }, [scoped])
+
+  const rows = useMemo(
+    () =>
+      scoped
+        .filter(a => statusOf(a) === tab)
+        .map((a, i) => ({
+          id: `${a.aid}-${a.admittedOn}-${i}`,
+          ...a,
+          endDate: a.status === 'resolved' ? addDays(a.admittedOn, a.durationDays) : undefined
+        })),
+    [scoped, tab]
+  )
+  const tbl = useSortableTable(rows, { field: 'admittedOn', sort: 'desc' })
+  const resetPage = () => tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+
+  const txt = (v: React.ReactNode, color?: string, weight = 500) => (
+    <CellText color={color} weight={weight}>
+      {v}
+    </CellText>
+  )
+
+  // HARD RULE: the card's Site row only when the visible list spans >1 site
+  const showCardSite = !site && new Set(rows.map(r => r.site)).size > 1
+  const animalCardCell = (a: Admission) => {
+    const syn = synthAnimalIdentity(a.aid)
+
+    return (
+      <AnimalIdCard
+        identifiers={syn.identifiers}
+        enclosure={a.enclosure || syn.enclosure}
+        site={showCardSite ? a.site : undefined}
+        tag={tab === 'mortality' ? 'mortality' : syn.tag}
+        photo={syn.hasPhoto ? heroPhoto?.src : undefined}
+        photoPos={heroPhoto?.bgPos}
+      />
+    )
+  }
+
+  // Long names never truncate — wrap to a second line inside the tall card rows.
+  const wrapCell = (v: React.ReactNode, color?: string, weight = 500) => (
+    <Typography
+      sx={{
+        fontSize: '1rem',
+        fontWeight: weight,
+        color: color || c.OnSurfaceVariant,
+        whiteSpace: 'normal',
+        lineHeight: 1.3,
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden'
+      }}
+    >
+      {v}
+    </Typography>
+  )
+
+  const columns: GridColDef[] = [
+    // column order (user call 2026-09-02): Animal · Admitted · [Discharged/Died] · Stay · Condition · Hospital
+    { field: 'name', headerName: 'Animal', flex: 1, minWidth: 380, renderCell: p => animalCardCell(p.row) },
+    { field: 'admittedOn', headerName: 'Admitted', width: 150, renderCell: p => txt(fmtDate(p.row.admittedOn), c.neutralSecondary) },
+    ...(tab === 'discharged'
+      ? [{ field: 'endDate', headerName: 'Discharged', width: 150, renderCell: (p: any) => txt(fmtDate(p.row.endDate), c.neutralSecondary) } as GridColDef]
+      : []),
+    ...(tab === 'mortality'
+      ? [{ field: 'endDate', headerName: 'Died', width: 150, renderCell: (p: any) => txt(fmtDate(p.row.endDate), skin.TONE_TYPE.bad) } as GridColDef]
+      : []),
+    {
+      field: 'durationDays',
+      headerName: 'Stay',
+      width: 110,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: p => txt(`${Number(p.row.durationDays).toLocaleString()} D`, tab === 'admitted' && p.row.durationDays > 7 ? skin.CORAL : c.neutralSecondary, 600)
+    },
+    { field: 'condition', headerName: 'Condition', width: 180, renderCell: p => wrapCell(p.row.condition, c.OnSurfaceVariant, 600) },
+    { field: 'hospital', headerName: 'Hospital', width: 200, renderCell: p => wrapCell(p.row.hospital, c.neutralSecondary) }
+  ]
+
+  const TABS: { key: AdmTab; label: string }[] = [
+    { key: 'admitted', label: 'Admitted' },
+    { key: 'discharged', label: 'Discharged' },
+    { key: 'mortality', label: 'Mortality' }
+  ]
+  const statusTabs = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', ...thinScrollbarSx(theme) }}>
+      {TABS.map(m => {
+        const active = tab === m.key
+
+        return (
+          <Box
+            key={m.key}
+            onClick={() => {
+              setTab(m.key)
+              resetPage()
+            }}
+            role='tab'
+            aria-selected={active}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.5, flexShrink: 0, borderBottom: '2.5px solid', borderColor: active ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: active ? skin.ACCENT_FILL : c.OutlineVariant } }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, color: active ? skin.ACCENT_INK : c.neutralSecondary, whiteSpace: 'nowrap' }}>
+              {m.label}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 700, color: active ? skin.ACCENT_INK : c.Outline, fontVariantNumeric: 'tabular-nums' }}>
+              {counts[m.key].toLocaleString()}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+
+  const controls = (
+    // ONE row (user calls 2026-09-02): search FIRST as a compact dropdown-width pill, then
+    // Site · Hospital · Period. Tapping the search expands it over this whole row (hence
+    // position:relative); leaving it collapses back, keeping a live query visible.
+    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, width: portrait ? '100%' : undefined }}>
+      <CollapsibleSearch
+        value={q}
+        onChange={v => {
+          setQ(v)
+          resetPage()
+        }}
+        placeholder='Search animals…'
+        grow
+      />
+      {sites.length > 1 && (
+        // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+        <SiteFilterSelect
+          sites={sites.map(name => ({ site: name, caption: `${admissions.filter(a => a.site === name).length.toLocaleString()} admissions` }))}
+          value={site}
+          onChange={v => {
+            setSite(v)
+            resetPage()
+          }}
+          allCaption={`${admissions.length.toLocaleString()} admissions`}
+        />
+      )}
+      {hospitals.length > 1 && (
+        <CategoryFilter
+          options={hospitals}
+          value={hospital}
+          onChange={v => {
+            setHospital(v)
+            resetPage()
+          }}
+          icon='mdi:hospital-building'
+          placeholder='All Hospitals'
+        />
+      )}
+      <DashboardDateRange
+        value={range}
+        onChange={r => {
+          setRange(r)
+          resetPage()
+        }}
+      />
+    </Box>
+  )
+
+  const stackedHeader = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
+      {statusTabs}
+      {controls}
+    </Box>
+  )
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.25 }}>
-      <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: tones(tone).fg, flexShrink: 0 }} />
-      <Typography sx={{ fontSize: '16px', color: c.OnSurfaceVariant, flex: 1, minWidth: 0 }} noWrap>
-        {label}
-        {sub && (
-          <Box component='span' sx={{ color: c.neutralSecondary }}>
-            {' '}
-            • {sub}
-          </Box>
-        )}
-      </Typography>
-      <Typography sx={{ fontSize: '16px', fontWeight: 700, color: c.OnSurfaceVariant }}>{value.toLocaleString()}</Typography>
-      <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, width: 44, textAlign: 'right' }}>{pct}%</Typography>
-    </Box>
+    <SectionCard title={portrait ? stackedHeader : statusTabs} action={portrait ? undefined : controls} titleMb={2}>
+      {rows.length ? (
+        <DetailTable
+          columns={columns}
+          rows={tbl.rows}
+          total={tbl.total}
+          paginationModel={tbl.paginationModel}
+          setPaginationModel={tbl.setPaginationModel}
+          sortModel={tbl.sortModel}
+          handleSortModel={tbl.handleSortModel}
+          rowHeight={146} // 94px animal-card block + breathing room (table standard)
+          stickyFields={['name']} // HARD RULE: identity columns pinned when the table scrolls
+          onRowClick={(p: { row: Admission }) => onAnimal(p.row.aid)}
+        />
+      ) : (
+        <EmptyState
+          message={
+            tab === 'admitted' ? 'No animals admitted right now' : tab === 'discharged' ? 'No discharges in this period' : 'No deaths in care this period'
+          }
+        />
+      )}
+    </SectionCard>
   )
 }
 
@@ -171,7 +397,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       animals: (rollup?.animals ?? [])
         .filter(a => a.currentlyAdmitted)
         .sort((x, y) => y.currentStayDays - x.currentStayDays)
-        .map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} d`, 'warning'))
+        .map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} D`, 'warning'))
     })
 
   const openRepeat = () =>
@@ -192,7 +418,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       explainer: 'Animals currently admitted longer than 7 days — not recovering on the current course, or overdue a review.',
       icon: 'mdi:timer-sand',
       tone: 'warning',
-      animals: (rollup?.longStay ?? []).map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} d`, 'warning'))
+      animals: (rollup?.longStay ?? []).map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} D`, 'warning'))
     })
 
   const openMortality = () =>
@@ -202,15 +428,6 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       icon: 'mdi:heart-pulse',
       tone: 'error',
       animals: (rollup?.mortality ?? []).map(admissionRow)
-    })
-
-  const openHospital = (name: string) =>
-    setDrill({
-      title: name,
-      explainer: 'Every admission of this species treated at this hospital in the period.',
-      icon: 'mdi:hospital-building',
-      tone: 'neutral',
-      animals: (rollup?.admissions ?? []).filter(a => a.hospital === name).map(admissionRow)
     })
 
   const openMonth = (i: number) => {
@@ -257,17 +474,6 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       animals: [...(rollup?.admissions ?? [])].sort((x, y) => y.durationDays - x.durationDays).map(admissionRow)
     })
 
-  const openOutcome = (kind: 'recovered' | 'died') => {
-    const adms = rollup?.admissions ?? []
-    const list = kind === 'died' ? adms.filter(a => a.outcome === 'died') : adms.filter(a => a.status === 'resolved' && a.outcome !== 'died')
-    setDrill({
-      title: kind === 'died' ? 'Died in Care' : 'Recovered & discharged',
-      icon: kind === 'died' ? 'mdi:heart-pulse' : 'mdi:check-circle-outline',
-      tone: kind === 'died' ? 'error' : 'neutral',
-      animals: list.map(admissionRow)
-    })
-  }
-
   const openSurgery = (loc: 'hospital' | 'field') =>
     setDrill({
       title: loc === 'field' ? 'On-site (field) surgery' : 'In-hospital surgery',
@@ -310,127 +516,39 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       icon: 'mdi:timer-sand',
       count: rollup.longStay.length,
       label: 'Long Stay > 7 Days',
-      hint: rollup.longStay.length ? `longest ${rollup.longStay[0].currentStayDays} d` : 'none currently',
+      hint: rollup.longStay.length ? `longest ${rollup.longStay[0].currentStayDays} D` : 'none currently',
       onClick: openLong
     }
   ]
 
-  /* ── outcome shape ── */
   const adms = rollup.admissions
-  const died = adms.filter(a => a.outcome === 'died').length
-  const stillIn = adms.filter(a => a.status === 'active').length
-  const recovered = Math.max(0, adms.length - died - stillIn)
-  const closed = recovered + died
-  const recoveryPct = closed ? Math.round((recovered / closed) * 100) : 0
 
   /* ── flow-strip derivations (V1: capacity/flow stats, NOT the risk signals) ── */
   const durations = adms.map(a => a.durationDays).filter(d => d > 0).sort((x, y) => x - y)
   const avgStay = durations.length ? Math.round((durations.reduce((s, d) => s + d, 0) / durations.length) * 10) / 10 : 0
   const medianStay = durations.length ? durations[Math.floor(durations.length / 2)] : 0
 
-  // Δ vs the previous window of equal length (hidden on "All time" — no previous period).
-  const { from: winFrom, to: winTo } = resolveRange(range, new Date())
-  let deltaPct: number | null = null
-  if (winFrom) {
-    const span = winTo.getTime() - winFrom.getTime()
-    const prevCount = allAdmissions.filter(a => {
-      const t = new Date(a.admittedOn).getTime()
-
-      return !isNaN(t) && t >= winFrom.getTime() - span && t < winFrom.getTime()
-    }).length
-    if (prevCount > 0) deltaPct = Math.round(((adms.length - prevCount) / prevCount) * 100)
-  }
   const spark12 = monthlyAdmissions(allAdmissions, 12, new Date()).values
 
   /* ── flow-card styles (V1 strip) ── */
+  // CC card language (iPad 3 reskin 2026-09-02): white on sage, HAIR hairline, no shadow;
+  // StatBand type ramp — 13px caps FAINT label over the warm VALUE figure.
   const flowCardSx = {
+    ...skin.cardSx,
     display: 'flex',
     alignItems: 'center',
     gap: 3,
-    borderRadius: '10px',
-    border: `1px solid ${c.SurfaceVariant}`,
-    backgroundColor: theme.palette.background.paper,
-    p: 3.5,
-    transition: 'box-shadow .15s ease'
+    p: 3.5
   }
-  const flowLabelSx = { fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, whiteSpace: 'nowrap' }
-  const flowValueSx = { fontSize: '28px', fontWeight: 800, color: c.OnSurface, lineHeight: 1.2, mt: 0.5, whiteSpace: 'nowrap' }
-  const flowSubSx = { fontSize: '15px', color: c.neutralSecondary, mt: '2px', whiteSpace: 'nowrap' }
+  const flowLabelSx = { fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT, whiteSpace: 'nowrap' }
+  const flowValueSx = { fontSize: '28px', fontWeight: 800, color: skin.VALUE, lineHeight: 1.2, mt: 0.5, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }
 
   const s = rollup.surgery
   const rate = (compl: number, total: number) => (total ? Math.round((compl / total) * 100) : 0)
 
-  /* ── V9 “Ops tables” — standard DetailTable columns (Load/Share bars dropped per user) ── */
   const losTotal = Math.max(1, buckets.reduce((n, b) => n + b.items.length, 0))
   const past14Pct = Math.round((((buckets[3]?.items.length ?? 0) + (buckets[4]?.items.length ?? 0)) / losTotal) * 100)
-  const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <CellText color={color} weight={weight}>
-      {v}
-    </CellText>
-  )
-  const pillSx = (bg: string, fg: string) =>
-    ({ display: 'inline-block', fontSize: '14px', fontWeight: 700, borderRadius: '20px', px: '10px', py: '3px', backgroundColor: bg, color: fg, lineHeight: 1.4 }) as const
 
-  const TABLE_CAP = 5
-  const hospCols: GridColDef[] = [
-    {
-      minWidth: 140,
-      flex: 1,
-      sortable: false,
-      field: 'name',
-      headerName: 'Hospital',
-      // Full names matter here — wrap to two lines (72px rows fit them) instead of clipping.
-      renderCell: p => (
-        <Typography
-          sx={{
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: c.OnSurfaceVariant,
-            whiteSpace: 'normal',
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}
-        >
-          {p.row.name}
-        </Typography>
-      )
-    },
-    { width: 135, sortable: false, field: 'animals', headerName: 'Admissions', renderCell: p => txt(p.row.animals, p.row.hot ? c.Tertiary : undefined, 700) },
-    {
-      width: 80,
-      sortable: false,
-      field: 'deaths',
-      headerName: 'Died',
-      renderCell: p =>
-        p.row.deaths ? (
-          <Box component='span' sx={pillSx(alpha(c.rusticRed, 0.1), c.rusticRed)}>
-            {p.row.deaths}
-          </Box>
-        ) : (
-          txt('—')
-        )
-    }
-  ]
-  const hospRows = rollup.byHospital.slice(0, TABLE_CAP).map((h, i) => ({ ...h, id: i }))
-
-  /* "View all" lives in the card's title row, right corner — opens the side sheet (Lab pattern). */
-  const viewAllSx = {
-    fontSize: '16px',
-    fontWeight: 600,
-    color: theme.palette.primary.dark,
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    '&:hover': { textDecoration: 'underline' }
-  } as const
-  const ViewAllAction: React.FC<{ count: number; noun: string; onOpen: () => void }> = ({ count, noun, onOpen }) =>
-    count > TABLE_CAP ? (
-      <Typography onClick={onOpen} sx={viewAllSx}>
-        View all {count} {noun} →
-      </Typography>
-    ) : null
   const segStrip = (
     segs: { key: string; pct: number; color: string; text?: string; onClick?: () => void }[],
     labels: { pct: number; text: React.ReactNode }[]
@@ -487,71 +605,19 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           flexWrap: 'wrap'
         }}
       >
-        <Typography sx={{ fontSize: '20px', fontWeight: 700, color: c.OnSurfaceVariant, lineHeight: 1.35 }}>
-          {rollup.repeatCount ? (
-            <>
-              <Box component='span' sx={{ color: c.Tertiary }}>
-                {rollup.repeatCount} Animals
-              </Box>{' '}
-              Keep Coming Back
-            </>
-          ) : (
-            'No Repeat Cases This Period'
-          )}
+        {/* plain title — the verdict headline pattern was retired with the Medical reskin
+            (2026-09-01); the signals band below carries the story */}
+        <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
+          Hospital Overview
         </Typography>
         <DashboardDateRange value={range} onChange={setRange} />
       </Box>
 
-      {/* Row 1b · slim dark triage strip (V5 style) — number · label/hint · chevron, divided segments */}
-      <Box
-        sx={{
-          bgcolor: 'customColors.chatBubbleSent',
-          borderRadius: '12px',
-          px: 6,
-          py: 4.5,
-          display: 'grid',
-          // Always one row of three — the strip is a single band, never a 2+1 wrap.
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 4
-        }}
-      >
-        {triage.map((t, i) => (
-          <Box
-            key={t.key}
-            onClick={t.onClick}
-            sx={{
-              minWidth: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3.5,
-              cursor: 'pointer',
-              borderLeft: i === 0 ? 'none' : `1px solid ${alpha(theme.palette.common.white, 0.12)}`,
-              pl: i === 0 ? 0 : 5,
-              '&:hover .triage-arr': { color: theme.palette.common.white }
-            }}
-          >
-            <Typography
-              sx={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, color: t.urgent ? lighten(c.Tertiary, 0.3) : theme.palette.common.white }}
-            >
-              {t.count}
-            </Typography>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.common.white, lineHeight: 1.3 }} noWrap>
-                {t.label}
-              </Typography>
-              <Typography sx={{ fontSize: '14px', color: alpha(theme.palette.common.white, 0.6), mt: '1px' }} noWrap>
-                {t.hint}
-              </Typography>
-            </Box>
-            <Box
-              className='triage-arr'
-              sx={{ ml: 'auto', display: 'flex', color: alpha(theme.palette.common.white, 0.45), transition: 'color .15s ease', flexShrink: 0 }}
-            >
-              <Icon icon='mdi:chevron-right' fontSize={20} />
-            </Box>
-          </Box>
-        ))}
-      </Box>
+      {/* Row 1b · triage signals — the standard StatBand strip (the dark V5 band retired
+          with the iPad 3 reskin, 2026-09-02); counts wear CORAL, hints stay as quiet lines */}
+      <SignalsBand
+        cells={triage.map(t => ({ key: t.key, label: t.label, count: t.count, onOpen: t.onClick }))}
+      />
 
       {/* Row 2 · FLOW strip — capacity/flow stats with micro-viz (risk lives on the triage board).
           Always one row of three, matching the triage strip above. */}
@@ -564,7 +630,6 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={flowLabelSx}>In care now</Typography>
             <Typography sx={flowValueSx}>{rollup.hospitalisedNow}</Typography>
-            <Typography sx={flowSubSx}>of {rollup.animalCount.toLocaleString()} animals</Typography>
           </Box>
         </Box>
 
@@ -573,16 +638,9 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={flowLabelSx}>Admissions</Typography>
             <Typography sx={flowValueSx}>{adms.length.toLocaleString()}</Typography>
-            {deltaPct != null ? (
-              <Typography sx={{ fontSize: '15px', fontWeight: 700, color: theme.palette.primary.dark, whiteSpace: 'nowrap' }}>
-                {deltaPct > 0 ? '▲' : '▼'} {Math.abs(deltaPct)}% vs prev period
-              </Typography>
-            ) : (
-              <Typography sx={flowSubSx}>this period</Typography>
-            )}
           </Box>
           <Box sx={{ ml: 'auto', flexShrink: 0 }}>
-            <AreaSpark values={spark12} color={theme.palette.primary.main} />
+            <AreaSpark values={spark12} color={skin.ACCENT_FILL} />
           </Box>
         </Box>
 
@@ -590,13 +648,12 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
         <Box onClick={openStays} sx={{ ...flowCardSx, cursor: 'pointer', '&:hover': { boxShadow: 2 } }}>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={flowLabelSx}>Avg stay</Typography>
-            <Typography sx={flowValueSx}>{avgStay} d</Typography>
-            <Typography sx={flowSubSx}>median {medianStay} d</Typography>
+            <Typography sx={flowValueSx}>{avgStay} D</Typography>
           </Box>
           <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'flex-end', gap: 1, height: 46, flexShrink: 0 }}>
             {buckets.map((b, i) => {
               const maxB = Math.max(1, ...buckets.map(x => x.items.length))
-              const color = i <= 1 ? theme.palette.primary.main : i === 2 ? theme.palette.warning.main : c.Tertiary
+              const color = i <= 1 ? skin.ACCENT_FILL : i === 2 ? skin.TONE_FILL.warn : skin.CORAL
 
               return (
                 <Box
@@ -610,80 +667,13 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
 
       </Box>
 
-      {/* Row 3 · admissions trend + outcomes */}
+      {/* Row 3 · admissions trend — full width (Outcomes + By-Hospital cards retired
+          2026-09-02: their lists live in the Hospitalised Animals section below) */}
       {(() => {
-        const trendCard = (
-        <SectionCard
-          title='Admissions Trend • Per Month'
-          action={<TrendRangeTabs value={trendRange} onPick={setTrendRange} color={theme.palette.primary.dark} />}
-          titleMb={4}
-        >
-          <TrendAreaChart values={trend.values} labels={trend.labels} color={theme.palette.primary.main} name='Admissions' height={230} onPointClick={openMonth} />
-        </SectionCard>
-        )
-
-        const outcomesCard = (
-        <SectionCard title='Outcomes' titleMb={2}>
-          <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
-            How the {closed.toLocaleString()} completed cases in this period ended
-          </Typography>
-          {/* Donut on top, legend rows below it (user 2026-08-24). */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <Donut
-              segments={[
-                { label: 'Recovered', value: recovered, tone: 'success' },
-                { label: 'Died', value: died, tone: 'danger' }
-              ]}
-              centerValue={`${recoveryPct}%`}
-              size={160}
-              onSegmentClick={label => openOutcome(label === 'Recovered' ? 'recovered' : 'died')}
-            />
-            <Box sx={{ width: '100%' }}>
-              <Box onClick={() => openOutcome('recovered')} sx={{ cursor: 'pointer', borderRadius: '6px', px: 1, mx: -1, '&:hover': { backgroundColor: c.Surface } }}>
-                <LegendRow tone='success' label='Recovered' value={recovered} total={closed} />
-              </Box>
-              <Box onClick={() => openOutcome('died')} sx={{ cursor: 'pointer', borderRadius: '6px', px: 1, mx: -1, '&:hover': { backgroundColor: c.Surface } }}>
-                <LegendRow tone='danger' label='Died' value={died} total={closed} />
-              </Box>
-            </Box>
-          </Box>
-        </SectionCard>
-        )
-
-        const byHospitalCard = (
-        <SectionCard
-          title='Admissions by Hospital'
-          titleMb={2}
-          action={
-            <ViewAllAction
-              count={rollup.byHospital.length}
-              noun='hospitals'
-              onOpen={() =>
-                setDrill({
-                  title: 'Admissions by Hospital',
-                  explainer: 'Every admission of this species this period, across all treating hospitals.',
-                  icon: 'mdi:hospital-building',
-                  tone: 'neutral',
-                  animals: rollup.admissions.map(admissionRow)
-                })
-              }
-            />
-          }
-        >
-          <DetailTable
-            columns={hospCols}
-            rows={hospRows}
-            total={hospRows.length}
-            hideFooter
-            onRowClick={(p: any) => openHospital(p.row.name)}
-          />
-        </SectionCard>
-        )
-
         const losContent = (
           <>
           <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
-            <Box component='span' sx={{ fontWeight: 700, color: c.Tertiary }}>
+            <Box component='span' sx={{ fontWeight: 700, color: skin.CORAL }}>
               {past14Pct}%
             </Box>{' '}
             of the {losTotal.toLocaleString()} admissions run past 14 days
@@ -692,7 +682,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
             buckets.map((b, i) => ({
               key: b.label,
               pct: (b.items.length / losTotal) * 100,
-              color: [theme.palette.primary.main, theme.palette.primary.main, c.moderateSecondary, c.Tertiary, c.TertiaryDark][i],
+              color: [skin.ACCENT_FILL, skin.ACCENT_FILL, skin.TONE_FILL.warn, skin.CORAL, skin.TONE_TYPE.bad][i],
               text: String(b.items.length),
               onClick: () => openBucket(b.label)
             })),
@@ -711,8 +701,8 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           </Typography>
           {segStrip(
             [
-              { key: 'hospital', pct: rate(s.hospital, s.total), color: c.chatBubbleSent, text: `In hospital • ${s.hospital}`, onClick: () => openSurgery('hospital') },
-              { key: 'field', pct: rate(s.field, s.total), color: theme.palette.primary.main, text: `Field • ${s.field}`, onClick: () => openSurgery('field') }
+              { key: 'hospital', pct: rate(s.hospital, s.total), color: skin.TAB_PILL, text: `In hospital • ${s.hospital}`, onClick: () => openSurgery('hospital') },
+              { key: 'field', pct: rate(s.field, s.total), color: skin.ACCENT_FILL, text: `Field • ${s.field}`, onClick: () => openSurgery('field') }
             ],
             [
               { pct: rate(s.hospital, s.total), text: `${rate(s.hospital, s.total)}%` },
@@ -722,49 +712,30 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           </>
         )
 
-        // Portrait: trend full width · Outcomes + By Hospital · Length of Stay + Surgery.
-        if (portrait) {
-          return (
-            <>
-              {trendCard}
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
-                {outcomesCard}
-                {byHospitalCard}
-              </Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
-                <SectionCard title='Length of Stay' titleMb={2}>
-                  {losContent}
-                </SectionCard>
-                <SectionCard title={surgeryTitle} titleMb={2}>
-                  {surgeryBody}
-                </SectionCard>
-              </Box>
-            </>
-          )
-        }
-
-        // Landscape: the original layout — trend + outcomes, then by-hospital +
-        // the combined Length of Stay / Surgery card.
         return (
           <>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
-              {trendCard}
-              {outcomesCard}
-            </Box>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 4 }}>
-              {byHospitalCard}
+            <SectionCard
+              title='Admissions Trend • Per Month'
+              action={<TrendRangeTabs value={trendRange} onPick={setTrendRange} color={skin.ACCENT_INK} />}
+              titleMb={4}
+            >
+              <TrendAreaChart values={trend.values} labels={trend.labels} color={skin.ACCENT_FILL} name='Admissions' height={230} onPointClick={openMonth} />
+            </SectionCard>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
               <SectionCard title='Length of Stay' titleMb={2}>
                 {losContent}
-                <Box sx={{ mt: 10 }} />
-                <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, mb: 2 }}>
-                  {surgeryTitle}
-                </Typography>
+              </SectionCard>
+              <SectionCard title={surgeryTitle} titleMb={2}>
                 {surgeryBody}
               </SectionCard>
             </Box>
           </>
         )
       })()}
+
+      {/* Row 4 · the patients themselves — Admitted / Discharged / Mortality (user call
+          2026-09-02, replacing the Outcomes donut + by-hospital rollup) */}
+      <AdmissionsSection admissions={allAdmissions} portrait={portrait} onAnimal={aid => setRecordAid(aid)} />
 
       <SignalDrawer payload={drill} onClose={() => setDrill(null)} onAnimal={aid => setRecordAid(aid)} />
       <AnimalHealthRecord aid={recordAid} clinical={clinical} onClose={() => setRecordAid(null)} />

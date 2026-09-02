@@ -31,6 +31,7 @@ import DashboardDateRange, {
   type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
+import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import SignalDrawer, { type SignalDrawerPayload } from './medical/SignalDrawer'
 import AnimalHealthRecord from './medical/AnimalHealthRecord'
 import type { SignalAnimal } from './medical/signals'
@@ -168,11 +169,11 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
       tone: 'neutral',
       animals: items.map(r => testDrillRow(r, test)),
       distribution: [
-        { label: 'Normal', color: theme.palette.primary.main },
-        { label: 'High', color: c.moderateSecondary },
-        { label: 'Low', color: c.moderateSecondary },
-        { label: 'Positive', color: c.Tertiary },
-        { label: 'Detected', color: c.TertiaryDark }
+        { label: 'Normal', color: skin.ACCENT_FILL },
+        { label: 'High', color: skin.TONE_FILL.warn },
+        { label: 'Low', color: skin.TONE_FILL.warn },
+        { label: 'Positive', color: skin.CORAL },
+        { label: 'Detected', color: skin.TONE_TYPE.bad }
       ]
     })
   }
@@ -265,9 +266,11 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   ]
 
   /* ── act header — optional `action` renders at the row's right edge (e.g. date range) ── */
+  // Standard headline row (the Medical Overview grammar) — plain 20px/600 title, control
+  // at the right edge; the uppercase act-header treatment retired with the iPad 3 reskin.
   const ActHeader: React.FC<{ title: string; action?: React.ReactNode }> = ({ title, action }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 2 }}>
-      <Typography sx={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.OnSurface, whiteSpace: 'nowrap' }}>
+      <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
         {title}
       </Typography>
       {action && <Box sx={{ ml: 'auto' }}>{action}</Box>}
@@ -288,7 +291,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   const testCols: GridColDef[] = [
     { minWidth: 180, flex: 1, sortable: false, field: 'test', headerName: 'Test', renderCell: p => txt(p.row.test, c.OnSurfaceVariant, 600) },
     { width: 175, sortable: false, field: 'animals', headerName: 'Unique Animals', renderCell: p => txt(p.row.animals) },
-    { width: 100, sortable: false, field: 'tests', headerName: 'Tests', renderCell: p => txt(p.row.tests, p.row.tests >= testAvg * 1.3 ? c.Tertiary : undefined, 700) }
+    { width: 100, sortable: false, field: 'tests', headerName: 'Tests', renderCell: p => txt(p.row.tests, p.row.tests >= testAvg * 1.3 ? skin.CORAL : undefined, 700) }
   ]
   const testRows = allTests.slice(0, ROWS_CAP).map((t, i) => ({ ...t, id: i }))
 
@@ -303,7 +306,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   const viewAllSx = {
     fontSize: '16px',
     fontWeight: 600,
-    color: theme.palette.primary.dark,
+    color: skin.ACCENT_INK,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     '&:hover': { textDecoration: 'underline' }
@@ -320,7 +323,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
       {/* ACT 1 • THE PULSE — act header carries the date range; the card stacks stats → chart
           title + range tabs → chart (no separate strip; the page already opens with the dark
           hero band, so the summary stays light and merged) */}
-      <ActHeader title='Lab request volume' action={<DashboardDateRange value={range} onChange={setRange} />} />
+      <ActHeader title='Lab Request Volume' action={<DashboardDateRange value={range} onChange={setRange} />} />
       <SectionCard>
         {/* summary stats — requests, then tests by status; numbers in the deep hero teal */}
         <Box
@@ -331,7 +334,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
             gap: 4,
             pb: 5,
             mb: 5,
-            borderBottom: `1px solid ${c.SurfaceVariant}`
+            borderBottom: `1px solid ${skin.HAIR}`
           }}
         >
           {statCells.map((s, i) => (
@@ -344,32 +347,40 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                 flexDirection: 'column',
                 gap: '3px',
                 cursor: 'pointer',
-                borderLeft: i === 0 ? 'none' : `1px solid ${c.SurfaceVariant}`,
+                borderLeft: i === 0 ? 'none' : `1px solid ${skin.HAIR}`,
                 pl: i === 0 ? 0 : 5,
-                '&:hover .lab-stat-lbl': { color: c.OnSurface }
+                '&:hover .lab-stat-lbl': { color: skin.INK }
               }}
             >
               <Typography
+                className='lab-stat-lbl'
                 sx={{
-                  fontSize: '28px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: skin.FAINT,
+                  whiteSpace: 'nowrap',
+                  transition: 'color .15s ease'
+                }}
+              >
+                {s.label}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '24px',
                   fontWeight: 800,
                   lineHeight: 1.1,
                   fontVariantNumeric: 'tabular-nums',
-                  color: s.count === 0 ? c.neutralSecondary : c.chatBubbleSent
+                  color: s.count === 0 ? skin.DASH_INK : skin.VALUE
                 }}
               >
                 {s.count.toLocaleString()}
                 {s.pct != null && (
-                  <Box component='span' sx={{ fontSize: '16px', fontWeight: 700, color: theme.palette.primary.dark, ml: 2 }}>
+                  <Box component='span' sx={{ fontSize: '16px', fontWeight: 700, color: skin.ACCENT_INK, ml: 2 }}>
                     {s.pct}%
                   </Box>
                 )}
-              </Typography>
-              <Typography
-                className='lab-stat-lbl'
-                sx={{ fontSize: '16px', fontWeight: 500, color: c.neutralSecondary, whiteSpace: 'nowrap', transition: 'color .15s ease' }}
-              >
-                {s.label}
               </Typography>
             </Box>
           ))}
@@ -380,20 +391,20 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
           <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600 }}>
             Lab requests raised per month
             {deltaPct != null && (
-              <Box component='span' sx={{ fontSize: '15px', fontWeight: 700, color: theme.palette.primary.dark, ml: 3 }}>
+              <Box component='span' sx={{ fontSize: '15px', fontWeight: 700, color: skin.ACCENT_INK, ml: 3 }}>
                 {deltaPct > 0 ? '▲' : '▼'} {Math.abs(deltaPct)}% vs previous
               </Box>
             )}
           </Typography>
-          <TrendRangeTabs value={trendRange} onPick={setTrendRange} color={theme.palette.primary.dark} />
+          <TrendRangeTabs value={trendRange} onPick={setTrendRange} color={skin.ACCENT_INK} />
         </Box>
 
-        <TrendAreaChart values={trend.values} labels={trend.labels} color={theme.palette.primary.main} name='Lab requests' height={230} onPointClick={openMonth} />
+        <TrendAreaChart values={trend.values} labels={trend.labels} color={skin.ACCENT_FILL} name='Lab requests' height={230} onPointClick={openMonth} />
       </SectionCard>
 
       {/* TESTS ROW — the primary cut (stakeholder 2026-07-30): All Tests + Tests by Lab as
           symmetric cards. Site/hospital cards are gone — site is a filter inside every sheet. */}
-      <ActHeader title='Tests done for this species' />
+      <ActHeader title='Tests Done for This Species' />
       {/* Orientation-driven: the two tables stack full-width in portrait, pair up in landscape. */}
       <Box
         sx={{
@@ -462,7 +473,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                         openTest(t.test)
                       }}
                       trailing={
-                        <Typography sx={{ fontSize: '18px', fontWeight: 700, color: theme.palette.primary.dark, fontVariantNumeric: 'tabular-nums' }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 700, color: skin.ACCENT_INK, fontVariantNumeric: 'tabular-nums' }}>
                           {t.tests}
                         </Typography>
                       }
@@ -480,7 +491,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                         openList(l.name, `Lab requests processed at ${l.name} this period.`, 'mdi:flask-outline', 'neutral', l.items)
                       }}
                       trailing={
-                        <Typography sx={{ fontSize: '18px', fontWeight: 700, color: theme.palette.primary.dark, fontVariantNumeric: 'tabular-nums' }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 700, color: skin.ACCENT_INK, fontVariantNumeric: 'tabular-nums' }}>
                           {l.tests}
                         </Typography>
                       }
