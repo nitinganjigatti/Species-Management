@@ -66,7 +66,10 @@ const IpadDetailContainer = () => {
   const initialTab = ((): SpeciesDetailTab => {
     const q = searchParams?.get('tab') as SpeciesDetailTab | null
 
-    return q && VALID_TABS.includes(q) ? q : 'overview'
+    // TEMPORARY (2026-09-02): Lab module under active work — land on it by default so every
+    // entry/refresh goes straight there. Explicit ?tab= deep-links still win. Revert the
+    // fallback to 'overview' when the Lab work wraps (grep this date).
+    return q && VALID_TABS.includes(q) ? q : 'lab'
   })()
   const [tab, setTab] = useState<SpeciesDetailTab>(initialTab)
 

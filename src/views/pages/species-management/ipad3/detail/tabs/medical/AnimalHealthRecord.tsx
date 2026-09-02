@@ -201,10 +201,6 @@ const AnimalHealthRecord: React.FC<{
                 ? 'High'
                 : 'Low'
               : 'Normal'
-            : r.status === 'cancelled'
-            ? 'Cancelled'
-            : r.status === 'in_progress'
-            ? 'In progress'
             : 'Pending'
 
         return {

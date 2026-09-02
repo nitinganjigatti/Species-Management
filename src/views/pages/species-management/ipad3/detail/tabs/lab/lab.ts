@@ -68,18 +68,151 @@ export type LabDept = (typeof TEST_CATALOG)[number]['dept']
 
 const REJECT_REASONS = ['Haemolysed', 'Insufficient volume', 'Contaminated', 'Clotted'] as const
 
+/* ── numeric measures (TODO(API): real LIMS returns value/unit/reference range) ──
+ * Quantitative tests carry a measured analyte so a per-animal repeat can TREND. Panels trend
+ * their headline analyte (CBC → WBC, Liver → ALT, Kidney → Creatinine). Qualitative tests
+ * (the DETECTABLE set) have no measure and never chart. */
+export interface TestMeasure {
+  measure: string // the analyte the trend plots
+  unit: string
+  refLow: number
+  refHigh: number
+  decimals: number
+}
+export const TEST_MEASURES: Record<string, TestMeasure> = {
+  CBC: { measure: 'WBC', unit: '×10⁹/L', refLow: 5.5, refHigh: 16.5, decimals: 1 },
+  'Liver panel': { measure: 'ALT', unit: 'U/L', refLow: 10, refHigh: 100, decimals: 0 },
+  Glucose: { measure: 'Glucose', unit: 'mg/dL', refLow: 70, refHigh: 140, decimals: 0 },
+  'Kidney panel': { measure: 'Creatinine', unit: 'mg/dL', refLow: 0.5, refHigh: 1.8, decimals: 2 },
+  Cortisol: { measure: 'Cortisol', unit: 'µg/dL', refLow: 1, refHigh: 6, decimals: 1 }
+}
+
+/* ── long-term monitoring (chronic cases) ─────────────────────────────────────
+ * DERIVED from behaviour, never a synthesized diagnosis (the Medical chronic-tag rule):
+ * an animal is "on monitoring" for a test when the SAME numeric test recurs 4+ times
+ * spanning over a year and is still active. The condition is a property of the TEST
+ * (reference map below — what each analyte classically monitors), not a per-animal
+ * diagnosis claim; a real chronic-condition field replaces the map when the API lands. */
+export const MONITOR_THRESHOLDS = {
+  minTests: 4, // at least this many occurrences of the same test…
+  minSpanDays: 365, // …spread over at least this long…
+  activeWithinDays: 180 // …with the latest one recent enough to call the monitoring ACTIVE
+} as const
+
+export const MONITORED_CONDITION: Record<string, string> = {
+  CBC: 'Chronic infection / inflammation',
+  'Liver panel': 'Chronic liver disease',
+  Glucose: 'Diabetes mellitus',
+  'Kidney panel': 'Chronic kidney disease',
+  Cortisol: 'Cushing’s disease'
+}
+
+export interface MonitoredAnimal {
+  aid: string
+  name: string
+  site: string
+  enclosure: string
+  test: string
+  times: number
+  spanDays: number
+  firstDate: string
+  lastDate: string
+  cadenceDays: number // typical gap between readings
+  lastResult?: LabTestResult // latest COMPLETED reading — undefined until one completes
+  lastValue?: number
+  requests: LabRequest[] // oldest first
+}
+
+/** Every animal+test pair currently on long-term monitoring. Feed it the UNWINDOWED request
+ *  list — a lifelong signal must not vanish under the page's period filter. */
+export const monitoredAnimals = (requests: LabRequest[], now: Date): MonitoredAnimal[] => {
+  const m = new Map<string, LabRequest[]>()
+  for (const r of requests) {
+    for (const t of r.tests) {
+      if (!TEST_MEASURES[t.name]) continue // numeric analytes only — the drill ends in a trend
+      const k = `${r.aid}|${t.name}`
+      const list = m.get(k)
+      if (list) list.push(r)
+      else m.set(k, [r])
+    }
+  }
+
+  const out: MonitoredAnimal[] = []
+  for (const [k, items] of m) {
+    const test = k.slice(k.indexOf('|') + 1)
+    const sorted = [...items].sort((a, b) => (a.date < b.date ? -1 : 1))
+    const first = new Date(sorted[0].date).getTime()
+    const last = new Date(sorted[sorted.length - 1].date).getTime()
+    const spanDays = Math.round((last - first) / 86400000)
+    const sinceLast = (now.getTime() - last) / 86400000
+    if (
+      sorted.length < MONITOR_THRESHOLDS.minTests ||
+      spanDays < MONITOR_THRESHOLDS.minSpanDays ||
+      sinceLast > MONITOR_THRESHOLDS.activeWithinDays
+    )
+      continue
+
+    let lastResult: LabTestResult | undefined
+    let lastValue: number | undefined
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const t = sorted[i].tests.find(x => x.name === test)
+      if (t?.result) {
+        lastResult = t.result
+        lastValue = t.value
+        break
+      }
+    }
+
+    const rec = sorted[sorted.length - 1]
+    out.push({
+      aid: rec.aid,
+      name: rec.name,
+      site: rec.site,
+      enclosure: rec.enclosure,
+      test,
+      times: sorted.length,
+      spanDays,
+      firstDate: sorted[0].date,
+      lastDate: rec.date,
+      cadenceDays: Math.max(1, Math.round(spanDays / (sorted.length - 1))),
+      lastResult,
+      lastValue,
+      requests: sorted
+    })
+  }
+
+  return out.sort((a, b) => b.times - a.times)
+}
+
+/** Deterministic measured value CONSISTENT with the categorical result: high lands above the
+ *  reference range, low below it, normal inside it. Undefined for qualitative tests. */
+const deriveValue = (aid: string, date: string, test: string, result: LabTestResult): number | undefined => {
+  const m = TEST_MEASURES[test]
+  if (!m || result === 'positive' || result === 'detected') return undefined
+  const h = hash(`${aid}|${date}|${test}|val`)
+  const span = m.refHigh - m.refLow
+  let v: number
+  if (result === 'high') v = m.refHigh + span * (0.08 + h * 0.45)
+  else if (result === 'low') v = Math.max(0, m.refLow - span * (0.06 + h * 0.4))
+  else v = m.refLow + span * (0.15 + h * 0.7)
+  const f = Math.pow(10, m.decimals)
+
+  return Math.round(v * f) / f
+}
+
 /* Only these tests can return a detection (positive/detected) — matches the production
  * `completed_positive` / `completed_detected` status vocabulary. */
 const DETECTABLE = new Set(['Leptospira serology', 'Fecal exam', 'Culture & sensitivity'])
 
 export type LabTestResult = 'normal' | 'high' | 'low' | 'positive' | 'detected'
-export type LabRequestStatus = 'completed' | 'in_progress' | 'pending' | 'cancelled'
+export type LabRequestStatus = 'completed' | 'pending' // two-status lifecycle (user call 2026-09-02)
 
 export interface LabTest {
   name: string
   dept: LabDept
   status: LabRequestStatus
   result?: LabTestResult // only when completed
+  value?: number // measured value — completed quantitative tests only (see TEST_MEASURES)
 }
 
 export interface LabRequest {
@@ -98,6 +231,9 @@ export interface LabRequest {
   containers: number
   rejected?: { reason: (typeof REJECT_REASONS)[number]; resubmitted: boolean }
   tatDays: number // request → all results (completed requests)
+  /** POOL request — ONE request covering several animals (herd screening); the result applies
+   *  to every member. undefined = single-animal request. aid/name above hold the first member. */
+  pool?: { aid: string; name: string; site: string; enclosure: string }[]
 }
 
 export interface RepeatSameTest {
@@ -108,13 +244,15 @@ export interface RepeatSameTest {
   test: string
   times: number
   spanDays: number
-  lastResult: LabTestResult
+  /** Latest COMPLETED result — undefined when nothing has completed yet. NEVER default this
+   *  to 'normal': a pending test wearing a Normal tag is a lie (user, 2026-09-02). */
+  lastResult?: LabTestResult
   requests: LabRequest[]
 }
 
 export interface LabRollup {
   requests: LabRequest[] // windowed, newest first
-  totals: { completed: number; inProgress: number; pending: number; cancelled: number; urgent: number }
+  totals: { completed: number; pending: number; urgent: number }
   avgTatDays: number
   testsTotal: number
   testsDone: number
@@ -130,7 +268,7 @@ export interface LabRollup {
   bySite: { site: string; requests: number; animals: number; rejected: number; hot: boolean; items: LabRequest[] }[]
   byHospital: { name: string; requests: number; cases: number; routine: boolean; hot: boolean; items: LabRequest[] }[]
   byLab: { name: string; tests: number; pending: number; tatDays: number; items: LabRequest[] }[]
-  departments: { dept: string; tests: number; done: number; running: number; tatDays: number }[]
+  departments: { dept: string; tests: number; done: number; tatDays: number }[]
   abnormalByTest: { test: string; abnormal: number; total: number; pct: number }[]
   containersTotal: number
   containersRejected: number
@@ -180,25 +318,28 @@ const buildOne = (
   const lab = pick(LABS, h('lab') * h('lab')) // squared hash → long-tail: Central ~40%, then descending
   const tests = deriveTests(aid, date, !opts.hospital)
 
-  // Lifecycle from recency: recent requests are still moving, older ones are done (or cancelled).
+  // Two-status lifecycle (user call 2026-09-02): a request is PENDING until its results land,
+  // then COMPLETED — no in-progress / cancelled states.
   const ageDays = Math.max(0, (now.getTime() - new Date(date).getTime()) / 86400000)
   let status: LabRequestStatus
-  if (h('cx') > 0.96) status = 'cancelled'
-  else if (ageDays < 3) status = h('st') > 0.5 ? 'pending' : 'in_progress'
-  else if (ageDays < 8) status = h('st') > 0.75 ? 'in_progress' : 'completed'
+  if (ageDays < 3) status = 'pending'
+  else if (ageDays < 8) status = h('st') > 0.75 ? 'pending' : 'completed'
   else status = 'completed'
 
   const maxTatAdd = tests.reduce((m, t) => Math.max(m, TEST_CATALOG.find(c => c.name === t.name)?.tatAdd ?? 0), 0)
   const tatDays = Math.round((lab.baseTat + maxTatAdd + h('tat') * 1.2) * 10) / 10
 
   for (const t of tests) {
-    t.status = status === 'cancelled' ? 'cancelled' : status
-    if (status === 'completed') t.result = deriveResult(aid, date, t.name)
+    t.status = status
+    if (status === 'completed') {
+      t.result = deriveResult(aid, date, t.name)
+      t.value = deriveValue(aid, date, t.name, t.result)
+    }
   }
 
   const rejectedRoll = h('rej')
   const rejected =
-    status !== 'cancelled' && rejectedRoll > 0.93
+    rejectedRoll > 0.93
       ? { reason: pick(REJECT_REASONS, h('rr')), resubmitted: h('rs') > 0.45 }
       : undefined
 
@@ -263,6 +404,33 @@ export const buildLabRequests = (clinical: SpeciesClinical | null | undefined, n
     }
   }
 
+  // POOL requests — enclosure-level herd screenings: one request, several animals, one shared
+  // result. Most enclosures holding 2+ seen animals get one pool per year (thin data otherwise —
+  // many species house 1–2 animals per enclosure).
+  const byEncl = new Map<string, ClinicalRecord[]>()
+  for (const r of seen.values()) {
+    const list = byEncl.get(r.enclosure)
+    if (list) list.push(r)
+    else byEncl.set(r.enclosure, [r])
+  }
+  for (const [encl, animals] of byEncl) {
+    if (animals.length < 2) continue
+    const sorted = [...animals].sort((a, b) => a.aid.localeCompare(b.aid))
+    for (let year = 0; year < 3; year++) {
+      if (hash(`${encl}|pool|${year}`) > 0.7) continue
+      const d = new Date(now)
+      d.setFullYear(d.getFullYear() - year)
+      d.setMonth(Math.floor(hash(`${encl}|poolm|${year}`) * 12), 1 + Math.floor(hash(`${encl}|poold|${year}`) * 27))
+      if (d > now) continue
+      const size = 2 + Math.floor(hash(`${encl}|poolk|${year}`) * Math.min(5, sorted.length - 1))
+      const start = Math.floor(hash(`${encl}|pools|${year}`) * sorted.length)
+      const members = Array.from({ length: Math.min(size, sorted.length) }, (_, i) => sorted[(start + i) % sorted.length])
+      const req = buildOne(seq++, members[0], d.toISOString().slice(0, 10), { urgent: false }, now)
+      req.pool = members.map(a => ({ aid: a.aid, name: a.name, site: a.site, enclosure: a.enclosure }))
+      requests.push(req)
+    }
+  }
+
   return requests.sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
@@ -321,9 +489,7 @@ export const computeLab = (
 
   const totals = {
     completed: requests.filter(r => r.status === 'completed').length,
-    inProgress: requests.filter(r => r.status === 'in_progress').length,
     pending: requests.filter(r => r.status === 'pending').length,
-    cancelled: requests.filter(r => r.status === 'cancelled').length,
     urgent: requests.filter(r => r.urgent).length
   }
 
@@ -393,7 +559,7 @@ export const computeLab = (
         test: e.test,
         times: windowItems.length,
         spanDays: Math.max(1, Math.round((dates[dates.length - 1] - dates[0]) / 86400000)),
-        lastResult: lastTest?.result ?? 'normal',
+        lastResult: lastTest?.result,
         requests: windowItems
       }
     })
@@ -423,7 +589,7 @@ export const computeLab = (
 
   /* ── aging pending ── */
   const agingPending = requests
-    .filter(r => (r.status === 'pending' || r.status === 'in_progress') && (now.getTime() - new Date(r.date).getTime()) / 86400000 > LAB_THRESHOLDS.agingPendingDays)
+    .filter(r => r.status === 'pending' && (now.getTime() - new Date(r.date).getTime()) / 86400000 > LAB_THRESHOLDS.agingPendingDays)
     .sort((a, b) => (a.date < b.date ? -1 : 1))
   const agingUrgent = agingPending.filter(r => r.urgent).length
 
@@ -490,7 +656,7 @@ export const computeLab = (
     .map(([name, items]) => ({
       name,
       tests: items.reduce((s, r) => s + r.tests.length, 0),
-      pending: items.filter(r => r.status === 'pending' || r.status === 'in_progress').reduce((s, r) => s + r.tests.length, 0),
+      pending: items.filter(r => r.status === 'pending').reduce((s, r) => s + r.tests.length, 0),
       tatDays: (() => {
         const d = items.filter(r => r.status === 'completed')
 
@@ -501,11 +667,11 @@ export const computeLab = (
     .sort((a, b) => b.tests - a.tests)
 
   /* ── departments ── */
-  const depMap = new Map<string, { tests: number; done: number; running: number; tatSum: number; tatN: number }>()
+  const depMap = new Map<string, { tests: number; done: number; tatSum: number; tatN: number }>()
   for (const { t, r } of allTests) {
     let e = depMap.get(t.dept)
     if (!e) {
-      e = { tests: 0, done: 0, running: 0, tatSum: 0, tatN: 0 }
+      e = { tests: 0, done: 0, tatSum: 0, tatN: 0 }
       depMap.set(t.dept, e)
     }
     e.tests++
@@ -513,14 +679,13 @@ export const computeLab = (
       e.done++
       e.tatSum += r.tatDays
       e.tatN++
-    } else if (t.status === 'in_progress') e.running++
+    }
   }
   const departments = [...depMap.entries()]
     .map(([dept, e]) => ({
       dept,
       tests: e.tests,
       done: e.done,
-      running: e.running,
       tatDays: e.tatN ? Math.round((e.tatSum / e.tatN) * 10) / 10 : 0
     }))
     .sort((a, b) => b.tests - a.tests)
