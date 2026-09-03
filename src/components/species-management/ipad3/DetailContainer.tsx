@@ -14,6 +14,7 @@ import SpeciesDetailView from 'src/views/pages/species-management/ipad3/detail/S
 import OverviewTab from 'src/views/pages/species-management/ipad3/detail/tabs/OverviewTab'
 import ProfileTab from 'src/views/pages/species-management/ipad3/detail/tabs/ProfileTab'
 import PopulationTab from 'src/views/pages/species-management/ipad3/detail/tabs/PopulationTab'
+import LedgerTab from 'src/views/pages/species-management/ipad3/detail/tabs/LedgerTab'
 import PairingTab from 'src/views/pages/species-management/ipad3/detail/tabs/PairingTab'
 import HousingTab from 'src/views/pages/species-management/ipad3/detail/tabs/HousingTab'
 import CircleOfLifeTab from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
@@ -47,6 +48,7 @@ const IpadDetailContainer = () => {
   const VALID_TABS: SpeciesDetailTab[] = [
     'overview',
     'profile',
+    'ledger',
     'population',
     'pairing',
     'housing',
@@ -110,7 +112,7 @@ const IpadDetailContainer = () => {
   const animals = useTabQuery(
     ['sm-animals', id],
     () => detailApi.getSpeciesAnimals(id),
-    tab === 'housing' || tab === 'pairing' || tab === 'population'
+    tab === 'housing' || tab === 'pairing' || tab === 'population' || tab === 'ledger'
   )
   const births = useTabQuery(['sm-births', id], () => detailApi.getSpeciesBirths(id), tab === 'circle' || tab === 'overview' || tab === 'eggs')
   const deaths = useTabQuery(['sm-deaths', id], () => detailApi.getSpeciesDeaths(id), tab === 'circle' || tab === 'overview')
@@ -150,6 +152,8 @@ const IpadDetailContainer = () => {
         )
       case 'profile':
         return profile.isLoading ? <Loading /> : <ProfileTab profile={profile.data} header={header.data} />
+      case 'ledger':
+        return animals.isLoading ? <Loading /> : <LedgerTab animals={animals.data?.animals} />
       case 'population':
         return animals.isLoading ? (
           <Loading />

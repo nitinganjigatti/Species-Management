@@ -16,8 +16,11 @@ export interface SignalCell {
   label: string
   count: number
   /** 'critical' (default) inks the figure CORAL; 'neutral' keeps the warm VALUE ink —
-   *  for plain volume stats (doses given, animals treated) that aren't an alarm. */
-  tone?: 'critical' | 'neutral'
+   *  for plain volume stats (doses given, animals treated) that aren't an alarm;
+   *  'good' wears the list green — growth figures (Ledger's Additions, 2026-09-03). */
+  tone?: 'critical' | 'neutral' | 'good'
+  /** Figure text override ("+26", "−12") — `count` still drives the zero-goes-quiet ink. */
+  display?: string
   /** Quiet context line under the figure ("worst 4×", "mortality rate 3%") — optional. */
   hint?: string
   onOpen?: () => void
@@ -72,10 +75,16 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
               lineHeight: 1.05,
               letterSpacing: '-0.6px',
               fontVariantNumeric: 'tabular-nums',
-              color: !live ? skin.DASH_INK : cell.tone === 'neutral' ? skin.VALUE : skin.CORAL
+              color: !live
+                ? skin.DASH_INK
+                : cell.tone === 'neutral'
+                ? skin.VALUE
+                : cell.tone === 'good'
+                ? skin.LIST_GREEN
+                : skin.CORAL
             }}
           >
-            {cell.count.toLocaleString()}
+            {cell.display ?? cell.count.toLocaleString()}
           </Typography>
           {cell.hint && (
             <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

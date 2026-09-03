@@ -53,6 +53,7 @@ const stripParen = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim()
 const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
   { labelKey: 'Overview', value: 'overview' },
   { labelKey: 'Profile', value: 'profile' },
+  { labelKey: 'Ledger', value: 'ledger' },
   { labelKey: 'Population', value: 'population' },
   { labelKey: 'Enclosure Demographics', value: 'pairing' },
   { labelKey: 'Housing', value: 'housing' },
@@ -68,6 +69,7 @@ const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
 const TAB_ICONS: Record<string, string> = {
   overview: 'mdi:view-dashboard-outline',
   profile: 'mdi:card-account-details-outline',
+  ledger: 'mdi:notebook-outline',
   population: 'mdi:paw',
   pairing: 'mdi:heart-outline',
   housing: 'mdi:home-outline',
