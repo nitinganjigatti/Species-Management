@@ -8,5 +8,7 @@
 export const SSO_LOGIN_CHECK = 'v2/auth/login'
 
 // Bootstrap the Antz session from a valid WSO2 access token after callback.
-// export const WSO_SESSION = 'v2/auth/session' renamed  '/v1/auth/session'
-export const WSO_SESSION = 'v1/auth/session'
+// Endpoint has flip-flopped with backend releases: v2 → v1 (earlier rename) → v2
+// again (backend release 20260903134753, 2026-09-03 — v1 route removed, POST
+// v1/auth/session started 404ing and every login looped; probe confirmed v2 live).
+export const WSO_SESSION = 'v2/auth/session'
