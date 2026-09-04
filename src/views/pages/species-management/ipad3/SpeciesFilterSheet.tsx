@@ -32,12 +32,16 @@ interface SpeciesFilterSheetProps {
   onClose: () => void
   title?: string
   sections: FilterSheetSection[]
+  /** Optional LIVE sections — recomputed from the staged DRAFT on every change, so facet
+   *  options and counts react to picks BEFORE Apply (e.g. Ledger's Transfer In/Out
+   *  appearing the moment a Site is staged). Falls back to the static `sections`. */
+  resolveSections?: (draft: Record<string, string[]>) => FilterSheetSection[]
   /** Applied selection per section key — the sheet stages a draft and commits on Apply. */
   selected: Record<string, string[]>
   onApply: (selected: Record<string, string[]>) => void
 }
 
-const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, title = 'Filter', sections, selected, onApply }) => {
+const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, title = 'Filter', sections, resolveSections, selected, onApply }) => {
   const [selectedMenu, setSelectedMenu] = useState<string>(sections[0]?.key || '')
   const [searchQuery, setSearchQuery] = useState('')
   const [draft, setDraft] = useState<Record<string, string[]>>({})
@@ -51,7 +55,9 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const section = sections.find(s => s.key === selectedMenu) || sections[0]
+  // Live mode recomputes the whole section list from the staged draft each change.
+  const allSections = resolveSections ? resolveSections(draft) : sections
+  const section = allSections.find(s => s.key === selectedMenu) || allSections[0]
   const draftFor = (key: string) => draft[key] || []
 
   const currentOptions = useMemo(() => {
@@ -92,7 +98,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
     onClose()
   }
 
-  const totalCount = sections.reduce((n, s) => n + draftFor(s.key).length, 0)
+  const totalCount = allSections.reduce((n, s) => n + draftFor(s.key).length, 0)
   const heading = totalCount > 0 ? `${title} - ${totalCount}` : title
 
   return (
@@ -125,7 +131,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
       <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', px: 5, minHeight: 0 }}>
         <Box sx={{ width: 200, flexShrink: 0, overflowY: 'auto' }}>
           <List sx={{ p: 0 }}>
-            {sections.map(s => (
+            {allSections.map(s => (
               <ListItemButton
                 key={s.key}
                 onClick={() => {

@@ -442,37 +442,52 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       ]
 
   // All facets live-counted: each option's figure = the list you'd get picking JUST it
-  // (other sections stay applied). Stock mode omits the Event facet (membership, not events).
-  const facetSections: FilterSheetSection[] = !drill
-    ? []
-    : [
-        ...(!drill.stock
-          ? [
-              {
-                key: 'event',
-                label: 'Event',
-                options: [...EVENT_FACET_BASE, ...(drill.sites.length ? (['transfer_in', 'transfer_out'] as LedgerEventKind[]) : [])].map(k => ({
-                  value: k,
-                  label: EVENT_LABEL[k],
-                  count: rowsFor({ ...drill, kinds: [k] }).length
-                }))
-              }
-            ]
-          : []),
-        {
-          key: 'sex',
-          label: 'Sex',
-          options: LEDGER_CLASSES.map(c => ({ value: c, label: CLASS_LABEL[c], count: rowsFor({ ...drill, classes: [c] }).length }))
-        },
-        ...(multiSite
-          ? [{ key: 'site', label: 'Site', options: sites.map(s => ({ value: s, label: s, count: rowsFor({ ...drill, sites: [s] }).length })) }]
-          : []),
-        {
-          key: 'duration',
-          label: 'Duration',
-          options: LEDGER_PRESETS.map(p => ({ value: p.key, label: p.label, count: rowsFor({ ...drill, preset: p.key }).length }))
-        }
-      ]
+  // (other sections stay applied). Stock mode omits the Event facet (membership, not
+  // events). Takes ANY filter — the sheet resolves against its staged DRAFT, so Transfer
+  // In/Out appear the moment a Site is staged, before Apply (user-caught 2026-09-04).
+  const sectionsFor = (f: DrillFilter): FilterSheetSection[] => [
+    ...(!f.stock
+      ? [
+          {
+            key: 'event',
+            label: 'Event',
+            options: [...EVENT_FACET_BASE, ...(f.sites.length ? (['transfer_in', 'transfer_out'] as LedgerEventKind[]) : [])].map(k => ({
+              value: k,
+              label: EVENT_LABEL[k],
+              count: rowsFor({ ...f, kinds: [k] }).length
+            }))
+          }
+        ]
+      : []),
+    {
+      key: 'sex',
+      label: 'Sex',
+      options: LEDGER_CLASSES.map(c => ({ value: c, label: CLASS_LABEL[c], count: rowsFor({ ...f, classes: [c] }).length }))
+    },
+    ...(multiSite
+      ? [{ key: 'site', label: 'Site', options: sites.map(s => ({ value: s, label: s, count: rowsFor({ ...f, sites: [s] }).length })) }]
+      : []),
+    {
+      key: 'duration',
+      label: 'Duration',
+      options: LEDGER_PRESETS.map(p => ({ value: p.key, label: p.label, count: rowsFor({ ...f, preset: p.key }).length }))
+    }
+  ]
+
+  // The sheet's staged draft, read back as a filter object (mirror of applyDrillFilters).
+  const draftToFilter = (draft: Record<string, string[]>): DrillFilter => {
+    const dur = draft.duration || []
+
+    return {
+      ...(drill as DrillFilter),
+      kinds: drill?.stock ? [] : ((draft.event || []) as LedgerEventKind[]),
+      classes: (draft.sex || []) as LedgerClass[],
+      sites: draft.site || [],
+      preset: (dur.length ? dur[dur.length - 1] : 'all') as LedgerPreset
+    }
+  }
+
+  const facetSections: FilterSheetSection[] = drill ? sectionsFor(drill) : []
 
   const applyDrillFilters = (sel: Record<string, string[]>) => {
     const dur = sel.duration || []
@@ -699,6 +714,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         onClose={() => setDrillFiltersOpen(false)}
         title='Filters'
         sections={facetSections}
+        resolveSections={draft => (drill ? sectionsFor(draftToFilter(draft)) : [])}
         selected={drill ? { event: drill.kinds, sex: drill.classes, site: drill.sites, duration: [drill.preset] } : {}}
         onApply={applyDrillFilters}
       />
