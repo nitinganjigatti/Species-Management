@@ -8,8 +8,12 @@
 // TIME BUCKETS follow the 2026-09-03 time-axis standard (Ledger = the reference
 // implementation): preset ≤ 12 months → chronological months; whole-multi-year presets
 // (2Y/3Y/All) → the cumulative Jan–Dec seasonal view, drill sheets grouped by year.
-// Transfer In / Out events wait on real movement data — site moves are net-zero at the
-// organization level and the sidecars carry no movement history to derive them from.
+// TRANSFERS (2026-09-04): the sidecars carry no movement history, so site→site moves
+// synthesize deterministically (~8% of individual animals) as ONE raw neutral 'transfer'
+// event (fromSite → toSite, delta 0). resolveEvents() re-reads that event per site scope:
+// org-wide it stays neutral (net-zero — lists hide it); crossing INTO a selected scope it
+// becomes transfer_in (+1), OUT of it transfer_out (−1); internal to a multi-site
+// selection it stays neutral (list-only, never counted).
 
 import type { AnimalRecord } from 'src/types/species-management/detail'
 
@@ -32,14 +36,26 @@ export const CLASS_LABEL: Record<LedgerClass, string> = {
   group: 'Group'
 }
 
-export type LedgerEventKind = 'birth' | 'acquisition' | 'death' | 'disposal' | 'reclass' | 'census'
+export type LedgerEventKind =
+  | 'birth'
+  | 'acquisition'
+  | 'death'
+  | 'disposal'
+  | 'reclass'
+  | 'census'
+  | 'transfer'
+  | 'transfer_in'
+  | 'transfer_out'
 export const EVENT_LABEL: Record<LedgerEventKind, string> = {
   birth: 'Birth',
   acquisition: 'Acquisition',
   death: 'Death',
   disposal: 'Disposal',
   reclass: 'Sex Reclassified',
-  census: 'Census Update'
+  census: 'Census Update',
+  transfer: 'Transfer',
+  transfer_in: 'Transfer In',
+  transfer_out: 'Transfer Out'
 }
 export const ADD_KINDS: LedgerEventKind[] = ['birth', 'acquisition']
 export const CUT_KINDS: LedgerEventKind[] = ['death', 'disposal']
@@ -56,6 +72,9 @@ export interface LedgerEvent {
   cls: LedgerClass
   /** Reclass only — the class the animal leaves. */
   fromCls?: LedgerClass
+  /** Transfers only — the site the animal leaves / lands at. */
+  fromSite?: string
+  toSite?: string
   /** Signed change to the TOTAL count (0 for reclass; ±n for census). */
   delta: number
   /** Census / group events — the group's size after the update. */
@@ -157,10 +176,34 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
       gender: a.gender
     }
 
-    events.push({ ...base, id: `${a.antzId}:in`, kind, date: clampDate(entry, now), cls: entryCls, delta: 1 })
+    const reclassAt = sexedLater ? clampDate(new Date(entry.getTime() + (180 + ((h >> 8) % 540)) * DAY), now) : undefined
 
-    if (sexedLater) {
-      const reclassAt = clampDate(new Date(entry.getTime() + (180 + ((h >> 8) % 540)) * DAY), now)
+    // Transfers (2026-09-04): a hash-picked ~8% of individual animals moved site→site
+    // once — the ENTRY happens at fromSite and the raw neutral transfer (delta 0) lands
+    // them at their real current site, so per-site membership stays coherent under any
+    // site scope (resolveEvents turns the move directional per selection).
+    const th = hash(`${a.antzId}:tx`)
+    const tx =
+      sitePool.length > 1 && cls !== 'group' && a.site && th % 100 < 8
+        ? (() => {
+            let from = sitePool[(th >> 3) % sitePool.length]
+            if (from === a.site) from = sitePool[((th >> 3) + 1) % sitePool.length]
+
+            return { from, at: clampDate(new Date(entry.getTime() + (60 + ((th >> 5) % 640)) * DAY), now) }
+          })()
+        : null
+
+    events.push({
+      ...base,
+      id: `${a.antzId}:in`,
+      kind,
+      date: clampDate(entry, now),
+      cls: entryCls,
+      delta: 1,
+      ...(tx && { site: tx.from })
+    })
+
+    if (sexedLater && reclassAt) {
       events.push({
         ...base,
         id: `${a.antzId}:rc`,
@@ -168,7 +211,23 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
         date: reclassAt,
         cls,
         fromCls: 'undetermined',
-        delta: 0
+        delta: 0,
+        // the class column moves at the site the animal stood at that day
+        ...(tx && reclassAt.getTime() < tx.at.getTime() && { site: tx.from })
+      })
+    }
+
+    if (tx) {
+      events.push({
+        ...base,
+        id: `${a.antzId}:tx`,
+        kind: 'transfer',
+        date: tx.at,
+        // class at transfer time — before a later reclass the animal still rides UD
+        cls: reclassAt && tx.at.getTime() < reclassAt.getTime() ? entryCls : cls,
+        delta: 0,
+        fromSite: tx.from,
+        toSite: a.site
       })
     }
 
@@ -246,12 +305,37 @@ export interface LedgerComputed {
 
 const MONTHS_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const presetStart = (preset: LedgerPreset, now: Date): Date | null => {
+export const presetStart = (preset: LedgerPreset, now: Date): Date | null => {
   if (preset === 'all') return null
   const years = preset === 'last_1y' ? 1 : preset === 'last_2y' ? 2 : 3
   const d = new Date(now.getFullYear(), now.getMonth() - years * 12 + 1, 1)
 
   return d
+}
+
+/* ── site-scope resolution ───────────────────────────────────────────────────
+   Transfers are net-zero at the organization level — a raw 'transfer' event only
+   becomes DIRECTIONAL under a site scope. All sites: everything passes through, raw
+   transfers stay neutral (delta 0 — list surfaces hide them). Site(s) selected:
+   crossing INTO the scope = transfer_in (+1), OUT of it = transfer_out (−1), internal
+   to a multi-site selection = neutral (list-only), fully outside = dropped. */
+export const resolveEvents = (all: LedgerEvent[], sites: string[] | null): LedgerEvent[] => {
+  if (!sites?.length) return all
+
+  const out: LedgerEvent[] = []
+  for (const e of all) {
+    if (e.kind === 'transfer') {
+      const fromIn = !!e.fromSite && sites.includes(e.fromSite)
+      const toIn = !!e.toSite && sites.includes(e.toSite)
+      if (toIn && !fromIn) out.push({ ...e, kind: 'transfer_in', delta: 1, site: e.toSite })
+      else if (fromIn && !toIn) out.push({ ...e, kind: 'transfer_out', delta: -1, site: e.fromSite })
+      else if (fromIn && toIn) out.push(e)
+    } else if (e.site && sites.includes(e.site)) {
+      out.push(e)
+    }
+  }
+
+  return out
 }
 
 export const computeLedger = (
@@ -261,7 +345,7 @@ export const computeLedger = (
   sites: string[] | null,
   now = new Date()
 ): LedgerComputed => {
-  const universe = sites?.length ? all.filter(e => e.site && sites.includes(e.site)) : all
+  const universe = resolveEvents(all, sites)
   const rangeStart = presetStart(preset, now)
   const cumulative = preset !== 'last_1y'
 
@@ -390,8 +474,14 @@ export const computeLedger = (
     closingTotal: total,
     additionsTotal,
     reductionsTotal,
-    addRows: [...kindRows(ADD_KINDS), ...kindRows(['reclass']), ...kindRows(['census']).filter(r => r.total !== 0 || Object.values(r.byClass).some(Boolean))],
-    cutRows: kindRows(CUT_KINDS),
+    // Transfer rows exist only under a site scope — org-wide they are net-zero noise.
+    addRows: [
+      ...kindRows(ADD_KINDS),
+      ...(sites?.length ? kindRows(['transfer_in']) : []),
+      ...kindRows(['reclass']),
+      ...kindRows(['census']).filter(r => r.total !== 0 || Object.values(r.byClass).some(Boolean))
+    ],
+    cutRows: [...kindRows(CUT_KINDS), ...(sites?.length ? kindRows(['transfer_out']) : [])],
     months: cumulative ? seasonal : chronoKeys.map(k => chronoMap.get(k)!),
     rows: rows.slice().reverse()
   }
@@ -408,17 +498,24 @@ export const stockRows = (
   cls?: LedgerClass,
   now = new Date()
 ): LedgerEvent[] => {
-  const universe = sites?.length ? all.filter(e => e.site && sites.includes(e.site)) : all
   const rangeStart = boundary === 'opening' ? presetStart(preset, now) : null
-  const live = new Map<string, { entry: LedgerEvent; cls: LedgerClass }>()
+  // All-time opening = the 0 baseline — nobody was in stock before the first event.
+  if (boundary === 'opening' && !rangeStart) return []
+  const universe = resolveEvents(all, sites)
+  const live = new Map<string, { entry: LedgerEvent; cls: LedgerClass; site?: string }>()
 
   for (const e of universe) {
     if (boundary === 'opening' && rangeStart && e.date >= rangeStart) break
     if (e.kind === 'reclass') {
       const rec = live.get(e.aid)
       if (rec) rec.cls = e.cls
+    } else if (e.kind === 'transfer') {
+      // neutral move (org-wide, or internal to the selection) — membership holds, site updates
+      const rec = live.get(e.aid)
+      if (rec) rec.site = e.toSite
     } else if (e.delta > 0 && !live.has(e.aid)) {
-      live.set(e.aid, { entry: e, cls: e.cls })
+      // a transfer_in IS the entry into the scope — the row wears the transfer chip + date
+      live.set(e.aid, { entry: e, cls: e.cls, site: e.site })
     } else if (e.delta < 0 && e.kind !== 'census') {
       live.delete(e.aid)
     }
@@ -426,7 +523,7 @@ export const stockRows = (
 
   return Array.from(live.values())
     .filter(r => !cls || r.cls === cls)
-    .map(r => ({ ...r.entry, cls: r.cls }))
+    .map(r => ({ ...r.entry, cls: r.cls, site: r.site }))
     .sort((a, b) => b.date.getTime() - a.date.getTime())
 }
 
