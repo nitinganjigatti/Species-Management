@@ -25,6 +25,9 @@ export interface FilterSheetSection {
   key: string
   label: string
   options: FilterSheetOption[]
+  /** SINGLE-choice section (e.g. a duration/period facet): picking an option replaces
+   *  the selection, tapping the selected one keeps it, and Select all is hidden. */
+  single?: boolean
 }
 
 interface SpeciesFilterSheetProps {
@@ -70,6 +73,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
   const toggleOption = (value: string) => {
     if (!section) return
     setDraft(prev => {
+      if (section.single) return { ...prev, [section.key]: [value] }
       const cur = prev[section.key] || []
       const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value]
 
@@ -184,31 +188,36 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
                 <>
                   {/* The WHOLE row is the tap target (checkbox alone is a fiddly
                       target on glass); the checkbox stops propagation so a direct
-                      tap on it doesn't toggle twice. */}
-                  <Box
-                    onClick={handleSelectAll}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      mb: 2,
-                      cursor: 'pointer',
-                      borderRadius: '10px',
-                      ...skin.cardPressSx,
-                      '&:hover': { bgcolor: skin.ROW_HOVER }
-                    }}
-                  >
-                    <Checkbox
-                      checked={allVisibleSelected}
-                      indeterminate={!!section && draftFor(section.key).length > 0 && !allVisibleSelected}
-                      onChange={handleSelectAll}
-                      onClick={e => e.stopPropagation()}
-                      sx={{ color: skin.DASH_INK, '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: skin.LIST_GREEN } }}
-                    />
-                    <Typography variant='body1' sx={{ color: skin.MUTED }}>
-                      Select all
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ mb: 2, borderColor: skin.HAIR }} />
+                      tap on it doesn't toggle twice. Single-choice sections have no
+                      Select all — exactly one option holds at a time. */}
+                  {!section?.single && (
+                    <>
+                      <Box
+                        onClick={handleSelectAll}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          mb: 2,
+                          cursor: 'pointer',
+                          borderRadius: '10px',
+                          ...skin.cardPressSx,
+                          '&:hover': { bgcolor: skin.ROW_HOVER }
+                        }}
+                      >
+                        <Checkbox
+                          checked={allVisibleSelected}
+                          indeterminate={!!section && draftFor(section.key).length > 0 && !allVisibleSelected}
+                          onChange={handleSelectAll}
+                          onClick={e => e.stopPropagation()}
+                          sx={{ color: skin.DASH_INK, '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: skin.LIST_GREEN } }}
+                        />
+                        <Typography variant='body1' sx={{ color: skin.MUTED }}>
+                          Select all
+                        </Typography>
+                      </Box>
+                      <Divider sx={{ mb: 2, borderColor: skin.HAIR }} />
+                    </>
+                  )}
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     {currentOptions.map(opt => (
                       <Box

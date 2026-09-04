@@ -470,6 +470,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     {
       key: 'duration',
       label: 'Duration',
+      single: true,
       options: LEDGER_PRESETS.map(p => ({ value: p.key, label: p.label, count: rowsFor({ ...f, preset: p.key }).length }))
     }
   ]
