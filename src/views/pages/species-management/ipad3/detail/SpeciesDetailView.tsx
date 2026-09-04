@@ -374,19 +374,6 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   const iucnName = h?.iucnStatus ? stripParen(h.iucnStatus) : ''
   const iucnEntry = skin.RED_LIST.find(r => r.name === iucnName)
 
-  // Compact mini stat strip for the sticky header — warm inks on white.
-  // Ratio lives WITH the sex counts (M · F · ratio = one section), housing after.
-  const mini: ({ v: string; l: string; c: string } | { divider: true })[] = [
-    { v: (h?.total ?? 0).toLocaleString(), l: 'animals', c: skin.ACCENT_INK },
-    { divider: true },
-    { v: m.toLocaleString(), l: 'M', c: skin.VALUE },
-    { v: f.toLocaleString(), l: 'F', c: skin.VALUE },
-    ...(ratioStr ? [{ v: ratioStr, l: 'ratio', c: skin.VALUE }] : []),
-    { divider: true },
-    { v: (h?.sites ?? 0).toLocaleString(), l: 'sites', c: skin.VALUE },
-    { v: (h?.enclosures ?? 0).toLocaleString(), l: 'encl', c: skin.VALUE }
-  ]
-
   return (
     <Box>
       {/* Sticky top stack — zero-height sticky wrapper so it overlays content
@@ -409,7 +396,8 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             transition: `transform ${skin.DUR_STD} ${skin.EASE}, opacity ${skin.DUR_STD} ${skin.EASE}, visibility ${skin.DUR_STD}`
           }}
         >
-          {/* Compact header — back + name (left), mini stat strip (right). Collapses while scrolling down. */}
+          {/* Compact header — back + name only (the mini stat strip was removed 2026-09-04,
+              user call: the reveal shows identity + tabs, never stats). Collapses while scrolling down. */}
           <Box
             sx={{
               display: 'grid',
@@ -444,24 +432,6 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                       </Typography>
                     )}
                   </Box>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap', px: 2 }}>
-                  {mini.map((s, i) =>
-                    'divider' in s ? (
-                      <Box key={i} sx={{ width: '1px', height: 26, bgcolor: skin.HAIR }} />
-                    ) : (
-                      <Box key={i} sx={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-                        <Typography sx={{ fontSize: '22px', fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: s.c }}>
-                          {s.v}
-                        </Typography>
-                        <Typography
-                          sx={{ fontSize: '12px', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', color: skin.FAINT }}
-                        >
-                          {s.l}
-                        </Typography>
-                      </Box>
-                    )
-                  )}
                 </Box>
               </Box>
             </Box>

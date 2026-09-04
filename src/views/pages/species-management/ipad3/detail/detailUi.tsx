@@ -1111,24 +1111,55 @@ export interface SiteFilterOption {
 
 export const SiteFilterSelect: React.FC<{
   sites: SiteFilterOption[]
-  value: string | null
-  onChange: (v: string | null) => void
+  value?: string | null
+  onChange?: (v: string | null) => void
   /** Caption under the "All Sites" row (e.g. "246 animals"). */
   allCaption?: React.ReactNode
   /** Total shown in the sheet header stat (defaults to the option count). */
   sitesTotal?: number
-}> = ({ sites, value, onChange, allCaption, sitesTotal }) => {
+  /** MULTI mode (Ledger, 2026-09-04): site rows TOGGLE and the sheet stays open so several
+   *  sites can be picked in one visit; "All Sites" clears and closes. The trigger reads
+   *  the site name (1 picked) or "N Sites". State lives in `multiValue`/`onMultiChange` —
+   *  `value`/`onChange` are ignored in this mode. Empty selection = all sites. */
+  multiple?: boolean
+  multiValue?: string[]
+  onMultiChange?: (v: string[]) => void
+}> = ({ sites, value, onChange, allCaption, sitesTotal, multiple, multiValue, onMultiChange }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [open, setOpen] = useState(false)
   const [siteQ, setSiteQ] = useState('')
 
+  const sel = multiple ? multiValue ?? [] : []
+  const applied = multiple ? sel.length > 0 : value != null
+  const triggerLabel = multiple
+    ? sel.length === 0
+      ? 'All sites'
+      : sel.length === 1
+      ? sel[0]
+      : `${sel.length} Sites`
+    : value ?? 'All sites'
+
+  // Multi mode: sites already selected when the sheet OPENS ride to the top, right under
+  // "All Sites" (user call 2026-09-04) — snapshotted at open so rows don't reshuffle while
+  // toggling mid-visit; a fresh open re-pins the latest selection.
+  const [pinned, setPinned] = useState<string[]>([])
+  const openSheet = () => {
+    setPinned(multiple ? sel : [])
+    setOpen(true)
+  }
+
   const filtered = siteQ.trim() ? sites.filter(s => s.site.toLowerCase().includes(siteQ.trim().toLowerCase())) : sites
+  const ordered =
+    multiple && pinned.length
+      ? [...filtered].sort((a, b) => (pinned.includes(b.site) ? 1 : 0) - (pinned.includes(a.site) ? 1 : 0))
+      : filtered
   const pick = (v: string | null) => {
-    onChange(v)
+    onChange?.(v)
     setOpen(false)
     setSiteQ('')
   }
+  const toggle = (s: string) => onMultiChange?.(sel.includes(s) ? sel.filter(x => x !== s) : [...sel, s])
 
   const row = (opts: { key: string; selected: boolean; onClick: () => void; icon: string; title: string; caption?: React.ReactNode; last: boolean }) => (
     <Box
@@ -1184,7 +1215,7 @@ export const SiteFilterSelect: React.FC<{
       {/* Trigger = the Gender-pill dropdown grammar (2026-09-01): ink label + ink chevron
           on a white hairline pill; the applied state wears Gender's green tint. */}
       <Box
-        onClick={() => setOpen(true)}
+        onClick={openSheet}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -1193,20 +1224,20 @@ export const SiteFilterSelect: React.FC<{
           height: 44,
           flexShrink: 0,
           borderRadius: '999px',
-          border: `1px solid ${value ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.DROPDOWN_BORDER}`,
-          backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+          border: `1px solid ${applied ? skin.mixOverWhite(skin.LIST_GREEN, 0.28) : skin.DROPDOWN_BORDER}`,
+          backgroundColor: applied ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
           cursor: 'pointer',
           transition: 'border-color .15s ease, background-color .15s ease',
           '&:hover': {
-            borderColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.DROPDOWN_BORDER_HOVER,
-            backgroundColor: value ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
+            borderColor: applied ? skin.mixOverWhite(skin.LIST_GREEN, 0.4) : skin.DROPDOWN_BORDER_HOVER,
+            backgroundColor: applied ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER
           }
         }}
       >
-        <Typography sx={{ fontSize: '15px', fontWeight: 500, maxWidth: 180, color: value ? skin.LIST_GREEN : skin.INK2 }} noWrap>
-          {value ?? 'All sites'}
+        <Typography sx={{ fontSize: '15px', fontWeight: 500, maxWidth: 180, color: applied ? skin.LIST_GREEN : skin.INK2 }} noWrap>
+          {triggerLabel}
         </Typography>
-        <Icon icon='mdi:chevron-down' fontSize='1.25rem' color={value ? skin.LIST_GREEN : skin.INK2} />
+        <Icon icon='mdi:chevron-down' fontSize='1.25rem' color={applied ? skin.LIST_GREEN : skin.INK2} />
       </Box>
 
       <SheetDrawer open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
@@ -1217,22 +1248,26 @@ export const SiteFilterSelect: React.FC<{
             {!siteQ.trim() &&
               row({
                 key: '__all',
-                selected: value == null,
-                onClick: () => pick(null),
+                selected: multiple ? sel.length === 0 : value == null,
+                onClick: () => {
+                  if (multiple) onMultiChange?.([])
+                  pick(null)
+                },
                 icon: 'mdi:map-marker-multiple-outline',
                 title: 'All Sites',
                 caption: allCaption,
                 last: filtered.length === 0
               })}
-            {filtered.map((s, i) =>
+            {ordered.map((s, i) =>
               row({
                 key: s.site,
-                selected: value === s.site,
-                onClick: () => pick(value === s.site ? null : s.site),
+                selected: multiple ? sel.includes(s.site) : value === s.site,
+                // multi: toggle in place, sheet stays open for the next pick
+                onClick: () => (multiple ? toggle(s.site) : pick(value === s.site ? null : s.site)),
                 icon: 'mdi:map-marker-outline',
                 title: s.site,
                 caption: s.caption,
-                last: i === filtered.length - 1
+                last: i === ordered.length - 1
               })
             )}
             {filtered.length === 0 && siteQ.trim() && (

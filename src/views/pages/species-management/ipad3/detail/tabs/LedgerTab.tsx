@@ -35,11 +35,9 @@ import {
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
-  Sheet,
   SheetSearch,
   SiteFilterSelect,
-  synthAnimalIdentity,
-  thinScrollbarSx
+  synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -58,7 +56,7 @@ import {
   signed,
   stockRows
 } from './ledger/ledger'
-import type { GridRow, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset } from './ledger/ledger'
+import type { ClassCounts, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset } from './ledger/ledger'
 
 interface LedgerTabProps {
   animals?: AnimalRecord[]
@@ -138,14 +136,19 @@ const EventChip: React.FC<{ kind: LedgerEventKind }> = ({ kind }) => {
 
 /* ── reconciliation count pill — tappable, 8px radius (user calls 2026-09-03) ── */
 
+/* Chip color carries the KIND of number: green = addition · orange = reduction ·
+ * grey = stock baseline (Opening). The ONE exception is the VERDICT treatment
+ * (user direction 2026-09-04): Closing Stock wears SOLID slate-navy chips with white
+ * figures on a light navy row wash — navy is the system's identity/verdict ink, the
+ * only strong hue with no add/reduce meaning, so the row shouts without lying. */
 const CountPill: React.FC<{
   value: number
-  tone: 'pos' | 'neg' | 'grey'
+  tone: 'pos' | 'neg' | 'grey' | 'navy'
   onClick?: () => void
 }> = ({ value, tone, onClick }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
-  if (value === 0 && tone !== 'grey') {
+  if (value === 0 && tone !== 'grey' && tone !== 'navy') {
     return (
       <Typography component='span' sx={{ fontSize: '15px', color: skin.DASH_INK }}>
         —
@@ -157,6 +160,8 @@ const CountPill: React.FC<{
       ? { bg: skin.TONE_SOFT.good, ink: skin.LIST_GREEN }
       : tone === 'neg'
       ? { bg: cc.BgTeritary, ink: skin.strokeOf(cc.Tertiary) }
+      : tone === 'navy'
+      ? { bg: skin.TAB_PILL, ink: '#ffffff' }
       : { bg: skin.TONE_SOFT.neutral, ink: skin.TONE_TYPE.neutral }
 
   return (
@@ -174,13 +179,14 @@ const CountPill: React.FC<{
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minWidth: 46,
-        px: 2.75,
+        // ONE fixed chip width (user call 2026-09-04) — columns read as aligned blocks
+        // instead of ragged pills; 64px seats the widest figure ("+121") comfortably.
+        width: 64,
         py: 1.25,
         borderRadius: '8px',
         backgroundColor: look.bg,
         fontSize: '15px',
-        fontWeight: tone === 'grey' ? 700 : 600,
+        fontWeight: tone === 'grey' || tone === 'navy' ? 700 : 600,
         fontVariantNumeric: 'tabular-nums',
         color: look.ink,
         lineHeight: 1.2,
@@ -209,11 +215,12 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const events = useMemo(() => deriveLedgerEvents(all), [all])
 
   const [preset, setPreset] = useState<LedgerPreset>('last_1y')
-  const [site, setSite] = useState<string | null>(null)
+  // Site scope is MULTI-select on this tab (user call 2026-09-04); [] = all sites.
+  const [siteSel, setSiteSel] = useState<string[]>([])
   const sites = useMemo(() => Array.from(new Set(all.map(a => a.site).filter(Boolean))).sort() as string[], [all])
   const multiSite = sites.length > 1
 
-  const led = useMemo(() => computeLedger(events, preset, site), [events, preset, site])
+  const led = useMemo(() => computeLedger(events, preset, siteSel), [events, preset, siteSel])
   const periodLabel = LEDGER_PRESETS.find(p => p.key === preset)!.label
   const scopeSuffix = preset === 'last_1y' ? String(new Date().getFullYear()) : preset === 'all' ? 'All time' : periodLabel
 
@@ -246,7 +253,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   }
 
   const stockDrill = (boundary: 'opening' | 'closing', cls?: LedgerClass) => {
-    const rows = stockRows(events, preset, site, boundary, cls)
+    const rows = stockRows(events, preset, siteSel, boundary, cls)
     const noun = boundary === 'opening' ? 'Opening Stock' : 'Closing Stock'
     openDrill(cls ? `${noun} — ${CLASS_LABEL[cls]}` : noun, rows)
   }
@@ -283,11 +290,9 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
   const table = useSortableTable(tableData, { field: 'dateMs', sort: 'desc' }, 10)
 
-  // Site rides the animal card only when the visible list spans more than one site.
-  const showSite = useMemo(
-    () => !site && new Set(tableData.map(r => r.site).filter(Boolean)).size > 1,
-    [site, tableData]
-  )
+  // Site rides the animal card only when the visible list spans more than one site
+  // (holds with multi-select too: picking exactly one site hides the row).
+  const showSite = useMemo(() => new Set(tableData.map(r => r.site).filter(Boolean)).size > 1, [tableData])
 
   const columns: GridColDef[] = useMemo(
     () => [
@@ -396,8 +401,9 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const siteCtl = multiSite && (
     <SiteFilterSelect
       sites={sites.map(name => ({ site: name, caption: `${all.filter(a => a.site === name).length.toLocaleString()} animals` }))}
-      value={site}
-      onChange={v => setSite(v)}
+      multiple
+      multiValue={siteSel}
+      onMultiChange={setSiteSel}
       allCaption={`${all.length.toLocaleString()} animals`}
     />
   )
@@ -410,135 +416,75 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     )
   }
 
-  /* ── reconciliation grid rows ── */
+  /* ── reconciliation — THE standard DetailTable (user call 2026-09-04: no hand-built
+     tables). One static grid: Opening → additions → reductions → Closing; direction
+     reads from the pill tones (green +, orange −, grey anchors), so the old
+     ADDITIONS/REDUCTIONS block-label rows are retired with the hand-rolled markup. ── */
 
-  const gridHead = (label: React.ReactNode, first = false) => (
-    <Box
-      component='th'
-      sx={{
-        position: 'sticky',
-        top: 0,
-        backgroundColor: skin.TABLE_HEAD_BG,
-        color: skin.TABLE_HEAD_INK,
-        fontSize: '13px',
-        fontWeight: 700,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        textAlign: first ? 'left' : 'right',
-        whiteSpace: 'nowrap',
-        px: 4.5,
-        py: 3
-      }}
-    >
-      {label}
-    </Box>
+  interface ReconRow {
+    id: string
+    label: string
+    anchor?: boolean
+    boundary?: 'opening' | 'closing'
+    kind?: LedgerEventKind
+    byClass: ClassCounts
+    total: number
+  }
+
+  const reconRows: ReconRow[] = [
+    { id: 'opening', label: 'Opening Stock', anchor: true, boundary: 'opening', byClass: led.opening, total: led.openingTotal },
+    ...led.addRows.map(r => ({ id: `add-${r.kind}`, label: EVENT_LABEL[r.kind], kind: r.kind, byClass: r.byClass, total: r.total })),
+    ...led.cutRows.map(r => ({ id: `cut-${r.kind}`, label: EVENT_LABEL[r.kind], kind: r.kind, byClass: r.byClass, total: r.total })),
+    { id: 'closing', label: 'Closing Stock', anchor: true, boundary: 'closing', byClass: led.closing, total: led.closingTotal }
+  ]
+
+  const dashSpan = (
+    <Typography component='span' sx={{ fontSize: '15px', color: skin.DASH_INK }}>
+      —
+    </Typography>
   )
 
-  const gridCell = (content: React.ReactNode, opts?: { first?: boolean; totalCol?: boolean; anchor?: boolean; key?: string }) => (
-    <Box
-      component='td'
-      key={opts?.key}
-      sx={{
-        px: 4.5,
-        py: 2.5,
-        textAlign: opts?.first ? 'left' : 'right',
-        borderBottom: `1px solid ${skin.ROW_LINE}`,
-        ...(opts?.totalCol && { borderLeft: `1px solid ${skin.HAIR}` }),
-        fontSize: '16px',
-        fontWeight: opts?.anchor ? 700 : 500,
-        fontVariantNumeric: 'tabular-nums',
-        color: opts?.first ? skin.INK2 : skin.VALUE,
-        whiteSpace: 'nowrap'
-      }}
-    >
-      {content}
-    </Box>
-  )
-
-  const blockRow = (label: string) => (
-    <Box component='tr'>
-      <Box
-        component='td'
-        colSpan={7}
-        sx={{
-          px: 4.5,
-          pt: 3.5,
-          pb: 1.5,
-          fontSize: '13px',
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: skin.FAINT,
-          borderBottom: `1px solid ${skin.ROW_LINE}`
-        }}
-      >
-        {label}
-      </Box>
-    </Box>
-  )
-
-  const eventRow = (r: GridRow) => {
-    const tone = (n: number): 'pos' | 'neg' => (n >= 0 ? 'pos' : 'neg')
-    const kinds: LedgerEventKind[] = [r.kind]
+  const reconPill = (row: ReconRow, cls?: LedgerClass) => {
+    const v = cls ? row.byClass[cls] : row.total
+    if (row.anchor) {
+      // Opening = quiet grey baseline · Closing = the solid-navy verdict chips.
+      return v > 0 ? (
+        <CountPill value={v} tone={row.boundary === 'closing' ? 'navy' : 'grey'} onClick={() => stockDrill(row.boundary!, cls)} />
+      ) : (
+        dashSpan
+      )
+    }
+    if (v === 0 || (!cls && row.kind === 'reclass')) return dashSpan
 
     return (
-      <Box
-        component='tr'
-        key={r.kind}
-        onClick={() => kindDrill(kinds, EVENT_LABEL[r.kind])}
-        sx={{ cursor: 'pointer', '&:hover td': { backgroundColor: skin.ROW_HOVER } }}
-      >
-        {gridCell(EVENT_LABEL[r.kind], { first: true })}
-        {LEDGER_CLASSES.map(c =>
-          gridCell(
-            <CountPill
-              value={r.byClass[c]}
-              tone={tone(r.byClass[c])}
-              onClick={r.byClass[c] !== 0 ? () => kindDrill(kinds, EVENT_LABEL[r.kind], c) : undefined}
-            />,
-            { key: c }
-          )
-        )}
-        {gridCell(
-          r.kind === 'reclass' ? (
-            <Typography component='span' sx={{ fontSize: '15px', color: skin.DASH_INK }}>
-              —
-            </Typography>
-          ) : (
-            <CountPill value={r.total} tone={tone(r.total)} onClick={r.total !== 0 ? () => kindDrill(kinds, EVENT_LABEL[r.kind]) : undefined} />
-          ),
-          { totalCol: true }
-        )}
-      </Box>
+      <CountPill value={v} tone={v >= 0 ? 'pos' : 'neg'} onClick={() => kindDrill([row.kind!], row.label, cls)} />
     )
   }
 
-  const anchorRow = (label: string, counts: Record<LedgerClass, number>, total: number, boundary: 'opening' | 'closing', closing?: boolean) => (
-    <Box
-      component='tr'
-      onClick={() => stockDrill(boundary)}
-      sx={{
-        cursor: 'pointer',
-        '&:hover td': { backgroundColor: skin.ROW_HOVER },
-        ...(closing && { '& td': { borderTop: `1.5px solid ${skin.DROPDOWN_BORDER}`, borderBottom: 'none' } })
-      }}
-    >
-      {gridCell(label, { first: true, anchor: true })}
-      {LEDGER_CLASSES.map(c =>
-        gridCell(
-          counts[c] > 0 ? (
-            <CountPill value={counts[c]} tone='grey' onClick={() => stockDrill(boundary, c)} />
-          ) : (
-            <Typography component='span' sx={{ fontSize: '15px', color: skin.DASH_INK }}>
-              —
-            </Typography>
-          ),
-          { key: c }
-        )
-      )}
-      {gridCell(<CountPill value={total} tone='grey' onClick={() => stockDrill(boundary)} />, { totalCol: true, anchor: true })}
-    </Box>
-  )
+  const reconColumns: GridColDef[] = [
+    {
+      flex: 1,
+      minWidth: 200,
+      field: 'label',
+      headerName: 'Event',
+      sortable: false,
+      renderCell: (p: any) => <CellText weight={(p.row as ReconRow).anchor ? 700 : 500}>{(p.row as ReconRow).label}</CellText>
+    },
+    ...LEDGER_CLASSES.map(c => ({
+      minWidth: 96,
+      field: c,
+      headerName: CLASS_SHORT[c],
+      sortable: false,
+      renderCell: (p: any) => reconPill(p.row as ReconRow, c)
+    })),
+    {
+      minWidth: 110,
+      field: 'total',
+      headerName: 'Total',
+      sortable: false,
+      renderCell: (p: any) => reconPill(p.row as ReconRow)
+    }
+  ]
 
   /* ── drill sheet body — grouped by month, searchable ── */
 
@@ -593,28 +539,52 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         <MovementChart months={led.months} cumulative={led.cumulative} cutFill={cc.Tertiary} onSelect={monthDrill} />
       </SectionCard>
 
-      {/* reconciliation */}
+      {/* reconciliation — the standard frameless DetailTable inside the white card.
+          Closing Stock = the VERDICT row (user direction 2026-09-04): light navy wash
+          across the row (incl. the pinned label cell, on hover too), solid #1F515B chips
+          w/ white figures, heavier rule above. Navy = identity ink, not add/reduce. */}
       <SectionCard title='Reconciliation'>
-        <Box sx={{ overflowX: 'auto', ...thinScrollbarSx(theme) }}>
-          <Box component='table' sx={{ width: '100%', minWidth: 680, borderCollapse: 'collapse' }}>
-            <Box component='thead'>
-              <Box component='tr'>
-                {gridHead('', true)}
-                {LEDGER_CLASSES.map(c => (
-                  <React.Fragment key={c}>{gridHead(CLASS_SHORT[c])}</React.Fragment>
-                ))}
-                {gridHead('Total')}
-              </Box>
-            </Box>
-            <Box component='tbody'>
-              {anchorRow('Opening Stock', led.opening, led.openingTotal, 'opening')}
-              {blockRow('Additions')}
-              {led.addRows.map(eventRow)}
-              {blockRow('Reductions')}
-              {led.cutRows.map(eventRow)}
-              {anchorRow('Closing Stock', led.closing, led.closingTotal, 'closing', true)}
-            </Box>
-          </Box>
+        <Box
+          sx={{
+            // Closing wash = an INSET ROUNDED PANEL, not a full-bleed row (user reference
+            // 2026-09-04): #AFEFEB @ 30% flattened over white, floating with padding
+            // around it via a ::before under the cell content; no rule line, the panel's
+            // own gap separates it from Disposal. Hover deepens the panel, never the row.
+            '&& .MuiDataGrid-row[data-id="closing"]': { position: 'relative', backgroundColor: 'transparent' },
+            '&& .MuiDataGrid-row[data-id="closing"]::before': {
+              content: '""',
+              position: 'absolute',
+              inset: '8px 10px',
+              borderRadius: '12px',
+              backgroundColor: skin.mixOverWhite('#afefeb', 0.3),
+              pointerEvents: 'none'
+            },
+            '&& .MuiDataGrid-row[data-id="closing"]:hover::before': {
+              backgroundColor: skin.mixOverWhite('#afefeb', 0.4)
+            },
+            '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell': {
+              backgroundColor: 'transparent',
+              borderBottom: 'none',
+              position: 'relative'
+            },
+            // no rule ABOVE the panel (that line is Disposal's bottom hairline) and no
+            // pinned-column vertical divider beside "Closing Stock" — the panel floats clean
+            '&& .MuiDataGrid-row[data-id="cut-disposal"] .MuiDataGrid-cell': { borderBottom: 'none' },
+            '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell[data-field="label"]': { borderRight: 'none' }
+          }}
+        >
+        <DetailTable
+          columns={reconColumns}
+          rows={reconRows}
+          total={reconRows.length}
+          hideFooter
+          stickyFields={['label']}
+          onRowClick={(p: any) => {
+            const r = p.row as ReconRow
+            if (r.anchor) stockDrill(r.boundary!)
+            else if (r.kind) kindDrill([r.kind], r.label)
+          }}
+        />
         </Box>
       </SectionCard>
 
@@ -656,26 +626,28 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       </Box>
 
       {/* drill — the animals behind a number */}
+      {/* WHITE body (ground={false}) — the standard animal-list surface; rows on the sage
+          ground read off-system (user-flagged 2026-09-04). */}
       <DrillSheet
         open={!!drill}
         onClose={() => setDrill(null)}
         eyebrow={drill ? `${drillRows.length.toLocaleString()} ${drillRows.length === 1 ? 'record' : 'records'}` : undefined}
         title={drill?.title}
         size='lg'
+        ground={false}
       >
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 2 }}>
           <SheetSearch value={drillQ} onChange={setDrillQ} placeholder='Search animals…' />
         </Box>
         {drillGroups.length === 0 && (
-          <Sheet>
-            <Typography sx={{ py: 6, textAlign: 'center', fontSize: '14px', color: skin.FAINT }}>No records.</Typography>
-          </Sheet>
+          <Typography sx={{ py: 6, textAlign: 'center', fontSize: '14px', color: skin.FAINT }}>No records.</Typography>
         )}
         {drillGroups.map(g => (
-          <Box key={g.label} sx={{ mb: 4 }}>
+          <Box key={g.label} sx={{ px: 2 }}>
             <Typography
               sx={{
-                mb: 2,
+                pt: 4,
+                pb: 1,
                 fontSize: '13px',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
@@ -685,22 +657,20 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
             >
               {g.label} · {g.rows.length}
             </Typography>
-            <Sheet>
-              {g.rows.map((r, i) => (
-                <AnimalCardRow
-                  key={r.id}
-                  aid={r.aid}
-                  identifiers={r.chip || r.ring ? idsOf(r) : undefined}
-                  enclosure={r.enclosure}
-                  site={drillMultiSite ? r.site : undefined}
-                  tag={tagOf(r)}
-                  name={r.name && r.name !== r.aid ? r.name : undefined}
-                  trailing={<EventChip kind={r.kind} />}
-                  meta={<RowMetaText>{ddMMMyyyy(r.date)}</RowMetaText>}
-                  last={i === g.rows.length - 1}
-                />
-              ))}
-            </Sheet>
+            {g.rows.map((r, i) => (
+              <AnimalCardRow
+                key={r.id}
+                aid={r.aid}
+                identifiers={r.chip || r.ring ? idsOf(r) : undefined}
+                enclosure={r.enclosure}
+                site={drillMultiSite ? r.site : undefined}
+                tag={tagOf(r)}
+                name={r.name && r.name !== r.aid ? r.name : undefined}
+                trailing={<EventChip kind={r.kind} />}
+                meta={<RowMetaText>{ddMMMyyyy(r.date)}</RowMetaText>}
+                last={i === g.rows.length - 1}
+              />
+            ))}
           </Box>
         ))}
       </DrillSheet>

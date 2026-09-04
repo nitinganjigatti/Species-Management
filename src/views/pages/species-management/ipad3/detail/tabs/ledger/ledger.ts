@@ -257,10 +257,11 @@ const presetStart = (preset: LedgerPreset, now: Date): Date | null => {
 export const computeLedger = (
   all: LedgerEvent[],
   preset: LedgerPreset,
-  site: string | null,
+  /** Site scope — MULTI-select (2026-09-04); empty/null = all sites. */
+  sites: string[] | null,
   now = new Date()
 ): LedgerComputed => {
-  const universe = site ? all.filter(e => e.site === site) : all
+  const universe = sites?.length ? all.filter(e => e.site && sites.includes(e.site)) : all
   const rangeStart = presetStart(preset, now)
   const cumulative = preset !== 'last_1y'
 
@@ -402,12 +403,12 @@ export const computeLedger = (
 export const stockRows = (
   all: LedgerEvent[],
   preset: LedgerPreset,
-  site: string | null,
+  sites: string[] | null,
   boundary: 'opening' | 'closing',
   cls?: LedgerClass,
   now = new Date()
 ): LedgerEvent[] => {
-  const universe = site ? all.filter(e => e.site === site) : all
+  const universe = sites?.length ? all.filter(e => e.site && sites.includes(e.site)) : all
   const rangeStart = boundary === 'opening' ? presetStart(preset, now) : null
   const live = new Map<string, { entry: LedgerEvent; cls: LedgerClass }>()
 
