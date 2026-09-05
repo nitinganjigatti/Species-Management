@@ -326,7 +326,10 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
       sx={{
         borderTop: `1px solid ${skin.HAIR}`,
         px: '22px', // aligns the first label with the track's first tab label (6px track pad + 16px tab pad)
-        py: '6px', // breathing room matching the main track's height (user call 2026-09-05)
+        // Breathing room on TOP only — bottom padding would float the active underline
+        // above the block's edge (user-caught 2026-09-05): the 2.5px accent bar must
+        // TOUCH the bottom of the section, so the tabs' own bottom padding is the gap.
+        pt: '6px',
         display: 'flex',
         overflowX: 'auto',
         scrollbarWidth: 'none',
