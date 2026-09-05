@@ -29,6 +29,7 @@ import {
   AnimalIdCard,
   CategoryFilter,
   CellText,
+  ColumnSettingsSheet,
   DetailTable,
   EmptyState,
   FilterChip,
@@ -36,7 +37,7 @@ import {
   SectionCard,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { AnimalCardId } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId, ColumnPref } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
 interface PopulationTabProps {
@@ -78,6 +79,79 @@ const cardIdentifiers = (a: AnimalRecord): AnimalCardId[] => {
   return synthAnimalIdentity(a.antzId).identifiers
 }
 
+/* ── settings-driven table columns (demo review 2026-09-04) ──────────────────
+   The user picks WHICH data columns ride beside the animal card and their ORDER
+   (ColumnSettingsSheet), saved per user in localStorage — the registry is meant
+   to GROW (Subhash: "I will keep introducing new columns"), so saved prefs are
+   sanitized against it and new keys append with their default state. */
+
+const COL_LABELS: Record<string, string> = {
+  sex: 'Sex',
+  site: 'Site',
+  section: 'Section',
+  enclosure: 'Enclosure',
+  age: 'Age',
+  weight: 'Weight',
+  chip: 'Microchip',
+  ring: 'Ring',
+  accessionType: 'Accession Type',
+  accessionDate: 'Accession Date',
+  breed: 'Breed'
+}
+
+const DEFAULT_COLS: ColumnPref[] = [
+  { key: 'sex', on: true },
+  { key: 'enclosure', on: true },
+  { key: 'age', on: true },
+  { key: 'weight', on: true },
+  { key: 'site', on: false },
+  { key: 'section', on: false },
+  { key: 'chip', on: false },
+  { key: 'ring', on: false },
+  { key: 'accessionType', on: false },
+  { key: 'accessionDate', on: false },
+  { key: 'breed', on: false }
+]
+
+const COLS_STORE = 'ipad3:population:columns:v1'
+
+const loadCols = (): ColumnPref[] => {
+  try {
+    const raw = window.localStorage.getItem(COLS_STORE)
+    if (!raw) return DEFAULT_COLS
+    const saved = (JSON.parse(raw) as ColumnPref[]).filter(p => COL_LABELS[p.key] && typeof p.on === 'boolean')
+    if (!saved.length) return DEFAULT_COLS
+    const missing = DEFAULT_COLS.filter(d => !saved.some(p => p.key === d.key))
+
+    return [...saved, ...missing]
+  } catch {
+    return DEFAULT_COLS
+  }
+}
+
+const MONTHS_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const ageText = (age?: string) => {
+  const n = Number(age)
+
+  return age && Number.isFinite(n) ? `${n % 1 === 0 ? n : n.toFixed(1)}y` : (age || '').trim()
+}
+
+const weightText = (w?: string) => {
+  const v = String(w ?? '')
+    .trim()
+    .replace(/\s*kgs?\.?$/i, '')
+    .trim()
+
+  return v ? `${v} kg` : ''
+}
+
+const dateText = (s?: string) => {
+  const d = s ? new Date(s) : null
+
+  return d && !isNaN(d.getTime()) ? `${String(d.getDate()).padStart(2, '0')} ${MONTHS_3[d.getMonth()]} ${d.getFullYear()}` : ''
+}
+
 /* ── the tab ─────────────────────────────────────────────────────────────── */
 
 const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) => {
@@ -92,6 +166,21 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   const [site, setSite] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [extra, setExtra] = useState<Record<string, string[]>>({})
+
+  // Column prefs load AFTER mount (SSR renders the defaults — reading localStorage in
+  // the initializer would make server and client HTML disagree and break hydration).
+  const [colsOpen, setColsOpen] = useState(false)
+  const [colPrefs, setColPrefs] = useState<ColumnPref[]>(DEFAULT_COLS)
+  React.useEffect(() => setColPrefs(loadCols()), [])
+  const applyCols = (v: ColumnPref[]) => {
+    setColPrefs(v)
+    try {
+      window.localStorage.setItem(COLS_STORE, JSON.stringify(v))
+    } catch {
+      /* private mode etc. — prefs just don't persist */
+    }
+  }
+  const visibleCols = useMemo(() => new Set(colPrefs.filter(p => p.on).map(p => p.key)), [colPrefs])
 
   const sites = useMemo(() => Array.from(new Set(all.map(a => a.site).filter(Boolean))).sort() as string[], [all])
   const multiSite = sites.length > 1
@@ -175,15 +264,17 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   /* ── columns — the standard AnimalIdCard identity column + Age ─────────────── */
 
   // Site rides the card ONLY when the list the user sees spans more than one site
-  // (no site filter active AND >1 distinct site among the visible rows).
+  // (no site filter active AND >1 distinct site among the visible rows) — and never
+  // when a Site COLUMN is showing (settings): one fact, one place.
   const showSite = useMemo(
-    () => !site && new Set(filtered.map(a => a.site).filter(Boolean)).size > 1,
-    [site, filtered]
+    () => !site && !visibleCols.has('site') && new Set(filtered.map(a => a.site).filter(Boolean)).size > 1,
+    [site, filtered, visibleCols]
   )
 
   // Enclosure suppression (scope rule): a list the user has narrowed to exactly ONE
-  // enclosure via the facet doesn't repeat that enclosure on every card — the chip says it.
-  const showEnclosure = (extra.enclosure || []).length !== 1
+  // enclosure via the facet doesn't repeat that enclosure on every card — the chip says
+  // it. Same when the Enclosure COLUMN is on.
+  const showEnclosure = (extra.enclosure || []).length !== 1 && !visibleCols.has('enclosure')
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
     <CellText color={color} weight={weight}>
@@ -191,8 +282,35 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
     </CellText>
   )
 
-  const columns: GridColDef[] = useMemo(
-    () => [
+  const columns: GridColDef[] = useMemo(() => {
+    const dash = <CellText color={skin.DASH_INK}>—</CellText>
+    const txtCol = (field: string, label: string, minWidth: number, get: (a: AnimalRecord) => string): GridColDef => ({
+      minWidth,
+      field,
+      headerName: label,
+      renderCell: (p: any) => {
+        const v = get(p.row as AnimalRecord)
+
+        return v ? <CellText>{v}</CellText> : dash
+      }
+    })
+
+    // The settings registry — every pickable column, keyed like COL_LABELS.
+    const dataCols: Record<string, GridColDef> = {
+      sex: txtCol('sex', 'Sex', 110, a => genderLabel(a.gender)),
+      site: txtCol('site', 'Site', 190, a => a.site || ''),
+      section: txtCol('section', 'Section', 170, a => a.section || ''),
+      enclosure: txtCol('enclosure', 'Enclosure', 190, a => a.enclosure || ''),
+      age: txtCol('ageNum', 'Age', 100, a => ageText(a.age)),
+      weight: txtCol('weight', 'Weight', 120, a => weightText(a.weight)),
+      chip: txtCol('chip', 'Microchip', 180, a => a.chip || ''),
+      ring: txtCol('ring', 'Ring', 140, a => a.ring || ''),
+      accessionType: txtCol('accessionType', 'Accession Type', 160, a => a.accessionType || ''),
+      accessionDate: txtCol('accessionDate', 'Accession Date', 170, a => dateText(a.accessionDate)),
+      breed: txtCol('breed', 'Breed', 150, a => a.breed || '')
+    }
+
+    return [
       {
         flex: 1,
         minWidth: 380,
@@ -208,21 +326,27 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
               site={showSite ? a.site : undefined}
               tag={tagOf(a.gender)}
               name={a.name && a.name !== a.antzId ? a.name : undefined}
-              // card's own stat block: numeric dump ages print as "Ny"; empty values self-hide
-              age={p.row.ageNum != null ? `${p.row.ageNum % 1 === 0 ? p.row.ageNum : p.row.ageNum.toFixed(1)}y` : (a.age || '').trim()}
-              weight={a.weight}
+              // card stat block only carries age/weight while their COLUMNS are off —
+              // one fact, one place (settings rework 2026-09-05)
+              age={
+                visibleCols.has('age')
+                  ? undefined
+                  : p.row.ageNum != null
+                  ? `${p.row.ageNum % 1 === 0 ? p.row.ageNum : p.row.ageNum.toFixed(1)}y`
+                  : (a.age || '').trim()
+              }
+              weight={visibleCols.has('weight') ? undefined : a.weight}
               photo={synthAnimalIdentity(a.antzId).hasPhoto ? heroPhoto?.src : undefined}
               photoPos={heroPhoto?.bgPos}
             />
           )
         }
       },
-      // Age + weight moved INTO the card's right stat block (user call 2026-09-02) —
-      // no separate Age column; empty values drop their own line, never a dash.
-    ],
+      // Data columns follow the user's settings — selection AND order (colPrefs).
+      ...colPrefs.filter(p => p.on).map(p => dataCols[p.key]).filter(Boolean)
+    ]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cc, showSite, showEnclosure, heroPhoto]
-  )
+  }, [cc, showSite, showEnclosure, heroPhoto, colPrefs, visibleCols])
 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
 
@@ -294,6 +418,29 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
     </Box>
   )
 
+  // Settings — the table column picker trigger, always BESIDE Filters (demo call rule).
+  const settingsBtn = (
+    <Box
+      onClick={() => setColsOpen(true)}
+      aria-label='Table columns'
+      sx={{
+        width: 44,
+        height: 44,
+        flexShrink: 0,
+        display: 'grid',
+        placeItems: 'center',
+        borderRadius: '50%',
+        bgcolor: '#ffffff',
+        border: `1px solid ${skin.HAIR}`,
+        cursor: 'pointer',
+        ...skin.cardPressSx,
+        '&:hover': { bgcolor: skin.ROW_HOVER }
+      }}
+    >
+      <Icon icon='mdi:cog-outline' fontSize='1.25rem' color={skin.INK2} />
+    </Box>
+  )
+
   const titleText = `Animals · ${table.total.toLocaleString()}`
 
   // Portrait card header: title + Filters on line one, search + site dropdown next.
@@ -303,7 +450,10 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
         <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
           {titleText}
         </Typography>
-        {filtersBtn}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {filtersBtn}
+          {settingsBtn}
+        </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
         {search}
@@ -329,6 +479,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {siteFilterCtl}
               {filtersBtn}
+              {settingsBtn}
               {search}
             </Box>
           )
@@ -373,6 +524,16 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
         sections={facets}
         selected={extra}
         onApply={setExtra}
+      />
+
+      {/* Settings — choose + order the data columns (saved per user, localStorage) */}
+      <ColumnSettingsSheet
+        open={colsOpen}
+        onClose={() => setColsOpen(false)}
+        labels={COL_LABELS}
+        value={colPrefs}
+        defaults={DEFAULT_COLS}
+        onApply={applyCols}
       />
     </Box>
   )

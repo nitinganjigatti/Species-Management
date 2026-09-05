@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Button, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
+import { Autocomplete, Avatar, Box, Button, Checkbox, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
 import type { DrawerProps } from '@mui/material'
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -1326,6 +1326,164 @@ export const SiteFilterSelect: React.FC<{
         </Sheet>
       </SheetDrawer>
     </>
+  )
+}
+
+/* ── table column picker (demo-review HARD RULE 2026-09-04) ──────────────────
+   Every table offers a Settings control: the user chooses WHICH columns show and
+   their ORDER, saved per user. This is THE sheet for it — one ordered row per
+   column (checkbox + up/down movers), staged draft, footer = Reset Default | Apply.
+   Persistence is the CALLER's job (localStorage now, backend master later). */
+
+export interface ColumnPref {
+  key: string
+  on: boolean
+}
+
+export const ColumnSettingsSheet: React.FC<{
+  open: boolean
+  onClose: () => void
+  title?: string
+  /** Label for every column key that can appear. */
+  labels: Record<string, string>
+  /** Applied ordered prefs — the sheet stages a draft and commits on Apply. */
+  value: ColumnPref[]
+  defaults: ColumnPref[]
+  onApply: (v: ColumnPref[]) => void
+}> = ({ open, onClose, title = 'Table Columns', labels, value, defaults, onApply }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [draft, setDraft] = useState<ColumnPref[]>([])
+
+  useEffect(() => {
+    if (open) setDraft(value.map(v => ({ ...v })))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const toggle = (key: string) => setDraft(prev => prev.map(p => (p.key === key ? { ...p, on: !p.on } : p)))
+  const move = (key: string, dir: -1 | 1) =>
+    setDraft(prev => {
+      const i = prev.findIndex(p => p.key === key)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= prev.length) return prev
+      const next = [...prev]
+      ;[next[i], next[j]] = [next[j], next[i]]
+
+      return next
+    })
+
+  const moverSx = (disabled: boolean) => ({
+    width: 32,
+    height: 32,
+    flexShrink: 0,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: '50%',
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.25 : 1,
+    '&:hover': disabled ? {} : { backgroundColor: c.Surface }
+  })
+
+  return (
+    <SheetDrawer open={open} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
+      <Sheet>
+        <SheetHeader
+          title={title}
+          stats={[{ label: 'Shown', value: draft.filter(p => p.on).length }]}
+          onClose={onClose}
+        />
+        <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
+          {draft.map((p, i) => (
+            <Box
+              key={p.key}
+              onClick={() => toggle(p.key)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                py: 2,
+                borderBottom: i === draft.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+                cursor: 'pointer',
+                borderRadius: '10px',
+                '&:hover': { backgroundColor: c.Surface }
+              }}
+            >
+              <Checkbox
+                checked={p.on}
+                onChange={() => toggle(p.key)}
+                onClick={e => e.stopPropagation()}
+                sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
+              />
+              <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant, fontWeight: p.on ? 600 : 400 }} noWrap>
+                {labels[p.key] ?? p.key}
+              </Typography>
+              {/* order movers — arrows beat drag on glass (fat-finger safe) */}
+              <Box
+                aria-label='Move up'
+                onClick={e => {
+                  e.stopPropagation()
+                  move(p.key, -1)
+                }}
+                sx={moverSx(i === 0)}
+              >
+                <Icon icon='mdi:arrow-up' fontSize={18} color={c.OnSurfaceVariant} />
+              </Box>
+              <Box
+                aria-label='Move down'
+                onClick={e => {
+                  e.stopPropagation()
+                  move(p.key, 1)
+                }}
+                sx={moverSx(i === draft.length - 1)}
+              >
+                <Icon icon='mdi:arrow-down' fontSize={18} color={c.OnSurfaceVariant} />
+              </Box>
+            </Box>
+          ))}
+        </Box>
+        {/* footer — the standard staged pair: Reset returns the DEFAULT set, Apply commits */}
+        <Box sx={{ display: 'flex', gap: 2, px: SHEET_PX, py: 3, borderTop: `1px solid ${skin.HAIR}`, flexShrink: 0, backgroundColor: '#ffffff' }}>
+          <Button
+            size='large'
+            fullWidth
+            color='inherit'
+            onClick={() => setDraft(defaults.map(d => ({ ...d })))}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: '999px',
+              color: skin.INK2,
+              border: `1px solid ${skin.TRACK}`,
+              ...skin.cardPressSx,
+              '&:hover': { bgcolor: skin.ROW_HOVER }
+            }}
+          >
+            Reset Default
+          </Button>
+          <Button
+            size='large'
+            fullWidth
+            variant='contained'
+            disableElevation
+            onClick={() => {
+              onApply(draft)
+              onClose()
+            }}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: '999px',
+              color: '#ffffff',
+              bgcolor: skin.LIST_GREEN,
+              ...skin.cardPressSx,
+              '&:hover': { bgcolor: skin.ACCENT_INK, color: '#ffffff' }
+            }}
+          >
+            Apply
+          </Button>
+        </Box>
+      </Sheet>
+    </SheetDrawer>
   )
 }
 
