@@ -275,15 +275,19 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       sortable: false,
       field: 'name',
       headerName: 'Enclosure',
-      // Enclosure name with its site in small faint type beneath — the site-below-enclosure rule.
+      // Site in faint type beneath the enclosure ONLY while the list spans >1 site
+      // (the platform site-row rule; user call 2026-09-05) — one selected site (or a
+      // single-site species) already names it, so the sub-line goes.
       renderCell: p => (
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
           <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
             {p.row.name}
           </Typography>
-          <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
-            {p.row.site}
-          </Typography>
+          {!site && siteNames.length > 1 && (
+            <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
+              {p.row.site}
+            </Typography>
+          )}
         </Box>
       )
     },
