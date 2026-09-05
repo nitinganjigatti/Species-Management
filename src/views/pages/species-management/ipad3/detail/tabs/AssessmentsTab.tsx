@@ -196,17 +196,26 @@ const useCell = () => {
     )
   }
 
-  /** Value pill + unit + inline line sparkline — the prototype's "Weight/BCS Trend" cell. */
+  /** Value pill + unit + inline line sparkline — the prototype's "Weight/BCS Trend" cell.
+   *  `sub` (user call 2026-09-05): the last-assessed date rides BELOW the value pill. */
   const trendSparkCell = (
     valueLabel: React.ReactNode,
     unit: string | undefined,
     spark: number[],
     tone: 'up' | 'down' | 'flat' | 'info',
-    valueColor?: string
+    valueColor?: string,
+    sub?: React.ReactNode
   ) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: '100%', minWidth: 0 }}>
-      <Box sx={{ px: 1.5, py: 0.5, borderRadius: '8px', backgroundColor: skin.ROW_LINE, flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '1.0625rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: valueColor || skin.VALUE }}>{valueLabel}</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5, flexShrink: 0 }}>
+        <Box sx={{ px: 1.5, py: 0.5, borderRadius: '8px', backgroundColor: skin.ROW_LINE }}>
+          <Typography sx={{ fontSize: '1.0625rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: valueColor || skin.VALUE }}>{valueLabel}</Typography>
+        </Box>
+        {sub && (
+          <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }} noWrap>
+            {sub}
+          </Typography>
+        )}
       </Box>
       {unit && (
         <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: skin.FAINT, flexShrink: 0 }}>
@@ -271,11 +280,11 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
           enclosure: a.enclosure,
           gender: a.gender,
           weight: a.latestWeight ?? null,
+          weightDate: a.latestWeightDate || '',
           bcs: a.latestBcs != null ? Number(a.latestBcs) : null,
           trend,
           vol,
-          records: a.assessmentCount ?? 0,
-          lastDate: a.latestWeightDate || a.latestBcsDate || ''
+          records: a.assessmentCount ?? 0
         }
       }),
     [animals]
@@ -297,10 +306,26 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
       minWidth: 380,
       renderCell: p => animalCardCell(p.row, showCardSite)
     },
-    { field: 'weight', headerName: 'Weight', flex: 0.5, minWidth: 140, renderCell: p => txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600) },
+    {
+      field: 'weight',
+      headerName: 'Weight',
+      flex: 0.6,
+      minWidth: 160,
+      // last-assessed date BELOW the weight (user call 2026-09-05) — replaces the
+      // standalone Last Assessed column.
+      renderCell: p => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
+          {txt(p.row.weight != null ? p.row.weight.toLocaleString() : '—', undefined, 600)}
+          {p.row.weight != null && p.row.weightDate && (
+            <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }} noWrap>
+              {fmtDate(p.row.weightDate)}
+            </Typography>
+          )}
+        </Box>
+      )
+    },
     { field: 'bcs', headerName: 'BCS', flex: 0.4, minWidth: 104, renderCell: p => txt(p.row.bcs != null ? p.row.bcs : '—', p.row.bcs != null ? bcsColor(p.row.bcs) : c.neutralSecondary, 600) },
-    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) },
-    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
+    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) }
   ]
 
   return (
@@ -502,11 +527,19 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
       renderCell: p => {
         const w = fmtWt(p.row.weight)
 
-        return trendSparkCell(w.n, w.u, p.row.spark, p.row.trend == null ? 'flat' : p.row.trend >= 0 ? 'up' : 'down')
+        // last-assessed date BELOW the weight (user call 2026-09-05) — the standalone
+        // Last Assessed column retired with it.
+        return trendSparkCell(
+          w.n,
+          w.u,
+          p.row.spark,
+          p.row.trend == null ? 'flat' : p.row.trend >= 0 ? 'up' : 'down',
+          undefined,
+          p.row.lastDate ? fmtDate(p.row.lastDate) : undefined
+        )
       }
     },
-    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) },
-    { field: 'lastDate', headerName: 'Last Assessed', flex: 0.6, minWidth: 180, renderCell: p => <CellText noWrap color={c.neutralSecondary}>{fmtDate(p.row.lastDate)}</CellText> }
+    { field: 'trend', headerName: 'Overall %', flex: 0.5, minWidth: 150, renderCell: p => trendCell(p.row.trend) }
   ]
 
   const gaining = data.filter(d => d.trend != null && d.trend > 1)
