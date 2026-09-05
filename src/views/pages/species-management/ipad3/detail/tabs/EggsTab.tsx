@@ -5,78 +5,67 @@ import { Box, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import type { SpeciesEggs } from 'src/types/species-management/detail'
+import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import {
   AnimalIdCard,
-  ChartHoverCard,
   HeroPhotoContext,
   synthAnimalIdentity,
+  ControlsRow,
   DetailTable,
   EmptyState,
+  SearchPill,
   SectionCard,
-  SeasonalColumnChart,
   Sheet,
   SheetEmpty,
   SheetHeader,
   SheetSection,
   SHEET_PX,
   sheetPaperSx,
-  StatTile,
   StatusChip,
   TrendAreaChart,
+  YearLinesChart,
   ListSheet,
   SheetDrawer,
   thinScrollbarSx
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { ListRow, SheetView } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import { SiteFilterControl, TableSearch } from 'src/views/pages/species-management/ipad3/detail/tabs/MedicalTab'
+import type { ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
+import { SiteFilterControl } from 'src/views/pages/species-management/ipad3/detail/tabs/MedicalTab'
 import { getFemaleDetail } from 'src/lib/api/species-management/breeding-eggs'
-import type { EggFate, FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
+import type { FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
 
 /* ============================================================ breeding analytics (top zone) */
 
-/** Plain proportion bar — no target tick; targets were rejected (2026-07-30 review). */
-const PlainBar: React.FC<{ pct: number }> = ({ pct }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
-  return (
-    <Box sx={{ position: 'relative', height: 9, width: 92, borderRadius: 5, bgcolor: c.Surface, border: `1px solid ${c.SurfaceVariant}` }}>
-      <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 5, width: `${Math.min(100, pct)}%`, bgcolor: theme.palette.primary.main }} />
-    </Box>
-  )
-}
-
-/** Clutch-bar sparkline: one bar per clutch, height = egg count. */
+/** Clutch-bar sparkline: one bar per clutch, height = egg count ("egg count per clutch"). */
 const ClutchBars: React.FC<{ sizes: number[] }> = ({ sizes }) => {
-  const theme = useTheme() as any
   const max = Math.max(1, ...sizes)
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 22 }}>
       {sizes.map((s, i) => (
-        <Box key={i} sx={{ width: 6, borderRadius: '1px 1px 0 0', bgcolor: theme.palette.secondary.main, opacity: 0.85, height: `${Math.max(14, (s / max) * 100)}%` }} />
+        <Box key={i} sx={{ width: 6, borderRadius: '1px 1px 0 0', bgcolor: skin.ACCENT_FILL, opacity: 0.85, height: `${Math.max(14, (s / max) * 100)}%` }} />
       ))}
     </Box>
   )
 }
 
-/** Egg-fate dot — hatched green, infertile grey, discarded (died in shell / cracked) coral (2026-08-05). */
-const fateColor = (f: EggFate, theme: any) => {
-  const c = cc(theme)
-
-  return f === 'hatched' ? theme.palette.primary.main : f === 'infertile' ? c.OutlineVariant : f === 'incubating' ? theme.palette.secondary.main : c.Tertiary
-}
-
 const MONTH_L = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+// dd MMM yyyy — the module's hard date rule.
+const fmtD = (iso?: string) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+
+  return isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 
 /* ------------------------------------------------------ drill sheets (every stat opens one) */
 
 type SheetSpec =
   | { kind: 'fertility' }
-  | { kind: 'hatchOfFertile' }
   | { kind: 'eggsByFemale' }
   | { kind: 'femalesLaid' }
   | { kind: 'month'; m: number }
@@ -85,59 +74,7 @@ type SheetSpec =
 // ListRow / SheetView / ListSheet were promoted to detailUi (2026-08-07) — one generic
 // list sheet for every tab; imported above.
 
-/** The season month by month — laid › fertile › hatched NESTED in one column per month.
- *  A thick light band = infertile eggs that month (pairing problem); a thick middle band =
- *  fertile eggs that died (incubation problem). Click a month for its detail. */
-const NestedSeasonChart: React.FC<{ s: SpeciesFunnel; onMonth: (m: number) => void }> = ({ s, onMonth }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-  const max = Math.max(1, ...s.monthlyLaid)
-  const H = 220
-  const px = (v: number) => Math.round((v / max) * (H - 10))
-  const layers = (m: number) => [
-    { v: s.monthlyLaid[m], col: `${theme.palette.primary.main}26` },
-    { v: s.monthlyFertile[m], col: `${theme.palette.primary.main}99` },
-    { v: s.monthlyHatched[m], col: theme.palette.primary.main }
-  ]
-
-  return (
-    <Box sx={{ display: 'flex', gap: 1.5, height: H + 30 }}>
-      {MONTH_L.map((ml, m) => (
-        <ChartHoverCard
-          key={ml}
-          title={ml}
-          disabled={s.monthlyLaid[m] === 0}
-          rows={layers(m).map((b, i) => ({ color: b.col, label: ['Laid', 'Fertile', 'Hatched'][i], value: b.v.toLocaleString() }))}
-        >
-          <Box
-            onClick={() => s.monthlyLaid[m] > 0 && onMonth(m)}
-            sx={{
-              flex: 1,
-              position: 'relative',
-              borderRadius: '6px 6px 0 0',
-              cursor: s.monthlyLaid[m] > 0 ? 'pointer' : 'default',
-              '&:hover': s.monthlyLaid[m] > 0 ? { backgroundColor: `${theme.palette.primary.main}0D` } : undefined
-            }}
-          >
-            {layers(m).map((b, i) =>
-              b.v > 0 ? (
-                <Box
-                  key={i}
-                  sx={{ position: 'absolute', left: '16%', right: '16%', bottom: 30, height: Math.max(3, px(b.v)), borderRadius: '4px 4px 0 0', backgroundColor: b.col }}
-                />
-              ) : null
-            )}
-            <Typography sx={{ position: 'absolute', bottom: 2, left: 0, right: 0, textAlign: 'center', fontSize: 14, color: c.neutralSecondary }}>
-              {ml}
-            </Typography>
-          </Box>
-        </ChartHoverCard>
-      ))}
-    </Box>
-  )
-}
-
-/** Per-female detail drawer (L3): clutch-by-clutch, monthly, egg weight-loss vs ideal corridor. */
+/** Per-female detail drawer (L3): clutch-by-clutch, monthly rhythm, egg weight-loss corridor. */
 const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: FemaleRow | null; onClose: () => void }> = ({ speciesId, className, row, onClose }) => {
   const theme = useTheme() as any
   const c = cc(theme)
@@ -162,6 +99,7 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
   }, [row, speciesId, className])
 
   const wt = detail?.weightTrack
+  const seasonYear = new Date().getFullYear()
 
   return (
     <SheetDrawer open={!!row} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
@@ -173,7 +111,8 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
             stats={[
               { label: 'Eggs', value: row.eggs },
               { label: 'Clutches', value: row.clutches },
-              { label: 'Hatched', value: `${row.hatched} • ${row.hatchPct}%` }
+              // hatch outcome is a COUNT, never a percentage (demo review 2026-09-04)
+              { label: 'Hatched', value: `${row.hatched} of ${row.eggs}` }
             ]}
             onClose={onClose}
           />
@@ -182,21 +121,9 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
               <SheetEmpty>Loading…</SheetEmpty>
             ) : (
               <>
-                <SheetSection first>
-                  {/* the legend leads — it is the section's key, not a trailing row item.
-                      three fates only — died-in-shell / cracked read as one "Discarded" (2026-08-05) */}
-                  <Box sx={{ display: 'flex', gap: 4, pb: 1, fontSize: 14, color: c.neutralSecondary }}>
-                    {[
-                      ['Hatched', theme.palette.primary.main],
-                      ['Infertile', c.OutlineVariant],
-                      ['Discarded', c.Tertiary]
-                    ].map(([lbl, col]) => (
-                      <Box key={lbl as string} sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 11, height: 13, borderRadius: '50%', bgcolor: col as string }} />
-                        {lbl}
-                      </Box>
-                    ))}
-                  </Box>
+                {/* Clutch view SIMPLIFIED (demo review 2026-09-04): clutch + egg count,
+                    hatch outcome as "2 of 3" — the per-egg fate dots and legend retired. */}
+                <SheetSection first label='Clutches'>
                   {detail.clutches.map((cl, ci) => (
                     <Box
                       key={cl.clutchId}
@@ -204,27 +131,28 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
                         display: 'flex',
                         alignItems: 'center',
                         gap: 3,
-                        py: 4,
+                        py: 3.5,
                         borderBottom: ci < detail.clutches.length - 1 ? `0.5px solid ${c.OutlineVariant}` : 'none'
                       }}
                     >
-                      <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', flex: 'none' }}>
-                        {cl.clutchId}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
-                        {cl.fates.map((f, i) => (
-                          <Box key={i} sx={{ width: 12, height: 15, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', bgcolor: fateColor(f, theme) }} />
-                        ))}
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                          {cl.clutchId}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+                          {fmtD(cl.laidDate)} • {cl.size} {cl.size === 1 ? 'egg' : 'eggs'}
+                        </Typography>
                       </Box>
-                      <Typography sx={{ ml: 'auto', fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                        {cl.size} • {cl.hatched} hatched
+                      <Typography sx={{ ml: 'auto', fontSize: '1rem', fontWeight: 600, color: cl.hatched === 0 ? c.neutralSecondary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                        {cl.hatched} of {cl.size} hatched
                       </Typography>
                     </Box>
                   ))}
                 </SheetSection>
 
+                {/* seasonal chart = the kit year-per-line LINE (one season here = one line) */}
                 <SheetSection label='Monthly Laying Rhythm'>
-                  <SeasonalColumnChart scroll values={detail.monthly} labels={detail.monthlyLabels} color={theme.palette.secondary.main} name='Eggs laid' height={200} />
+                  <YearLinesChart series={[{ year: seasonYear, values: detail.monthly }]} accent={skin.ACCENT_FILL} noun='eggs' height={220} />
                 </SheetSection>
 
                 {wt && (
@@ -255,10 +183,9 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
   )
 }
 
-/** The whole breeding-analytics zone that sits ABOVE the operational egg list. */
+/** The whole breeding-analytics zone — the tab's body. */
 
-
-const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s }) => {
+const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { grams: number; n: number } }> = ({ breeding: s, avgEggWeight }) => {
   const theme = useTheme() as any
   const c = cc(theme)
 
@@ -286,7 +213,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     setPm(p => ({ ...p, page: 0 }))
   }
   const clutchTotal = s.females_rows.reduce((t, f) => t + f.clutches, 0)
-  const laidPct = s.totalFemales ? Math.round((s.laidFemales / s.totalFemales) * 100) : 0
 
   /* per-female roster — tab (all / laid nothing) + site + search scope the same table */
   const roster = useMemo(() => {
@@ -336,6 +262,15 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
 
     return { label: `${MONTH_L[best.i]}–${MONTH_L[(best.i + 2) % 12]}`, pct: Math.round((best.sum / total) * 100) }
   }, [s.monthlyLaid]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* seasonal laying = the kit YearLinesChart (LINE, year-per-line, Jan–Dec — the
+     2026-09-04 standard). The funnel carries monthly LAID counts for the current
+     season only, so the ladder holds one line; more seasons join as the data grows. */
+  const seasonYear = Number(s.season) || new Date().getFullYear()
+  const layingSeries: YearSeries[] = useMemo(
+    () => [{ year: seasonYear, values: s.monthlyLaid }],
+    [seasonYear, s.monthlyLaid]
+  )
 
   const prevPill = (f: FemaleRow) => {
     if (!f.laid) return <StatusChip label='No eggs this season' tone='neutral' />
@@ -402,20 +337,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
           ],
           // no % in sheet rows (2026-08-05) — the count pair is enough; coral ONLY for total failure
           rows: list.map(f => row(f, ms, trail(`${f.fertile} of ${f.eggs}`, f.fertile === 0)))
-        }
-      }
-      case 'hatchOfFertile': {
-        const list = layers.filter(f => f.fertile > 0).sort((a, b) => a.hatched / a.fertile - b.hatched / b.fertile)
-        const ms = multiSite(list)
-
-        return {
-          title: 'Hatch of Fertile by Female',
-          icon: 'mdi:egg-outline',          stats: [
-            { label: 'Hatched', value: `${s.hatched} of ${s.fertile} fertile` },
-            { label: 'Rate', value: `${s.hatchOfFertilePct}%` }
-          ],
-          // no % in sheet rows (2026-08-05) — the count pair is enough; coral ONLY for total failure
-          rows: list.map(f => row(f, ms, trail(`${f.hatched} of ${f.fertile}`, f.hatched === 0)))
         }
       }
       case 'eggsByFemale': {
@@ -562,17 +483,17 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
       )
     },
     {
-      minWidth: 180,
-      flex: 1.1,
+      // hatch outcome = a COUNT pair, never a percentage (demo review 2026-09-04)
+      minWidth: 140,
+      flex: 0.9,
       sortable: false,
-      field: 'hatchPct',
-      headerName: 'Hatch %',
+      field: 'hatched',
+      headerName: 'Hatched',
       renderCell: (p: GridRenderCellParams) =>
         p.row.eggs ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <PlainBar pct={p.row.hatchPct} />
-            <Typography sx={{ fontSize: '1rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{p.row.hatchPct}%</Typography>
-          </Box>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            {p.row.hatched} of {p.row.eggs}
+          </Typography>
         ) : (
           <Typography sx={{ fontSize: '1rem', color: c.neutralSecondary }}>—</Typography>
         )
@@ -619,119 +540,87 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
     </Box>
   )
 
-  /* ── the merged hero — FOUR soft stat tiles (2026-08-10): the old 5-cell strip and the
-     outcome-tiles section became ONE section in the soft-tile UI. Hatched • Fertility •
-     Females Laid • Died Developing; every tile opens its sheet. Whisper tint, the icon
-     chip carries the color, numbers stay ink. No green hues except Hatched's light-green
-     BG token (user, 2026-08-10) — the chart below owns the solid green. */
-  const died = s.failureSplit.deadInShell + s.failureSplit.earlyCracked
-  const outPct = (n: number) => (s.laid ? Math.round((n / s.laid) * 100) : 0)
-  const pctSpan = (txt: string) => (
-    <Box component='span' sx={{ fontSize: 17, fontWeight: 700, color: c.neutralSecondary, ml: 1.75 }}>
-      {txt}
-    </Box>
-  )
-  const heroTiles: { key: string; label: string; color: string; colorDeep?: string; colorBg?: string; icon: string; value: React.ReactNode; sub: React.ReactNode; open: () => void }[] = [
+  /* ── the headline strip = the standard SignalsBand (demo review 2026-09-04): Laid ·
+     Fertile · Hatched stay; the Fertility-% and Died-Developing stats are RETIRED; Avg
+     Egg Weight (from the weighed egg records) and Females (laying females) join. Counts
+     are plain volume/growth figures — neutral warm ink, Hatched in the list green;
+     zeros go quiet on their own. Every live cell opens its drill sheet. ── */
+  const bandCells = [
+    {
+      key: 'laid',
+      label: 'Laid',
+      count: s.laid,
+      tone: 'neutral' as const,
+      hint: `${clutchTotal} clutches • avg ${s.avgClutchSize}`,
+      onOpen: () => setSheet({ kind: 'eggsByFemale' })
+    },
+    {
+      key: 'fertile',
+      label: 'Fertile',
+      count: s.fertile,
+      tone: 'neutral' as const,
+      hint: `of ${s.laid} laid`,
+      onOpen: () => setSheet({ kind: 'fertility' })
+    },
     {
       key: 'hatched',
       label: 'Hatched',
-      // light-green tile: the style guide's green BG token (OnBackground) — the pale
-      // PrimaryContainer hue vanished at the alpha-tint derivation. Chip = standard green.
-      color: theme.palette.primary.main,
-      colorBg: c.OnBackground,
-      colorDeep: theme.palette.primary.dark,
-      icon: 'mdi:egg-outline',
-      value: (
-        <>
-          {s.hatched}
-          {pctSpan(`• ${outPct(s.hatched)}%`)}
-        </>
-      ),
-      sub: `of ${s.laid} laid`,
-      open: () => setSheet({ kind: 'outcome', outcome: 'hatched' })
+      count: s.hatched,
+      tone: 'good' as const,
+      hint: `of ${s.fertile} fertile`,
+      onOpen: () => setSheet({ kind: 'outcome', outcome: 'hatched' })
     },
+    ...(avgEggWeight
+      ? [
+          {
+            key: 'avgWeight',
+            label: 'Avg Egg Weight',
+            count: avgEggWeight.n,
+            display: `${avgEggWeight.grams} g`,
+            tone: 'neutral' as const,
+            hint: `across ${avgEggWeight.n} weighed ${avgEggWeight.n === 1 ? 'egg' : 'eggs'}`
+          }
+        ]
+      : []),
     {
-      key: 'fertility',
-      label: 'Fertility',
-      color: c.antzInfo60,
-      icon: 'mdi:heart-outline',
-      value: `${s.fertilityPct}%`,
-      sub: (
-        <>
-          <b>{s.fertile}</b> of {s.laid} fertile
-        </>
-      ),
-      open: () => setSheet({ kind: 'fertility' })
-    },
-    {
-      key: 'femalesLaid',
-      label: 'Females Laid',
-      color: c.moderateSecondary,
-      icon: 'mdi:gender-female',
-      value: (
-        <>
-          {s.laidFemales}/{s.totalFemales}
-          {pctSpan(`• ${laidPct}%`)}
-        </>
-      ),
-      sub: (
-        <Box component='span' sx={{ color: s.neverLaid ? c.Tertiary : undefined, fontWeight: s.neverLaid ? 600 : undefined }}>
-          {s.neverLaid} laid nothing
-        </Box>
-      ),
-      open: () => {
+      key: 'females',
+      label: 'Females',
+      count: s.laidFemales,
+      display: `${s.laidFemales} of ${s.totalFemales}`,
+      tone: 'neutral' as const,
+      hint: `${s.neverLaid} laid nothing`,
+      onOpen: () => {
         setFemTab('laid')
         setSheet({ kind: 'femalesLaid' })
       }
-    },
-    {
-      key: 'died',
-      label: 'Died Developing',
-      color: c.Tertiary,
-      colorDeep: c.TertiaryDark,
-      icon: 'mdi:egg-off-outline',
-      value: (
-        <>
-          {died}
-          {pctSpan(`• ${outPct(died)}%`)}
-        </>
-      ),
-      sub: 'review incubation',
-      open: () => setSheet({ kind: 'outcome', outcome: 'died' })
     }
   ]
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* ── ZONE 1 · the season at a glance — four soft stat tiles, every tile opens a sheet ── */}
-      <SectionCard>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 4 }}>
-          {heroTiles.map(t => (
-            <StatTile key={t.key} soft icon={t.icon} color={t.color} colorDeep={t.colorDeep} colorBg={t.colorBg} label={t.label} value={t.value} sub={t.sub} onClick={t.open} />
-          ))}
-        </Box>
-      </SectionCard>
+      {/* ── ZONE 1 · the season at a glance — ONE white SignalsBand card ── */}
+      <SignalsBand cells={bandCells} />
 
-      {/* ── ZONE 2 · the season, month by month — laid › fertile › hatched nested ── */}
-      <SectionCard title='Laid › Fertile › Hatched — Month by Month' titleMb={3}>
-        <NestedSeasonChart s={s} onMonth={m => setSheet({ kind: 'month', m })} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, mt: 3, flexWrap: 'wrap' }}>
-          {[
-            { l: 'Laid', col: `${theme.palette.primary.main}26` },
-            { l: 'Fertile', col: `${theme.palette.primary.main}99` },
-            { l: 'Hatched', col: theme.palette.primary.main }
-          ].map(lg => (
-            <Box key={lg.l} sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ width: 14, height: 14, borderRadius: '4px', backgroundColor: lg.col }} />
-              <Typography sx={{ fontSize: 15, color: c.OnSurfaceVariant }}>{lg.l}</Typography>
-            </Box>
-          ))}
-          {peak && (
-            <Typography sx={{ fontSize: 15, color: c.neutralSecondary, ml: 'auto' }}>
-              Peak <b style={{ color: c.OnSurfaceVariant }}>{peak.label}</b> • {peak.pct}% of the season's eggs
-            </Typography>
-          )}
-        </Box>
+      {/* ── ZONE 2 · seasonal laying — kit YearLinesChart (LINE, year-per-line, Jan–Dec) ── */}
+      <SectionCard title='Eggs Laid — Month by Month' titleMb={3}>
+        {s.laid === 0 ? (
+          <EmptyState message='No eggs laid this season.' />
+        ) : (
+          <>
+            <YearLinesChart
+              series={layingSeries}
+              accent={skin.ACCENT_FILL}
+              noun='eggs'
+              onPoint={(_y, m) => s.monthlyLaid[m] > 0 && setSheet({ kind: 'month', m })}
+            />
+            {peak && (
+              <Typography sx={{ fontSize: 15, color: c.neutralSecondary, mt: 1 }}>
+                Peak <b style={{ color: c.OnSurfaceVariant }}>{peak.label}</b> • {peak.pct}% of the season's eggs — tap a month for its
+                fertile / hatched breakup
+              </Typography>
+            )}
+          </>
+        )}
       </SectionCard>
 
       {/* ── the losses: every discard reason as a tag — reason + egg count, nothing else ── */}
@@ -750,7 +639,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
                 borderRadius: '20px',
                 border: `1px solid ${c.OutlineVariant}`,
                 cursor: 'pointer',
-                transition: 'all .15s ease',
+                transition: `all ${skin.DUR_FAST} ${skin.EASE}`,
                 '&:hover': { borderColor: theme.palette.primary.dark, backgroundColor: c.Surface }
               }}
             >
@@ -765,7 +654,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
 
       {/* ── per-female performance — tabbed table (vaccination pattern): tabs in the title,
           site dropdown + search in the action slot. Landscape: one row. Portrait: tabs row,
-          then full-width search up to the right-aligned site filter. ── */}
+          then ONE scrolling controls row (the ControlsRow rule — never a wrapped second line). ── */}
       {(() => {
         const siteFilterCtl = (
           <SiteFilterControl
@@ -778,14 +667,14 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
             caption={(x: any) => `${x.n} females`}
           />
         )
-        const searchCtl = <TableSearch value={q} onChange={setQ} placeholder='Search females…' grow={portrait} />
+        const searchCtl = <SearchPill elastic value={q} onChange={setQ} placeholder='Search females…' />
         const stackedHeader = (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
             {rosterTabs}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <ControlsRow>
               {searchCtl}
               {siteFilterCtl}
-            </Box>
+            </ControlsRow>
           </Box>
         )
 
@@ -794,10 +683,10 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
         title={portrait ? stackedHeader : rosterTabs}
         action={
           portrait ? undefined : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <ControlsRow sx={{ width: 'auto', flex: '1 1 auto', justifyContent: 'flex-end', ml: 3, maxWidth: 520 }}>
               {siteFilterCtl}
               {searchCtl}
-            </Box>
+            </ControlsRow>
           )
         }
         titleMb={2}
@@ -822,15 +711,28 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel }> = ({ breeding: s 
   )
 }
 
-/* ---------------------------------------------------------------- section divider heading */
+/* ---------------------------------------------------------------- the tab */
 const EggsTab: React.FC<{ eggs?: SpeciesEggs; breeding?: SpeciesFunnel | null }> = ({ eggs, breeding }) => {
   // Operational egg list removed (user, 2026-08-10) — the tab IS the breeding analytics zone.
   const isEggLayer = !!breeding || !!eggs?.isEggLayer
+
+  // Avg egg weight — derived from the weighed egg records (SpeciesEgg.weight, grams).
+  const avgEggWeight = useMemo(() => {
+    const ws = (eggs?.eggs ?? []).map(e => e.weight).filter((w): w is number => typeof w === 'number' && w > 0)
+    if (!ws.length) return undefined
+
+    return { grams: Math.round((ws.reduce((a, b) => a + b, 0) / ws.length) * 10) / 10, n: ws.length }
+  }, [eggs])
+
   if (!isEggLayer) return <EmptyState message='Eggs are tracked for egg-laying species only.' />
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {breeding ? <BreedingAnalytics breeding={breeding} /> : <EmptyState message='No breeding data recorded for this species.' />}
+      {breeding ? (
+        <BreedingAnalytics breeding={breeding} avgEggWeight={avgEggWeight} />
+      ) : (
+        <EmptyState message='No breeding data recorded for this species.' />
+      )}
     </Box>
   )
 }
