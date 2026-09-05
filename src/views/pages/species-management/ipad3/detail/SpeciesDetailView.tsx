@@ -326,6 +326,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
       sx={{
         borderTop: `1px solid ${skin.HAIR}`,
         px: '22px', // aligns the first label with the track's first tab label (6px track pad + 16px tab pad)
+        py: '6px', // breathing room matching the main track's height (user call 2026-09-05)
         display: 'flex',
         overflowX: 'auto',
         scrollbarWidth: 'none',
