@@ -34,6 +34,7 @@ import {
   VBarChart
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
+import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 import { resolveRange, type RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
 
 /* ------------------------------------------------------------------ helpers */
@@ -76,7 +77,8 @@ const axisDate = (d: string): string => {
 }
 
 // StatChip (dot + 22px count) retired 2026-09-05 (user call: "stat strip is not as per
-// our standard") — headline strips are the kit StatTile in a TileGrid, like every tab.
+// our standard") — headline strips are the StatBand anatomy (SignalsBand: one white
+// card, hairline dividers, caps label over the toned figure), like Medical/Hospital.
 
 /** Bucket a numeric type's animals into ~6 ranges for a distribution histogram (+ drill items). */
 const bucketize = (animals: { id: string; name?: string; value: number }[], nb = 6) => {
@@ -514,12 +516,14 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <TileGrid>
-        <StatTile label='Assessed' value={data.length} />
-        <StatTile label='Gaining' value={gaining.length} tone='success' />
-        <StatTile label='Declining' value={declining.length} tone='error' />
-        <StatTile label='Stable' value={stable.length} />
-      </TileGrid>
+      <SignalsBand
+        cells={[
+          { key: 'assessed', label: 'Assessed', count: data.length, tone: 'neutral' },
+          { key: 'gaining', label: 'Gaining', count: gaining.length, tone: 'good' },
+          { key: 'declining', label: 'Declining', count: declining.length },
+          { key: 'stable', label: 'Stable', count: stable.length, tone: 'neutral' }
+        ]}
+      />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {a.weightDistribution?.length ? (
           <SectionCard title='Weight Distribution'>
@@ -629,13 +633,15 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <TileGrid>
-        {noBcs > 0 && <StatTile label='No BCS Records' value={noBcs} tone='error' />}
-        {over.length > 0 && <StatTile label='Overweight' value={over.length} sub='BCS > 3.5' />}
-        {under.length > 0 && <StatTile label='Underweight' value={under.length} sub='BCS < 2.5' tone='error' />}
-        <StatTile label='Improved' value={improved.length} sub='toward ideal' tone='success' />
-        <StatTile label='Declined' value={declined.length} sub='from ideal' tone='warning' />
-      </TileGrid>
+      <SignalsBand
+        cells={[
+          ...(noBcs > 0 ? [{ key: 'nobcs', label: 'No BCS Records', count: noBcs }] : []),
+          ...(over.length > 0 ? [{ key: 'over', label: 'Overweight', count: over.length, tone: 'neutral' as const, hint: 'BCS > 3.5' }] : []),
+          ...(under.length > 0 ? [{ key: 'under', label: 'Underweight', count: under.length, hint: 'BCS < 2.5' }] : []),
+          { key: 'improved', label: 'Improved', count: improved.length, tone: 'good' as const, hint: 'toward ideal' },
+          { key: 'declined', label: 'Declined', count: declined.length, hint: 'from ideal' }
+        ]}
+      />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {a.bcsDistribution?.length ? (
           <SectionCard title='BCS Distribution'>
