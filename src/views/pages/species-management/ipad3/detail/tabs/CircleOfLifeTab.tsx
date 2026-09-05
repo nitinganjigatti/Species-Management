@@ -33,6 +33,7 @@ import {
   ListSheet,
   synthAnimalIdentity,
   ViewToggle,
+  YearLinesChart,
   sheetPaperSx,
   SHEET_PX,
   SheetDrawer,
@@ -41,7 +42,7 @@ import {
   SelectChevron,
   TrendRangeTabs
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { ListRow, SheetView } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import DashboardDateRange, {
   resolveRange,
   type RangePreset,
@@ -283,23 +284,6 @@ const fmtYm = (k: string) => {
 /** Trend series for the chart: bounded year-presets get a contiguous zero-filled month
  *  window (prototype's _buildLastNMonths); everything else shows the months that have data.
  *  `key` keeps the raw "YYYY-MM" so a clicked point can filter the day-level events. */
-const trendMonths = (byYearMonth: { label: string; value: number }[], preset: RangePreset) => {
-  const n = preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : preset === 'last_3y' ? 36 : null
-  // HARD RULE (2026-08-27): the trend pair shows the LATEST 12 bars, whatever the preset —
-  // All-time = the last 12 months holding data; presets window first, then cap.
-  if (!n) return byYearMonth.map(d => ({ label: fmtYm(d.label), value: d.value, key: d.label })).slice(-12)
-
-  const map = new Map(byYearMonth.map(d => [d.label, d.value]))
-  const now = new Date()
-  const out: { label: string; value: number; key: string }[] = []
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    out.push({ label: fmtYm(k), value: map.get(k) || 0, key: k })
-  }
-
-  return out.slice(-12)
-}
 
 // Section header — uppercase eyebrow with an optional right-side action (e.g. the shared trend-range tabs).
 const SectionHeader: React.FC<{ title: string; sub?: string; action?: React.ReactNode }> = ({ title, sub, action }) => {
@@ -322,18 +306,21 @@ const SectionHeader: React.FC<{ title: string; sub?: string; action?: React.Reac
 }
 
 // One trend-chart card — used on both sides of the Births vs Deaths comparison row.
-const TrendCard: React.FC<{
+/* ── Births/Deaths Over Time — THE year-per-line line-graph standard (demo review
+   2026-09-04): kit YearLinesChart, one line per calendar year (<=5, capped upstream),
+   Jan-Dec axis w/ no year in the labels, tap = pinned year-wise tooltip, dot tap =
+   that year-month's records sheet. ── */
+const YearLinesCard: React.FC<{
   title: string
-  trend: { label: string; value: number }[]
-  color: string
-  name: string
+  series: YearSeries[]
+  accent: string
+  noun: string
   empty: string
-  /** Point click → that month's records sheet (index into `trend`). */
-  onPoint?: (index: number) => void
-}> = ({ title, trend, color, name, empty, onPoint }) => {
-  const nonzero = trend.filter(d => d.value > 0)
+  onPoint?: (year: number, monthIdx: number) => void
+}> = ({ title, series, accent, noun, empty, onPoint }) => {
+  const cells = series.flatMap(sr => sr.values.filter(v => v > 0))
 
-  if (!trend.length || !nonzero.length) {
+  if (!cells.length) {
     return (
       <SectionCard title={title}>
         <EmptyState message={empty} />
@@ -341,99 +328,27 @@ const TrendCard: React.FC<{
     )
   }
 
-  // Sparse guard (stakeholder call 2026-08-27): most species hold a handful of events —
-  // a one-dot chart says nothing, so under 3 populated points the events print as plain
-  // figures instead of a graph. The chart itself is UNCHANGED from the approved version —
-  // the same area trend (condensed two-line axis, handles all-time month series).
-  if (nonzero.length < 3) {
+  // Sparse guard (stakeholder call 2026-08-27): under 3 populated points the events
+  // print as plain figures — a one-dot chart says nothing.
+  if (cells.length < 3) {
+    const rows: { label: string; value: string }[] = []
+    series.forEach(sr => sr.values.forEach((v, m) => v > 0 && rows.push({ label: `${MONTHS_S[m]} ${sr.year}`, value: v.toLocaleString() })))
+
     return (
       <SectionCard title={title}>
-        <FactRows rows={nonzero.map(d => ({ label: d.label, value: d.value.toLocaleString() }))} />
-      </SectionCard>
-    )
-  }
-
-  // "Jan 1946" → "Jan\n46": BarColumns splits on \n and stacks month over 2-digit year.
-  const barLabel = (l: string) => {
-    const m = /^([A-Za-z]{3}) (\d{4})$/.exec(l)
-
-    return m ? `${m[1]}\n${m[2].slice(-2)}` : l
-  }
-
-  return (
-    <SectionCard title={title}>
-      {/* THE Overview mark (BarColumns): pale→full gradient bars, white ChartTip,
-          two-line month/year axis. Series is the capped latest-12 months. */}
-      <BarColumns
-        bars={trend.map(d => [barLabel(d.label), d.value] as [string, number])}
-        fill={color}
-        noun={name.toLowerCase()}
-        height={240}
-        smallLabels
-        onSelect={
-          onPoint
-            ? label => {
-                const i = trend.findIndex(d => barLabel(d.label) === label)
-                if (i >= 0) onPoint(i)
-              }
-            : undefined
-        }
-      />
-    </SectionCard>
-  )
-}
-
-// Seasonal per-calendar-month card — ONE component for Breeding and Mortality so the
-// side-by-side pair renders identically (same chart, same Peak line, aligned axes).
-const SeasonalPatternCard: React.FC<{
-  title: string
-  data: { label: string; value: number }[]
-  color: string
-  name: string
-  empty: string
-  onBarClick?: (label: string) => void
-}> = ({ title, data, color, name, empty, onBarClick }) => {
-  const peak = data.reduce((best, d) => (d.value > (best?.value ?? -1) ? d : best), null as null | { label: string; value: number })
-  const nonzero = data.filter(d => d.value > 0)
-
-  if (!nonzero.length) {
-    return (
-      <SectionCard title={title}>
-        <EmptyState message={empty} />
-      </SectionCard>
-    )
-  }
-
-  // Sparse guard — same rule as the trend cards: under 3 populated months, plain figures.
-  if (nonzero.length < 3) {
-    return (
-      <SectionCard title={title}>
-        <FactRows rows={nonzero.map(d => ({ label: d.label, value: d.value.toLocaleString() }))} />
+        <FactRows rows={rows} />
       </SectionCard>
     )
   }
 
   return (
     <SectionCard title={title}>
-      <BarColumns
-        bars={data.map(d => [d.label, d.value] as [string, number])}
-        fill={color}
-        noun={name.toLowerCase()}
-        height={220}
-        smallLabels
-        onSelect={onBarClick ? label => onBarClick(String(label)) : undefined}
-      />
-      {peak && peak.value > 0 && (
-        <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
-          Peak:{' '}
-          <Box component='span' sx={{ color, fontWeight: 700 }}>
-            {peak.label}
-          </Box>
-        </Typography>
-      )}
+      <YearLinesChart series={series} accent={accent} noun={noun} onPoint={onPoint} />
     </SectionCard>
   )
 }
+
+const MONTHS_S = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const monthOf = (s?: string) => Number(String(s || '').slice(5, 7)) // "YYYY-MM..." → 1-12
@@ -528,7 +443,12 @@ const SURV_BANDS: SurvBand[] = [
   { key: 'over365', label: '365+d', desc: 'Survived over a year', opacity: 0.32, match: d => d > 365 }
 ]
 
-const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvBand) => void }> = ({ deaths, onBarClick }) => {
+const SurvivalCard: React.FC<{
+  deaths?: SpeciesDeaths
+  onBarClick?: (band: SurvBand) => void
+  /** Year-wise breakup rows for a band's tooltip (demo review 2026-09-04). */
+  yearRowsOf?: (band: SurvBand) => { year: number; count: number }[]
+}> = ({ deaths, onBarClick, yearRowsOf }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const sb = deaths?.survivalBuckets
@@ -575,7 +495,9 @@ const SurvivalCard: React.FC<{ deaths?: SpeciesDeaths; onBarClick?: (band: SurvB
                 title={`${b.label} — ${b.desc}`}
                 rows={[
                   { color: skin.CORAL, label: 'Deaths', value: v.toLocaleString() },
-                  { label: 'Share', value: `${pct}%` }
+                  { label: 'Share', value: `${pct}%` },
+                  // year-wise breakup (demo review 2026-09-04) — latest 5 years
+                  ...(yearRowsOf ? yearRowsOf(b).map(r => ({ label: String(r.year), value: r.count.toLocaleString() })) : [])
                 ]}
                 disabled={v === 0}
               >
@@ -705,6 +627,12 @@ const inMonth = (m: number, f: number | null, t: number | null) => {
 
   return lo <= hi ? m >= lo && m <= hi : m >= lo || m <= hi // wrap-around (Dec→Jan)
 }
+
+/** Custom-range year options — the far end is CAPPED so a range never exceeds `cap` years. */
+const yearItemsFor = (years: number[], anchor: number | null, cap: number, side: 'from' | 'to') =>
+  years
+    .filter(y => anchor == null || (side === 'from' ? y <= anchor && y >= anchor - (cap - 1) : y >= anchor && y <= anchor + (cap - 1)))
+    .map(y => ({ value: y, label: String(y) }))
 
 /** Build the predicate the active period (preset window OR month/year range) applies to an event date. */
 export function makeMatcher(range: RangeSelection, analysis: AnalysisFilter): (d: string) => boolean {
@@ -986,6 +914,9 @@ export const PeriodBand: React.FC<{
   onWindowPatch: (patch: { yearFrom?: number | null; yearTo?: number | null; monthFrom?: number | null; monthTo?: number | null }) => void
   yearItems: { value: number; label: string }[]
   monthItems: { value: number; label: string }[]
+  /** Override the period control (CoL passes the 1Y/2Y/3Y/Custom tabs); default = the
+   *  Overview preset dropdown. */
+  period?: React.ReactNode
 }> = ({
   periodMode,
   onModeChange,
@@ -1001,7 +932,8 @@ export const PeriodBand: React.FC<{
   monthTo,
   onWindowPatch,
   yearItems,
-  monthItems
+  monthItems,
+  period
 }) => {
   const theme = useTheme() as any
   return (
@@ -1021,7 +953,7 @@ export const PeriodBand: React.FC<{
           the left, Other Filters right-aligned. No toggle, no lead label, no divider —
           the Years/Months (by month/year) mode is retired. */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, md: 2.5 } }}>
-        <DashboardDateRange value={range} onChange={onRangeChange} selectMinWidth={128} />
+        {period ?? <DashboardDateRange value={range} onChange={onRangeChange} selectMinWidth={128} />}
         <GenderFilter selected={genders} onChange={onGendersChange} />
         <Box sx={{ flex: 1 }} />
         <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -1375,7 +1307,10 @@ const AnimalEventsTable: React.FC<{
   viewMode: 'animal' | 'site'
   onViewModeChange: (v: 'animal' | 'site') => void
   onDrillSite: (site: string) => void
-}> = ({ events, mode, onModeChange, counts, viewMode, onViewModeChange, onDrillSite }) => {
+  /** The MIRRORED page-level period filter (demo review 2026-09-04) — replaces the old
+   *  table-scoped year dropdown so one window governs charts AND table. */
+  periodCtl?: React.ReactNode
+}> = ({ events, mode, onModeChange, counts, viewMode, onViewModeChange, onDrillSite, periodCtl }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
 
@@ -1384,10 +1319,9 @@ const AnimalEventsTable: React.FC<{
   const portrait = useMediaQuery('(orientation: portrait)')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
   const [q, setQ] = useState('')
-  // Table-scoped dropdowns (stakeholder call 2026-08-27): year-wise on both datasets,
-  // age-at-death bands on Deaths (the clubbed lifespan filter). They scope ONLY this
-  // table — the charts above stay on the PeriodBand.
-  const [year, setYear] = useState<string | null>(null)
+  // Age-at-death bands on Deaths (the clubbed lifespan filter) scope ONLY this table.
+  // The old table-scoped YEAR dropdown is retired (demo review 2026-09-04): the page
+  // period filter is mirrored here instead — one window governs charts AND table.
   const [ageBand, setAgeBand] = useState<string | null>(null)
   useEffect(() => {
     if (mode !== 'deaths') setAgeBand(null)
@@ -1395,24 +1329,15 @@ const AnimalEventsTable: React.FC<{
   const query = q.trim().toLowerCase()
   const isSite = viewMode === 'site'
 
-  const yearOptions = useMemo(
-    () =>
-      Array.from(new Set(events.map(e => String(e.d || '').slice(0, 4)).filter(y => /^\d{4}$/.test(y)))).sort(
-        (a, b) => +b - +a
-      ),
-    [events]
-  )
-
   const scoped = useMemo(() => {
     let list = events
-    if (year) list = list.filter(e => String(e.d || '').startsWith(year))
     if (mode === 'deaths' && ageBand) {
       const b = AGE_BUCKETS.find(x => x.label === ageBand)
       if (b) list = list.filter(e => typeof (e as any).a === 'number' && (e as any).a >= b.lo && (e as any).a < b.hi)
     }
 
     return list
-  }, [events, year, ageBand, mode])
+  }, [events, ageBand, mode])
 
   const hasBreed = mode === 'births' && events.some(e => (e as LifecycleBirth).b)
   const siteRows = useMemo(() => buildSiteRows(scoped, mode), [scoped, mode])
@@ -1429,13 +1354,13 @@ const AnimalEventsTable: React.FC<{
     return query ? scoped.filter(e => eventHaystack(e).includes(query)) : scoped
   }, [isSite, siteRows, scoped, query])
 
-  useEffect(() => { setPm(p => ({ ...p, page: 0 })) }, [events, query, viewMode, year, ageBand])
+  useEffect(() => { setPm(p => ({ ...p, page: 0 })) }, [events, query, viewMode, ageBand])
   const columns = useMemo(
     () => (isSite ? buildSiteColumns(mode, theme, hasBreed) : buildLifecycleColumns(mode, theme, hasBreed, multiSite, allAid)),
     [isSite, mode, theme, hasBreed, multiSite, allAid]
   )
   const start = pm.page * pm.pageSize
-  const rows = (filtered as any[]).slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
+  const rows = (filtered as any[]).slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i }))
 
   // Left-side mode tabs (replace the "Animals · N" heading): underline tabs in the domain
   // accents with live row counts — Births green · Deaths orange · Lifespan teal.
@@ -1490,17 +1415,6 @@ const AnimalEventsTable: React.FC<{
     />
   )
 
-  const yearFilterCtl = yearOptions.length > 1 && (
-    <CategoryFilter
-      radius='999px'
-      width={140}
-      options={yearOptions}
-      value={year}
-      onChange={v => setYear(v)}
-      placeholder='All years'
-      icon='mdi:calendar-outline'
-    />
-  )
   const ageFilterCtl = mode === 'deaths' && (
     <CategoryFilter
       radius='999px'
@@ -1518,13 +1432,13 @@ const AnimalEventsTable: React.FC<{
   const headerAction = portrait ? (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', flexWrap: 'wrap' }}>
       {searchField}
-      {yearFilterCtl}
+      {periodCtl}
       {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
     </Box>
   ) : (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-      {yearFilterCtl}
+      {periodCtl}
       {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
       {searchField}
@@ -1576,7 +1490,9 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const [analysis, setAnalysis] = useState<AnalysisFilter>({ ...EMPTY_ANALYSIS })
-  const [range, setRange] = useState<RangeSelection>({ preset: 'all', start: null, end: null })
+  // 'all' is retired (demo review 2026-09-04): presets are 1Y/2Y/3Y + Custom (year
+  // range, cap 5) so the year-per-line charts never carry more than 5 lines.
+  const [range, setRange] = useState<RangeSelection>({ preset: 'last_3y', start: null, end: null })
   const [periodMode, setPeriodModeState] = useState<'quick' | 'range'>('quick')
   const [genders, setGenders] = useState<string[]>([])
   const [extra, setExtra] = useState<Record<string, string[]>>({})
@@ -1644,18 +1560,26 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
     () => (deathEvents.length ? buildDeaths(filteredDeaths) : deaths),
     [deathEvents.length, filteredDeaths, deaths]
   )
-  const birthsTrend = useMemo(() => trendMonths(birthsData?.byYearMonth || [], range.preset), [birthsData, range.preset])
-  const deathsTrend = useMemo(() => trendMonths(deathsData?.byYearMonth || [], range.preset), [deathsData, range.preset])
+  // Year-per-line series from the FILTERED day-level events — newest year first,
+  // capped at 5 (the ladder + legend carry at most five years).
+  const seriesOf = (evs: { d: string; k?: number }[]): YearSeries[] => {
+    const by = new Map<number, number[]>()
+    for (const e of evs) {
+      const y = +String(e.d || '').slice(0, 4)
+      const m = +String(e.d || '').slice(5, 7) - 1
+      if (!Number.isFinite(y) || m < 0 || m > 11) continue
+      const arr = by.get(y) || Array(12).fill(0)
+      arr[m] += (e as any).k || 1
+      by.set(y, arr)
+    }
 
-  // Deaths per calendar month, summed across all years (Jan = every January) — for the seasonal pair.
-  const deathsSeasonal = useMemo(
-    () =>
-      MONTHS.map((label, i) => ({
-        label,
-        value: (deathsData?.byYearMonth || []).filter(r => monthOf(r.label) === i + 1).reduce((s, r) => s + (r.value || 0), 0)
-      })),
-    [deathsData]
-  )
+    return Array.from(by.entries())
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, 5)
+      .map(([year, values]) => ({ year, values }))
+  }
+  const birthSeries = useMemo(() => seriesOf(filteredBirths), [filteredBirths])
+  const deathSeries = useMemo(() => seriesOf(filteredDeaths), [filteredDeaths])
 
   // Chart drill sheets — every chart opens the standard ListSheet over the FULL filtered
   // day-level events (not the 30-record `recent` slice): month bars, trend points, causes,
@@ -1666,19 +1590,6 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
 
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0]?.[0]
   }
-  const openMonth = (label: string) => {
-    const idx = MONTHS.indexOf(label) + 1
-    const recs = byDateDesc(filteredDeaths.filter(r => monthOf(r.d) === idx))
-    setSheet({
-      title: `${label} — Mortality`,
-      icon: 'mdi:calendar-month-outline',
-      stats: [
-        { label: 'Deaths', value: sumK(recs) },
-        ...(recs.length ? [{ label: 'Top cause', value: topCause(recs) ?? '—' }] : [])
-      ],
-      rows: recs.map(deathRow)
-    })
-  }
   const openCause = (manner: string) => {
     const recs = byDateDesc(filteredDeaths.filter(r => (r.m || 'Unknown') === manner))
     setSheet({
@@ -1688,6 +1599,21 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       rows: recs.map(deathRow)
     })
   }
+  // Survival tooltip year-wise breakup — deaths in the band, grouped by death year.
+  const survYearRows = (band: SurvBand) => {
+    const m = new Map<number, number>()
+    for (const r of filteredDeaths) {
+      if (typeof r.sv !== 'number' || !band.match(r.sv)) continue
+      const y = +r.d.slice(0, 4)
+      if (Number.isFinite(y)) m.set(y, (m.get(y) || 0) + (r.k || 1))
+    }
+
+    return Array.from(m.entries())
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, 5)
+      .map(([year, count]) => ({ year, count }))
+  }
+
   // Survival-band bar → the deaths whose accession→death span falls in that band.
   const openSurvivalBucket = (band: SurvBand) => {
     const recs = byDateDesc(filteredDeaths.filter(r => typeof r.sv === 'number' && band.match(r.sv)))
@@ -1701,34 +1627,22 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       rows: recs.map(deathRow)
     })
   }
-  const openBirthMonth = (label: string) => {
-    const idx = MONTHS.indexOf(label) + 1
-    const recs = byDateDesc(filteredBirths.filter(r => monthOf(r.d) === idx))
+  // Line-chart dot -> that exact YEAR-MONTH's records (the sheet matches the dot's number).
+  const openBirthYM = (year: number, m: number) => {
+    const key = `${year}-${String(m + 1).padStart(2, '0')}`
+    const recs = byDateDesc(filteredBirths.filter(r => r.d.slice(0, 7) === key))
     setSheet({
-      title: `${label} — Births`,
+      title: `${MONTHS_S[m]} ${year} — Births`,
       icon: 'mdi:calendar-month-outline',
       stats: [{ label: 'Births', value: sumK(recs) }],
       rows: recs.map(birthRow)
     })
   }
-  // Trend point → that exact year-month's records (trend rows carry the raw "YYYY-MM" key).
-  const openBirthPoint = (i: number) => {
-    const pt = birthsTrend[i]
-    if (!pt) return
-    const recs = byDateDesc(filteredBirths.filter(r => r.d.slice(0, 7) === pt.key))
+  const openDeathYM = (year: number, m: number) => {
+    const key = `${year}-${String(m + 1).padStart(2, '0')}`
+    const recs = byDateDesc(filteredDeaths.filter(r => r.d.slice(0, 7) === key))
     setSheet({
-      title: `${pt.label} — Births`,
-      icon: 'mdi:calendar-month-outline',
-      stats: [{ label: 'Births', value: sumK(recs) }],
-      rows: recs.map(birthRow)
-    })
-  }
-  const openDeathPoint = (i: number) => {
-    const pt = deathsTrend[i]
-    if (!pt) return
-    const recs = byDateDesc(filteredDeaths.filter(r => r.d.slice(0, 7) === pt.key))
-    setSheet({
-      title: `${pt.label} — Mortality`,
+      title: `${MONTHS_S[m]} ${year} — Mortality`,
       icon: 'mdi:calendar-month-outline',
       stats: [
         { label: 'Deaths', value: sumK(recs) },
@@ -1776,13 +1690,51 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const yearItems = years.map(y => ({ value: y, label: String(y) }))
   const monthItems = MONTHS.map((m, i) => ({ value: i + 1, label: m }))
 
-  // Chart-level 1Y/2Y/3Y/All tabs drive the SAME period state as the top Quick picker:
-  // force quick mode (clearing any by-month/year window) and set the preset.
-  const pickTrendRange = (p: RangePreset) => {
-    setAnalysis(a => ({ ...a, yearFrom: null, yearTo: null, monthFrom: null, monthTo: null }))
-    setPeriodModeState('quick')
-    setRange({ preset: p, start: null, end: null })
+  /* THE page-level period filter (demo review 2026-09-04 + user call 2026-09-05):
+     1Y | 2Y | 3Y | Custom tabs. Custom = year From/To selects CAPPED at 5 years, so the
+     year-per-line charts never exceed five lines. Rendered once in the PeriodBand and
+     MIRRORED at the bottom table — one window governs everything. */
+  const latestYear = years[0]
+  const enterCustom = () => {
+    setRange({ preset: 'all', start: null, end: null })
+    setPeriodModeState('range')
+    if (analysis.yearFrom == null && analysis.yearTo == null && latestYear != null) {
+      const from = Math.max(years[years.length - 1] ?? latestYear, latestYear - 4)
+      setAnalysis(a => ({ ...a, yearFrom: from, yearTo: latestYear, monthFrom: null, monthTo: null }))
+    }
   }
+  const CAP = 5
+  const fromItems = yearItemsFor(years, analysis.yearTo, CAP, 'from')
+  const toItems = yearItemsFor(years, analysis.yearFrom, CAP, 'to')
+  const periodCtl = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <ViewToggle
+        height={CTRL_H}
+        items={[
+          { key: 'last_1y', label: '1Y' },
+          { key: 'last_2y', label: '2Y' },
+          { key: 'last_3y', label: '3Y' },
+          { key: 'custom', label: 'Custom' }
+        ]}
+        value={periodMode === 'range' ? 'custom' : (range.preset as string)}
+        onChange={k => {
+          if (k === 'custom') enterCustom()
+          else {
+            setAnalysis(a => ({ ...a, yearFrom: null, yearTo: null, monthFrom: null, monthTo: null }))
+            setPeriodModeState('quick')
+            setRange({ preset: k as RangePreset, start: null, end: null })
+          }
+        }}
+      />
+      {periodMode === 'range' && (
+        <>
+          <RangeSelect value={analysis.yearFrom} onPick={v => setPeriod({ yearFrom: v })} items={fromItems} anyLabel='From' />
+          <Typography sx={{ color: cc.neutralSecondary }}>–</Typography>
+          <RangeSelect value={analysis.yearTo} onPick={v => setPeriod({ yearTo: v })} items={toItems} anyLabel='To' />
+        </>
+      )}
+    </Box>
+  )
 
   const groupLabel = (text: string) => (
     <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1810,42 +1762,41 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
         onWindowPatch={setPeriod}
         yearItems={yearItems}
         monthItems={monthItems}
+        period={periodCtl}
       />
 
-      {/* ── Births vs Deaths — side-by-side comparison, one shared trend-range control ── */}
-      <SectionHeader
-        title='Births vs Deaths'
-        sub='Same period · aligned months'
-        action={<TrendRangeTabs value={range.preset} onPick={pickTrendRange} color={theme.palette.primary.main} />}
-      />
-      {/* Two charts per row in BOTH orientations (user call 2026-08-28) — through the
-          gender pies; the month labels run one point smaller to fit the half-width cards. */}
+      {/* ── Births vs Deaths — year-per-line pair, ONE page-level period (the band above).
+          Seasonal Breeding/Mortality Pattern cards DELETED (demo review 2026-09-04).
+          Conditional width: an empty side hides and the other takes the full row. */}
+      <SectionHeader title='Births vs Deaths' sub='Same period · aligned months' />
       <Box
         sx={{
           display: 'grid',
           gap: 4,
           alignItems: 'stretch',
-          gridTemplateColumns: '1fr 1fr'
+          gridTemplateColumns: filteredBirths.length > 0 && filteredDeaths.length > 0 ? '1fr 1fr' : '1fr'
         }}
       >
-        <TrendCard title='Births Over Time' trend={birthsTrend} color={theme.palette.primary.main} name='Births' empty='No birth data for this period' onPoint={openBirthPoint} />
-        <TrendCard title='Deaths Over Time' trend={deathsTrend} color={cc.Tertiary} name='Deaths' empty='No death data for this period' onPoint={openDeathPoint} />
-        <SeasonalPatternCard
-          title='Seasonal Breeding Pattern'
-          data={birthsData?.seasonal || []}
-          color={theme.palette.primary.main}
-          name='Births'
-          empty='No birth data for this period'
-          onBarClick={openBirthMonth}
-        />
-        <SeasonalPatternCard
-          title='Seasonal Mortality Pattern'
-          data={deathsSeasonal}
-          color={cc.Tertiary}
-          name='Deaths'
-          empty='No death data for this period'
-          onBarClick={openMonth}
-        />
+        {(filteredBirths.length > 0 || filteredDeaths.length === 0) && (
+          <YearLinesCard
+            title='Births Over Time'
+            series={birthSeries}
+            accent={theme.palette.primary.main}
+            noun='births'
+            empty='No birth data for this period'
+            onPoint={openBirthYM}
+          />
+        )}
+        {(filteredDeaths.length > 0 || filteredBirths.length === 0) && (
+          <YearLinesCard
+            title='Deaths Over Time'
+            series={deathSeries}
+            accent={cc.Tertiary}
+            noun='deaths'
+            empty='No death data for this period'
+            onPoint={openDeathYM}
+          />
+        )}
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, alignItems: 'stretch' }}>
         <GenderPie
@@ -1883,7 +1834,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           '@media (orientation: landscape)': { gridTemplateColumns: '1fr 1fr' }
         }}
       >
-        <SurvivalCard deaths={deathsData} onBarClick={openSurvivalBucket} />
+        <SurvivalCard deaths={deathsData} onBarClick={openSurvivalBucket} yearRowsOf={survYearRows} />
         <CauseOfDeathCard deaths={deathsData} onOpenCause={openCause} />
       </Box>
       <AgeAtDeathSection deaths={hasEvents ? filteredDeaths : []} />
@@ -1904,6 +1855,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           setExtra(e => ({ ...e, Site: [site] }))
           setTableView('animal')
         }}
+        periodCtl={periodCtl}
       />
 
       <ListSheet view={sheet} onClose={() => setSheet(null)} />

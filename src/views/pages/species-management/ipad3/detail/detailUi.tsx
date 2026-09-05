@@ -453,6 +453,178 @@ export const ViewToggle: React.FC<{
   </Box>
 )
 
+/* ── YearLinesChart — THE multi-year trend standard (demo review 2026-09-04): one line
+   PER CALENDAR YEAR over a Jan–Dec axis, never a year in the axis labels, ≤5 lines
+   (callers cap the series). One accent, lightness ladder by recency (latest = full);
+   the year legend carries the identity. Tap → pinned tooltip with the YEAR-WISE breakup
+   for that month; tap ON a dot → onPoint(year, month) drill (the sheet must match the
+   dot's number). Hand-rolled SVG per the module chart standard (recharts is broken
+   here; ApexCharts stays for the dashboard). */
+export interface YearSeries {
+  year: number
+  /** 12 monthly sums, Jan..Dec. */
+  values: number[]
+}
+
+const YL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export const YearLinesChart: React.FC<{
+  /** Newest year FIRST — index drives the lightness ladder. */
+  series: YearSeries[]
+  accent: string
+  noun?: string
+  height?: number
+  onPoint?: (year: number, monthIdx: number) => void
+}> = ({ series, accent, noun = 'records', height = 260, onPoint }) => {
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const [w, setW] = useState(0)
+  const [tip, setTip] = useState<number | null>(null) // pinned month index
+  useEffect(() => {
+    const el = boxRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setW(el.clientWidth))
+    ro.observe(el)
+    setW(el.clientWidth)
+
+    return () => ro.disconnect()
+  }, [])
+
+  const shade = (i: number) => skin.mixOverWhite(accent, [1, 0.72, 0.52, 0.36, 0.24][i] ?? 0.2)
+
+  const PAD_L = 40
+  const PAD_R = 14
+  const PAD_T = 12
+  const AXIS_H = 26
+  const plotH = height - PAD_T - AXIS_H
+  const max = Math.max(1, ...series.flatMap(s => s.values))
+  // Quiet round ceiling so gridlines land on whole numbers.
+  const ceilN = max <= 5 ? 5 : Math.ceil(max / 5) * 5
+  const xOf = (m: number) => PAD_L + ((w - PAD_L - PAD_R) * (m + 0.5)) / 12
+  const yOf = (v: number) => PAD_T + plotH - (plotH * v) / ceilN
+
+  const pick = (clientX: number): number => {
+    const rect = boxRef.current?.getBoundingClientRect()
+    if (!rect) return 0
+    const x = clientX - rect.left
+
+    return Math.max(0, Math.min(11, Math.floor(((x - PAD_L) / Math.max(1, w - PAD_L - PAD_R)) * 12)))
+  }
+
+  const handleTap = (e: React.PointerEvent) => {
+    const rect = boxRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const m = pick(e.clientX)
+    const px = e.clientX - rect.left
+    const py = e.clientY - rect.top
+    // A tap landing on a dot drills; anywhere else pins/unpins the month tooltip.
+    if (onPoint) {
+      for (const [i, s] of series.entries()) {
+        const dx = px - xOf(m)
+        const dy = py - yOf(s.values[m] || 0)
+        if (s.values[m] > 0 && dx * dx + dy * dy <= 18 * 18) {
+          onPoint(s.year, m)
+
+          return
+        }
+      }
+    }
+    setTip(t => (t === m ? null : m))
+  }
+
+  if (!series.length) return null
+
+  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(ceilN * f))
+  const tipRows = tip == null ? [] : series.map((s, i) => ({ year: s.year, v: s.values[tip] || 0, color: shade(i) }))
+  const tipLeft = tip == null ? 0 : Math.min(Math.max(xOf(tip) - 70, 4), Math.max(4, w - 150))
+
+  return (
+    <Box>
+      {/* year legend — the ladder's identity (axis labels never carry the year) */}
+      <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 2 }}>
+        {series.map((s, i) => (
+          <Box key={s.year} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ width: 18, height: 4, borderRadius: '2px', backgroundColor: shade(i) }} />
+            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2 }}>{s.year}</Typography>
+          </Box>
+        ))}
+      </Box>
+
+      <Box ref={boxRef} sx={{ position: 'relative', width: '100%' }} onPointerDown={handleTap}>
+        {w > 0 && (
+          <svg width={w} height={height} style={{ display: 'block' }}>
+            {gridVals.map(v => (
+              <g key={v}>
+                <line x1={PAD_L} x2={w - PAD_R} y1={yOf(v)} y2={yOf(v)} stroke={skin.HAIR} strokeWidth={1} />
+                <text x={PAD_L - 8} y={yOf(v) + 4} textAnchor='end' fontSize={12} fill={skin.FAINT}>
+                  {v.toLocaleString()}
+                </text>
+              </g>
+            ))}
+            {YL_MONTHS.map((mLabel, m) => (
+              <text key={mLabel} x={xOf(m)} y={height - 8} textAnchor='middle' fontSize={13} fill={skin.FAINT}>
+                {mLabel}
+              </text>
+            ))}
+            {tip != null && (
+              <line x1={xOf(tip)} x2={xOf(tip)} y1={PAD_T} y2={PAD_T + plotH} stroke={skin.TRACK} strokeWidth={1} strokeDasharray='3 3' />
+            )}
+            {/* older years render FIRST so the latest line sits on top */}
+            {[...series].reverse().map((s, ri) => {
+              const i = series.length - 1 - ri
+              const pts = s.values.map((v, m) => `${xOf(m)},${yOf(v || 0)}`).join(' ')
+
+              return (
+                <g key={s.year}>
+                  <polyline
+                    points={pts}
+                    fill='none'
+                    stroke={shade(i)}
+                    strokeWidth={i === 0 ? 3 : 2}
+                    strokeLinejoin='round'
+                    strokeLinecap='round'
+                  />
+                  {s.values.map((v, m) =>
+                    v > 0 ? <circle key={m} cx={xOf(m)} cy={yOf(v)} r={i === 0 ? 4 : 3} fill={shade(i)} stroke='#ffffff' strokeWidth={1.5} /> : null
+                  )}
+                </g>
+              )
+            })}
+          </svg>
+        )}
+
+        {/* pinned month tooltip — the YEAR-WISE breakup (16px per the tooltip standard) */}
+        {tip != null && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: PAD_T + 6,
+              left: `${tipLeft}px`,
+              zIndex: 4,
+              minWidth: 140,
+              backgroundColor: '#ffffff',
+              border: `1px solid ${skin.HAIR}`,
+              borderRadius: '10px',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
+              px: 3,
+              py: 2
+            }}
+          >
+            <Typography sx={{ fontSize: '14px', fontWeight: 700, color: skin.INK2, mb: 1 }}>{YL_MONTHS[tip]}</Typography>
+            {tipRows.map(r => (
+              <Box key={r.year} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.5 }}>
+                <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: r.color, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: '16px', color: skin.INK2, flex: 1 }}>{r.year}</Typography>
+                <Typography sx={{ fontSize: '16px', fontWeight: 700, color: skin.INK2 }}>{r.v.toLocaleString()}</Typography>
+              </Box>
+            ))}
+            <Typography sx={{ fontSize: '12px', color: skin.FAINT, mt: 0.5 }}>{noun}</Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
 /* ── UnderlineTabs — the in-card underline sub-tabs (Ledger/Lab/Medical anatomy;
    kit-level per user call 2026-09-05). Accent-ink active label over a 2.5px underline.
    TODO next consolidation pass: the icon+hover variant (Eggs/Hospital/Medical drills)
