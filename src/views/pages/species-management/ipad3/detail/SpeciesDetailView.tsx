@@ -330,6 +330,9 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         // above the block's edge (user-caught 2026-09-05): the 2.5px accent bar must
         // TOUCH the bottom of the section, so the tabs' own bottom padding is the gap.
         pt: '6px',
+        // Docked-row spacing: the text→underline gap lives INSIDE the tab (its own
+        // bottom padding), so widening it keeps the accent bar flush on the edge.
+        '& [role="tab"]': { pb: 3 },
         display: 'flex',
         overflowX: 'auto',
         scrollbarWidth: 'none',
