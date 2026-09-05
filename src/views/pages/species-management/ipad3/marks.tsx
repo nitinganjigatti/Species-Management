@@ -154,15 +154,15 @@ export function useChartTip() {
           boxShadow: '0px 4px 18px rgba(0, 0, 0, 0.14)'
         }}
       >
-        <Box sx={{ px: '18px', py: '12px', backgroundColor: skin.TABLE_HEAD_BG, borderBottom: `1px solid ${skin.TRACK}` }}>
-          <Typography sx={{ fontSize: '16px', fontWeight: 600, color: skin.TABLE_HEAD_INK, lineHeight: 1.35 }}>{tip.title}</Typography>
+        <Box sx={{ px: '18px', py: '12px', backgroundColor: skin.SURFACE, borderBottom: `1px solid ${skin.TRACK}` }}>
+          <Typography sx={{ fontSize: '16px', fontWeight: 600, color: skin.ON_SURFACE, lineHeight: 1.35 }}>{tip.title}</Typography>
         </Box>
         <Box sx={{ py: 1 }}>
           {tip.rows.map((r, i) => (
             <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, px: '18px', py: 1 }}>
               {r.fill && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: r.fill, flexShrink: 0 }} />}
-              <Typography sx={{ fontSize: '16px', color: skin.FAINT }}>{r.label}</Typography>
-              <Typography sx={{ fontSize: '16px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.VALUE, ml: 'auto' }}>
+              <Typography sx={{ fontSize: '16px', color: skin.NEUTRAL_SEC }}>{r.label}</Typography>
+              <Typography sx={{ fontSize: '16px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.ON_SURFACE, ml: 'auto' }}>
                 {r.value}
               </Typography>
             </Box>

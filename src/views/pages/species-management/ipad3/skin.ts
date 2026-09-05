@@ -20,6 +20,9 @@ export const HERO_INK = '#08100C' // hero figures only (green-black)
 /** Surfaces & separation. Cards are white on the sage ground with a hairline —
  *  CC has essentially NO card shadows (five shadows in the whole app). */
 export const GROUND = '#e8f4f2' // the page ground — iPad 3 mint-teal (user hex, 2026-09-01)
+export const SURFACE = '#f2fff8' // = antz customColors.Surface — tooltip header band etc.
+export const ON_SURFACE = '#44544a' // = antz customColors.OnSurfaceVariant — primary ink on Surface
+export const NEUTRAL_SEC = '#7a8684' // = antz customColors.neutralSecondary — tooltip labels
 export const HAIR = '#f0efec' // the universal hairline / border
 export const CARD_RADIUS = '16px' // CC steps 16→20 by container; iPad uses 16
 export const TRACK = '#dae7df' // unfilled meters/bars (= antz SurfaceVariant)
