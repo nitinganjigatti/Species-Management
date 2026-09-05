@@ -477,6 +477,7 @@ export const YearLinesChart: React.FC<{
   onPoint?: (year: number, monthIdx: number) => void
 }> = ({ series, accent, noun = 'records', height = 280, onPoint }) => {
   const theme = useTheme() as any
+  const c = cc(theme)
 
   const shade = (i: number) => skin.mixOverWhite(accent, [1, 0.72, 0.52, 0.36, 0.24][i] ?? 0.2)
 
@@ -521,11 +522,18 @@ export const YearLinesChart: React.FC<{
           stroke: { curve: 'smooth', width: series.map((_, i) => (i === 0 ? 3 : 2)) },
           legend: { show: false },
           dataLabels: { enabled: false },
-          markers: { size: 4, strokeWidth: 2, strokeColors: '#ffffff', hover: { size: 6 } },
-          grid: { borderColor: skin.HAIR, strokeDashArray: 3 },
+          markers: { size: 4, strokeWidth: 1.5, strokeColors: theme.palette.common.white, hover: { size: 6 } },
+          // grid + axis type EXACTLY as TrendAreaChart — one chart family, one geometry
+          grid: {
+            borderColor: c.SurfaceVariant,
+            strokeDashArray: 4,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } },
+            padding: { top: 16, left: 12, right: 20 }
+          },
           xaxis: {
             categories: YL_MONTHS,
-            labels: { style: { fontSize: '13px', colors: skin.FAINT } },
+            labels: { style: { colors: c.neutralSecondary, fontSize: '14px' }, rotate: 0, hideOverlappingLabels: false, trim: false },
             axisBorder: { show: false },
             axisTicks: { show: false },
             tooltip: { enabled: false }
@@ -533,14 +541,25 @@ export const YearLinesChart: React.FC<{
           yaxis: {
             min: 0,
             tickAmount: 4,
-            labels: { formatter: (v: number) => Math.round(v).toLocaleString(), style: { fontSize: '12px', colors: skin.FAINT } }
+            labels: {
+              style: { colors: c.neutralSecondary, fontSize: '14px' },
+              formatter: (v: number) => Math.round(v).toLocaleString(),
+              minWidth: 26,
+              align: 'left',
+              offsetX: -12
+            }
           },
-          // The standard hover tooltip (apexTooltipSx) — shared, so the hovered month
-          // lists EVERY year's value: the year-wise breakup.
+          // THE platform tooltip (trendTooltipHTML — Surface header + dot rows, 16px):
+          // shared, so the hovered month lists EVERY year's value (the year-wise breakup).
           tooltip: {
             shared: true,
             intersect: false,
-            y: { formatter: (v: number) => `${(v ?? 0).toLocaleString()} ${noun}` }
+            custom: ({ dataPointIndex }: any) =>
+              trendTooltipHTML(
+                theme,
+                YL_MONTHS[dataPointIndex] ?? '',
+                series.map((sr, i) => ({ color: shade(i), label: String(sr.year), value: (sr.values[dataPointIndex] || 0).toLocaleString() }))
+              )
           }
         }}
         series={series.map(sr => ({ name: String(sr.year), data: sr.values }))}
