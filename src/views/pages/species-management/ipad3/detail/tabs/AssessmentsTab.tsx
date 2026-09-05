@@ -163,12 +163,16 @@ const useCell = () => {
     const displayName = row.name && row.name !== aid ? row.name : undefined
 
     return (
+      // TABLE-VIEW minimal card = the Population grammar (user call 2026-09-05): EXACTLY
+      // 3 text rows — two identifiers + ONE location line (site while the visible list
+      // spans sites, enclosure once a single site is picked); photo 94 → 75.
       <AnimalIdCard
         identifiers={s.identifiers}
-        enclosure={row.enclosure || s.enclosure}
+        enclosure={showSite ? undefined : row.enclosure || s.enclosure}
         site={showSite ? row.site : undefined}
         tag={tag}
         name={displayName || undefined}
+        size={75}
         photo={s.hasPhoto ? heroPhoto?.src : undefined}
         photoPos={heroPhoto?.bgPos}
       />
@@ -312,7 +316,7 @@ const PopulationTable: React.FC<{ animals: AssessmentAnimal[]; onAnimal: (id: st
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
-            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
             stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
@@ -443,7 +447,7 @@ const NumericTypePanel: React.FC<{
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
-            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
             stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
@@ -558,7 +562,7 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
-            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
             stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
@@ -688,7 +692,7 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
             setPaginationModel={tbl.setPaginationModel}
             sortModel={tbl.sortModel}
             handleSortModel={tbl.handleSortModel}
-            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
             stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
             onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
           />
@@ -1033,7 +1037,7 @@ const StripTypeTable: React.FC<{
             total={tbl.total}
             paginationModel={tbl.paginationModel}
             setPaginationModel={tbl.setPaginationModel}
-            rowHeight={146} // 94px animal-card block + breathing room (table standard)
+            rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
             onRowClick={p => onAnimal(p.row.id)}
             stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
           />
@@ -1396,7 +1400,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
                 setPaginationModel={outlierTbl.setPaginationModel}
                 sortModel={outlierTbl.sortModel}
                 handleSortModel={outlierTbl.handleSortModel}
-                rowHeight={146} // 94px animal-card block + breathing room (table standard)
+                rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
                 stickyFields={['name']} // HARD RULE: identity column pinned when the table scrolls
                 onRowClick={(p: { row: { antzId: string } }) => onAnimal(p.row.antzId)}
               />
@@ -1456,8 +1460,17 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
               hairline-divided cells, 13px caps label over the 24px figure. The old
               tone-tile grid is retired; string values (kg, %) welcome. */}
           {(() => {
-            const cells = [
-              ...(animal.latestWeight != null ? [{ label: 'Latest Weight', value: `${animal.latestWeight}` }] : []),
+            const cells: { label: string; value: string; hint?: string }[] = [
+              ...(animal.latestWeight != null
+                ? [
+                    {
+                      label: 'Latest Weight',
+                      value: `${animal.latestWeight}`,
+                      // last-assessed date under the big number (punch-list 2026-09-04)
+                      hint: animal.latestWeightDate ? fmtDate(animal.latestWeightDate) : undefined
+                    }
+                  ]
+                : []),
               ...(wVsAvg != null ? [{ label: 'Vs Species Avg', value: `${wVsAvg > 0 ? '+' : ''}${wVsAvg}%` }] : []),
               ...(animal.latestBcs != null ? [{ label: 'Latest BCS', value: `${animal.latestBcs}` }] : []),
               ...(animal.weightCount != null ? [{ label: 'Weight Records', value: animal.weightCount.toLocaleString() }] : []),
@@ -1496,6 +1509,11 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                     >
                       {cl.value}
                     </Typography>
+                    {cl.hint && (
+                      <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }} noWrap>
+                        {cl.hint}
+                      </Typography>
+                    )}
                   </Box>
                 ))}
               </Box>

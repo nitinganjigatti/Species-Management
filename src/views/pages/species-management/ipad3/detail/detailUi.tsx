@@ -3458,9 +3458,17 @@ export const DetailTable: React.FC<{
       : c
   )
 
+  // Identity columns sort A→Z on the FIRST tap (user call 2026-09-05): the grid-level
+  // desc-first cycle fits figures (biggest first), not names — override per column.
+  const ascFirstIdentity = lastPadded.map(c =>
+    (c.field === 'name' || c.field === 'animal') && handleSortModel && !(c as any).sortingOrder
+      ? { ...c, sortingOrder: ['asc', 'desc'] as any }
+      : c
+  )
+
   const table = (
     <CommonTable
-      columns={lastPadded}
+      columns={ascFirstIdentity}
       indexedRows={rows}
       total={total}
       loading={false}
