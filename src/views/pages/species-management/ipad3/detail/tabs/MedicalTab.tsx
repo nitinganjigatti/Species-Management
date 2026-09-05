@@ -44,7 +44,7 @@ import {
   thinScrollbarSx,
   TrendAreaChart,
   TrendRangeTabs
-, SearchPill, SheetDrawer, UnderlineTabs} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, HeaderSubTabs, SearchPill, SheetDrawer, UnderlineTabs} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -3397,32 +3397,6 @@ const ClinicalMergedPanel: React.FC<{
 }
 
 /* ═══════════════════════════════════════════════ Tab bar + shell */
-const SubTabs: React.FC<{ tab: TabKey; onChange: (t: TabKey) => void }> = ({ tab, onChange }) => {
-  const theme = useTheme() as any
-  const c = cc(theme)
-
-  return (
-    <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-      {TABS.map(t => {
-        const on = t.key === tab
-
-        return (
-          <Box
-            key={t.key}
-            onClick={() => onChange(t.key)}
-            role='tab'
-            aria-selected={on}
-            sx={{ py: 1.5, mb: '-1px', borderBottom: '2.5px solid', borderColor: on ? theme.palette.primary.main : 'transparent', cursor: 'pointer' }}
-          >
-            <Typography variant='body1' sx={{ fontWeight: 600, color: on ? theme.palette.primary.dark : c.neutralSecondary }}>
-              {t.label}
-            </Typography>
-          </Box>
-        )
-      })}
-    </Box>
-  )
-}
 
 interface Props {
   preventive?: SpeciesPreventive | null
@@ -3468,12 +3442,12 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical, speciesId }) => {
     // Hero photo provided ONCE for every AnimalCardRow / AnimalIdCard in this tab's tree
     <HeroPhotoContext.Provider value={HERO_PHOTOS[String(speciesId ?? '')]}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderBottom: `1px solid ${skin.HAIR}` }}>
-          {/* The period control never rides this tab bar (user call 2026-09-02): Overview and
-              Clinical both carry it on their own headline row; preventive/prescription screens
-              carry their own preset range tabs (1Y·2Y·3Y·All — the presets-only rule). */}
-          <SubTabs tab={tab} onChange={setTab} />
-        </Box>
+        {/* Sub-tabs are DOCKED into the shell's main tab bar (user call 2026-09-05) —
+            HeaderSubTabs publishes them to the header slot; nothing renders here.
+            The period control never rides this tab bar (user call 2026-09-02): Overview and
+            Clinical both carry it on their own headline row; preventive/prescription screens
+            carry their own preset range tabs (1Y·2Y·3Y·All — the presets-only rule). */}
+        <HeaderSubTabs tabs={TABS} value={tab} onChange={k => setTab(k as TabKey)} />
         {renderPanel()}
       </Box>
     </HeroPhotoContext.Provider>

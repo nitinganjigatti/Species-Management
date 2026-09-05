@@ -13,13 +13,16 @@ import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import {
   HERO_PHOTOS,
+  HeaderSubTabsProvider,
   Sheet,
   SheetDrawer,
   SheetHeader,
   SheetRow,
   SheetSearch,
   sheetPaperSx,
-  SHEET_PX
+  SHEET_PX,
+  UnderlineTabs,
+  useHeaderSubTabsSlot
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { SpeciesDetailHeader, SpeciesDetailTab } from 'src/types/species-management/detail'
 
@@ -314,6 +317,28 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   const [scrolled, setScrolled] = useState(false)
   const [headerRevealed, setHeaderRevealed] = useState(false)
 
+  // Docked second-level tabs (user call 2026-09-05): a screen publishes its sub-tabs via
+  // <HeaderSubTabs> (Medical, Assessments) and the shell paints them here, attached
+  // under the main tab track with a hairline between — one navigation block.
+  const subTabsSlot = useHeaderSubTabsSlot()
+  const subTabsRow = subTabsSlot.spec ? (
+    <Box
+      sx={{
+        borderTop: `1px solid ${skin.HAIR}`,
+        px: '22px', // aligns the first label with the track's first tab label (6px track pad + 16px tab pad)
+        display: 'flex',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' },
+        WebkitOverflowScrolling: 'touch',
+        // the kit row wraps inside cards; docked in the header it scrolls, never wraps
+        '& > div': { flexWrap: 'nowrap' }
+      }}
+    >
+      <UnderlineTabs tabs={subTabsSlot.spec.tabs} value={subTabsSlot.spec.value} onChange={subTabsSlot.onChange} />
+    </Box>
+  ) : null
+
   // Tab-navigator sheet (menu button in the rail): all tabs, searchable, tap to jump.
   const [navOpen, setNavOpen] = useState(false)
   const [navQ, setNavQ] = useState('')
@@ -377,6 +402,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   const iucnEntry = skin.RED_LIST.find(r => r.name === iucnName)
 
   return (
+    <HeaderSubTabsProvider value={subTabsSlot.ctxValue}>
     <Box>
       {/* Sticky top stack — zero-height sticky wrapper so it overlays content
           without ever reflowing it. Horizontal view: tabs pin whenever scrolled,
@@ -439,11 +465,15 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
             </Box>
           </Box>
 
-          {/* Pinned tabs — horizontal view only (rail view keeps its own sticky rail) */}
+          {/* Pinned tabs — horizontal view only (rail view keeps its own sticky rail).
+              A screen's docked sub-tabs pin along with the track (same attached block). */}
           {view === 'horizontal' && (
-            <Box sx={{ p: 2, '& > div': { boxShadow: 'none' } }}>
-              <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} onMenu={openNav} />
-            </Box>
+            <>
+              <Box sx={{ p: 2, pb: subTabsRow ? 0 : 2, '& > div': { boxShadow: 'none' } }}>
+                <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} onMenu={openNav} />
+              </Box>
+              {subTabsRow}
+            </>
           )}
         </Box>
       </Box>
@@ -711,10 +741,23 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         </Box>
       </Box>
 
-      {/* Band 3 — Tabs (horizontal view only). The ref anchors the sticky-stack trigger. */}
+      {/* Band 3 — Tabs (horizontal view only). The ref anchors the sticky-stack trigger.
+          The container (not CCTabs) carries the white ground + radius + inset shadow so a
+          screen's docked sub-tabs attach below the track as ONE block (divider between). */}
       {view === 'horizontal' && (
-        <Box ref={tabsAnchorRef} sx={{ mb: 4 }}>
+        <Box
+          ref={tabsAnchorRef}
+          sx={{
+            mb: 4,
+            backgroundColor: '#ffffff',
+            borderRadius: '10px',
+            boxShadow: skin.TAB_TRACK_INSET,
+            overflow: 'hidden',
+            '& > div[role="tablist"]': { boxShadow: 'none' }
+          }}
+        >
           <CCTabs tabs={TABS} active={activeTab} onChange={onTabChange} onMenu={openNav} />
+          {subTabsRow}
         </Box>
       )}
 
@@ -808,6 +851,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         </Sheet>
       </SheetDrawer>
     </Box>
+    </HeaderSubTabsProvider>
   )
 }
 

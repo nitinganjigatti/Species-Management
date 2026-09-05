@@ -603,6 +603,63 @@ export const UnderlineTabs: React.FC<{
   )
 }
 
+/* ── HeaderSubTabs — second-level tabs DOCKED onto the shell's main tab bar (user call
+   2026-09-05): the screen's sub-tabs render as UnderlineTabs attached under the CC tab
+   track (divider between), one connected navigation block — not floating in the page.
+   A tab component declares its sub-tabs with <HeaderSubTabs .../>; the shell provides
+   the slot via HeaderSubTabsProvider and paints the row. Outside a provider (or any
+   shell that hasn't opted in) the component falls back to rendering inline, so the tabs
+   never disappear. Only the current value + labels live in shell state — the onChange
+   stays in a ref, so re-publishing an identical spec never re-renders the shell. */
+export type HeaderSubTabsSpec = {
+  tabs: { key: string; label: string }[]
+  value: string
+  onChange: (k: string) => void
+}
+
+const HeaderSubTabsCtx = React.createContext<{ publish: (s: HeaderSubTabsSpec | null) => void } | null>(null)
+
+/** Shell-side hook: owns the slot state and hands back [spec, providerValue]. */
+export const useHeaderSubTabsSlot = () => {
+  const [spec, setSpec] = useState<{ tabs: { key: string; label: string }[]; value: string } | null>(null)
+  const onChangeRef = useRef<(k: string) => void>(() => undefined)
+  const publish = React.useCallback((s: HeaderSubTabsSpec | null) => {
+    if (!s) {
+      setSpec(null)
+
+      return
+    }
+    onChangeRef.current = s.onChange
+    // Content-compare so the per-render publish from HeaderSubTabs never loops the shell.
+    setSpec(prev =>
+      prev && prev.value === s.value && prev.tabs.length === s.tabs.length && prev.tabs.every((t, i) => t.key === s.tabs[i].key && t.label === s.tabs[i].label)
+        ? prev
+        : { tabs: s.tabs, value: s.value }
+    )
+  }, [])
+  const ctxValue = React.useMemo(() => ({ publish }), [publish])
+
+  return { spec, onChange: (k: string) => onChangeRef.current(k), ctxValue }
+}
+
+export const HeaderSubTabsProvider = HeaderSubTabsCtx.Provider
+
+export const HeaderSubTabs: React.FC<HeaderSubTabsSpec> = ({ tabs, value, onChange }) => {
+  const ctx = React.useContext(HeaderSubTabsCtx)
+
+  // Publish after every render — the slot dedupes, so only real changes land.
+  useEffect(() => {
+    ctx?.publish({ tabs, value, onChange })
+  })
+
+  // Leaving the screen clears the slot.
+  useEffect(() => () => ctx?.publish(null), [ctx])
+
+  if (!ctx) return <UnderlineTabs tabs={tabs} value={value} onChange={onChange} />
+
+  return null
+}
+
 /* ── SearchPill — THE rounded search field (user call 2026-09-05: kit-first; was
    hand-rolled in nearly every tab). Two skin variants (skin.ts standard): on WHITE
    surfaces the quiet FIELD_BG fill w/ no outline; on the sage GROUND / sheet bodies

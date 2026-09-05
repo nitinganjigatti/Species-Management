@@ -18,6 +18,7 @@ import {
   DrillSheet,
   EmptyState,
   EntityListDrawer,
+  HeaderSubTabs,
   HeroPhotoContext,
   IntelligenceCard,
   RangeBar,
@@ -28,8 +29,7 @@ import {
   StatTile,
   synthAnimalIdentity,
   TileGrid,
-  VBarChart,
-  ViewToggle
+  VBarChart
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import { resolveRange, type RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
@@ -1605,25 +1605,16 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
   )
 }
 
-/* ------------------------------------------------------------------ Category tabs — underline rail */
+/* ------------------------------------------------------------------ Category tabs — docked underline */
 
-// The kit ViewToggle (2026-09-05) — this wrapper only keeps the "(N)"-in-label parsing
-// its callers rely on (count renders as the quiet tabular figure).
+// User call 2026-09-05: the category strip left the page (was the pill ViewToggle) and
+// DOCKS into the shell's main tab bar as underline tabs — HeaderSubTabs publishes to
+// the header slot, so this renders nothing in the page flow.
 const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; value: string; onChange: (v: string) => void }> = ({
   options,
   value,
   onChange
-}) => (
-  <ViewToggle
-    value={value}
-    onChange={onChange}
-    items={options.map(o => {
-      const m = o.label.match(/^(.*?)\s*\((\d[\d,]*)\)\s*$/)
-
-      return { key: o.value, label: m ? m[1] : o.label, count: m ? m[2] : undefined }
-    })}
-  />
-)
+}) => <HeaderSubTabs tabs={options.map(o => ({ key: o.value, label: o.label }))} value={value} onChange={onChange} />
 
 /* ------------------------------------------------------------------ Tab root */
 
