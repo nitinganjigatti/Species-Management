@@ -273,7 +273,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   })
 
   const columns: GridColDef[] = [
-    { width: 56, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
+    // NO serial numbers — demo-review hard rule 2026-09-04 (user re-caught here 2026-09-05).
     {
       minWidth: 200,
       flex: 1,
@@ -314,7 +314,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   ]
 
   const start = pm.page * pm.pageSize
-  const indexed = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
+  const indexed = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i }))
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
