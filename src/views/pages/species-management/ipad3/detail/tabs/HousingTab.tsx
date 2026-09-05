@@ -1,83 +1,31 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, MenuItem, TextField, Typography, useMediaQuery } from '@mui/material'
+import { Box, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
 import {
   SiteFilterSelect,
-  AnimalCardRow,
-  AnimalIdCard,
   CategoryFilter,
-  CellText,
+  countCol,
   DetailTable,
   DrillSheet,
   EmptyState,
+  ENCLOSURE_COMPOSITIONS,
   enclosureAnimalsOf,
   enclosureCompositionOf,
-  genderTagOf,
-  HeroPhotoContext,
-  RowMetaText,
+  NameSiteCell,
+  RealAnimalCardRow,
+  SearchPill,
   SectionCard,
   splitUnsexed,
-  synthAnimalIdentity,
+  txtCell,
   ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
-/** The standard animal card row (2026-09-02), driven by the RECORD's real fields: gender →
- *  badge, ring/chip + AID → identifiers, name only when AID is the sole identifier. The kit's
- *  AnimalCardRow synthesizes identity from the aid alone, so this keeps its exact row chrome
- *  but feeds AnimalIdCard the real data (synth fills only the photo-presence slot). The sheet
- *  is scoped to ONE enclosure — site + enclosure stay OFF the card (the header names them);
- *  age/weight, which the card doesn't carry, ride as right-aligned meta lines. */
-// Thin adapter over the kit AnimalCardRow: REAL AnimalRecord fields in, per the contract.
-// Enclosure + site stay OFF these cards — the sheet is scoped to one enclosure.
-const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, last }) => {
-  const theme = useTheme() as any
-  const c = theme.palette.customColors as Record<string, string>
-
-  const tag: AnimalTagKind = genderTagOf(a.gender)
-  const primary: AnimalCardId | null = a.ring
-    ? { label: 'Ring', value: a.ring }
-    : a.chip
-      ? { label: 'Chip', value: a.chip }
-      : null
-  const identifiers: AnimalCardId[] = primary
-    ? [primary, { label: 'AID', value: a.antzId }]
-    : [{ label: 'AID', value: a.antzId }]
-
-  // Max 2 identifiers render (AID always counts) — a chip crowded out by a ring rides as meta.
-  // Age/weight live IN the card component now (its right stat block, empty values
-  // self-hide) — meta keeps only the chip crowded out by a ring.
-  const meta = [a.ring && a.chip ? `Chip: ${a.chip}` : null].filter(Boolean) as string[]
-
-  return (
-    <AnimalCardRow
-      aid={a.antzId}
-      identifiers={identifiers}
-      tag={tag}
-      name={a.name && a.name !== a.antzId ? a.name : undefined}
-      age={a.age}
-      weight={a.weight}
-      meta={
-        meta.length > 0 ? (
-          <>
-            {meta.map((m, i) => (
-              <RowMetaText key={i} strong={i === 0}>
-                {m}
-              </RowMetaText>
-            ))}
-          </>
-        ) : undefined
-      }
-      last={last}
-    />
-  )
-}
+// Animal card rows = the kit RealAnimalCardRow (the former local copy moved there).
 
 interface HousingTabProps {
   housing?: SpeciesHousing
@@ -101,7 +49,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const [animalQ, setAnimalQ] = useState('')
   const [sheetPm, setSheetPm] = useState({ page: 0, pageSize: 10 })
   const [tableView, setTableView] = useState<'site' | 'section' | 'enclosure'>('site')
-  const [enclFilter, setEnclFilter] = useState<'all' | 'single' | 'male' | 'female' | 'unsexed'>('all')
+  // Composition filter = the LOCKED ladder vocabulary (user call 2026-09-05; "Single
+  // Sexed" retired) — one word set across the whole module.
+  const [composition, setComposition] = useState<string | null>(null)
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
@@ -158,11 +108,22 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const allEnclosures = useMemo(
     () =>
       sites.flatMap(s =>
-        (s.enclosures || []).map(e => ({
-          ...e,
-          site: s.name,
-          ...splitUnsexed(Number(e.unsexed || 0), kindsByEnc.get(`${s.name}||${e.name}`))
-        }))
+        (s.enclosures || []).map(e => {
+          const split = splitUnsexed(Number(e.unsexed || 0), kindsByEnc.get(`${s.name}||${e.name}`))
+
+          return {
+            ...e,
+            site: s.name,
+            ...split,
+            // Composition computed ONCE per row (the locked ladder, reconciled split) —
+            // the column and the filter both read this same string.
+            composition: enclosureCompositionOf(Number(e.male || 0), Number(e.female || 0), Number(e.unsexed || 0), Number(e.total || 0), {
+              ud: split.ud,
+              id: split.ind,
+              grp: split.grp
+            })
+          }
+        })
       ),
     [sites, kindsByEnc]
   )
@@ -195,24 +156,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   }, [allEnclosures])
   const multiSection = sectionRows.length > 1
 
-  // Composition filters. "Single Sexed" = exactly one of M/F/U present; Male/Female/Unsexed = only that sex.
-  const matchEncl = (e: any) => {
-    const m = Number(e.male) > 0
-    const f = Number(e.female) > 0
-    const u = Number(e.unsexed) > 0
-    switch (enclFilter) {
-      case 'single':
-        return [m, f, u].filter(Boolean).length === 1
-      case 'male':
-        return m && !f && !u
-      case 'female':
-        return f && !m && !u
-      case 'unsexed':
-        return u && !m && !f
-      default:
-        return true
-    }
-  }
+  // Only ladder words the data actually contains — the menu never offers a dead pick.
+  const compositionOptions = useMemo(
+    () => ENCLOSURE_COMPOSITIONS.filter(c => allEnclosures.some(e => e.composition === c)),
+    [allEnclosures]
+  )
 
   const filtered = useMemo(() => {
     if (isSite) return query ? siteRows.filter(r => r.name.toLowerCase().includes(query)) : siteRows
@@ -223,18 +171,17 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
       return query ? list.filter(r => `${r.name} ${r.site}`.toLowerCase().includes(query)) : list
     }
 
-    let list = enclFilter === 'all' ? allEnclosures : allEnclosures.filter(matchEncl)
+    let list = composition ? allEnclosures.filter(e => e.composition === composition) : allEnclosures
     if (siteFilter) list = list.filter(e => e.site === siteFilter)
 
     return query
       ? list.filter(e => `${e.name} ${e.section || ''} ${e.type || ''} ${e.site || ''}`.toLowerCase().includes(query))
       : list
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSite, isSection, siteRows, sectionRows, allEnclosures, query, enclFilter, siteFilter])
+  }, [isSite, isSection, siteRows, sectionRows, allEnclosures, query, composition, siteFilter])
 
   useEffect(() => {
     setPm(p => ({ ...p, page: 0 }))
-  }, [tableView, query, enclFilter, siteFilter])
+  }, [tableView, query, composition, siteFilter])
 
   // Sheet 1 — the enclosures within the picked site (the ENRICHED list, so the sheet
   // table carries the same ud/ind/grp columns as the page).
@@ -266,73 +213,17 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
 
   if (!housing || !sites.length) return <EmptyState message='No site or enclosure data available' />
 
-  const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <CellText color={color} weight={weight}>
-      {v}
-    </CellText>
-  )
-  // Numbers right-aligned (the 2026-08-27 table rule); zeros print the pale em dash;
-  // Total = bold list-green (the scan anchor, same as the listing).
-  const num = (field: string, opts?: { total?: boolean; header?: string }): GridColDef => ({
-    width: 64, // compact count column (user call 2026-09-05) — 20/16 cell pad leaves room for 3 digits
-    sortable: false,
-    align: 'right',
-    headerAlign: 'right',
-    field,
-    headerName:
-      opts?.header ||
-      (field === 'male' ? 'M' : field === 'female' ? 'F' : field === 'ud' ? 'UD' : field === 'ind' ? 'ID' : field === 'grp' ? 'G' : field),
-    renderCell: (p: GridRenderCellParams) => {
-      const n = Number(p.row[field] || 0)
-      if (opts?.total) return txt(n.toLocaleString(), skin.LIST_GREEN, 700)
 
-      return n > 0 ? txt(n.toLocaleString(), undefined, 600) : txt('—', skin.DASH_INK, 400)
-    }
-  })
+  // The kit identity cell — name wraps (2-line clamp), site rides as the faint sub-line.
+  const enclosureCell = (p: GridRenderCellParams) => <NameSiteCell name={p.row.name} sub={p.row.site || undefined} />
 
-  // Enclosure name with its site in small faint type beneath — the site-below-enclosure
-  // rule. A long name WRAPS to a second line instead of clipping (user call 2026-09-05),
-  // clamped at 2 so the 72px row never overflows.
-  const enclosureCell = (p: GridRenderCellParams) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
-      <Typography
-        sx={{
-          fontSize: '1rem',
-          fontWeight: 600,
-          color: cc.OnSurfaceVariant,
-          lineHeight: 1.25,
-          whiteSpace: 'normal', // cells inherit the grid's nowrap — re-allow breaks
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}
-      >
-        {p.row.name}
-      </Typography>
-      {p.row.site ? (
-        <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
-          {p.row.site}
-        </Typography>
-      ) : null}
-    </Box>
-  )
-
-  // Composition = the kit's LOCKED ladder, fed the row's reconciled split — the label
-  // always agrees with the UD | ID | G columns beside it.
+  // Composition = the enriched row's precomputed ladder word (single source with the filter).
   const compositionCol: GridColDef = {
     width: 160,
     sortable: false,
     field: 'composition',
     headerName: 'Composition',
-    renderCell: p =>
-      txt(
-        enclosureCompositionOf(Number(p.row.male || 0), Number(p.row.female || 0), Number(p.row.unsexed || 0), Number(p.row.total || 0), {
-          ud: Number(p.row.ud || 0),
-          id: Number(p.row.ind || 0),
-          grp: Number(p.row.grp || 0)
-        })
-      )
+    renderCell: p => txtCell(p.row.composition)
   }
 
   // NO serial numbers (demo-review hard rule 2026-09-04); every table carries the FULL
@@ -340,48 +231,48 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   // Count columns are FIXED width — flexed numbers ballooned while the name column
   // stayed pinched (user-caught 2026-09-05); every spare pixel now goes to the name.
   const siteColumns: GridColDef[] = [
-    { minWidth: 234, flex: 1, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
-    num('male'),
-    num('female'),
-    num('ud'),
-    num('ind'),
-    num('grp'),
-    { ...num('total', { total: true, header: 'Total' }), width: 96 },
-    { ...num('nEncl', { header: 'Encl' }), width: 84 }
+    { minWidth: 234, flex: 1, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txtCell(p.row.name, cc.OnSurfaceVariant, 600) },
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true }),
+    countCol('nEncl', 'Encl', { width: 84 })
   ]
   // Section rows reuse the enclosure identity cell (name + site sub-line) and the
   // site table's count columns, plus the Encl count.
   const sectionColumns: GridColDef[] = [
     { minWidth: 234, flex: 1, sortable: false, field: 'name', headerName: 'Section', renderCell: enclosureCell },
-    num('male'),
-    num('female'),
-    num('ud'),
-    num('ind'),
-    num('grp'),
-    { ...num('total', { total: true, header: 'Total' }), width: 96 },
-    { ...num('nEncl', { header: 'Encl' }), width: 84 }
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true }),
+    countCol('nEncl', 'Encl', { width: 84 })
   ]
   const enclosureColumns: GridColDef[] = [
     { minWidth: 240, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: enclosureCell },
     compositionCol,
-    num('male'),
-    num('female'),
-    num('ud'),
-    num('ind'),
-    num('grp'),
-    { ...num('total', { total: true, header: 'Total' }), width: 96 }
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true })
   ]
 
   // Sheet-1 columns: a single site's enclosures (the sheet title already names the site).
   const sheetColumns: GridColDef[] = [
-    { minWidth: 200, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
+    { minWidth: 200, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: p => txtCell(p.row.name, cc.OnSurfaceVariant, 600) },
     compositionCol,
-    num('male'),
-    num('female'),
-    num('ud'),
-    num('ind'),
-    num('grp'),
-    { ...num('total', { total: true, header: 'Total' }), width: 96 }
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true })
   ]
 
   const start = pm.page * pm.pageSize
@@ -390,41 +281,26 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const sheetRows = sheetEnclosures.slice(sheetStart, sheetStart + sheetPm.pageSize).map((e, i) => ({ ...e, id: sheetStart + i }))
 
   const search = (
-    <TextField
-      size='small'
-      placeholder={isSite ? 'Search sites…' : isSection ? 'Search sections…' : 'Search enclosures…'}
+    <SearchPill
       value={q}
-      onChange={e => setQ(e.target.value)}
-      sx={{
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+      onChange={setQ}
+      placeholder={isSite ? 'Search sites…' : isSection ? 'Search sections…' : 'Search enclosures…'}
+      sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }}
     />
   )
 
   // Composition filter belongs to the enclosure grain only (sections aggregate it away).
+  // The kit CategoryFilter, speaking the ladder vocabulary (user call 2026-09-05).
   const enclFilterCtl = isEncl && (
-    <TextField
-      select
-      size='small'
-      value={enclFilter}
-      onChange={e => setEnclFilter(e.target.value as typeof enclFilter)}
-      sx={{
-        minWidth: 150,
-        '& .MuiInputBase-root': { height: 44, bgcolor: '#ffffff', borderRadius: '999px', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
-      }}
-    >
-      <MenuItem value='all'>All</MenuItem>
-      <MenuItem value='single'>Single Sexed</MenuItem>
-      <MenuItem value='male'>Male only</MenuItem>
-      <MenuItem value='female'>Female only</MenuItem>
-      <MenuItem value='unsexed'>Unsexed only</MenuItem>
-    </TextField>
+    <CategoryFilter
+      radius='999px'
+      width={200}
+      options={compositionOptions}
+      value={composition}
+      onChange={v => setComposition(v)}
+      placeholder='All compositions'
+      icon='mdi:gender-male-female'
+    />
   )
 
   // Site dropdown — section + enclosure views, and only for multi-site species.
@@ -567,20 +443,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         title={animalSheet?.enclosure}
         eyebrow={`${animalSheet?.site ?? ''}  ·  ${sheetAnimals.length} animal${sheetAnimals.length === 1 ? '' : 's'}`}
       >
-        <TextField
-          size='small'
-          fullWidth
-          placeholder='Search animals…'
-          value={animalQ}
-          onChange={e => setAnimalQ(e.target.value)}
-          sx={{
-            mb: 2,
-            '& .MuiInputBase-root': { bgcolor: skin.SEARCH_BG, borderRadius: '999px' },
-            '& .MuiOutlinedInput-notchedOutline': { border: `1px solid ${skin.HAIR}` },
-            '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-          }}
-          InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-        />
+        <SearchPill ground value={animalQ} onChange={setAnimalQ} placeholder='Search animals…' sx={{ width: '100%', mb: 2 }} />
 
         {animalFiltered.length ? (
           <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>

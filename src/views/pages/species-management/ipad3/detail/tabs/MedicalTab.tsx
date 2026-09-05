@@ -44,7 +44,7 @@ import {
   thinScrollbarSx,
   TrendAreaChart,
   TrendRangeTabs
-, SheetDrawer} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, SearchPill, SheetDrawer, UnderlineTabs} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -312,7 +312,8 @@ const groupByAnimal = (records: any[], dateKey: string, activeStatus: string): A
 // Shared height for the table-card header controls (view toggle + search) so they line up — matches Circle of Life.
 const TABLE_CTRL_H = 44
 
-/** Table search box — same styling/behaviour as the Circle-of-Life table search. */
+/** Table search box — thin wrapper over the kit SearchPill (2026-09-05), keeping this
+ *  tab's width/grow call-site API. */
 export const TableSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string; width?: number; height?: number; grow?: boolean }> = ({
   value,
   onChange,
@@ -322,21 +323,12 @@ export const TableSearch: React.FC<{ value: string; onChange: (v: string) => voi
   // grow: fill the available row width (portrait two-row headers) instead of the fixed width.
   grow = false
 }) => (
-  // CC pill search (Mortality/Population grammar) — contextual fill (2026-09-01): quiet
-  // FIELD_BG inside white cards; searches on the mint ground/sheets use SEARCH_BG white.
-  <TextField
-    size='small'
-    placeholder={placeholder}
+  <SearchPill
     value={value}
-    onChange={e => onChange(e.target.value)}
-    sx={{
-      ...(grow ? { flex: '1 1 auto', minWidth: 0 } : { width }),
-      maxWidth: '100%',
-      '& .MuiInputBase-root': { height, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-    }}
-    InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+    onChange={onChange}
+    placeholder={placeholder}
+    height={height}
+    sx={{ ...(grow ? { flex: '1 1 auto', minWidth: 0 } : { width }), maxWidth: '100%' }}
   />
 )
 
@@ -670,7 +662,6 @@ const OverviewPanel: React.FC<{
     }
   })
   const overdueColumns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => otxt(p.row.sl_no, c.neutralSecondary, 400) },
     { minWidth: 200, flex: 1, sortable: false, field: 'program', headerName: 'Program', renderCell: p => otxt(p.row.program, c.OnSurfaceVariant, 600) },
     {
       width: 195,
@@ -3167,7 +3158,6 @@ const ClinicalMergedPanel: React.FC<{
      right-aligned counts · quiet severity/prognosis type. No status column (2026-08-27). ── */
   const nameHeader = domain === 'symptom' ? 'Symptom' : 'Clinical Assessment'
   const columns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, c.neutralSecondary) },
     { minWidth: 240, flex: 1, field: 'name', headerName: nameHeader, renderCell: p => txt(p.row.name, c.OnSurfaceVariant, 600) },
     {
       width: 130,
@@ -3204,44 +3194,23 @@ const ClinicalMergedPanel: React.FC<{
   /* ── card header: the two underline sub-tabs (Necropsy pattern) + the standard search pill ── */
   const domainTabs = (
     <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-      {(
-        [
-          { key: 'symptom', label: 'Symptoms', n: symTypes.length },
-          { key: 'assessment', label: 'Clinical Assessment', n: condTypes.length }
-        ] as { key: Domain; label: string; n: number }[]
-      ).map(t => {
-        const on = domain === t.key
-
-        return (
-          <Box
-            key={t.key}
-            onClick={() => setDomain(t.key)}
-            role='tab'
-            aria-selected={on}
-            sx={{ py: 1.5, mb: '-1px', borderBottom: '2.5px solid', borderColor: on ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer' }}
-          >
-            <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : c.neutralSecondary }}>
-              {t.label} ({t.n.toLocaleString()})
-            </Typography>
-          </Box>
-        )
-      })}
+      <UnderlineTabs
+        tabs={[
+          { key: 'symptom', label: `Symptoms (${symTypes.length.toLocaleString()})` },
+          { key: 'assessment', label: `Clinical Assessment (${condTypes.length.toLocaleString()})` }
+        ]}
+        value={domain}
+        onChange={k => setDomain(k as Domain)}
+      />
     </Box>
   )
 
   const search = (
-    <TextField
-      size='small'
-      placeholder={domain === 'symptom' ? 'Search symptoms…' : 'Search assessments…'}
+    <SearchPill
       value={q}
-      onChange={e => setQ(e.target.value)}
-      sx={{
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+      onChange={setQ}
+      placeholder={domain === 'symptom' ? 'Search symptoms…' : 'Search assessments…'}
+      sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }}
     />
   )
 

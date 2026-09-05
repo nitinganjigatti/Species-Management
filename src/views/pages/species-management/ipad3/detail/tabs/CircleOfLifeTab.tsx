@@ -19,6 +19,7 @@ import type {
   SpeciesLifecycle
 } from 'src/types/species-management/detail'
 import {
+  SearchPill,
   idTypeLabel,
   AnimalCell,
   AnimalIdCard,
@@ -1268,7 +1269,7 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
       {v}
     </CellText>
   )
-  const sl: GridColDef = { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) }
+  // NO serial numbers (demo-review hard rule 2026-09-04; DetailTable also enforces it).
   const site: GridColDef = { width: 360, sortable: false, field: 'site', headerName: 'Site', renderCell: p => <SiteIdCell site={p.row.site} /> }
   const enclosures: GridColDef = { width: 120, sortable: false, field: 'enclosures', headerName: 'Enclosures', renderCell: p => txt(Number(p.row.enclosures || 0).toLocaleString(), undefined, 600) }
   const num = (field: string, header: string, color: string): GridColDef => ({
@@ -1294,7 +1295,6 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
 
   if (mode === 'births')
     return [
-      sl,
       site,
       num('count', 'Births', theme.palette.primary.dark),
       enclosures,
@@ -1305,7 +1305,7 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
     ]
 
   if (mode === 'lifespan')
-    return [sl, site, num('records', 'Records', cc.OnSurfaceVariant), years('avgAge', 'Avg age', theme.palette.secondary.main), years('longest', 'Longest', theme.palette.primary.dark), ...sexes]
+    return [site, num('records', 'Records', cc.OnSurfaceVariant), years('avgAge', 'Avg age', theme.palette.secondary.main), years('longest', 'Longest', theme.palette.primary.dark), ...sexes]
 
   // deaths
   const topCause: GridColDef = { width: 180, sortable: false, field: 'topCause', headerName: 'Top Cause', renderCell: p => txt(p.row.topCause || '-', p.row.topCause ? cc.Tertiary : cc.neutralSecondary, 600) }
@@ -1336,7 +1336,7 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
     }
   }
 
-  return [sl, site, num('count', 'Deaths', cc.Tertiary), enclosures, ...sexes, topCause, necropsy]
+  return [site, num('count', 'Deaths', cc.Tertiary), enclosures, ...sexes, topCause, necropsy]
 }
 
 // Segmented pill toggle — table header controls (dataset mode + Animal/Site view).
@@ -1481,19 +1481,12 @@ const AnimalEventsTable: React.FC<{
     </Box>
   )
   const searchField = (
-    <TextField
-      size='small'
-      placeholder={isSite ? 'Search sites…' : 'Search animals…'}
+    <SearchPill
       value={q}
-      onChange={e => setQ(e.target.value)}
-      sx={{
-        // The standard quiet search pill (Housing/Population grammar).
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: TABLE_CTRL_H, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+      onChange={setQ}
+      placeholder={isSite ? 'Search sites…' : 'Search animals…'}
+      height={TABLE_CTRL_H}
+      sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }}
     />
   )
 
@@ -1564,7 +1557,7 @@ const AnimalEventsTable: React.FC<{
         total={filtered.length}
         paginationModel={pm}
         setPaginationModel={setPm}
-        stickyFields={isSite ? ['sl_no', 'site'] : ['animal']}
+        stickyFields={isSite ? ['site'] : ['animal']}
         rowHeight={isSite ? undefined : 146}
         onRowClick={isSite ? (params: { row: { site: string } }) => onDrillSite(params.row.site) : undefined}
       />

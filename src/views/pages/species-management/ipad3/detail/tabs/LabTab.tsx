@@ -21,6 +21,7 @@ import {
   CellText,
   FilterChip,
   HeroPhotoContext,
+  UnderlineTabs,
   synthAnimalIdentity,
   DetailTable,
   EmptyState,
@@ -34,11 +35,13 @@ import {
   SheetTabs,
   sheetPaperSx,
   SHEET_PX,
+  SearchPill,
+  SheetDrawer,
   StatusChip,
   ViewToggle,
   TrendAreaChart,
   TrendRangeTabs
-, SheetDrawer} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import DashboardDateRange, {
   resolveRange,
   type RangePreset,
@@ -108,27 +111,9 @@ const fmtDMY = (iso: string): string => {
   return `${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
 }
 
-/* Standard in-card search pill (grey FIELD_BG — the contextual rule for searches inside white
- * cards). Rendered only when a table holds enough rows to need one (>10, the pagination bar). */
-const SearchPill: React.FC<{ value: string; onChange: (v: string) => void; placeholder: string }> = ({
-  value,
-  onChange,
-  placeholder
-}) => (
-  <TextField
-    size='small'
-    placeholder={placeholder}
-    value={value}
-    onChange={e => onChange(e.target.value)}
-    sx={{
-      width: 260,
-      flexShrink: 0,
-      '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-    }}
-    InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-  />
+/* Search pill = the kit SearchPill (2026-09-05); this wrapper keeps Lab's fixed 260px. */
+const LocalSearch: React.FC<{ value: string; onChange: (v: string) => void; placeholder: string }> = props => (
+  <SearchPill {...props} sx={{ width: 260, flexShrink: 0 }} />
 )
 
 /** "Since Feb 2025" — monitored-from meta line. */
@@ -454,35 +439,19 @@ const ScopePage: React.FC<{
       <SectionCard
         titleMb={3}
         title={
-          <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {(
-              [
-                { key: 'animals', label: 'Animal Wise', n: animalsAll.length },
-                { key: 'requests', label: 'Request Wise', n: requestsAll.length }
-              ] as { key: 'animals' | 'requests'; label: string; n: number }[]
-            ).map(t => {
-              const on = tab === t.key
-
-              return (
-                <Box
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  role='tab'
-                  aria-selected={on}
-                  sx={{ py: 1.5, mb: '-1px', borderBottom: '2.5px solid', borderColor: on ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer' }}
-                >
-                  <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : c.neutralSecondary }}>
-                    {t.label} ({t.n.toLocaleString()})
-                  </Typography>
-                </Box>
-              )
-            })}
-          </Box>
+          <UnderlineTabs
+            tabs={[
+              { key: 'animals', label: `Animal Wise (${animalsAll.length.toLocaleString()})` },
+              { key: 'requests', label: `Request Wise (${requestsAll.length.toLocaleString()})` }
+            ]}
+            value={tab}
+            onChange={k => setTab(k as 'animals' | 'requests')}
+          />
         }
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {filtersBtn}
-            <SearchPill
+            <LocalSearch
               value={q}
               onChange={v => {
                 setQ(v)
@@ -1042,7 +1011,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
           <SectionCard
             titleMb={3}
             action={
-              <SearchPill
+              <LocalSearch
                 value={chronicQ}
                 onChange={v => {
                   setChronicQ(v)
@@ -1121,7 +1090,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
         title='All Tests'
         titleMb={2}
         action={
-          <SearchPill
+          <LocalSearch
             value={testsQ}
             onChange={v => {
               setTestsQ(v)

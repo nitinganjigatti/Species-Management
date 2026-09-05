@@ -25,6 +25,7 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
+  SearchPill,
   SiteFilterSelect,
   AnimalCardRow,
   AnimalIdCard,
@@ -40,7 +41,8 @@ import {
   RowMetaText,
   SectionCard,
   SHEET_PX,
-  synthAnimalIdentity
+  synthAnimalIdentity,
+  TagPill
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, CardIdentityValue, ColumnPref } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -248,25 +250,7 @@ const tagsOf = (a: AnimalRecord, now: Date): { label: string; since: Date }[] =>
   return out
 }
 
-const TagPill: React.FC<{ label: string }> = ({ label }) => (
-  <Box
-    component='span'
-    sx={{
-      px: 2.5,
-      height: 26,
-      display: 'inline-flex',
-      alignItems: 'center',
-      borderRadius: '999px',
-      backgroundColor: skin.TONE_SOFT.neutral,
-      fontSize: '13px',
-      fontWeight: 600,
-      color: skin.TONE_TYPE.neutral,
-      whiteSpace: 'nowrap'
-    }}
-  >
-    {label}
-  </Box>
-)
+// TagPill moved to the kit (2026-09-05) — imported above.
 
 const MONTHS_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -556,19 +540,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
 
   const search = (
-    <TextField
-      size='small'
-      placeholder='Search animals…'
-      value={q}
-      onChange={e => setQ(e.target.value)}
-      sx={{
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-    />
+    <SearchPill value={q} onChange={setQ} placeholder='Search animals…' sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }} />
   )
 
   const siteFilterCtl = multiSite && (

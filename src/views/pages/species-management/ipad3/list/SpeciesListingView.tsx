@@ -489,33 +489,20 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                       overflow: 'visible',
                       textOverflow: 'clip'
                     },
-                    '& .MuiDataGrid-cell[data-field="sl_no"]': {
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 3,
-                      backgroundColor: '#ffffff'
-                    },
-                    '& .MuiDataGrid-columnHeader[data-field="sl_no"]': {
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 5,
-                      backgroundColor: skin.TABLE_HEAD_BG
-                    },
                     '& .MuiDataGrid-cell[data-field="species_name"]': {
                       position: 'sticky',
-                      left: 60,
+                      left: 0,
                       zIndex: 3,
                       backgroundColor: '#ffffff',
                       borderRight: `1px solid ${skin.ROW_LINE}`
                     },
                     '& .MuiDataGrid-columnHeader[data-field="species_name"]': {
                       position: 'sticky',
-                      left: 60,
+                      left: 0,
                       zIndex: 5,
                       backgroundColor: skin.TABLE_HEAD_BG,
                       borderRight: `1px solid ${skin.ROW_LINE}`
                     },
-                    '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="sl_no"]': { backgroundColor: skin.ROW_HOVER },
                     '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="species_name"]': { backgroundColor: skin.ROW_HOVER }
                   }}
                 />

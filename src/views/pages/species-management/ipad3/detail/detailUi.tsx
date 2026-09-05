@@ -453,6 +453,237 @@ export const ViewToggle: React.FC<{
   </Box>
 )
 
+/* ── UnderlineTabs — the in-card underline sub-tabs (Ledger/Lab/Medical anatomy;
+   kit-level per user call 2026-09-05). Accent-ink active label over a 2.5px underline.
+   TODO next consolidation pass: the icon+hover variant (Eggs/Hospital/Medical drills)
+   and the per-tab-accent variant (CoL) fold in here via icon/accent props. */
+export const UnderlineTabs: React.FC<{
+  tabs: { key: string; label: React.ReactNode }[]
+  value: string
+  onChange: (k: string) => void
+}> = ({ tabs, value, onChange }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {tabs.map(t => {
+        const on = value === t.key
+
+        return (
+          <Box
+            key={t.key}
+            onClick={() => onChange(t.key)}
+            role='tab'
+            aria-selected={on}
+            sx={{ py: 1.5, mb: '-1px', borderBottom: '2.5px solid', borderColor: on ? skin.ACCENT_FILL : 'transparent', cursor: 'pointer' }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : c.neutralSecondary }}>
+              {t.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+
+/* ── SearchPill — THE rounded search field (user call 2026-09-05: kit-first; was
+   hand-rolled in nearly every tab). Two skin variants (skin.ts standard): on WHITE
+   surfaces the quiet FIELD_BG fill w/ no outline; on the sage GROUND / sheet bodies
+   (`ground`) the SEARCH_BG white fill w/ HAIR outline. */
+export const SearchPill: React.FC<{
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  /** Sage-ground/sheet variant: white fill + hairline outline. */
+  ground?: boolean
+  height?: number
+  sx?: Record<string, unknown>
+}> = ({ value, onChange, placeholder = 'Search…', ground, height = 44, sx }) => (
+  <TextField
+    size='small'
+    placeholder={placeholder}
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    sx={{
+      '& .MuiInputBase-root': {
+        height,
+        bgcolor: ground ? skin.SEARCH_BG : skin.FIELD_BG,
+        borderRadius: '999px',
+        fontSize: '15px'
+      },
+      '& .MuiOutlinedInput-notchedOutline': ground ? { border: `1px solid ${skin.HAIR}` } : { border: 'none' },
+      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` },
+      ...sx
+    }}
+    InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+  />
+)
+
+/* ── ChipFilterRow — one scrolling row of multi-select filter chips w/ counts and a
+   leading "All" (the Pairing composition strip, kit-level per user call 2026-09-05).
+   Empty selection = all; the All chip shows selected then and clears on tap. */
+export const ChipFilterRow: React.FC<{
+  items: { key: string; label: string; count: number }[]
+  values: string[]
+  onChange: (values: string[]) => void
+  /** Count shown on the leading All chip (typically the unfiltered row total). */
+  allCount: number
+  allLabel?: string
+}> = ({ items, values, onChange, allCount, allLabel = 'All' }) => (
+  <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+    {[{ key: '__all__', label: allLabel, count: allCount }, ...items].map(it => {
+      const isAll = it.key === '__all__'
+      const on = isAll ? values.length === 0 : values.includes(it.key)
+
+      return (
+        <Box
+          key={it.key}
+          onClick={() => onChange(isAll ? [] : on ? values.filter(v => v !== it.key) : [...values, it.key])}
+          sx={{
+            height: 36,
+            px: 3.5,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1.5,
+            borderRadius: '999px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            border: `1px solid ${on ? skin.LIST_GREEN : skin.HAIR}`,
+            backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+            '&:hover': { backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER }
+          }}
+        >
+          <Typography sx={{ fontSize: '14px', fontWeight: on ? 600 : 500, color: on ? skin.LIST_GREEN : skin.INK2 }}>{it.label}</Typography>
+          <Typography sx={{ fontSize: '13px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
+            {it.count.toLocaleString()}
+          </Typography>
+        </Box>
+      )
+    })}
+  </Box>
+)
+
+/* ── TagPill — the neutral tag chip (Population Tags column + Animal Tags sheet). ── */
+export const TagPill: React.FC<{ label: string }> = ({ label }) => (
+  <Box
+    component='span'
+    sx={{
+      px: 2.5,
+      height: 26,
+      display: 'inline-flex',
+      alignItems: 'center',
+      borderRadius: '999px',
+      backgroundColor: skin.TONE_SOFT.neutral,
+      fontSize: '13px',
+      fontWeight: 600,
+      color: skin.TONE_TYPE.neutral,
+      whiteSpace: 'nowrap'
+    }}
+  >
+    {label}
+  </Box>
+)
+
+/** CellText shorthand — the per-tab `txt()` helpers, kit-level. */
+export const txtCell = (v: React.ReactNode, color?: string, weight = 500) => (
+  <CellText color={color} weight={weight}>
+    {v}
+  </CellText>
+)
+
+/** THE right-aligned count column (Pairing/Housing grammar): zeros print the pale em
+ *  dash, `total` wears bold list-green (the scan anchor). */
+export const countCol = (field: string, header: string, opts?: { total?: boolean; width?: number }): GridColDef => ({
+  width: opts?.width ?? (opts?.total ? 96 : 64),
+  sortable: false,
+  align: 'right',
+  headerAlign: 'right',
+  field,
+  headerName: header,
+  renderCell: p => {
+    const n = Number(p.row[field] || 0)
+    if (opts?.total) return txtCell(n.toLocaleString(), skin.LIST_GREEN, 700)
+
+    return n > 0 ? txtCell(n.toLocaleString(), undefined, 600) : txtCell('—', skin.DASH_INK, 400)
+  }
+})
+
+/* ── NameSiteCell — table identity cell: bold name (wraps to 2 lines, never clips) with
+   an optional faint sub-line (site under enclosure, etc.). ── */
+export const NameSiteCell: React.FC<{ name: React.ReactNode; sub?: React.ReactNode }> = ({ name, sub }) => {
+  const theme = useTheme() as any
+  const c = theme.palette.customColors as Record<string, string>
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
+      <Typography
+        sx={{
+          fontSize: '1rem',
+          fontWeight: 600,
+          color: c.OnSurfaceVariant,
+          lineHeight: 1.25,
+          whiteSpace: 'normal', // cells inherit the grid's nowrap — re-allow breaks
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}
+      >
+        {name}
+      </Typography>
+      {sub ? (
+        <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
+          {sub}
+        </Typography>
+      ) : null}
+    </Box>
+  )
+}
+
+/* ── RealAnimalCardRow — the standard animal card row (2026-09-02) driven by the
+   RECORD's real fields (was duplicated verbatim in Pairing + Housing; kit-level per
+   user call 2026-09-05): gender → badge, ring/chip + AID → identifiers, name only when
+   it isn't the AID; age/weight ride the card's own stat block; a chip crowded out by a
+   ring rides as meta. Site + enclosure stay OFF the card — these rows live in sheets
+   already scoped to one enclosure. */
+export const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, last }) => {
+  const primary: AnimalCardId | null = a.ring
+    ? { label: 'Ring', value: a.ring }
+    : a.chip
+      ? { label: 'Chip', value: a.chip }
+      : null
+  const identifiers: AnimalCardId[] = primary
+    ? [primary, { label: 'AID', value: a.antzId }]
+    : [{ label: 'AID', value: a.antzId }]
+  const meta = [a.ring && a.chip ? `Chip: ${a.chip}` : null].filter(Boolean) as string[]
+
+  return (
+    <AnimalCardRow
+      aid={a.antzId}
+      identifiers={identifiers}
+      tag={genderTagOf(a.gender)}
+      name={a.name && a.name !== a.antzId ? a.name : undefined}
+      age={a.age}
+      weight={a.weight}
+      meta={
+        meta.length > 0 ? (
+          <>
+            {meta.map((m, i) => (
+              <RowMetaText key={i} strong={i === 0}>
+                {m}
+              </RowMetaText>
+            ))}
+          </>
+        ) : undefined
+      }
+      last={last}
+    />
+  )
+}
+
 /** Clamp a record-derived kind split against an aggregate's single unsexed bucket —
  *  any unsexed remainder the records can't name stays UD, so a row ALWAYS sums to its
  *  Total (the table rule, user call 2026-09-05). Returns the display fields
@@ -2771,7 +3002,12 @@ export const DetailTable: React.FC<{
   // folds into the same path). Left offsets accumulate the pinned columns' declared
   // width/minWidth in COLUMN order; only the last pinned column wears the hairline.
   const pinFields = stickyFields?.length ? stickyFields : stickyField ? [stickyField] : []
-  const pinned = pinFields.length ? columns.filter(col => pinFields.includes(col.field)) : []
+  // NO serial numbers — demo-review HARD rule 2026-09-04, enforced at the COMPONENT so
+  // it can never quietly return: any 'sl_no' column a caller still passes is dropped
+  // (before pinning, so sticky offsets never count a dropped column).
+  const noSerials = columns.filter(c => c.field !== 'sl_no')
+
+  const pinned = pinFields.length ? noSerials.filter(col => pinFields.includes(col.field)) : []
 
   // Scrolled-under cue: once the table is horizontally scrolled, columns slide BENEATH
   // the pinned ones. ONE continuous gradient strip is overlaid along the pinned edge
@@ -2833,8 +3069,8 @@ export const DetailTable: React.FC<{
   // The LAST column gets extra right padding (user call 2026-09-05: a right-aligned
   // Total sat flush against the table edge) — tagged by class so the rule survives
   // flexed widths and the grid's own scrollbar filler elements.
-  const lastPadded = columns.map((c, i) =>
-    i === columns.length - 1 && typeof c.cellClassName !== 'function' && typeof (c as any).headerClassName !== 'function'
+  const lastPadded = noSerials.map((c, i) =>
+    i === noSerials.length - 1 && typeof c.cellClassName !== 'function' && typeof (c as any).headerClassName !== 'function'
       ? {
           ...c,
           cellClassName: [c.cellClassName, 'dg-col-last'].filter(Boolean).join(' '),

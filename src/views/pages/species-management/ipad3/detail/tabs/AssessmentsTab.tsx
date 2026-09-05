@@ -9,6 +9,7 @@ import type { AssessmentAnimal, CatTypeItem, SpeciesAssessments } from 'src/type
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import {
+  SearchPill,
   SiteFilterSelect,
   AnimalIdCard,
   CategoryFilter,
@@ -278,20 +279,7 @@ const TableControls: React.FC<{
   // Lives in the table card's header row (user call 2026-09-01) — search wears the
   // in-white-section grey per the contextual search standard.
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
-    <TextField
-      size='small'
-      placeholder={placeholder}
-      value={ctl.q}
-      onChange={e => ctl.setQ(e.target.value)}
-      sx={{
-        flex: 1,
-        minWidth: 200,
-        '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', height: 44, fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-    />
+    <SearchPill value={ctl.q} onChange={ctl.setQ} placeholder={placeholder} sx={{ flex: 1, minWidth: 200 }} />
     {ctl.sites.length > 1 && (
       // THE standard site dropdown (2026-09-02): bottom-sheet picker
       <SiteFilterSelect sites={ctl.sites.map(name => ({ site: name }))} value={ctl.site} onChange={v => ctl.setSite(v)} />
@@ -1066,20 +1054,7 @@ const StripTypeTable: React.FC<{
                 </MenuItem>
               ))}
             </Select>
-            <TextField
-              size='small'
-              placeholder='Search animal…'
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              sx={{
-                width: 240,
-                maxWidth: '100%',
-                '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-                '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-              }}
-              InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-            />
+            <SearchPill value={q} onChange={setQ} placeholder='Search animal…' sx={{ width: 240, maxWidth: '100%' }} />
           </Box>
         }
         titleMb={2}

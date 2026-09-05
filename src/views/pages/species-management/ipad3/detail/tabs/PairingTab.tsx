@@ -9,31 +9,29 @@
 // enclosures-per-readiness-type, died with the buckets).
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, TextField, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
-import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/detail'
 import {
   SiteFilterSelect,
-  AnimalCardRow,
-  AnimalIdCard,
-  CellText,
+  ChipFilterRow,
+  countCol,
   DetailTable,
   DrillSheet,
   EmptyState,
   ENCLOSURE_COMPOSITIONS,
   enclosureAnimalsOf,
   enclosureCompositionOf,
-  genderTagOf,
-  HeroPhotoContext,
-  RowMetaText,
+  NameSiteCell,
+  RealAnimalCardRow,
+  SearchPill,
   SectionCard,
   splitUnsexed,
-  synthAnimalIdentity
+  txtCell
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { AnimalCardId, AnimalTagKind, EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
 interface EncRow {
   name: string
@@ -56,57 +54,7 @@ interface EncRow {
 // Composition = the kit's shared vocabulary (user call 2026-09-05): Male · Female ·
 // Male & Female · Undetermined · Indeterminate · Group · Mixed · Empty. This tab has the
 // animal RECORDS, so the unsexed bucket splits into UD / ID / G per enclosure.
-
-/** The standard animal card row (2026-09-02), driven by the RECORD's real fields: gender →
- *  badge, ring/chip + AID → identifiers, name only when AID is the sole identifier. The kit's
- *  AnimalCardRow synthesizes identity from the aid alone, so this keeps its exact row chrome
- *  but feeds AnimalIdCard the real data (synth fills only the photo-presence slot). The sheet
- *  is scoped to ONE enclosure — site + enclosure stay OFF the card (the header names them);
- *  age/weight, which the card doesn't carry, ride as right-aligned meta lines. */
-// Thin adapter over the kit AnimalCardRow: REAL AnimalRecord fields in, per the contract.
-// Enclosure + site stay OFF these cards — the sheet is scoped to one enclosure.
-const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, last }) => {
-  const theme = useTheme() as any
-  const c = theme.palette.customColors as Record<string, string>
-
-  const tag: AnimalTagKind = genderTagOf(a.gender)
-  const primary: AnimalCardId | null = a.ring
-    ? { label: 'Ring', value: a.ring }
-    : a.chip
-      ? { label: 'Chip', value: a.chip }
-      : null
-  const identifiers: AnimalCardId[] = primary
-    ? [primary, { label: 'AID', value: a.antzId }]
-    : [{ label: 'AID', value: a.antzId }]
-
-  // Max 2 identifiers render (AID always counts) — a chip crowded out by a ring rides as meta.
-  // Age/weight live IN the card component now (its right stat block, empty values
-  // self-hide) — meta keeps only the chip crowded out by a ring.
-  const meta = [a.ring && a.chip ? `Chip: ${a.chip}` : null].filter(Boolean) as string[]
-
-  return (
-    <AnimalCardRow
-      aid={a.antzId}
-      identifiers={identifiers}
-      tag={tag}
-      name={a.name && a.name !== a.antzId ? a.name : undefined}
-      age={a.age}
-      weight={a.weight}
-      meta={
-        meta.length > 0 ? (
-          <>
-            {meta.map((m, i) => (
-              <RowMetaText key={i} strong={i === 0}>
-                {m}
-              </RowMetaText>
-            ))}
-          </>
-        ) : undefined
-      }
-      last={last}
-    />
-  )
-}
+// Animal card rows = the kit RealAnimalCardRow (the former local copy moved there).
 
 // The animals in one enclosure (standard animal card rows, like Medical). The list
 // reconciles against the row's COUNTS — a row showing figures always lists that many
@@ -140,20 +88,7 @@ const EnclosureAnimalsDrawer: React.FC<{
       title={enclosure}
       eyebrow={[site, `${list.length} animal${list.length === 1 ? '' : 's'}`].filter(Boolean).join('  ·  ')}
     >
-      <TextField
-        size='small'
-        fullWidth
-        placeholder='Search animals…'
-        value={q}
-        onChange={e => setQ(e.target.value)}
-        sx={{
-          mb: 2,
-          '& .MuiInputBase-root': { bgcolor: skin.SEARCH_BG, borderRadius: '999px' },
-          '& .MuiOutlinedInput-notchedOutline': { border: `1px solid ${skin.HAIR}` },
-          '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-        }}
-        InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-      />
+      <SearchPill ground value={q} onChange={setQ} placeholder='Search animals…' sx={{ width: '100%', mb: 2 }} />
 
       {filtered.length ? (
         <Box sx={{ ...skin.cardSx, px: 4, py: 1 }}>
@@ -169,8 +104,6 @@ const EnclosureAnimalsDrawer: React.FC<{
 }
 
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
   const [encDrill, setEncDrill] = useState<EncRow | null>(null)
   const [q, setQ] = useState('')
   // Composition = MULTI-select chips (demo review 2026-09-04): the chip row is the
@@ -231,11 +164,6 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     return m
   }, [allRows])
 
-  const toggleComp = (v: string) => {
-    setComps(s => (s.includes(v) ? s.filter(x => x !== v) : [...s, v]))
-    setPm(p => ({ ...p, page: 0 }))
-  }
-
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
 
@@ -249,80 +177,32 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
   if (!housing || !housing.sites?.length) return <EmptyState message='No enclosure data available' />
 
-  const txt = (v: React.ReactNode, color?: string, weight = 500) => (
-    <CellText color={color} weight={weight}>
-      {v}
-    </CellText>
-  )
-
-  // Numbers right-aligned (the 2026-08-27 table rule); zeros print the pale em dash.
-  const numCol = (field: keyof EncRow, header: string, opts?: { total?: boolean }): GridColDef => ({
-    width: header.length <= 2 ? 64 : 96,
-    sortable: false,
-    align: 'right',
-    headerAlign: 'right',
-    field: field as string,
-    headerName: header,
-    renderCell: p => {
-      const n = Number(p.row[field] || 0)
-      if (opts?.total) return txt(n.toLocaleString(), skin.LIST_GREEN, 700)
-
-      return n > 0 ? txt(n.toLocaleString(), undefined, 600) : txt('—', skin.DASH_INK, 400)
-    }
-  })
-
   const columns: GridColDef[] = [
-    // NO serial numbers — demo-review hard rule 2026-09-04 (user re-caught here 2026-09-05).
+    // NO serial numbers — demo-review hard rule 2026-09-04 (also enforced in DetailTable).
     {
       minWidth: 200,
       flex: 1,
       sortable: false,
       field: 'name',
       headerName: 'Enclosure',
-      // Site in faint type beneath the enclosure ONLY while the list spans >1 site
-      // (the platform site-row rule; user call 2026-09-05) — one selected site (or a
-      // single-site species) already names it, so the sub-line goes.
-      renderCell: p => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
-          {/* long names wrap to a 2nd line, clamped at 2 (user call 2026-09-05) */}
-          <Typography
-            sx={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: cc.OnSurfaceVariant,
-              lineHeight: 1.25,
-              whiteSpace: 'normal', // cells inherit the grid's nowrap — re-allow breaks
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
-            }}
-          >
-            {p.row.name}
-          </Typography>
-          {!site && siteNames.length > 1 && (
-            <Typography variant='caption' sx={{ color: skin.FAINT }} noWrap>
-              {p.row.site}
-            </Typography>
-          )}
-        </Box>
-      )
+      // Site sub-line ONLY while the list spans >1 site (the platform site-row rule).
+      renderCell: p => <NameSiteCell name={p.row.name} sub={!site && siteNames.length > 1 ? p.row.site : undefined} />
     },
     {
       width: 160,
       sortable: false,
       field: 'composition',
       headerName: 'Composition',
-      renderCell: p => txt(p.row.composition)
+      renderCell: p => txtCell(p.row.composition)
     },
     // The FULL sex anatomy rides the table even where a class is empty (user call
     // 2026-09-05) — ID/G print the pale dash until such records exist.
-    numCol('male', 'M'),
-    numCol('female', 'F'),
-    numCol('ud', 'UD'),
-    numCol('ind', 'ID'),
-    numCol('grp', 'G'),
-    numCol('total', 'Total', { total: true })
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true })
   ]
 
   const start = pm.page * pm.pageSize
@@ -339,71 +219,27 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         titleMb={4}
         title={
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
-            {/* one scrolling row, never wraps — a wrapped second row reads as a second
-                control. "All" leads (user call 2026-09-05): count = every enclosure,
-                selected while nothing else is picked, tap clears the selection. */}
-            <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
-              {['All', ...compositionOptions].map(comp => {
-                const isAll = comp === 'All'
-                const on = isAll ? comps.length === 0 : comps.includes(comp)
-                const count = isAll ? allRows.length : compCounts.get(comp) || 0
-
-                return (
-                  <Box
-                    key={comp}
-                    onClick={() => {
-                      if (isAll) {
-                        setComps([])
-                        setPm(p => ({ ...p, page: 0 }))
-                      } else {
-                        toggleComp(comp)
-                      }
-                    }}
-                    sx={{
-                      height: 36,
-                      px: 3.5,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      borderRadius: '999px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                      border: `1px solid ${on ? skin.LIST_GREEN : skin.HAIR}`,
-                      backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
-                      '&:hover': { backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER }
-                    }}
-                  >
-                    <Typography sx={{ fontSize: '14px', fontWeight: on ? 600 : 500, color: on ? skin.LIST_GREEN : skin.INK2 }}>
-                      {comp}
-                    </Typography>
-                    <Typography sx={{ fontSize: '13px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
-                      {count.toLocaleString()}
-                    </Typography>
-                  </Box>
-                )
-              })}
-            </Box>
+            {/* the kit ChipFilterRow — "All" leads, count = every enclosure, absent
+                classes auto-hide (compositionOptions carries present ones only) */}
+            <ChipFilterRow
+              items={compositionOptions.map(c => ({ key: c, label: c, count: compCounts.get(c) || 0 }))}
+              values={comps}
+              onChange={vs => {
+                setComps(vs)
+                setPm(p => ({ ...p, page: 0 }))
+              }}
+              allCount={allRows.length}
+            />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
-              <TextField
-                size='small'
-                placeholder='Search enclosures…'
+              <SearchPill
                 value={q}
-                onChange={e => {
-                  setQ(e.target.value)
+                onChange={v => {
+                  setQ(v)
                   setPm(p => ({ ...p, page: 0 }))
                 }}
-                sx={{
-                  flex: 1,
-                  minWidth: 220,
-                  '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', height: 44 },
-                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                  '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-                }}
-                InputProps={{
-                  startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} />
-                }}
+                placeholder='Search enclosures…'
+                sx={{ flex: 1, minWidth: 220 }}
               />
               {siteNames.length > 1 && (
                 // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts

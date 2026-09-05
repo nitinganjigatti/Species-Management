@@ -21,6 +21,7 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { LifecycleDeath, SpeciesLifecycle } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
+  SearchPill,
   SiteFilterSelect,
   idTypeLabel,
   AnimalCell,
@@ -235,19 +236,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
 
   const search = (
-    <TextField
-      size='small'
-      placeholder='Search animals…'
-      value={q}
-      onChange={e => setQ(e.target.value)}
-      sx={{
-        ...(portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }),
-        '& .MuiInputBase-root': { height: 44, bgcolor: skin.FIELD_BG, borderRadius: '999px', fontSize: '15px' },
-        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-        '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-      }}
-      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-    />
+    <SearchPill value={q} onChange={setQ} placeholder='Search animals…' sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }} />
   )
 
   const siteFilterCtl = multiSite && (

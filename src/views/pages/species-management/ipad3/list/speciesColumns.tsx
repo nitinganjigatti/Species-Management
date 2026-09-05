@@ -222,13 +222,6 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter, sho
 
   const cols: GridColDef[] = [
     {
-      width: 60,
-      sortable: false,
-      field: 'sl_no',
-      headerName: 'No',
-      renderCell: (params: GridRenderCellParams) => textCell(String(params.row.sl_no), skin.FAINT)
-    },
-    {
       minWidth: 260,
       flex: 1,
       sortable: false,

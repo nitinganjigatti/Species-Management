@@ -37,6 +37,7 @@ import {
   SHEET_PX,
   SheetSearch,
   SiteFilterSelect,
+  UnderlineTabs,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -628,36 +629,14 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   /* ── the two sub-tabs (Lab Recurring-Tests underline anatomy) ── */
 
   const subTabsNode = (
-    <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-      {(
-        [
-          { key: 'ledger', label: `Ledger (${stmt.total.toLocaleString()})` },
-          { key: 'recon', label: 'Reconciliation' }
-        ] as { key: 'ledger' | 'recon'; label: string }[]
-      ).map(t => {
-        const on = subTab === t.key
-
-        return (
-          <Box
-            key={t.key}
-            onClick={() => setSubTab(t.key)}
-            role='tab'
-            aria-selected={on}
-            sx={{
-              py: 1.5,
-              mb: '-1px',
-              borderBottom: '2.5px solid',
-              borderColor: on ? skin.ACCENT_FILL : 'transparent',
-              cursor: 'pointer'
-            }}
-          >
-            <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : cc.neutralSecondary }}>
-              {t.label}
-            </Typography>
-          </Box>
-        )
-      })}
-    </Box>
+    <UnderlineTabs
+      tabs={[
+        { key: 'ledger', label: `Ledger (${stmt.total.toLocaleString()})` },
+        { key: 'recon', label: 'Reconciliation' }
+      ]}
+      value={subTab}
+      onChange={k => setSubTab(k as 'ledger' | 'recon')}
+    />
   )
 
   return (
