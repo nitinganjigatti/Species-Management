@@ -16,6 +16,7 @@ import {
   DetailTable,
   DrillSheet,
   EmptyState,
+  enclosureAnimalsOf,
   enclosureCompositionOf,
   genderTagOf,
   HeroPhotoContext,
@@ -96,7 +97,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const cc = theme.palette.customColors as Record<string, string>
   // Two stacked drill sheets: sheet 1 = a site's enclosures (table), sheet 2 = an enclosure's animals (cards).
   const [enclSheet, setEnclSheet] = useState<{ site: string; section?: string } | null>(null)
-  const [animalSheet, setAnimalSheet] = useState<{ site: string; enclosure: string } | null>(null)
+  const [animalSheet, setAnimalSheet] = useState<{
+    site: string
+    enclosure: string
+    counts?: { male: number; female: number; unsexed: number }
+  } | null>(null)
   const [animalQ, setAnimalQ] = useState('')
   const [sheetPm, setSheetPm] = useState({ page: 0, pageSize: 10 })
   const [tableView, setTableView] = useState<'site' | 'section' | 'enclosure'>('site')
@@ -208,12 +213,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     setSheetPm(p => ({ ...p, page: 0 }))
   }, [enclSheet])
 
-  // Sheet 2 — the animals within the picked enclosure.
+  // Sheet 2 — the animals within the picked enclosure. Reconciled against the row's
+  // counts: a row showing figures always lists that many animals (kit
+  // enclosureAnimalsOf tops up dump gaps deterministically).
   const sheetAnimals = useMemo(
-    () =>
-      animalSheet
-        ? animals.filter(a => a.site === animalSheet.site && a.enclosure === animalSheet.enclosure)
-        : [],
+    () => (animalSheet ? enclosureAnimalsOf(animals, animalSheet.site, animalSheet.enclosure, animalSheet.counts) : []),
     [animals, animalSheet]
   )
   useEffect(() => {
@@ -455,7 +459,15 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
                 ? setEnclSheet({ site: params.row.name })
                 : isSection
                   ? setEnclSheet({ site: params.row.site, section: params.row.name })
-                  : setAnimalSheet({ site: params.row.site, enclosure: params.row.name })
+                  : setAnimalSheet({
+                      site: params.row.site,
+                      enclosure: params.row.name,
+                      counts: {
+                        male: Number(params.row.male || 0),
+                        female: Number(params.row.female || 0),
+                        unsexed: Number(params.row.unsexed || 0)
+                      }
+                    })
             }
           />
         ) : (
@@ -481,7 +493,16 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
               paginationModel={sheetPm}
               setPaginationModel={setSheetPm}
               onRowClick={(params: { row: Record<string, any> }) =>
-                enclSheet && setAnimalSheet({ site: enclSheet.site, enclosure: params.row.name })
+                enclSheet &&
+                setAnimalSheet({
+                  site: enclSheet.site,
+                  enclosure: params.row.name,
+                  counts: {
+                    male: Number(params.row.male || 0),
+                    female: Number(params.row.female || 0),
+                    unsexed: Number(params.row.unsexed || 0)
+                  }
+                })
               }
               framed
             />

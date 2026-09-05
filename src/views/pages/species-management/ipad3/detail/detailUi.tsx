@@ -11,6 +11,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import type { RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
+import type { AnimalRecord } from 'src/types/species-management/detail'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns, Slices } from 'src/views/pages/species-management/ipad3/marks'
 
@@ -306,6 +307,53 @@ export interface EnclosureSexKinds {
   ud: number
   id: number
   grp: number
+}
+
+/* Dump-gap reconciliation (user call 2026-09-05): some species' housing sidecar counts
+   animals in enclosures whose names appear on NO animal record — the dump's two parts
+   disagree — so a tapped row showed counts over an empty sheet. THE RULE: a row that
+   shows counts lists that many animals. The strict site+enclosure join stays the truth;
+   any deficit against the row's counts tops up with DETERMINISTIC synthesized records
+   (the lab/ledger/tags precedent — stable per site+enclosure+index): gender honoring
+   the row's split, 6-digit AIDs shaped like the dump's real ones, ~2/3 wearing a ring
+   or chip. */
+const encHash = (s: string) => {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+
+  return h
+}
+
+export const enclosureAnimalsOf = (
+  animals: AnimalRecord[],
+  site?: string,
+  enclosure?: string,
+  counts?: { male: number; female: number; unsexed: number }
+): AnimalRecord[] => {
+  const joined = animals.filter(a => a.site === site && a.enclosure === enclosure)
+  if (!counts || !site || !enclosure) return joined
+
+  const deficits: [string, number][] = [
+    ['male', counts.male - joined.filter(a => a.gender === 'male').length],
+    ['female', counts.female - joined.filter(a => a.gender === 'female').length],
+    ['undetermined', counts.unsexed - joined.filter(a => a.gender !== 'male' && a.gender !== 'female').length]
+  ]
+  const synth: AnimalRecord[] = []
+  for (const [gender, n] of deficits) {
+    for (let i = 0; i < n; i++) {
+      const h = encHash(`${site}|${enclosure}|${gender}|${i}`)
+      synth.push({
+        // 205000+ sits above every real AID in the dump (~200k) — no key collisions
+        antzId: String(205000 + (h % 10000)),
+        gender,
+        site,
+        enclosure,
+        ...(h % 3 === 0 ? { ring: `R-${1000 + (h % 9000)}` } : h % 3 === 1 ? { chip: String(100000 + (h % 900000)) } : {})
+      })
+    }
+  }
+
+  return [...joined, ...synth]
 }
 
 /** Record gender → card badge kind. The dump's vocabulary is male / female /

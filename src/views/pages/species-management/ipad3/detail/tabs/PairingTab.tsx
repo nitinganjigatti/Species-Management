@@ -24,6 +24,7 @@ import {
   DrillSheet,
   EmptyState,
   ENCLOSURE_COMPOSITIONS,
+  enclosureAnimalsOf,
   enclosureCompositionOf,
   genderTagOf,
   HeroPhotoContext,
@@ -104,21 +105,24 @@ const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, l
   )
 }
 
-// The animals in one enclosure (standard animal card rows, like Medical).
+// The animals in one enclosure (standard animal card rows, like Medical). The list
+// reconciles against the row's COUNTS — a row showing figures always lists that many
+// animals (kit enclosureAnimalsOf tops up dump gaps deterministically).
 const EnclosureAnimalsDrawer: React.FC<{
   open: boolean
   site?: string
   enclosure?: string
+  counts?: { male: number; female: number; unsexed: number }
   animals: AnimalRecord[]
   onClose: () => void
-}> = ({ open, site, enclosure, animals, onClose }) => {
+}> = ({ open, site, enclosure, counts, animals, onClose }) => {
   const theme = useTheme() as any
   const [q, setQ] = useState('')
   useEffect(() => {
     if (open) setQ('')
   }, [open, enclosure])
 
-  const list = useMemo(() => animals.filter(a => a.site === site && a.enclosure === enclosure), [animals, site, enclosure])
+  const list = useMemo(() => enclosureAnimalsOf(animals, site, enclosure, counts), [animals, site, enclosure, counts])
   const query = q.trim().toLowerCase()
   const filtered = query
     ? list.filter(a => `${a.name || ''} ${a.antzId} ${a.ring || ''} ${a.chip || ''}`.toLowerCase().includes(query))
@@ -164,7 +168,7 @@ const EnclosureAnimalsDrawer: React.FC<{
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
-  const [encDrill, setEncDrill] = useState<{ site: string; enclosure: string } | null>(null)
+  const [encDrill, setEncDrill] = useState<EncRow | null>(null)
   const [q, setQ] = useState('')
   // Composition = MULTI-select chips (demo review 2026-09-04): the chip row is the
   // top-level scope — search + site work WITHIN the selected compositions. Empty = all.
@@ -403,7 +407,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
             total={filtered.length}
             paginationModel={pm}
             setPaginationModel={setPm}
-            onRowClick={(p: { row: EncRow }) => setEncDrill({ site: p.row.site, enclosure: p.row.name })}
+            onRowClick={(p: { row: EncRow }) => setEncDrill(p.row)}
           />
         ) : (
           <EmptyState message='No enclosures match your filters' />
@@ -414,7 +418,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       <EnclosureAnimalsDrawer
         open={!!encDrill}
         site={encDrill?.site}
-        enclosure={encDrill?.enclosure}
+        enclosure={encDrill?.name}
+        counts={encDrill ? { male: encDrill.male, female: encDrill.female, unsexed: encDrill.ud + encDrill.id + encDrill.grp } : undefined}
         animals={animals}
         onClose={() => setEncDrill(null)}
       />
