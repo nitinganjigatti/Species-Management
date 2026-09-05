@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
+import { Autocomplete, Avatar, Box, Button, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
 import type { DrawerProps } from '@mui/material'
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -1117,8 +1117,9 @@ export const SiteFilterSelect: React.FC<{
   allCaption?: React.ReactNode
   /** Total shown in the sheet header stat (defaults to the option count). */
   sitesTotal?: number
-  /** MULTI mode (Ledger, 2026-09-04): site rows TOGGLE and the sheet stays open so several
-   *  sites can be picked in one visit; "All Sites" clears and closes. The trigger reads
+  /** MULTI mode (Ledger, 2026-09-04; STAGED 2026-09-05 user call): site rows toggle a
+   *  DRAFT — nothing applies until the footer's Apply; Clear All resets the draft to the
+   *  default (All Sites). "All Sites" row stages the empty selection. The trigger reads
    *  the site name (1 picked) or "N Sites". State lives in `multiValue`/`onMultiChange` —
    *  `value`/`onChange` are ignored in this mode. Empty selection = all sites. */
   multiple?: boolean
@@ -1142,10 +1143,13 @@ export const SiteFilterSelect: React.FC<{
 
   // Multi mode: sites already selected when the sheet OPENS ride to the top, right under
   // "All Sites" (user call 2026-09-04) — snapshotted at open so rows don't reshuffle while
-  // toggling mid-visit; a fresh open re-pins the latest selection.
+  // toggling mid-visit; a fresh open re-pins the latest selection. Picks stage into a
+  // DRAFT (2026-09-05) and commit only on Apply.
   const [pinned, setPinned] = useState<string[]>([])
+  const [draft, setDraft] = useState<string[]>([])
   const openSheet = () => {
     setPinned(multiple ? sel : [])
+    setDraft(multiple ? [...sel] : [])
     setOpen(true)
   }
 
@@ -1159,7 +1163,7 @@ export const SiteFilterSelect: React.FC<{
     setOpen(false)
     setSiteQ('')
   }
-  const toggle = (s: string) => onMultiChange?.(sel.includes(s) ? sel.filter(x => x !== s) : [...sel, s])
+  const toggle = (s: string) => setDraft(prev => (prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]))
 
   const row = (opts: { key: string; selected: boolean; onClick: () => void; icon: string; title: string; caption?: React.ReactNode; last: boolean }) => (
     <Box
@@ -1248,11 +1252,9 @@ export const SiteFilterSelect: React.FC<{
             {!siteQ.trim() &&
               row({
                 key: '__all',
-                selected: multiple ? sel.length === 0 : value == null,
-                onClick: () => {
-                  if (multiple) onMultiChange?.([])
-                  pick(null)
-                },
+                selected: multiple ? draft.length === 0 : value == null,
+                // multi: All Sites STAGES the default (empty) — Apply commits it
+                onClick: () => (multiple ? setDraft([]) : pick(null)),
                 icon: 'mdi:map-marker-multiple-outline',
                 title: 'All Sites',
                 caption: allCaption,
@@ -1261,8 +1263,8 @@ export const SiteFilterSelect: React.FC<{
             {ordered.map((s, i) =>
               row({
                 key: s.site,
-                selected: multiple ? sel.includes(s.site) : value === s.site,
-                // multi: toggle in place, sheet stays open for the next pick
+                selected: multiple ? draft.includes(s.site) : value === s.site,
+                // multi: toggle the DRAFT in place, sheet stays open for the next pick
                 onClick: () => (multiple ? toggle(s.site) : pick(value === s.site ? null : s.site)),
                 icon: 'mdi:map-marker-outline',
                 title: s.site,
@@ -1276,6 +1278,51 @@ export const SiteFilterSelect: React.FC<{
               </Typography>
             )}
           </Box>
+          {/* Multi mode footer (2026-09-05) — the CustomFilterDrawer button pair: Clear All
+              resets the draft to the DEFAULT (All Sites), only Apply commits + closes. */}
+          {multiple && (
+            <Box sx={{ display: 'flex', gap: 2, px: SHEET_PX, py: 3, borderTop: `1px solid ${skin.HAIR}`, flexShrink: 0, backgroundColor: '#ffffff' }}>
+              <Button
+                size='large'
+                fullWidth
+                color='inherit'
+                onClick={() => setDraft([])}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '999px',
+                  color: skin.INK2,
+                  border: `1px solid ${skin.TRACK}`,
+                  ...skin.cardPressSx,
+                  '&:hover': { bgcolor: skin.ROW_HOVER }
+                }}
+              >
+                Clear All
+              </Button>
+              <Button
+                size='large'
+                fullWidth
+                variant='contained'
+                disableElevation
+                onClick={() => {
+                  onMultiChange?.(draft)
+                  setOpen(false)
+                  setSiteQ('')
+                }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '999px',
+                  color: '#ffffff',
+                  bgcolor: skin.LIST_GREEN,
+                  ...skin.cardPressSx,
+                  '&:hover': { bgcolor: skin.ACCENT_INK, color: '#ffffff' }
+                }}
+              >
+                Apply
+              </Button>
+            </Box>
+          )}
         </Sheet>
       </SheetDrawer>
     </>
