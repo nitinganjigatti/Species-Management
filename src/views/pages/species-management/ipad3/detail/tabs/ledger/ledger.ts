@@ -263,6 +263,36 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
     events.push({ ...base, id: `${aid}:out`, kind: outKind, date: exit, cls, delta: -1 })
   })
 
+  // DEMO SHOWCASE DAY (user call 2026-09-05): one recent day carrying EVERY statement
+  // event kind, so the day-row grammar ("chips + ×N + +N more") has a live example near
+  // the top of the table. Deliberately NET ZERO — a neonate born and dead the same day,
+  // an acquisition disposed the same day, a group census +1 against a census −1 — so the
+  // closing stock and every other day's running balance stay exactly as they were.
+  if (animals.length) {
+    const dh = hash(`${animals[0].antzId}:demo`)
+    const demoDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 4)
+    const at = (mins: number) => new Date(demoDay.getTime() + mins * 60_000)
+    const site = sitePool.length ? sitePool[dh % sitePool.length] : undefined
+    const enclosure = enclPool.length ? enclPool[(dh >>> 3) % enclPool.length] : undefined
+    const nb = { aid: `AH-${2300 + (dh % 50)}`, site, enclosure, former: true }
+    const aq = { aid: `AH-${2360 + ((dh >>> 4) % 30)}`, site, enclosure, former: true }
+    const aqCls: LedgerClass = (dh >>> 5) % 2 ? 'male' : 'female'
+
+    events.push({ ...nb, id: `${nb.aid}:in`, kind: 'birth', date: at(9 * 60), cls: 'undetermined', delta: 1 })
+    events.push({ ...nb, id: `${nb.aid}:out`, kind: 'death', date: at(18 * 60), cls: 'undetermined', delta: -1 })
+    events.push({ ...aq, id: `${aq.aid}:in`, kind: 'acquisition', date: at(10 * 60), cls: aqCls, delta: 1 })
+    events.push({ ...aq, id: `${aq.aid}:out`, kind: 'disposal', date: at(17 * 60), cls: aqCls, delta: -1 })
+
+    const groups = animals.filter(a => classOf(a.gender) === 'group')
+    if (groups.length) {
+      const g1 = groups[0]
+      const g2 = groups[groups.length - 1]
+      const gBase = (g: AnimalRecord) => ({ aid: g.antzId, name: g.name, site: g.site, enclosure: g.enclosure })
+      events.push({ ...gBase(g1), id: `${g1.antzId}:csdemoA`, kind: 'census', date: at(11 * 60), cls: 'group', delta: 1 })
+      events.push({ ...gBase(g2), id: `${g2.antzId}:csdemoB`, kind: 'census', date: at(12 * 60), cls: 'group', delta: -1 })
+    }
+  }
+
   return events.sort((x, y) => x.date.getTime() - y.date.getTime())
 }
 
