@@ -26,15 +26,19 @@ import type { AnimalRecord } from 'src/types/species-management/detail'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
   SiteFilterSelect,
+  AnimalCardRow,
   AnimalIdCard,
   CategoryFilter,
   CellText,
   ColumnSettingsSheet,
   DetailTable,
+  DrillSheet,
   EmptyState,
   FilterChip,
   HeroPhotoContext,
+  RowMetaText,
   SectionCard,
+  SHEET_PX,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, CardIdentityValue, ColumnPref } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -135,7 +139,10 @@ const COL_LABELS: Record<string, string> = {
   ring: 'Ring',
   accessionType: 'Accession Type',
   accessionDate: 'Accession Date',
-  breed: 'Breed'
+  breed: 'Breed',
+  lastVaccinated: 'Last Vaccinated',
+  upcoming60: 'Upcoming in 60 Days',
+  tags: 'Tags'
 }
 
 const DEFAULT_COLS: ColumnPref[] = [
@@ -151,7 +158,10 @@ const DEFAULT_COLS: ColumnPref[] = [
   { key: 'ring', on: false },
   { key: 'accessionType', on: false },
   { key: 'accessionDate', on: false },
-  { key: 'breed', on: false }
+  { key: 'breed', on: false },
+  { key: 'lastVaccinated', on: false },
+  { key: 'upcoming60', on: false },
+  { key: 'tags', on: false }
 ]
 
 const PREFS_STORE = 'ipad3:population:tableprefs:v2'
@@ -182,7 +192,85 @@ const loadPrefs = (): TablePrefs => {
   }
 }
 
+/* ── derived columns (demo review: "pull medical status into the animal list") ──
+   The preventive sidecar's vaccination roster lives in a DIFFERENT id space than the
+   animal list (A-1003 vs antzId) — no real join exists, so these derive
+   DETERMINISTICALLY per animal (the lab.ts / ledger.ts precedent): stable across
+   renders and tabs, vocabulary = the dump's REAL vaccine names. Tags carry no data in
+   the dump at all — same deterministic treatment until real tag data lands. */
+
+const hash = (s: string) => {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+
+  return h
+}
+
+const DAY = 86_400_000
+
+const VACCINES = ['Covexin 10', 'Spirovac', 'Tetanus Toxoid', 'Brucevac RB51', 'Anthravac', 'Nobivac Rabies', 'Aftovaxpur']
+const ANIMAL_TAGS = [
+  'Breeding Program',
+  'Hand-Reared',
+  'Geriatric Care',
+  'Special Diet',
+  'Education Animal',
+  'Research Cohort',
+  'Escape Risk',
+  'New Arrival'
+]
+
+/** Annual-cycle vaccination status: ~12% never vaccinated; due = last + 1 year, so the
+ *  "Upcoming in 60 Days" column fills exactly for animals last given 305+ days ago. */
+const vaxOf = (a: AnimalRecord, now: Date) => {
+  const h = hash(`${a.antzId}:vax`)
+  if (h % 100 < 12) return { last: undefined, due: undefined }
+  const vaccine = VACCINES[h % VACCINES.length]
+  const lastDays = 10 + ((h >>> 3) % 350)
+  const last = new Date(now.getTime() - lastDays * DAY)
+  const due = new Date(last.getTime() + 365 * DAY)
+  const dueIn = (due.getTime() - now.getTime()) / DAY
+
+  return { last: { date: last, vaccine }, due: dueIn <= 60 ? { date: due, vaccine } : undefined }
+}
+
+/** 0–3 tags per animal, each with a stable "since" date for the detail sheet. */
+const tagsOf = (a: AnimalRecord, now: Date): { label: string; since: Date }[] => {
+  const h = hash(`${a.antzId}:tags`)
+  const n = [0, 0, 1, 1, 2, 3][h % 6]
+  const out: { label: string; since: Date }[] = []
+  for (let i = 0; i < n; i++) {
+    const label = ANIMAL_TAGS[(h >>> (3 + i * 4)) % ANIMAL_TAGS.length]
+    if (out.some(t => t.label === label)) continue
+    out.push({ label, since: new Date(now.getTime() - (60 + ((h >>> (5 + i * 3)) % 900)) * DAY) })
+  }
+
+  return out
+}
+
+const TagPill: React.FC<{ label: string }> = ({ label }) => (
+  <Box
+    component='span'
+    sx={{
+      px: 2.5,
+      height: 26,
+      display: 'inline-flex',
+      alignItems: 'center',
+      borderRadius: '999px',
+      backgroundColor: skin.TONE_SOFT.neutral,
+      fontSize: '13px',
+      fontWeight: 600,
+      color: skin.TONE_TYPE.neutral,
+      whiteSpace: 'nowrap'
+    }}
+  >
+    {label}
+  </Box>
+)
+
 const MONTHS_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const fmtDay = (d: Date) => `${String(d.getDate()).padStart(2, '0')} ${MONTHS_3[d.getMonth()]} ${d.getFullYear()}`
 
 const ageText = (age?: string) => {
   const n = Number(age)
@@ -223,6 +311,10 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   // Table prefs (columns + card identity) load AFTER mount (SSR renders the defaults —
   // reading localStorage in the initializer would break hydration).
   const [colsOpen, setColsOpen] = useState(false)
+  // Tag detail sheet — opened from the Tags column cell.
+  const [tagSheet, setTagSheet] = useState<AnimalRecord | null>(null)
+  // One stable clock per mount — the derived vaccination/tag values never flicker.
+  const NOW = useMemo(() => new Date(), [])
   const [colPrefs, setColPrefs] = useState<ColumnPref[]>(DEFAULT_COLS)
   const [cardId, setCardId] = useState<CardIdentityValue>(DEFAULT_CARD_IDENTITY)
   React.useEffect(() => {
@@ -357,7 +449,76 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
       ring: txtCol('ring', 'Ring', 140, a => a.ring || ''),
       accessionType: txtCol('accessionType', 'Accession Type', 160, a => a.accessionType || ''),
       accessionDate: txtCol('accessionDate', 'Accession Date', 170, a => dateText(a.accessionDate)),
-      breed: txtCol('breed', 'Breed', 150, a => a.breed || '')
+      breed: txtCol('breed', 'Breed', 150, a => a.breed || ''),
+      // derived columns — date on top, the vaccine as the quiet second line
+      lastVaccinated: {
+        minWidth: 190,
+        field: 'lastVaccinated',
+        headerName: 'Last Vaccinated',
+        sortable: false,
+        renderCell: (p: any) => {
+          const v = vaxOf(p.row as AnimalRecord, NOW).last
+          if (!v) return dash
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
+              <CellText>{fmtDay(v.date)}</CellText>
+              <Typography sx={{ fontSize: '13px', color: skin.FAINT }} noWrap>
+                {v.vaccine}
+              </Typography>
+            </Box>
+          )
+        }
+      },
+      upcoming60: {
+        minWidth: 200,
+        field: 'upcoming60',
+        headerName: 'Upcoming in 60 Days',
+        sortable: false,
+        renderCell: (p: any) => {
+          const v = vaxOf(p.row as AnimalRecord, NOW).due
+          if (!v) return dash
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
+              <CellText weight={600}>{fmtDay(v.date)}</CellText>
+              <Typography sx={{ fontSize: '13px', color: skin.FAINT }} noWrap>
+                {v.vaccine}
+              </Typography>
+            </Box>
+          )
+        }
+      },
+      // one pill + "+N more" — the CELL opens the tag sheet (the sheet carries the
+      // clickable animal card; the table row itself stays non-navigational)
+      tags: {
+        minWidth: 210,
+        field: 'tags',
+        headerName: 'Tags',
+        sortable: false,
+        renderCell: (p: any) => {
+          const a = p.row as AnimalRecord
+          const t = tagsOf(a, NOW)
+          if (!t.length) return dash
+
+          return (
+            <Box
+              onClick={e => {
+                e.stopPropagation()
+                setTagSheet(a)
+              }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, cursor: 'pointer' }}
+            >
+              <TagPill label={t[0].label} />
+              {t.length > 1 && (
+                <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2, whiteSpace: 'nowrap' }}>
+                  +{t.length - 1} more
+                </Typography>
+              )}
+            </Box>
+          )
+        }
+      }
     }
 
     return [
@@ -584,6 +745,62 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
         identityDefaults={DEFAULT_CARD_IDENTITY}
         onApply={applyPrefs}
       />
+
+      {/* Tag details — the ANIMAL CARD here is the clickable thing (chevron), leading
+          to the animal detail screen (unwired in this prototype — real-app navigation,
+          the Lab request-row precedent); the table cell only opens this sheet. */}
+      <DrillSheet
+        open={!!tagSheet}
+        onClose={() => setTagSheet(null)}
+        eyebrow={tagSheet ? `${tagsOf(tagSheet, NOW).length} ${tagsOf(tagSheet, NOW).length === 1 ? 'tag' : 'tags'}` : undefined}
+        title='Animal Tags'
+        size='md'
+        ground={false}
+        bodySx={{ px: 0 }}
+      >
+        {tagSheet && (
+          <>
+            <Box sx={{ px: SHEET_PX }}>
+              <AnimalCardRow
+                aid={tagSheet.antzId}
+                identifiers={cardIdentifiers(tagSheet, cardId)}
+                enclosure={tagSheet.enclosure}
+                site={tagSheet.site}
+                tag={tagOf(tagSheet.gender)}
+                name={tagSheet.name && tagSheet.name !== tagSheet.antzId ? tagSheet.name : undefined}
+                chevron
+                onClick={() => {
+                  /* → animal detail screen (real app) — unwired in the prototype */
+                }}
+                last
+              />
+            </Box>
+            <Box sx={{ px: SHEET_PX }}>
+              <Typography
+                sx={{ pt: 3, pb: 1, fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+              >
+                Tags
+              </Typography>
+              {tagsOf(tagSheet, NOW).map((t, i, arr) => (
+                <Box
+                  key={t.label}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                    py: 3,
+                    borderBottom: i === arr.length - 1 ? 'none' : `0.5px solid ${cc.OutlineVariant}`
+                  }}
+                >
+                  <TagPill label={t.label} />
+                  <RowMetaText>Since {fmtDay(t.since)}</RowMetaText>
+                </Box>
+              ))}
+            </Box>
+          </>
+        )}
+      </DrillSheet>
     </Box>
   )
 }
