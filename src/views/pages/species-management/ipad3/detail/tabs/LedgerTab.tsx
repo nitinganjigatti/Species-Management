@@ -337,8 +337,10 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     () => [
       {
         // Site rides UNDER the date (user call 2026-09-05) — no separate Site column;
-        // transfers show their route ("RRC → Gagua") on that line instead.
-        minWidth: 230,
+        // transfers show their route ("RRC → Gagua") on that line instead. THIS column
+        // carries the flexible width so the site line never truncates.
+        flex: 1,
+        minWidth: 260,
         field: 'dateMs',
         headerName: 'Date',
         renderCell: (p: any) => {
@@ -362,8 +364,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         }
       },
       {
-        flex: 1,
-        minWidth: 200,
+        minWidth: 220,
         field: 'kind',
         headerName: 'Event',
         sortable: false,
