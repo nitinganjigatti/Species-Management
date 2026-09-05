@@ -14,6 +14,8 @@ import {
   AnimalIdCard,
   CategoryFilter,
   CellText,
+  ColumnSettingsSheet,
+  type ColumnPref,
   DetailTable,
   DrillSheet,
   EmptyState,
@@ -1610,16 +1612,23 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
 // User call 2026-09-05: the category strip left the page (was the pill ViewToggle) and
 // DOCKS into the shell's main tab bar as underline tabs — HeaderSubTabs publishes to
 // the header slot, so this renders nothing in the page flow.
-const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; value: string; onChange: (v: string) => void }> = ({
-  options,
-  value,
-  onChange
-}) => <HeaderSubTabs tabs={options.map(o => ({ key: o.value, label: o.label }))} value={value} onChange={onChange} />
+const CategoryTabs: React.FC<{
+  options: { label: string; value: string }[]
+  value: string
+  onChange: (v: string) => void
+  onSettings?: () => void
+}> = ({ options, value, onChange, onSettings }) => (
+  <HeaderSubTabs tabs={options.map(o => ({ key: o.value, label: o.label }))} value={value} onChange={onChange} onSettings={onSettings} />
+)
 
 /* ------------------------------------------------------------------ Tab root */
 
 const POPULATION = '__population__'
 const ALERTS = '__alerts__'
+
+// Per-user category picks (visibility + order), shared across species — hiding
+// "Musth Behavior" is a viewer preference, not a species fact.
+const CATS_STORE = 'ipad3:assessments:categories:v1'
 
 const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assessments }) => {
   const a = assessments
@@ -1660,6 +1669,46 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [physicalCat])
 
+  /* ── category settings (punch-list 2026-09-04, built 2026-09-05): the gear on the
+     docked sub-tab row picks WHICH recorded assessment categories show (+ their order).
+     The list is only what the data carries — a type with zero records never appears.
+     Saved per user; a category recorded later lands visible by default. ── */
+  const [catsOpen, setCatsOpen] = useState(false)
+  // localStorage read AFTER mount (SSR renders all-on defaults — Population precedent).
+  const [savedCats, setSavedCats] = useState<ColumnPref[] | null>(null)
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(CATS_STORE)
+      if (raw) setSavedCats((JSON.parse(raw) as ColumnPref[]).filter(p => typeof p?.key === 'string' && typeof p?.on === 'boolean'))
+    } catch {
+      /* private mode etc. — prefs just don't persist */
+    }
+  }, [])
+  const defaultCatPrefs = useMemo(() => categories.map(cat => ({ key: cat, on: true })), [categories])
+  const catPrefs = useMemo(() => {
+    if (!savedCats) return defaultCatPrefs
+    // saved order trimmed to categories that exist in THIS species' data; new ones append visible
+    const valid = savedCats.filter(p => categories.includes(p.key))
+    const missing = categories.filter(cat => !valid.some(p => p.key === cat)).map(cat => ({ key: cat, on: true }))
+
+    return valid.length ? [...valid, ...missing] : defaultCatPrefs
+  }, [savedCats, categories, defaultCatPrefs])
+  const visibleCats = useMemo(() => catPrefs.filter(p => p.on).map(p => p.key), [catPrefs])
+  const applyCats = (cols: ColumnPref[]) => {
+    setSavedCats(cols)
+    try {
+      window.localStorage.setItem(CATS_STORE, JSON.stringify(cols))
+    } catch {
+      /* private mode etc. */
+    }
+  }
+
+  // The selected category just got hidden in settings → land on the first visible one.
+  useEffect(() => {
+    if (sub !== POPULATION && sub !== ALERTS && !visibleCats.includes(sub)) setSub(visibleCats[0] || POPULATION)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleCats.join('|')])
+
   const alertCount = useMemo(() => {
     const al = a?.alerts || {}
     const bcsOut = (a?.animals || []).filter(an => an.latestBcs != null && (Number(an.latestBcs) < 2.5 || Number(an.latestBcs) > 3.5)).length
@@ -1678,15 +1727,32 @@ const AssessmentsTab: React.FC<{ assessments?: SpeciesAssessments }> = ({ assess
 
   const openAnimal = (id: string) => setAnimalDrill(animalById.get(id) || { antzId: id })
 
+  // Population and Alerts bookend the row and are NOT settings-removable — only the
+  // recorded assessment categories in between follow the user's picks (+ order).
   const options = [
     { label: `Population (${a.animals?.length ?? 0})`, value: POPULATION },
-    ...categories.map(c => ({ label: c, value: c })),
+    ...visibleCats.map(c => ({ label: c, value: c })),
     ...(alertCount > 0 ? [{ label: `Alerts (${alertCount})`, value: ALERTS }] : [])
   ]
 
+  const catCounts = a.summary?.categories || {}
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <CategoryTabs options={options} value={sub} onChange={setSub} />
+      <CategoryTabs options={options} value={sub} onChange={setSub} onSettings={() => setCatsOpen(true)} />
+
+      <ColumnSettingsSheet
+        open={catsOpen}
+        onClose={() => setCatsOpen(false)}
+        title='Assessment Settings'
+        noun='Assessments'
+        labels={Object.fromEntries(
+          categories.map(cat => [cat, catCounts[cat] ? `${cat} (${Number(catCounts[cat]).toLocaleString()})` : cat])
+        )}
+        value={catPrefs}
+        defaults={defaultCatPrefs}
+        onApply={applyCats}
+      />
 
       {sub === POPULATION ? (
         <PopulationTable animals={a.animals || []} onAnimal={openAnimal} />

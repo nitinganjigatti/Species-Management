@@ -255,6 +255,83 @@ const CCTabs: React.FC<{
   )
 }
 
+/* ── the docked second-level row — UnderlineTabs attached under the CC track ─
+   Scrolls, never wraps. The optional gear is the main track's menu-button anatomy
+   MIRRORED: a fixed block at the right end the tabs slide beneath, casting a soft
+   leftward shadow while more tabs hide behind it. */
+const DockedSubTabs: React.FC<{
+  tabs: { key: string; label: string }[]
+  value: string
+  onChange: (k: string) => void
+  onSettings?: () => void
+}> = ({ tabs, value, onChange, onSettings }) => {
+  // true while tabs are clipped behind the right edge (→ the gear casts its shadow)
+  const [more, setMore] = useState(false)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const measure = () => {
+    const el = scrollRef.current
+    if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }
+  useEffect(() => {
+    measure()
+    window.addEventListener('resize', measure)
+
+    return () => window.removeEventListener('resize', measure)
+    // re-measure when the tab set changes (e.g. categories toggled in settings)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs])
+
+  return (
+    <Box sx={{ borderTop: `1px solid ${skin.HAIR}`, display: 'flex', alignItems: 'stretch' }}>
+      <Box
+        ref={scrollRef}
+        onScroll={measure}
+        sx={{
+          flex: '1 1 auto',
+          minWidth: 0,
+          px: '22px', // aligns the first label with the track's first tab label (6px track pad + 16px tab pad)
+          // Breathing room on TOP only — bottom padding would float the active underline
+          // above the block's edge (user-caught 2026-09-05): the 2.5px accent bar must
+          // TOUCH the bottom of the section, so the tabs' own bottom padding is the gap.
+          pt: '6px',
+          // Docked-row spacing: the text→underline gap lives INSIDE the tab (its own
+          // bottom padding), so widening it keeps the accent bar flush on the edge.
+          '& [role="tab"]': { pb: 3 },
+          display: 'flex',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+          WebkitOverflowScrolling: 'touch',
+          // the kit row wraps inside cards; docked in the header it scrolls, never wraps
+          '& > div': { flexWrap: 'nowrap' }
+        }}
+      >
+        <UnderlineTabs tabs={tabs} value={value} onChange={onChange} />
+      </Box>
+      {onSettings && (
+        <Box
+          onClick={onSettings}
+          role='button'
+          aria-label='Settings'
+          sx={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            px: '14px',
+            cursor: 'pointer',
+            backgroundColor: '#ffffff',
+            boxShadow: more ? '-10px 0 12px -8px rgba(0,0,0,0.28)' : 'none',
+            transition: `background-color ${skin.DUR_FAST} ${skin.EASE}, box-shadow ${skin.DUR_FAST} ${skin.EASE}`,
+            '&:hover': { backgroundColor: '#f4f3ef' }
+          }}
+        >
+          <Icon icon='mdi:cog-outline' fontSize='1.25rem' color={skin.TAB_ICON_OFF} />
+        </Box>
+      )}
+    </Box>
+  )
+}
+
 /* ── the hero's sprig — the only decoration the surface is allowed ──────────
    A thin branch fragment with a handful of small leaves, light ink at low
    opacity, pinned past a corner and clipped by the card. */
@@ -322,28 +399,12 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // under the main tab track with a hairline between — one navigation block.
   const subTabsSlot = useHeaderSubTabsSlot()
   const subTabsRow = subTabsSlot.spec ? (
-    <Box
-      sx={{
-        borderTop: `1px solid ${skin.HAIR}`,
-        px: '22px', // aligns the first label with the track's first tab label (6px track pad + 16px tab pad)
-        // Breathing room on TOP only — bottom padding would float the active underline
-        // above the block's edge (user-caught 2026-09-05): the 2.5px accent bar must
-        // TOUCH the bottom of the section, so the tabs' own bottom padding is the gap.
-        pt: '6px',
-        // Docked-row spacing: the text→underline gap lives INSIDE the tab (its own
-        // bottom padding), so widening it keeps the accent bar flush on the edge.
-        '& [role="tab"]': { pb: 3 },
-        display: 'flex',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        '&::-webkit-scrollbar': { display: 'none' },
-        WebkitOverflowScrolling: 'touch',
-        // the kit row wraps inside cards; docked in the header it scrolls, never wraps
-        '& > div': { flexWrap: 'nowrap' }
-      }}
-    >
-      <UnderlineTabs tabs={subTabsSlot.spec.tabs} value={subTabsSlot.spec.value} onChange={subTabsSlot.onChange} />
-    </Box>
+    <DockedSubTabs
+      tabs={subTabsSlot.spec.tabs}
+      value={subTabsSlot.spec.value}
+      onChange={subTabsSlot.onChange}
+      onSettings={subTabsSlot.spec.hasSettings ? subTabsSlot.onSettings : undefined}
+    />
   ) : null
 
   // Tab-navigator sheet (menu button in the rail): all tabs, searchable, tap to jump.

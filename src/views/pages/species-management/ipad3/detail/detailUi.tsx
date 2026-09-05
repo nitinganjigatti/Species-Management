@@ -615,14 +615,18 @@ export type HeaderSubTabsSpec = {
   tabs: { key: string; label: string }[]
   value: string
   onChange: (k: string) => void
+  /** Optional settings trigger — the shell pins a gear at the row's right end (the
+   *  main track's menu-button anatomy, mirrored) that fires this. */
+  onSettings?: () => void
 }
 
 const HeaderSubTabsCtx = React.createContext<{ publish: (s: HeaderSubTabsSpec | null) => void } | null>(null)
 
 /** Shell-side hook: owns the slot state and hands back [spec, providerValue]. */
 export const useHeaderSubTabsSlot = () => {
-  const [spec, setSpec] = useState<{ tabs: { key: string; label: string }[]; value: string } | null>(null)
+  const [spec, setSpec] = useState<{ tabs: { key: string; label: string }[]; value: string; hasSettings: boolean } | null>(null)
   const onChangeRef = useRef<(k: string) => void>(() => undefined)
+  const onSettingsRef = useRef<(() => void) | undefined>(undefined)
   const publish = React.useCallback((s: HeaderSubTabsSpec | null) => {
     if (!s) {
       setSpec(null)
@@ -630,26 +634,32 @@ export const useHeaderSubTabsSlot = () => {
       return
     }
     onChangeRef.current = s.onChange
+    onSettingsRef.current = s.onSettings
+    const hasSettings = !!s.onSettings
     // Content-compare so the per-render publish from HeaderSubTabs never loops the shell.
     setSpec(prev =>
-      prev && prev.value === s.value && prev.tabs.length === s.tabs.length && prev.tabs.every((t, i) => t.key === s.tabs[i].key && t.label === s.tabs[i].label)
+      prev &&
+      prev.value === s.value &&
+      prev.hasSettings === hasSettings &&
+      prev.tabs.length === s.tabs.length &&
+      prev.tabs.every((t, i) => t.key === s.tabs[i].key && t.label === s.tabs[i].label)
         ? prev
-        : { tabs: s.tabs, value: s.value }
+        : { tabs: s.tabs, value: s.value, hasSettings }
     )
   }, [])
   const ctxValue = React.useMemo(() => ({ publish }), [publish])
 
-  return { spec, onChange: (k: string) => onChangeRef.current(k), ctxValue }
+  return { spec, onChange: (k: string) => onChangeRef.current(k), onSettings: () => onSettingsRef.current?.(), ctxValue }
 }
 
 export const HeaderSubTabsProvider = HeaderSubTabsCtx.Provider
 
-export const HeaderSubTabs: React.FC<HeaderSubTabsSpec> = ({ tabs, value, onChange }) => {
+export const HeaderSubTabs: React.FC<HeaderSubTabsSpec> = ({ tabs, value, onChange, onSettings }) => {
   const ctx = React.useContext(HeaderSubTabsCtx)
 
   // Publish after every render — the slot dedupes, so only real changes land.
   useEffect(() => {
-    ctx?.publish({ tabs, value, onChange })
+    ctx?.publish({ tabs, value, onChange, onSettings })
   })
 
   // Leaving the screen clears the slot.
@@ -2188,8 +2198,11 @@ export const ColumnSettingsSheet: React.FC<{
   identityOptions?: { value: string; label: string }[]
   identity?: CardIdentityValue
   identityDefaults?: CardIdentityValue
+  /** What the rows ARE — rail sections read "Selected {noun}" / "Add {noun}" (default Columns;
+   *  Assessments passes its own noun). */
+  noun?: string
   onApply: (cols: ColumnPref[], identity?: CardIdentityValue) => void
-}> = ({ open, onClose, title = 'Table Settings', labels, value, defaults, identityOptions, identity, identityDefaults, onApply }) => {
+}> = ({ open, onClose, title = 'Table Settings', labels, value, defaults, identityOptions, identity, identityDefaults, noun = 'Columns', onApply }) => {
   const theme = useTheme() as any
   const c = cc(theme)
 
@@ -2287,8 +2300,8 @@ export const ColumnSettingsSheet: React.FC<{
     .sort((a, b) => (labels[a] ?? a).localeCompare(labels[b] ?? b))
 
   const railItems: { key: 'cols' | 'add' | 'identity'; label: string; badge?: number }[] = [
-    { key: 'cols', label: 'Selected Columns', badge: checked.size },
-    { key: 'add', label: 'Add Columns' },
+    { key: 'cols', label: `Selected ${noun}`, badge: checked.size },
+    { key: 'add', label: `Add ${noun}` },
     ...(identityOptions ? ([{ key: 'identity', label: 'Card Identity' }] as { key: 'identity'; label: string }[]) : [])
   ]
 
