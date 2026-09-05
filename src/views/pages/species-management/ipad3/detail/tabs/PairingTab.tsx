@@ -30,6 +30,7 @@ import {
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
+  splitUnsexed,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind, EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -197,9 +198,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     for (const s of housing?.sites || []) {
       for (const enc of s.enclosures) {
         const kinds = kindsByEnc.get(`${s.name}||${enc.name}`)
-        const ind = Math.min(kinds?.id || 0, enc.unsexed)
-        const grp = Math.min(kinds?.grp || 0, Math.max(enc.unsexed - ind, 0))
-        const ud = Math.max(enc.unsexed - ind - grp, 0)
+        const { ud, ind, grp } = splitUnsexed(enc.unsexed, kinds)
         list.push({
           name: enc.name,
           site: s.name,

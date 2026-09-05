@@ -22,6 +22,7 @@ import {
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
+  splitUnsexed,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -77,12 +78,6 @@ const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, l
   )
 }
 
-// Composition = the kit's shared enclosureCompositionOf — same words as Enclosure
-// Demographics (user call 2026-09-05). Aggregates only here (no per-record UD/ID/G
-// split): unsexed-only enclosures read Undetermined.
-const compositionOf = (male: number, female: number, unsexed: number, total: number): string =>
-  enclosureCompositionOf(male, female, unsexed, total)
-
 interface HousingTabProps {
   housing?: SpeciesHousing
   animals?: AnimalRecord[]
@@ -119,7 +114,31 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   const isEncl = !isSite && !isSection
   const query = q.trim().toLowerCase()
 
-  // Site-wise rollup (one row per site) and the flat enclosure list (across all sites).
+  // The records say WHICH kind of unsexed (UD / ID / G) — the aggregates carry one
+  // bucket. One pass builds the per-site and per-enclosure kind maps (the Pairing
+  // anatomy, user call 2026-09-05: Housing tables carry the FULL gender columns).
+  const { kindsBySite, kindsByEnc } = useMemo(() => {
+    const bySite = new Map<string, { ud: number; id: number; grp: number }>()
+    const byEnc = new Map<string, { ud: number; id: number; grp: number }>()
+    for (const a of animals) {
+      if (!a.site) continue
+      const bump = (m: Map<string, { ud: number; id: number; grp: number }>, k: string) => {
+        const rec = m.get(k) || { ud: 0, id: 0, grp: 0 }
+        if (a.gender === 'undetermined') rec.ud++
+        else if (a.gender === 'indeterminate') rec.id++
+        else if (a.gender === 'group') rec.grp++
+        else return
+        m.set(k, rec)
+      }
+      bump(bySite, a.site)
+      if (a.enclosure) bump(byEnc, `${a.site}||${a.enclosure}`)
+    }
+
+    return { kindsBySite: bySite, kindsByEnc: byEnc }
+  }, [animals])
+
+  // Site-wise rollup (one row per site) and the flat enclosure list (across all sites) —
+  // both enriched with the reconciled ud/ind/grp split (rows always sum to Total).
   const siteRows = useMemo(
     () =>
       sites.map(s => ({
@@ -128,28 +147,44 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
         male: s.males,
         female: s.females,
         unsexed: s.unsexed,
+        ...splitUnsexed(Number(s.unsexed || 0), kindsBySite.get(s.name)),
         total: s.total,
         nEncl: s.enclosures.length,
         pairs: s.pairs
       })),
-    [sites]
+    [sites, kindsBySite]
   )
   const allEnclosures = useMemo(
-    () => sites.flatMap(s => (s.enclosures || []).map(e => ({ ...e, site: s.name }))),
-    [sites]
+    () =>
+      sites.flatMap(s =>
+        (s.enclosures || []).map(e => ({
+          ...e,
+          site: s.name,
+          ...splitUnsexed(Number(e.unsexed || 0), kindsByEnc.get(`${s.name}||${e.name}`))
+        }))
+      ),
+    [sites, kindsByEnc]
   )
 
   // Section-wise rollup (2026-08-31): one row per (site, section), aggregated from the
   // enclosure counts — same shape as siteRows so the num()/Total/Encl columns carry over.
   const sectionRows = useMemo(() => {
-    const m = new Map<string, { name: string; site: string; male: number; female: number; unsexed: number; total: number; nEncl: number }>()
+    const m = new Map<
+      string,
+      { name: string; site: string; male: number; female: number; unsexed: number; ud: number; ind: number; grp: number; total: number; nEncl: number }
+    >()
     for (const e of allEnclosures) {
       const sec = e.section || 'Unsectioned'
       const key = `${e.site}|${sec}`
-      const r = m.get(key) || { name: sec, site: e.site, male: 0, female: 0, unsexed: 0, total: 0, nEncl: 0 }
+      const r = m.get(key) || { name: sec, site: e.site, male: 0, female: 0, unsexed: 0, ud: 0, ind: 0, grp: 0, total: 0, nEncl: 0 }
       r.male += Number(e.male || 0)
       r.female += Number(e.female || 0)
       r.unsexed += Number(e.unsexed || 0)
+      // Sections SUM their enclosures' reconciled splits — a section row always equals
+      // the enclosure rows its drill lists.
+      r.ud += e.ud
+      r.ind += e.ind
+      r.grp += e.grp
       r.total += Number(e.total || 0)
       r.nEncl += 1
       m.set(key, r)
@@ -200,15 +235,15 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     setPm(p => ({ ...p, page: 0 }))
   }, [tableView, query, enclFilter, siteFilter])
 
-  // Sheet 1 — the enclosures within the picked site.
+  // Sheet 1 — the enclosures within the picked site (the ENRICHED list, so the sheet
+  // table carries the same ud/ind/grp columns as the page).
   const sheetEnclosures = useMemo(() => {
     if (!enclSheet) return []
-    const s = sites.find(x => x.name === enclSheet.site)
 
-    return (s?.enclosures || [])
-      .filter(e => !enclSheet.section || (e.section || 'Unsectioned') === enclSheet.section)
-      .map(e => ({ ...e, site: enclSheet.site }))
-  }, [sites, enclSheet])
+    return allEnclosures.filter(
+      e => e.site === enclSheet.site && (!enclSheet.section || (e.section || 'Unsectioned') === enclSheet.section)
+    )
+  }, [allEnclosures, enclSheet])
   useEffect(() => {
     setSheetPm(p => ({ ...p, page: 0 }))
   }, [enclSheet])
@@ -243,7 +278,9 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     align: 'right',
     headerAlign: 'right',
     field,
-    headerName: opts?.header || (field === 'male' ? 'M' : field === 'female' ? 'F' : field === 'unsexed' ? 'U' : field),
+    headerName:
+      opts?.header ||
+      (field === 'male' ? 'M' : field === 'female' ? 'F' : field === 'ud' ? 'UD' : field === 'ind' ? 'ID' : field === 'grp' ? 'G' : field),
     renderCell: (p: GridRenderCellParams) => {
       const n = Number(p.row[field] || 0)
       if (opts?.total) return txt(n.toLocaleString(), skin.LIST_GREEN, 700)
@@ -266,60 +303,74 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     </Box>
   )
 
-  // Composition = plain text from the counts (no chip, no "Breeding Ready" wording).
+  // Composition = the kit's LOCKED ladder, fed the row's reconciled split — the label
+  // always agrees with the UD | ID | G columns beside it.
   const compositionCol: GridColDef = {
     width: 160,
     sortable: false,
     field: 'composition',
     headerName: 'Composition',
-    renderCell: p => txt(compositionOf(Number(p.row.male || 0), Number(p.row.female || 0), Number(p.row.unsexed || 0), Number(p.row.total || 0)))
+    renderCell: p =>
+      txt(
+        enclosureCompositionOf(Number(p.row.male || 0), Number(p.row.female || 0), Number(p.row.unsexed || 0), Number(p.row.total || 0), {
+          ud: Number(p.row.ud || 0),
+          id: Number(p.row.ind || 0),
+          grp: Number(p.row.grp || 0)
+        })
+      )
   }
 
+  // NO serial numbers (demo-review hard rule 2026-09-04); every table carries the FULL
+  // gender anatomy M | F | UD | ID | G | Total (the Pairing standard, user call 2026-09-05).
   const siteColumns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
     { ...num('male'), flex: 1, minWidth: 64 },
     { ...num('female'), flex: 1, minWidth: 64 },
-    { ...num('unsexed'), flex: 1, minWidth: 64 },
+    { ...num('ud'), flex: 1, minWidth: 64 },
+    { ...num('ind'), flex: 1, minWidth: 64 },
+    { ...num('grp'), flex: 1, minWidth: 64 },
     { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
     { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
   ]
   // Section rows reuse the enclosure identity cell (name + site sub-line) and the
   // site table's count columns, plus the Encl count.
   const sectionColumns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Section', renderCell: enclosureCell },
     { ...num('male'), flex: 1, minWidth: 64 },
     { ...num('female'), flex: 1, minWidth: 64 },
-    { ...num('unsexed'), flex: 1, minWidth: 64 },
+    { ...num('ud'), flex: 1, minWidth: 64 },
+    { ...num('ind'), flex: 1, minWidth: 64 },
+    { ...num('grp'), flex: 1, minWidth: 64 },
     { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
     { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
   ]
   const enclosureColumns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 240, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: enclosureCell },
     compositionCol,
     num('male'),
     num('female'),
-    num('unsexed'),
+    num('ud'),
+    num('ind'),
+    num('grp'),
     { ...num('total', { total: true, header: 'Total' }), width: 96 }
   ]
 
   // Sheet-1 columns: a single site's enclosures (the sheet title already names the site).
   const sheetColumns: GridColDef[] = [
-    { width: 64, sortable: false, field: 'sl_no', headerName: 'No', renderCell: p => txt(p.row.sl_no, cc.neutralSecondary, 400) },
     { minWidth: 200, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
     compositionCol,
     num('male'),
     num('female'),
-    num('unsexed'),
+    num('ud'),
+    num('ind'),
+    num('grp'),
     { ...num('total', { total: true, header: 'Total' }), width: 96 }
   ]
 
   const start = pm.page * pm.pageSize
-  const rows = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i, sl_no: start + i + 1 }))
+  const rows = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i }))
   const sheetStart = sheetPm.page * sheetPm.pageSize
-  const sheetRows = sheetEnclosures.slice(sheetStart, sheetStart + sheetPm.pageSize).map((e, i) => ({ ...e, id: sheetStart + i, sl_no: sheetStart + i + 1 }))
+  const sheetRows = sheetEnclosures.slice(sheetStart, sheetStart + sheetPm.pageSize).map((e, i) => ({ ...e, id: sheetStart + i }))
 
   const search = (
     <TextField

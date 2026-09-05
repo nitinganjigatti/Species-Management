@@ -356,6 +356,18 @@ export const enclosureAnimalsOf = (
   return [...joined, ...synth]
 }
 
+/** Clamp a record-derived kind split against an aggregate's single unsexed bucket —
+ *  any unsexed remainder the records can't name stays UD, so a row ALWAYS sums to its
+ *  Total (the table rule, user call 2026-09-05). Returns the display fields
+ *  {ud, ind, grp} — `ind` because a grid data column must never be named `id` (the
+ *  DataGrid reserves it). */
+export const splitUnsexed = (unsexed: number, kinds?: EnclosureSexKinds) => {
+  const ind = Math.min(kinds?.id || 0, unsexed)
+  const grp = Math.min(kinds?.grp || 0, Math.max(unsexed - ind, 0))
+
+  return { ud: Math.max(unsexed - ind - grp, 0), ind, grp }
+}
+
 /** Record gender → card badge kind. The dump's vocabulary is male / female /
  *  undetermined / indeterminate (114 records) / group (none yet) — before this helper
  *  every caller collapsed the last three into UD, so an indeterminate animal wore the
