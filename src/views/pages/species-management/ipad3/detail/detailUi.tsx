@@ -475,152 +475,76 @@ export const YearLinesChart: React.FC<{
   noun?: string
   height?: number
   onPoint?: (year: number, monthIdx: number) => void
-}> = ({ series, accent, noun = 'records', height = 260, onPoint }) => {
-  const boxRef = useRef<HTMLDivElement | null>(null)
-  const [w, setW] = useState(0)
-  const [tip, setTip] = useState<number | null>(null) // pinned month index
-  useEffect(() => {
-    const el = boxRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => setW(el.clientWidth))
-    ro.observe(el)
-    setW(el.clientWidth)
-
-    return () => ro.disconnect()
-  }, [])
+}> = ({ series, accent, noun = 'records', height = 280, onPoint }) => {
+  const theme = useTheme() as any
 
   const shade = (i: number) => skin.mixOverWhite(accent, [1, 0.72, 0.52, 0.36, 0.24][i] ?? 0.2)
 
-  const PAD_L = 40
-  const PAD_R = 14
-  const PAD_T = 12
-  const AXIS_H = 26
-  const plotH = height - PAD_T - AXIS_H
-  const max = Math.max(1, ...series.flatMap(s => s.values))
-  // Quiet round ceiling so gridlines land on whole numbers.
-  const ceilN = max <= 5 ? 5 : Math.ceil(max / 5) * 5
-  const xOf = (m: number) => PAD_L + ((w - PAD_L - PAD_R) * (m + 0.5)) / 12
-  const yOf = (v: number) => PAD_T + plotH - (plotH * v) / ceilN
-
-  const pick = (clientX: number): number => {
-    const rect = boxRef.current?.getBoundingClientRect()
-    if (!rect) return 0
-    const x = clientX - rect.left
-
-    return Math.max(0, Math.min(11, Math.floor(((x - PAD_L) / Math.max(1, w - PAD_L - PAD_R)) * 12)))
-  }
-
-  const handleTap = (e: React.PointerEvent) => {
-    const rect = boxRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const m = pick(e.clientX)
-    const px = e.clientX - rect.left
-    const py = e.clientY - rect.top
-    // A tap landing on a dot drills; anywhere else pins/unpins the month tooltip.
-    if (onPoint) {
-      for (const [i, s] of series.entries()) {
-        const dx = px - xOf(m)
-        const dy = py - yOf(s.values[m] || 0)
-        if (s.values[m] > 0 && dx * dx + dy * dy <= 18 * 18) {
-          onPoint(s.year, m)
-
-          return
-        }
-      }
-    }
-    setTip(t => (t === m ? null : m))
-  }
-
   if (!series.length) return null
 
-  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(ceilN * f))
-  const tipRows = tip == null ? [] : series.map((s, i) => ({ year: s.year, v: s.values[tip] || 0, color: shade(i) }))
-  const tipLeft = tip == null ? 0 : Math.min(Math.max(xOf(tip) - 70, 4), Math.max(4, w - 150))
-
   return (
-    <Box>
+    <Box sx={{ ...apexTooltipSx(theme), ...(onPoint ? { '& .apexcharts-marker, & .apexcharts-series': { cursor: 'pointer' } } : {}) }}>
       {/* year legend — the ladder's identity (axis labels never carry the year) */}
-      <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 2 }}>
-        {series.map((s, i) => (
-          <Box key={s.year} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 1 }}>
+        {series.map((sr, i) => (
+          <Box key={sr.year} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box sx={{ width: 18, height: 4, borderRadius: '2px', backgroundColor: shade(i) }} />
-            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2 }}>{s.year}</Typography>
+            <Typography sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2 }}>{sr.year}</Typography>
           </Box>
         ))}
       </Box>
 
-      <Box ref={boxRef} sx={{ position: 'relative', width: '100%' }} onPointerDown={handleTap}>
-        {w > 0 && (
-          <svg width={w} height={height} style={{ display: 'block' }}>
-            {gridVals.map(v => (
-              <g key={v}>
-                <line x1={PAD_L} x2={w - PAD_R} y1={yOf(v)} y2={yOf(v)} stroke={skin.HAIR} strokeWidth={1} />
-                <text x={PAD_L - 8} y={yOf(v) + 4} textAnchor='end' fontSize={12} fill={skin.FAINT}>
-                  {v.toLocaleString()}
-                </text>
-              </g>
-            ))}
-            {YL_MONTHS.map((mLabel, m) => (
-              <text key={mLabel} x={xOf(m)} y={height - 8} textAnchor='middle' fontSize={13} fill={skin.FAINT}>
-                {mLabel}
-              </text>
-            ))}
-            {tip != null && (
-              <line x1={xOf(tip)} x2={xOf(tip)} y1={PAD_T} y2={PAD_T + plotH} stroke={skin.TRACK} strokeWidth={1} strokeDasharray='3 3' />
-            )}
-            {/* older years render FIRST so the latest line sits on top */}
-            {[...series].reverse().map((s, ri) => {
-              const i = series.length - 1 - ri
-              const pts = s.values.map((v, m) => `${xOf(m)},${yOf(v || 0)}`).join(' ')
-
-              return (
-                <g key={s.year}>
-                  <polyline
-                    points={pts}
-                    fill='none'
-                    stroke={shade(i)}
-                    strokeWidth={i === 0 ? 3 : 2}
-                    strokeLinejoin='round'
-                    strokeLinecap='round'
-                  />
-                  {s.values.map((v, m) =>
-                    v > 0 ? <circle key={m} cx={xOf(m)} cy={yOf(v)} r={i === 0 ? 4 : 3} fill={shade(i)} stroke='#ffffff' strokeWidth={1.5} /> : null
-                  )}
-                </g>
-              )
-            })}
-          </svg>
-        )}
-
-        {/* pinned month tooltip — the YEAR-WISE breakup (16px per the tooltip standard) */}
-        {tip != null && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: PAD_T + 6,
-              left: `${tipLeft}px`,
-              zIndex: 4,
-              minWidth: 140,
-              backgroundColor: '#ffffff',
-              border: `1px solid ${skin.HAIR}`,
-              borderRadius: '10px',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
-              px: 3,
-              py: 2
-            }}
-          >
-            <Typography sx={{ fontSize: '14px', fontWeight: 700, color: skin.INK2, mb: 1 }}>{YL_MONTHS[tip]}</Typography>
-            {tipRows.map(r => (
-              <Box key={r.year} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.5 }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '3px', backgroundColor: r.color, flexShrink: 0 }} />
-                <Typography sx={{ fontSize: '16px', color: skin.INK2, flex: 1 }}>{r.year}</Typography>
-                <Typography sx={{ fontSize: '16px', fontWeight: 700, color: skin.INK2 }}>{r.v.toLocaleString()}</Typography>
-              </Box>
-            ))}
-            <Typography sx={{ fontSize: '12px', color: skin.FAINT, mt: 0.5 }}>{noun}</Typography>
-          </Box>
-        )}
-      </Box>
+      <ReactApexcharts
+        type='line'
+        height={height}
+        options={{
+          chart: {
+            toolbar: { show: false },
+            animations: { enabled: false },
+            fontFamily: 'inherit',
+            zoom: { enabled: false },
+            // Spread, never `events: undefined` — an explicit undefined clobbers Apex's
+            // default events object (the TrendAreaChart lesson).
+            ...(onPoint
+              ? {
+                  events: {
+                    markerClick: (_e: any, _ctx: any, opts: any) => {
+                      const sr = series[opts?.seriesIndex ?? -1]
+                      if (sr && opts?.dataPointIndex >= 0) onPoint(sr.year, opts.dataPointIndex)
+                    }
+                  }
+                }
+              : {})
+          },
+          colors: series.map((_, i) => shade(i)),
+          // the SAME smooth curve as TrendAreaChart — one chart family, no sharp elbows
+          stroke: { curve: 'smooth', width: series.map((_, i) => (i === 0 ? 3 : 2)) },
+          legend: { show: false },
+          dataLabels: { enabled: false },
+          markers: { size: 4, strokeWidth: 2, strokeColors: '#ffffff', hover: { size: 6 } },
+          grid: { borderColor: skin.HAIR, strokeDashArray: 3 },
+          xaxis: {
+            categories: YL_MONTHS,
+            labels: { style: { fontSize: '13px', colors: skin.FAINT } },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            tooltip: { enabled: false }
+          },
+          yaxis: {
+            min: 0,
+            tickAmount: 4,
+            labels: { formatter: (v: number) => Math.round(v).toLocaleString(), style: { fontSize: '12px', colors: skin.FAINT } }
+          },
+          // The standard hover tooltip (apexTooltipSx) — shared, so the hovered month
+          // lists EVERY year's value: the year-wise breakup.
+          tooltip: {
+            shared: true,
+            intersect: false,
+            y: { formatter: (v: number) => `${(v ?? 0).toLocaleString()} ${noun}` }
+          }
+        }}
+        series={series.map(sr => ({ name: String(sr.year), data: sr.values }))}
+      />
     </Box>
   )
 }
@@ -663,35 +587,134 @@ export const UnderlineTabs: React.FC<{
 /* ── SearchPill — THE rounded search field (user call 2026-09-05: kit-first; was
    hand-rolled in nearly every tab). Two skin variants (skin.ts standard): on WHITE
    surfaces the quiet FIELD_BG fill w/ no outline; on the sage GROUND / sheet bodies
-   (`ground`) the SEARCH_BG white fill w/ HAIR outline. */
+   (`ground`) the SEARCH_BG white fill w/ HAIR outline.
+
+   COLLAPSING (user call 2026-09-05, component-level so it lands everywhere at once):
+   the card-header variant idles COLLAPSED — a round icon button (or, with an active
+   query, a compact pill showing the text ellipsized). Tapping it expands the field
+   over the FULL header row (overlay — the row's other controls sit beneath, unseen)
+   and focuses it; blur/Escape collapses back. Sheet/ground searches (`ground`) keep
+   the always-expanded field — a sheet search owns its row already. `alwaysOpen`
+   opts a header search out of collapsing. */
 export const SearchPill: React.FC<{
   value: string
   onChange: (v: string) => void
   placeholder?: string
-  /** Sage-ground/sheet variant: white fill + hairline outline. */
+  /** Sage-ground/sheet variant: white fill + hairline outline; always expanded. */
   ground?: boolean
+  /** Opt a header search out of the collapse behavior. */
+  alwaysOpen?: boolean
   height?: number
   sx?: Record<string, unknown>
-}> = ({ value, onChange, placeholder = 'Search…', ground, height = 44, sx }) => (
-  <TextField
-    size='small'
-    placeholder={placeholder}
-    value={value}
-    onChange={e => onChange(e.target.value)}
-    sx={{
-      '& .MuiInputBase-root': {
-        height,
-        bgcolor: ground ? skin.SEARCH_BG : skin.FIELD_BG,
-        borderRadius: '999px',
-        fontSize: '15px'
-      },
-      '& .MuiOutlinedInput-notchedOutline': ground ? { border: `1px solid ${skin.HAIR}` } : { border: 'none' },
-      '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` },
-      ...sx
-    }}
-    InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-  />
-)
+}> = ({ value, onChange, placeholder = 'Search…', ground, alwaysOpen, height = 44, sx }) => {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const [ov, setOv] = useState<{ left: number; width: number } | null>(null)
+
+  const fieldSx = {
+    '& .MuiInputBase-root': {
+      height,
+      bgcolor: ground ? skin.SEARCH_BG : skin.FIELD_BG,
+      borderRadius: '999px',
+      fontSize: '15px'
+    },
+    '& .MuiOutlinedInput-notchedOutline': ground ? { border: `1px solid ${skin.HAIR}` } : { border: 'none' },
+    '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+  }
+
+  const field = (extra?: Record<string, unknown>, autoFocus?: boolean) => (
+    <TextField
+      size='small'
+      placeholder={placeholder}
+      value={value}
+      autoFocus={autoFocus}
+      onChange={e => onChange(e.target.value)}
+      onBlur={autoFocus ? () => setOpen(false) : undefined}
+      onKeyDown={autoFocus ? e => e.key === 'Escape' && setOpen(false) : undefined}
+      sx={{ ...fieldSx, ...extra }}
+      InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+    />
+  )
+
+  // Sheets (and explicit opt-outs) keep the classic always-expanded field.
+  if (ground || alwaysOpen) return field(sx)
+
+  const expand = () => {
+    const el = wrapRef.current
+    const row = el?.parentElement
+    if (el && row) {
+      const a = el.getBoundingClientRect()
+      const b = row.getBoundingClientRect()
+      setOv({ left: b.left - a.left, width: b.width })
+    } else {
+      setOv(null)
+    }
+    setOpen(true)
+  }
+
+  return (
+    <Box ref={wrapRef} sx={{ position: 'relative', flexShrink: 0, display: 'inline-flex' }}>
+      {value ? (
+        // collapsed WITH a query — the pill keeps the searched text visible, ellipsized
+        <Box
+          onClick={expand}
+          sx={{
+            height,
+            maxWidth: 190,
+            px: 3,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1.5,
+            borderRadius: '999px',
+            bgcolor: skin.FIELD_BG,
+            cursor: 'pointer',
+            minWidth: 0
+          }}
+        >
+          <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ color: skin.FAINT, flexShrink: 0 }} />
+          <Typography sx={{ fontSize: '15px', color: skin.INK2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {value}
+          </Typography>
+        </Box>
+      ) : (
+        // collapsed idle — the round icon button (the header Filters-button grammar)
+        <Box
+          onClick={expand}
+          aria-label='Search'
+          sx={{
+            width: height,
+            height,
+            borderRadius: '999px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: skin.FIELD_BG,
+            cursor: 'pointer',
+            '&:hover': { bgcolor: skin.ROW_HOVER }
+          }}
+        >
+          <Icon icon='mdi:magnify' fontSize='1.3rem' style={{ color: skin.INK2 }} />
+        </Box>
+      )}
+
+      {open && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: ov ? `${ov.left}px` : 0,
+            width: ov ? `${ov.width}px` : '100%',
+            zIndex: 12,
+            backgroundColor: '#ffffff',
+            borderRadius: '999px'
+          }}
+        >
+          {field({ width: '100%' }, true)}
+        </Box>
+      )}
+    </Box>
+  )
+}
 
 /* ── ChipFilterRow — one scrolling row of multi-select filter chips w/ counts and a
    leading "All" (the Pairing composition strip, kit-level per user call 2026-09-05).
