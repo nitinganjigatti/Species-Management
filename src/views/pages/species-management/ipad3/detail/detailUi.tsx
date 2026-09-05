@@ -1329,19 +1329,27 @@ export const SiteFilterSelect: React.FC<{
   )
 }
 
-/* ── table column picker (demo-review HARD RULE 2026-09-04; two-tab + drag rework
-   2026-09-05 user call) ────────────────────────────────────────────────────────
-   Every table offers a Settings control: the user chooses WHICH columns show and
-   their ORDER, saved per user. TWO tabs: "Selected" = the table's columns in order,
-   DRAG handle to reorder (order changes ONLY here, never by dragging table headers —
-   header drag fights horizontal scroll on glass) + ✕ to remove; "Add Columns" =
-   searchable master list of the rest, tap to add (lands at the END of the order).
-   Everything stages into a draft; footer = Reset Default | Apply. Persistence is
-   the CALLER's job (localStorage now, backend master later). */
+/* ── table settings sheet (demo-review HARD RULE 2026-09-04; railed rework 2026-09-05
+   user calls) ─────────────────────────────────────────────────────────────────
+   Every table offers a Settings control, in the FILTER SHEET's anatomy (left menu
+   rail + right panel + staged draft + footer). Rail sections:
+   · "Selected Columns" — the table's columns in ORDER; checkbox stages removal IN
+     PLACE (greyed, undoable until Apply); the mdi:drag grip reorders — order changes
+     ONLY here, never by dragging table headers (glass scroll conflict).
+   · "Add Columns" — searchable master list, tap to add (lands at the END).
+   · "Card Identity" (optional) — the card shows EXACTLY two identity lines: the user
+     picks PRIMARY and SECONDARY from ALL identifier types (never the same twice);
+     an animal missing the chosen type falls back per animal.
+   Footer = Reset Default | Apply. Persistence is the CALLER's job. */
 
 export interface ColumnPref {
   key: string
   on: boolean
+}
+
+export interface CardIdentityValue {
+  primary: string
+  secondary: string
 }
 
 const COL_ROW_H = 56
@@ -1355,17 +1363,21 @@ export const ColumnSettingsSheet: React.FC<{
   /** Applied ordered prefs — the sheet stages a draft and commits on Apply. */
   value: ColumnPref[]
   defaults: ColumnPref[]
-  onApply: (v: ColumnPref[]) => void
-}> = ({ open, onClose, title = 'Table Columns', labels, value, defaults, onApply }) => {
+  /** Optional Card Identity section — ALL identifier types, user picks primary + secondary. */
+  identityOptions?: { value: string; label: string }[]
+  identity?: CardIdentityValue
+  identityDefaults?: CardIdentityValue
+  onApply: (cols: ColumnPref[], identity?: CardIdentityValue) => void
+}> = ({ open, onClose, title = 'Table Settings', labels, value, defaults, identityOptions, identity, identityDefaults, onApply }) => {
   const theme = useTheme() as any
   const c = cc(theme)
 
-  // Draft = the Selected tab's ORDER (keys, table order) + which of those stay CHECKED.
-  // Unchecking stages a removal — the row keeps its place (undoable) until Apply.
-  const [tab, setTab] = useState<'cols' | 'add'>('cols')
+  const [section, setSection] = useState<'cols' | 'add' | 'identity'>('cols')
   const [order, setOrder] = useState<string[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [q, setQ] = useState('')
+  const [prim, setPrim] = useState('')
+  const [sec, setSec] = useState('')
   const orderRef = useRef<string[]>([])
   const setOrderSynced = (next: string[]) => {
     orderRef.current = next
@@ -1377,8 +1389,10 @@ export const ColumnSettingsSheet: React.FC<{
       const on = value.filter(p => p.on).map(p => p.key)
       setOrderSynced(on)
       setChecked(new Set(on))
-      setTab('cols')
+      setSection('cols')
       setQ('')
+      setPrim(identity?.primary || '')
+      setSec(identity?.secondary || '')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -1398,7 +1412,7 @@ export const ColumnSettingsSheet: React.FC<{
   }
 
   /* drag-to-reorder — the HANDLE owns the gesture (touchAction none + pointer capture),
-     so scrolling the sheet never reorders; fixed-height rows make the math exact. */
+     so scrolling the panel never reorders; fixed-height rows make the math exact. */
   const [dragKey, setDragKey] = useState<string | null>(null)
   const dragAnchor = useRef(0)
   const startDrag = (key: string) => (e: React.PointerEvent) => {
@@ -1423,13 +1437,26 @@ export const ColumnSettingsSheet: React.FC<{
 
   const applyDraft = () => {
     const kept = order.filter(k => checked.has(k))
-    onApply([
-      ...kept.map(k => ({ key: k, on: true })),
-      ...Object.keys(labels)
-        .filter(k => !kept.includes(k))
-        .map(k => ({ key: k, on: false }))
-    ])
+    onApply(
+      [
+        ...kept.map(k => ({ key: k, on: true })),
+        ...Object.keys(labels)
+          .filter(k => !kept.includes(k))
+          .map(k => ({ key: k, on: false }))
+      ],
+      identityOptions ? { primary: prim, secondary: sec } : undefined
+    )
     onClose()
+  }
+
+  const resetDraft = () => {
+    const on = defaults.filter(d => d.on).map(d => d.key)
+    setOrderSynced(on)
+    setChecked(new Set(on))
+    if (identityDefaults) {
+      setPrim(identityDefaults.primary)
+      setSec(identityDefaults.secondary)
+    }
   }
 
   const needle = q.trim().toLowerCase()
@@ -1438,158 +1465,295 @@ export const ColumnSettingsSheet: React.FC<{
     .filter(k => !needle || (labels[k] ?? k).toLowerCase().includes(needle))
     .sort((a, b) => (labels[a] ?? a).localeCompare(labels[b] ?? b))
 
-  return (
-    <SheetDrawer open={open} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
-      <Sheet>
-        <SheetHeader title={title} onClose={onClose} />
-        <SheetTabs
-          tabs={[
-            { key: 'cols', label: `Selected (${checked.size})` },
-            { key: 'add', label: 'Add Columns' }
-          ]}
-          value={tab}
-          onPick={setTab}
-        />
-        {tab === 'add' && <SheetSearch value={q} onChange={setQ} placeholder='Search columns…' />}
-        <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
-          {tab === 'cols' ? (
-            <>
-              {order.map((key, i) => {
-                const on = checked.has(key)
-                const dragging = dragKey === key
+  const railItems: { key: 'cols' | 'add' | 'identity'; label: string; badge?: number }[] = [
+    { key: 'cols', label: 'Selected Columns', badge: checked.size },
+    { key: 'add', label: 'Add Columns' },
+    ...(identityOptions ? ([{ key: 'identity', label: 'Card Identity' }] as { key: 'identity'; label: string }[]) : [])
+  ]
 
-                return (
+  /* one identity slot — single choice over ALL types; the other slot's pick is locked */
+  const identityGroup = (slotLabel: string, cur: string, other: string, set: (v: string) => void) => (
+    <Box sx={{ mb: 5 }}>
+      <Typography
+        sx={{ pb: 1, fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+      >
+        {slotLabel}
+      </Typography>
+      {(identityOptions || []).map(o => {
+        const taken = o.value === other
+        const on = cur === o.value
+
+        return (
+          <Box
+            key={o.value}
+            onClick={() => !taken && set(o.value)}
+            sx={{
+              height: 44,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              borderRadius: '10px',
+              opacity: taken ? 0.35 : 1,
+              cursor: taken ? 'default' : 'pointer',
+              '&:hover': taken ? {} : { backgroundColor: c.Surface }
+            }}
+          >
+            <Checkbox
+              checked={on}
+              disabled={taken}
+              onChange={() => !taken && set(o.value)}
+              onClick={e => e.stopPropagation()}
+              sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
+            />
+            <Typography variant='body1' sx={{ color: c.OnSurfaceVariant, fontWeight: on ? 600 : 400 }} noWrap>
+              {o.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+
+  return (
+    <SheetDrawer
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: { width: { xs: '100%', sm: 560 }, backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }
+        }
+      }}
+    >
+      {/* Header — the filter sheet's anatomy (icon + title + close) */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 3 }}>
+          <Icon icon='mdi:cog-outline' fontSize={26} color={skin.LIST_GREEN} />
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }}>{title}</Typography>
+        </Box>
+        <IconButton onClick={onClose}>
+          <Icon icon='mdi:close' />
+        </IconButton>
+      </Box>
+
+      {/* Body — left menu rail + panel */}
+      <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', px: 5, minHeight: 0 }}>
+        <Box sx={{ width: 200, flexShrink: 0, overflowY: 'auto' }}>
+          {railItems.map(r => {
+            const on = section === r.key
+
+            return (
+              <Box
+                key={r.key}
+                onClick={() => {
+                  setSection(r.key)
+                  setQ('')
+                }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  px: 3,
+                  py: 3,
+                  mb: 0.5,
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : 'transparent',
+                  '&:hover': { backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER }
+                }}
+              >
+                <Typography sx={{ fontSize: '16px', fontWeight: on ? 600 : 400, color: on ? skin.LIST_GREEN : skin.INK2 }}>
+                  {r.label}
+                </Typography>
+                {r.badge != null && r.badge > 0 && (
+                  <Box
+                    sx={{
+                      minWidth: 20,
+                      height: 20,
+                      px: 1,
+                      borderRadius: '999px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      bgcolor: skin.LIST_GREEN,
+                      color: '#ffffff'
+                    }}
+                  >
+                    {r.badge}
+                  </Box>
+                )}
+              </Box>
+            )
+          })}
+        </Box>
+
+        <Box sx={{ borderLeft: `1px solid ${skin.HAIR}`, pl: 5, pr: 1, flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          {section === 'add' && (
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, px: 4, height: skin.CONTROL_H, flexShrink: 0, borderRadius: '999px', backgroundColor: skin.FIELD_BG }}>
+              <Icon icon='mdi:magnify' fontSize={18} color={skin.FAINT} />
+              <Box
+                component='input'
+                value={q}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
+                placeholder='Search columns…'
+                sx={{
+                  border: 'none',
+                  outline: 'none',
+                  flex: 1,
+                  fontFamily: 'inherit',
+                  fontSize: '15px',
+                  color: c.OnSurfaceVariant,
+                  backgroundColor: 'transparent',
+                  '&::placeholder': { color: c.neutralSecondary }
+                }}
+              />
+            </Box>
+          )}
+
+          <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>
+            {section === 'cols' && (
+              <>
+                {order.map((key, i) => {
+                  const on = checked.has(key)
+                  const dragging = dragKey === key
+
+                  return (
+                    <Box
+                      key={key}
+                      onClick={() => toggle(key)}
+                      sx={{
+                        height: COL_ROW_H,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        borderBottom: i === order.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+                        cursor: 'pointer',
+                        borderRadius: '10px',
+                        backgroundColor: dragging ? c.Surface : 'transparent',
+                        boxShadow: dragging ? skin.SHADOW_MODAL : 'none',
+                        position: 'relative',
+                        zIndex: dragging ? 1 : 0,
+                        '&:hover': { backgroundColor: c.Surface }
+                      }}
+                    >
+                      <Checkbox
+                        checked={on}
+                        onChange={() => toggle(key)}
+                        onClick={e => e.stopPropagation()}
+                        sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
+                      />
+                      <Typography
+                        variant='body1'
+                        sx={{ flex: 1, minWidth: 0, color: on ? c.OnSurfaceVariant : c.neutralSecondary, fontWeight: on ? 600 : 400 }}
+                        noWrap
+                      >
+                        {labels[key] ?? key}
+                      </Typography>
+                      {/* the drag grip — order only, never removal */}
+                      <Box
+                        aria-label='Reorder'
+                        onClick={e => e.stopPropagation()}
+                        onPointerDown={startDrag(key)}
+                        onPointerMove={moveDrag(key)}
+                        onPointerUp={endDrag}
+                        onPointerCancel={endDrag}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          flexShrink: 0,
+                          display: 'grid',
+                          placeItems: 'center',
+                          touchAction: 'none',
+                          cursor: dragging ? 'grabbing' : 'grab',
+                          color: c.Outline,
+                          '&:hover': { color: c.OnSurfaceVariant }
+                        }}
+                      >
+                        <Icon icon='mdi:drag' fontSize={22} />
+                      </Box>
+                    </Box>
+                  )
+                })}
+                {order.length === 0 && <SheetEmpty>No columns selected — add them from Add Columns.</SheetEmpty>}
+              </>
+            )}
+
+            {section === 'add' && (
+              <>
+                {addable.map((key, i) => (
                   <Box
                     key={key}
-                    onClick={() => toggle(key)}
+                    onClick={() => add(key)}
                     sx={{
                       height: COL_ROW_H,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      borderBottom: i === order.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+                      gap: 2,
+                      borderBottom: i === addable.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
                       cursor: 'pointer',
                       borderRadius: '10px',
-                      backgroundColor: dragging ? c.Surface : 'transparent',
-                      boxShadow: dragging ? skin.SHADOW_MODAL : 'none',
-                      position: 'relative',
-                      zIndex: dragging ? 1 : 0,
+                      px: 1,
                       '&:hover': { backgroundColor: c.Surface }
                     }}
                   >
-                    <Checkbox
-                      checked={on}
-                      onChange={() => toggle(key)}
-                      onClick={e => e.stopPropagation()}
-                      sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
-                    />
-                    <Typography
-                      variant='body1'
-                      sx={{ flex: 1, minWidth: 0, color: on ? c.OnSurfaceVariant : c.neutralSecondary, fontWeight: on ? 600 : 400 }}
-                      noWrap
-                    >
+                    <Icon icon='mdi:plus-circle-outline' fontSize={22} color={skin.LIST_GREEN} />
+                    <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant }} noWrap>
                       {labels[key] ?? key}
                     </Typography>
-                    {/* the drag grip — order only, never removal */}
-                    <Box
-                      aria-label='Reorder'
-                      onClick={e => e.stopPropagation()}
-                      onPointerDown={startDrag(key)}
-                      onPointerMove={moveDrag(key)}
-                      onPointerUp={endDrag}
-                      onPointerCancel={endDrag}
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        flexShrink: 0,
-                        display: 'grid',
-                        placeItems: 'center',
-                        touchAction: 'none',
-                        cursor: dragging ? 'grabbing' : 'grab',
-                        color: c.Outline,
-                        '&:hover': { color: c.OnSurfaceVariant }
-                      }}
-                    >
-                      <Icon icon='mdi:drag' fontSize={22} />
-                    </Box>
                   </Box>
-                )
-              })}
-              {order.length === 0 && <SheetEmpty>No columns selected — add them from Add Columns.</SheetEmpty>}
-            </>
-          ) : (
-            <>
-              {addable.map((key, i) => (
-                <Box
-                  key={key}
-                  onClick={() => add(key)}
-                  sx={{
-                    height: COL_ROW_H,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    borderBottom: i === addable.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-                    cursor: 'pointer',
-                    borderRadius: '10px',
-                    px: 1,
-                    '&:hover': { backgroundColor: c.Surface }
-                  }}
-                >
-                  <Icon icon='mdi:plus-circle-outline' fontSize={22} color={skin.LIST_GREEN} />
-                  <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant }} noWrap>
-                    {labels[key] ?? key}
-                  </Typography>
-                </Box>
-              ))}
-              {addable.length === 0 && (
-                <SheetEmpty>{needle ? 'No columns match.' : 'All columns are on the table.'}</SheetEmpty>
-              )}
-            </>
-          )}
+                ))}
+                {addable.length === 0 && <SheetEmpty>{needle ? 'No columns match.' : 'All columns are on the table.'}</SheetEmpty>}
+              </>
+            )}
+
+            {section === 'identity' && identityOptions && (
+              <>
+                {identityGroup('Primary', prim, sec, setPrim)}
+                {identityGroup('Secondary', sec, prim, setSec)}
+              </>
+            )}
+          </Box>
         </Box>
-        {/* footer — the standard staged pair: Reset returns the DEFAULT set, Apply commits */}
-        <Box sx={{ display: 'flex', gap: 2, px: SHEET_PX, py: 3, borderTop: `1px solid ${skin.HAIR}`, flexShrink: 0, backgroundColor: '#ffffff' }}>
-          <Button
-            size='large'
-            fullWidth
-            color='inherit'
-            onClick={() => {
-              const on = defaults.filter(d => d.on).map(d => d.key)
-              setOrderSynced(on)
-              setChecked(new Set(on))
-            }}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: '999px',
-              color: skin.INK2,
-              border: `1px solid ${skin.TRACK}`,
-              ...skin.cardPressSx,
-              '&:hover': { bgcolor: skin.ROW_HOVER }
-            }}
-          >
-            Reset Default
-          </Button>
-          <Button
-            size='large'
-            fullWidth
-            variant='contained'
-            disableElevation
-            onClick={applyDraft}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: '999px',
-              color: '#ffffff',
-              bgcolor: skin.LIST_GREEN,
-              ...skin.cardPressSx,
-              '&:hover': { bgcolor: skin.ACCENT_INK, color: '#ffffff' }
-            }}
-          >
-            Apply
-          </Button>
-        </Box>
-      </Sheet>
+      </Box>
+
+      {/* Footer — the standard staged pair */}
+      <Box sx={{ display: 'flex', gap: 2, px: 4, py: 4, borderTop: `1px solid ${skin.HAIR}`, flexShrink: 0, backgroundColor: '#ffffff' }}>
+        <Button
+          size='large'
+          fullWidth
+          color='inherit'
+          onClick={resetDraft}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: '999px',
+            color: skin.INK2,
+            border: `1px solid ${skin.TRACK}`,
+            ...skin.cardPressSx,
+            '&:hover': { bgcolor: skin.ROW_HOVER }
+          }}
+        >
+          Reset Default
+        </Button>
+        <Button
+          size='large'
+          fullWidth
+          variant='contained'
+          disableElevation
+          onClick={applyDraft}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: '999px',
+            color: '#ffffff',
+            bgcolor: skin.LIST_GREEN,
+            ...skin.cardPressSx,
+            '&:hover': { bgcolor: skin.ACCENT_INK, color: '#ffffff' }
+          }}
+        >
+          Apply
+        </Button>
+      </Box>
     </SheetDrawer>
   )
 }

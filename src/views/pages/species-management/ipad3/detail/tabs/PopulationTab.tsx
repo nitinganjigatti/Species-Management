@@ -37,7 +37,7 @@ import {
   SectionCard,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { AnimalCardId, ColumnPref } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId, CardIdentityValue, ColumnPref } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
 interface PopulationTabProps {
@@ -68,13 +68,52 @@ const chipOf = (a: AnimalRecord): string => a.chip || a.ring || ''
 const tagOf = (g?: string): 'male' | 'female' | 'undetermined' =>
   g === 'male' ? 'male' : g === 'female' ? 'female' : 'undetermined'
 
-// Card identifiers from REAL fields — max two, AID always included, real tag primary.
-// Chip beats ring when both exist (same priority the old Chip/Ring column used), and
-// records with NO real identifier fall back to the deterministic synth set.
-const cardIdentifiers = (a: AnimalRecord): AnimalCardId[] => {
-  const aidId = { label: 'AID', value: a.antzId }
-  if (a.chip) return [{ label: 'Chip', value: a.chip }, aidId]
-  if (a.ring) return [{ label: 'Ring', value: a.ring }, aidId]
+/* ── card identity (user calls 2026-09-05): the card shows EXACTLY two identity lines —
+   the user picks PRIMARY + SECONDARY in settings from ALL identifier types the system
+   knows (idType vocabulary scanned from the dump). This dump only carries VALUES for
+   chip / ring / name / AID — the other types list in the picker and resolve per animal
+   through the fallback chain until real data lands. ── */
+
+const CARD_IDENTITY_OPTIONS = [
+  { value: 'chip', label: 'Microchip' },
+  { value: 'aid', label: 'AID' },
+  { value: 'name', label: 'Name' },
+  { value: 'ring', label: 'Ring' },
+  { value: 'localId', label: 'Local Id' },
+  { value: 'earTagNo', label: 'Animal Ear Tag No' },
+  { value: 'earTagColour', label: 'Animal Ear Tag Colour' },
+  { value: 'marking', label: 'Marking' },
+  { value: 'clipping', label: 'Clipping' },
+  { value: 'numbering', label: 'Numbering' }
+]
+
+const DEFAULT_CARD_IDENTITY: CardIdentityValue = { primary: 'chip', secondary: 'aid' }
+
+const IDENT_LABEL: Record<string, string> = Object.fromEntries(CARD_IDENTITY_OPTIONS.map(o => [o.value, o.label]))
+// value getters — types with no field in the dump resolve undefined (fallback kicks in)
+const IDENT_GET: Record<string, (a: AnimalRecord) => string | undefined> = {
+  chip: a => a.chip,
+  ring: a => a.ring,
+  name: a => a.name,
+  aid: a => a.antzId
+}
+const IDENT_FALLBACK = ['chip', 'ring', 'name', 'aid']
+
+const resolveIdent = (a: AnimalRecord, want: string, excludeKey?: string): { key: string; label: string; value: string } | null => {
+  for (const k of [want, ...IDENT_FALLBACK]) {
+    if (k === excludeKey) continue
+    const v = IDENT_GET[k]?.(a)
+    if (v) return { key: k, label: k === 'chip' ? 'Chip' : IDENT_LABEL[k] ?? k, value: v }
+  }
+
+  return null
+}
+
+const cardIdentifiers = (a: AnimalRecord, id: CardIdentityValue): AnimalCardId[] => {
+  const p = resolveIdent(a, id.primary)
+  const s = resolveIdent(a, id.secondary, p?.key)
+  if (p && s) return [{ label: p.label, value: p.value }, { label: s.label, value: s.value }]
+  if (p) return [{ label: p.label, value: p.value }]
 
   return synthAnimalIdentity(a.antzId).identifiers
 }
@@ -101,7 +140,9 @@ const COL_LABELS: Record<string, string> = {
 
 const DEFAULT_COLS: ColumnPref[] = [
   { key: 'sex', on: true },
-  { key: 'enclosure', on: true },
+  // enclosure OFF by default (2026-09-05): the card's 3rd row carries it under a
+  // single-site scope — still addable from settings
+  { key: 'enclosure', on: false },
   { key: 'age', on: true },
   { key: 'weight', on: true },
   { key: 'site', on: false },
@@ -113,19 +154,31 @@ const DEFAULT_COLS: ColumnPref[] = [
   { key: 'breed', on: false }
 ]
 
-const COLS_STORE = 'ipad3:population:columns:v1'
+const PREFS_STORE = 'ipad3:population:tableprefs:v2'
 
-const loadCols = (): ColumnPref[] => {
+interface TablePrefs {
+  cols: ColumnPref[]
+  identity: CardIdentityValue
+}
+
+const DEFAULT_PREFS: TablePrefs = { cols: DEFAULT_COLS, identity: DEFAULT_CARD_IDENTITY }
+
+const loadPrefs = (): TablePrefs => {
   try {
-    const raw = window.localStorage.getItem(COLS_STORE)
-    if (!raw) return DEFAULT_COLS
-    const saved = (JSON.parse(raw) as ColumnPref[]).filter(p => COL_LABELS[p.key] && typeof p.on === 'boolean')
-    if (!saved.length) return DEFAULT_COLS
-    const missing = DEFAULT_COLS.filter(d => !saved.some(p => p.key === d.key))
+    const raw = window.localStorage.getItem(PREFS_STORE)
+    if (!raw) return DEFAULT_PREFS
+    const saved = JSON.parse(raw) as Partial<TablePrefs>
+    const cols = (saved.cols || []).filter(p => COL_LABELS[p.key] && typeof p.on === 'boolean')
+    const missing = DEFAULT_COLS.filter(d => !cols.some(p => p.key === d.key))
+    const idOk = (v?: string) => v && CARD_IDENTITY_OPTIONS.some(o => o.value === v)
+    const identity =
+      saved.identity && idOk(saved.identity.primary) && idOk(saved.identity.secondary) && saved.identity.primary !== saved.identity.secondary
+        ? saved.identity
+        : DEFAULT_CARD_IDENTITY
 
-    return [...saved, ...missing]
+    return { cols: cols.length ? [...cols, ...missing] : DEFAULT_COLS, identity }
   } catch {
-    return DEFAULT_COLS
+    return DEFAULT_PREFS
   }
 }
 
@@ -167,20 +220,26 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [extra, setExtra] = useState<Record<string, string[]>>({})
 
-  // Column prefs load AFTER mount (SSR renders the defaults — reading localStorage in
-  // the initializer would make server and client HTML disagree and break hydration).
+  // Table prefs (columns + card identity) load AFTER mount (SSR renders the defaults —
+  // reading localStorage in the initializer would break hydration).
   const [colsOpen, setColsOpen] = useState(false)
   const [colPrefs, setColPrefs] = useState<ColumnPref[]>(DEFAULT_COLS)
-  React.useEffect(() => setColPrefs(loadCols()), [])
-  const applyCols = (v: ColumnPref[]) => {
-    setColPrefs(v)
+  const [cardId, setCardId] = useState<CardIdentityValue>(DEFAULT_CARD_IDENTITY)
+  React.useEffect(() => {
+    const p = loadPrefs()
+    setColPrefs(p.cols)
+    setCardId(p.identity)
+  }, [])
+  const applyPrefs = (cols: ColumnPref[], identity?: CardIdentityValue) => {
+    const id = identity ?? cardId
+    setColPrefs(cols)
+    setCardId(id)
     try {
-      window.localStorage.setItem(COLS_STORE, JSON.stringify(v))
+      window.localStorage.setItem(PREFS_STORE, JSON.stringify({ cols, identity: id }))
     } catch {
       /* private mode etc. — prefs just don't persist */
     }
   }
-  const visibleCols = useMemo(() => new Set(colPrefs.filter(p => p.on).map(p => p.key)), [colPrefs])
 
   const sites = useMemo(() => Array.from(new Set(all.map(a => a.site).filter(Boolean))).sort() as string[], [all])
   const multiSite = sites.length > 1
@@ -263,18 +322,9 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
 
   /* ── columns — the standard AnimalIdCard identity column + Age ─────────────── */
 
-  // Site rides the card ONLY when the list the user sees spans more than one site
-  // (no site filter active AND >1 distinct site among the visible rows) — and never
-  // when a Site COLUMN is showing (settings): one fact, one place.
-  const showSite = useMemo(
-    () => !site && !visibleCols.has('site') && new Set(filtered.map(a => a.site).filter(Boolean)).size > 1,
-    [site, filtered, visibleCols]
-  )
-
-  // Enclosure suppression (scope rule): a list the user has narrowed to exactly ONE
-  // enclosure via the facet doesn't repeat that enclosure on every card — the chip says
-  // it. Same when the Enclosure COLUMN is on.
-  const showEnclosure = (extra.enclosure || []).length !== 1 && !visibleCols.has('enclosure')
+  // The card's 3rd row (user rule 2026-09-05): all sites / multi = SITE; exactly one
+  // site selected = ENCLOSURE. Always one location line, never two.
+  const locLine = (a: AnimalRecord) => (site ? { enclosure: a.enclosure } : { site: a.site })
 
   const txt = (v: React.ReactNode, color?: string, weight = 500) => (
     <CellText color={color} weight={weight}>
@@ -320,14 +370,13 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
           const a = p.row as AnimalRecord
 
           return (
-            // TABLE-VIEW minimal card (user calls 2026-09-05): identity ONLY — age/weight
-            // NEVER ride the card here (they're settings columns; the stat block looked
-            // wrong in the dense table), photo −20% (94 → 75) for the ≤3-text-row card.
-            // Other surfaces keep the full-size AnimalIdCard untouched.
+            // TABLE-VIEW minimal card (user calls 2026-09-05): EXACTLY 3 text rows —
+            // primary + secondary identity (settings-chosen) + ONE location line
+            // (site at all/multi-site scope, enclosure under a single site); photo −20%
+            // (94 → 75). Other surfaces keep the full-size AnimalIdCard untouched.
             <AnimalIdCard
-              identifiers={cardIdentifiers(a)}
-              enclosure={showEnclosure ? a.enclosure : undefined}
-              site={showSite ? a.site : undefined}
+              identifiers={cardIdentifiers(a, cardId)}
+              {...locLine(a)}
               tag={tagOf(a.gender)}
               name={a.name && a.name !== a.antzId ? a.name : undefined}
               size={75}
@@ -341,7 +390,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
       ...colPrefs.filter(p => p.on).map(p => dataCols[p.key]).filter(Boolean)
     ]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cc, showSite, showEnclosure, heroPhoto, colPrefs, visibleCols])
+  }, [cc, site, heroPhoto, colPrefs, cardId])
 
   /* ── controls — Housing's exact header arrangement ───────────────────────── */
 
@@ -523,14 +572,17 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
         onApply={setExtra}
       />
 
-      {/* Settings — choose + order the data columns (saved per user, localStorage) */}
+      {/* Settings — columns (choose + order) AND card identity, saved per user */}
       <ColumnSettingsSheet
         open={colsOpen}
         onClose={() => setColsOpen(false)}
         labels={COL_LABELS}
         value={colPrefs}
         defaults={DEFAULT_COLS}
-        onApply={applyCols}
+        identityOptions={CARD_IDENTITY_OPTIONS}
+        identity={cardId}
+        identityDefaults={DEFAULT_CARD_IDENTITY}
+        onApply={applyPrefs}
       />
     </Box>
   )
