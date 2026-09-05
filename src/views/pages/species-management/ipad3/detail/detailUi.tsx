@@ -372,15 +372,30 @@ export const enclosureCompositionOf = (
   total: number,
   kinds?: EnclosureSexKinds
 ): string => {
+  /* THE composition ladder — EXHAUSTIVE, locked by the user 2026-09-05 (every scenario
+   * named; do NOT re-derive):
+   *   only M                          → Male
+   *   only F                          → Female
+   *   M + F and NOTHING else          → Male & Female
+   *   any sex + any unsexed kind      → Mixed   (M+UD, M+F+ID, M+F+UD+ID+G, M+G, …)
+   *   only UD                         → Undetermined
+   *   only ID                         → Indeterminate
+   *   only G                          → Group
+   *   unsexed kinds blended (UD+ID…)  → Mixed
+   *   nothing                         → Empty
+   * Callers without record-level kinds (aggregates only) can't split UD/ID/G — their
+   * unsexed-only enclosures read Undetermined, the dominant reality. */
   if (total <= 0) return 'Empty'
-  if (male > 0 && female > 0) return 'Male & Female'
-  if (unsexed === 0) return male > 0 ? 'Male' : 'Female'
-  if (male > 0 || female > 0) return 'Mixed' // one sex plus unsexed animals
 
-  // Only unsexed animals — the records (when given) say WHICH kind of unsexed. A PURE
-  // enclosure wears its kind's name; a blend of kinds reads Mixed (user call
-  // 2026-09-05: UD and ID are two different things — never label a UD+ID enclosure
-  // "Undetermined").
+  if (male > 0 || female > 0) {
+    if (unsexed > 0) return 'Mixed' // a sex plus ANY unsexed kind — never Male & Female
+    if (male > 0 && female > 0) return 'Male & Female'
+
+    return male > 0 ? 'Male' : 'Female'
+  }
+
+  // Only unsexed animals — the records (when given) say WHICH kind. A kind's name is
+  // worn ONLY when pure; UD/ID/G blends read Mixed (UD and ID are two different things).
   const n = kinds ? kinds.ud + kinds.id + kinds.grp : 0
   if (kinds && n > 0) {
     if (kinds.grp === n) return 'Group'

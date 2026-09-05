@@ -43,8 +43,10 @@ interface EncRow {
   // The aggregate's ONE unsexed bucket, split by the records (user call 2026-09-05 —
   // the table shows the FULL sex anatomy even where a class is empty): any unsexed
   // remainder the records can't name stays UD, so the row always sums to Total.
+  // NEVER name a data field `id` — the DataGrid reserves it for the row id and the
+  // pagination indexer overwrites it (the ID column printed row numbers, user-caught).
   ud: number
-  id: number
+  ind: number
   grp: number
   total: number
   composition: string
@@ -195,9 +197,9 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     for (const s of housing?.sites || []) {
       for (const enc of s.enclosures) {
         const kinds = kindsByEnc.get(`${s.name}||${enc.name}`)
-        const id = Math.min(kinds?.id || 0, enc.unsexed)
-        const grp = Math.min(kinds?.grp || 0, Math.max(enc.unsexed - id, 0))
-        const ud = Math.max(enc.unsexed - id - grp, 0)
+        const ind = Math.min(kinds?.id || 0, enc.unsexed)
+        const grp = Math.min(kinds?.grp || 0, Math.max(enc.unsexed - ind, 0))
+        const ud = Math.max(enc.unsexed - ind - grp, 0)
         list.push({
           name: enc.name,
           site: s.name,
@@ -205,12 +207,12 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
           male: enc.male,
           female: enc.female,
           ud,
-          id,
+          ind,
           grp,
           total: enc.total,
           // The RECONCILED split feeds the classifier — Composition always agrees with
           // the UD | ID | G columns on the same row.
-          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, { ud, id, grp })
+          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, { ud, id: ind, grp })
         })
       }
     }
@@ -306,7 +308,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     numCol('male', 'M'),
     numCol('female', 'F'),
     numCol('ud', 'UD'),
-    numCol('id', 'ID'),
+    numCol('ind', 'ID'),
     numCol('grp', 'G'),
     numCol('total', 'Total', { total: true })
   ]
@@ -426,7 +428,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         open={!!encDrill}
         site={encDrill?.site}
         enclosure={encDrill?.name}
-        counts={encDrill ? { male: encDrill.male, female: encDrill.female, unsexed: encDrill.ud + encDrill.id + encDrill.grp } : undefined}
+        counts={encDrill ? { male: encDrill.male, female: encDrill.female, unsexed: encDrill.ud + encDrill.ind + encDrill.grp } : undefined}
         animals={animals}
         onClose={() => setEncDrill(null)}
       />
