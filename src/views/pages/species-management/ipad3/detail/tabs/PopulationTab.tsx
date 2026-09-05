@@ -320,22 +320,17 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
           const a = p.row as AnimalRecord
 
           return (
+            // TABLE-VIEW minimal card (user calls 2026-09-05): identity ONLY — age/weight
+            // NEVER ride the card here (they're settings columns; the stat block looked
+            // wrong in the dense table), photo −20% (94 → 75) for the ≤3-text-row card.
+            // Other surfaces keep the full-size AnimalIdCard untouched.
             <AnimalIdCard
               identifiers={cardIdentifiers(a)}
               enclosure={showEnclosure ? a.enclosure : undefined}
               site={showSite ? a.site : undefined}
               tag={tagOf(a.gender)}
               name={a.name && a.name !== a.antzId ? a.name : undefined}
-              // card stat block only carries age/weight while their COLUMNS are off —
-              // one fact, one place (settings rework 2026-09-05)
-              age={
-                visibleCols.has('age')
-                  ? undefined
-                  : p.row.ageNum != null
-                  ? `${p.row.ageNum % 1 === 0 ? p.row.ageNum : p.row.ageNum.toFixed(1)}y`
-                  : (a.age || '').trim()
-              }
-              weight={visibleCols.has('weight') ? undefined : a.weight}
+              size={75}
               photo={synthAnimalIdentity(a.antzId).hasPhoto ? heroPhoto?.src : undefined}
               photoPos={heroPhoto?.bgPos}
             />
@@ -503,7 +498,9 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
             sortModel={table.sortModel}
             handleSortModel={table.handleSortModel}
             stickyFields={['animal']}
-            rowHeight={146}
+            // 128 seats the 75px table-view card (the 136–146 standard is for the
+            // full-size 94px card — this table runs the minimal card, user call 2026-09-05)
+            rowHeight={128}
           />
         ) : (
           <EmptyState message='No animals match your filters' />
