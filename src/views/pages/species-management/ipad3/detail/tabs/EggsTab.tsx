@@ -438,12 +438,16 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
       : syn.identifiers
 
     return (
+      // TABLE-VIEW minimal card = the Population grammar (user call 2026-09-05): EXACTLY
+      // 3 text rows — two identifiers + ONE location line (site while the visible list
+      // spans sites, enclosure once it doesn't); photo 94 → 75.
       <AnimalIdCard
         identifiers={identifiers}
-        enclosure={f.enclosure ?? syn.enclosure}
+        enclosure={rosterMultiSite ? undefined : f.enclosure ?? syn.enclosure}
         site={rosterMultiSite ? f.site : undefined}
         tag='female'
         name={f.name !== f.identifier && f.name !== f.antzId ? f.name : undefined}
+        size={75}
         photo={syn.hasPhoto ? heroPhoto?.src : undefined}
         photoPos={heroPhoto?.bgPos}
       />
@@ -695,7 +699,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
           columns={femaleCols}
           rows={femaleRows}
           total={roster.length}
-          rowHeight={146}
+          rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
           stickyFields={['name']}
           paginationModel={pm}
           setPaginationModel={setPm}
