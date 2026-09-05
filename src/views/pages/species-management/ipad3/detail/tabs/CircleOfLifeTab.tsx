@@ -26,6 +26,7 @@ import {
   CategoryFilter,
   CellText,
   ChartHoverCard,
+  ControlsRow,
   DetailTable,
   EmptyState,
   genderTagOf,
@@ -1429,20 +1430,21 @@ const AnimalEventsTable: React.FC<{
 
   // Landscape: one row (dropdowns, toggle, search on the header's right).
   // Portrait: controls wrap — search stretches, dropdowns + toggle follow.
+  // ONE scrolling row — controls never wrap to a second line (user call 2026-09-05).
   const headerAction = portrait ? (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', flexWrap: 'wrap' }}>
+    <ControlsRow>
       {searchField}
       {periodCtl}
       {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
-    </Box>
+    </ControlsRow>
   ) : (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+    <ControlsRow>
       {periodCtl}
       {ageFilterCtl}
       <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
       {searchField}
-    </Box>
+    </ControlsRow>
   )
 
   // Portrait card header: tabs on their own line, controls on the next.
@@ -1707,7 +1709,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const fromItems = yearItemsFor(years, analysis.yearTo, CAP, 'from')
   const toItems = yearItemsFor(years, analysis.yearFrom, CAP, 'to')
   const periodCtl = (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', '& > *': { flexShrink: 0 } }}>
       <ViewToggle
         height={CTRL_H}
         items={[

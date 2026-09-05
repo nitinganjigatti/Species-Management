@@ -716,6 +716,29 @@ export const SearchPill: React.FC<{
   )
 }
 
+/* ── ControlsRow — ONE horizontal row of header controls that SCROLLS, never wraps
+   (the platform rule — a wrapped second row of controls reads as a second component;
+   user-caught on the CoL table header 2026-09-05). Children keep their size. */
+export const ControlsRow: React.FC<{ children: React.ReactNode; sx?: Record<string, unknown> }> = ({ children, sx }) => (
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 2,
+      width: '100%',
+      minWidth: 0,
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+      '&::-webkit-scrollbar': { display: 'none' },
+      WebkitOverflowScrolling: 'touch',
+      '& > *': { flexShrink: 0 },
+      ...sx
+    }}
+  >
+    {children}
+  </Box>
+)
+
 /* ── ChipFilterRow — one scrolling row of multi-select filter chips w/ counts and a
    leading "All" (the Pairing composition strip, kit-level per user call 2026-09-05).
    Empty selection = all; the All chip shows selected then and clears on tap. */
