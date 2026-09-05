@@ -187,10 +187,12 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
     const tx =
       sitePool.length > 1 && cls !== 'group' && a.site && th % 100 < 8
         ? (() => {
-            let from = sitePool[(th >> 3) % sitePool.length]
-            if (from === a.site) from = sitePool[((th >> 3) + 1) % sitePool.length]
+            // >>> not >> — a signed shift on a hash ≥ 2^31 goes NEGATIVE, indexes
+            // sitePool[-n] = undefined and back-dates the move before its entry.
+            let from = sitePool[(th >>> 3) % sitePool.length]
+            if (from === a.site) from = sitePool[((th >>> 3) + 1) % sitePool.length]
 
-            return { from, at: clampDate(new Date(entry.getTime() + (60 + ((th >> 5) % 640)) * DAY), now) }
+            return { from, at: clampDate(new Date(entry.getTime() + (60 + ((th >>> 5) % 640)) * DAY), now) }
           })()
         : null
 
@@ -489,25 +491,30 @@ export const computeLedger = (
   }
 }
 
-/* ── the bank-statement rows (demo review 2026-09-04) ────────────────────────
-   The Ledger sub-tab = a bank statement of the species count: one row per
-   DAY + EVENT KIND (Subhash's aggregation rule — 4 same-day acquisitions = ONE
-   row "+4"; a birth and a death the same day = two rows), latest first, each
-   carrying the running balance. Count-changing events only (reclass and
-   internal/org-scope neutral transfers sit out — they don't move the number). */
+/* ── the bank-statement rows (demo review 2026-09-04; day-rows 2026-09-05) ────
+   The Ledger sub-tab = a bank statement of the species count: ONE ROW PER DAY,
+   latest first. The row DESCRIBES every event of that day (kind + count chips,
+   "+N more" past the cap) and In / Out carry the day's totals — Subhash's
+   description rule: "how many got in with which event, how many got out with
+   what event". Count-changing events only (reclass and neutral transfers don't
+   move the number). */
+
+export interface StatementEventGroup {
+  kind: LedgerEventKind
+  count: number
+  delta: number
+}
 
 export interface StatementRow {
   id: string
   date: Date
-  kind: LedgerEventKind
-  /** How many events the row aggregates (the drill lists exactly these). */
-  count: number
-  /** Signed total change (census events can carry ±n each). */
-  delta: number
-  /** Running total after the row's last event. */
+  /** The day's events grouped by kind, in occurrence order. */
+  groups: StatementEventGroup[]
+  /** Day totals — everything IN (+) and OUT (absolute). */
+  inCount: number
+  outCount: number
+  /** Running total after the day's last event. */
   balance: number
-  /** Distinct sites touched (display only when the scope spans several). */
-  sites: string[]
   events: LedgerEvent[]
 }
 
@@ -527,17 +534,23 @@ export const statementRows = (
     if (e.delta === 0) continue // reclass / neutral transfers — no count change
     total += e.delta
     if (start && e.date < start) continue
-    const key = `${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}:${e.kind}`
+    const key = `${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}`
     let r = byKey.get(key)
     if (!r) {
-      r = { id: key, date: e.date, kind: e.kind, count: 0, delta: 0, balance: total, sites: [], events: [] }
+      r = { id: key, date: e.date, groups: [], inCount: 0, outCount: 0, balance: total, events: [] }
       byKey.set(key, r)
       rows.push(r)
     }
-    r.count += 1
-    r.delta += e.delta
+    let g = r.groups.find(x => x.kind === e.kind)
+    if (!g) {
+      g = { kind: e.kind, count: 0, delta: 0 }
+      r.groups.push(g)
+    }
+    g.count += 1
+    g.delta += e.delta
+    if (e.delta > 0) r.inCount += e.delta
+    else r.outCount += -e.delta
     r.balance = total
-    if (e.site && !r.sites.includes(e.site)) r.sites.push(e.site)
     r.events.push(e)
   }
 

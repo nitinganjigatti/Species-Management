@@ -2,10 +2,10 @@
 
 // iPad 3 Ledger tab — demo-review rework (2026-09-05, Subhash + Nita call 2026-09-04):
 // ONE card, TWO underline sub-tabs (the Lab Recurring-Tests anatomy):
-// 1. LEDGER — the bank statement of the species count: one row per DAY + EVENT
-//    (same-day same-event rows AGGREGATE — "4 Acquisition" is one row, a birth and a
-//    death the same day are two), latest first, columns Date · Event · In · Out ·
-//    (Site) · running Total. Duration filter (default Last 12 Months) applies HERE only.
+// 1. LEDGER — the bank statement of the species count: ONE ROW PER DAY (user call
+//    2026-09-05), latest first — Date · Description (every event of the day as chips
+//    + ×N counts, "+N more" past 3) · In · Out (day totals) · running Total.
+//    Duration filter (default Last 12 Months) applies HERE only.
 // 2. RECONCILIATION — the gender-wise grid (M · F · UD · ID · G · Total), ALWAYS ALL
 //    TIME (user call: opening balance is always the 0 baseline); Closing keeps the
 //    inset verdict panel.
@@ -289,7 +289,8 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     openDrill({ kinds: [kind], classes: cls ? [cls] : [], preset: 'all' })
   const stockDrill = (boundary: 'opening' | 'closing', cls?: LedgerClass) =>
     openDrill({ stock: boundary, classes: cls ? [cls] : [], preset: 'all' })
-  const rowDrill = (r: StatementRow) => openDrill({ kinds: [r.kind], day: r.date, preset: 'all' })
+  // A day row lists ALL its movement — every kind of the day pre-selected + the day chip.
+  const rowDrill = (r: StatementRow) => openDrill({ kinds: r.groups.map(g => g.kind), day: r.date, preset: 'all' })
 
   /* ── controls (the Population/Housing header grammar) ── */
 
@@ -323,60 +324,49 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
   // Direction only holds inside ONE site — a multi-site scope wears the neutral chip.
   const neutralStmtTransfers = siteSel.length > 1
-  // Site column: when the visible statement spans >1 site, or transfers need their route.
-  const showSiteCol = useMemo(() => {
-    const s = new Set<string>()
-    stmtData.forEach(r => r.sites.forEach(x => s.add(x)))
-
-    return s.size > 1 || stmtData.some(r => isTransferKind(r.kind))
-  }, [stmtData])
 
   const dashCell = <CellText color={skin.DASH_INK}>—</CellText>
+
+  // A day's events show as up to MAX_CHIPS chips inline; the rest fold into "+N more"
+  // (user call 2026-09-05 — the row tap lists everything anyway).
+  const MAX_CHIPS = 3
 
   const stmtColumns: GridColDef[] = useMemo(
     () => [
       {
-        // Site rides UNDER the date (user call 2026-09-05) — no separate Site column;
-        // transfers show their route ("RRC → Gagua") on that line instead. THIS column
-        // carries the flexible width so the site line never truncates.
-        flex: 1,
-        minWidth: 260,
+        minWidth: 160,
         field: 'dateMs',
         headerName: 'Date',
-        renderCell: (p: any) => {
-          const r = p.row as StatementRow
-          const siteLine = !showSiteCol
-            ? null
-            : isTransferKind(r.kind)
-            ? `${r.events[0]?.fromSite ?? '—'} → ${r.events[0]?.toSite ?? '—'}`
-            : r.sites.join(', ') || null
-
-          return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
-              <CellText weight={600}>{ddMMMyyyy(r.date)}</CellText>
-              {siteLine && (
-                <Typography sx={{ fontSize: '13px', color: skin.FAINT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {siteLine}
-                </Typography>
-              )}
-            </Box>
-          )
-        }
+        renderCell: (p: any) => <CellText weight={600}>{ddMMMyyyy((p.row as StatementRow).date)}</CellText>
       },
       {
-        minWidth: 220,
-        field: 'kind',
-        headerName: 'Event',
+        // ONE row per day — this column DESCRIBES the day: every event kind as a chip
+        // (+ ×N count), so a birth-and-death day reads as both chips side by side.
+        flex: 1,
+        minWidth: 280,
+        field: 'groups',
+        headerName: 'Description',
         sortable: false,
         renderCell: (p: any) => {
           const r = p.row as StatementRow
+          const shown = r.groups.slice(0, MAX_CHIPS)
+          const rest = r.groups.length - shown.length
 
           return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <EventChip kind={isTransferKind(r.kind) && neutralStmtTransfers ? 'transfer' : r.kind} />
-              {r.count > 1 && (
-                <Typography component='span' sx={{ fontSize: '14px', color: skin.FAINT }}>
-                  × {r.count}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minWidth: 0, overflow: 'hidden' }}>
+              {shown.map(g => (
+                <Box key={g.kind} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                  <EventChip kind={isTransferKind(g.kind) && neutralStmtTransfers ? 'transfer' : g.kind} />
+                  {g.count > 1 && (
+                    <Typography component='span' sx={{ fontSize: '14px', color: skin.FAINT }}>
+                      × {g.count}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+              {rest > 0 && (
+                <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2, whiteSpace: 'nowrap' }}>
+                  +{rest} more
                 </Typography>
               )}
             </Box>
@@ -391,7 +381,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         renderCell: (p: any) => {
           const r = p.row as StatementRow
 
-          return r.delta > 0 ? <CellText weight={600} color={skin.LIST_GREEN}>{`+${r.delta.toLocaleString()}`}</CellText> : dashCell
+          return r.inCount > 0 ? <CellText weight={600} color={skin.LIST_GREEN}>{`+${r.inCount.toLocaleString()}`}</CellText> : dashCell
         }
       },
       {
@@ -402,8 +392,8 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         renderCell: (p: any) => {
           const r = p.row as StatementRow
 
-          return r.delta < 0 ? (
-            <CellText weight={600} color={skin.strokeOf(cc.Tertiary)}>{`−${Math.abs(r.delta).toLocaleString()}`}</CellText>
+          return r.outCount > 0 ? (
+            <CellText weight={600} color={skin.strokeOf(cc.Tertiary)}>{`−${r.outCount.toLocaleString()}`}</CellText>
           ) : (
             dashCell
           )
@@ -418,7 +408,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showSiteCol, neutralStmtTransfers, cc]
+    [neutralStmtTransfers, cc]
   )
 
   if (!all.length) {
