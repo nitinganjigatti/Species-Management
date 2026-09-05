@@ -1406,14 +1406,10 @@ const AnimalEventsTable: React.FC<{
       })}
     </Box>
   )
+  // Collapsible HERE only (user call 2026-09-05) — the period tabs + custom year
+  // selects need the row; other screens keep the expanded search.
   const searchField = (
-    <SearchPill
-      value={q}
-      onChange={setQ}
-      placeholder={isSite ? 'Search sites…' : 'Search animals…'}
-      height={TABLE_CTRL_H}
-      sx={portrait ? { flex: '1 1 auto', minWidth: 0 } : { width: 260 }}
-    />
+    <SearchPill collapsible value={q} onChange={setQ} placeholder={isSite ? 'Search sites…' : 'Search animals…'} height={TABLE_CTRL_H} />
   )
 
   const ageFilterCtl = mode === 'deaths' && (

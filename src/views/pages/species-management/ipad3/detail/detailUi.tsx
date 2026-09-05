@@ -589,24 +589,24 @@ export const UnderlineTabs: React.FC<{
    surfaces the quiet FIELD_BG fill w/ no outline; on the sage GROUND / sheet bodies
    (`ground`) the SEARCH_BG white fill w/ HAIR outline.
 
-   COLLAPSING (user call 2026-09-05, component-level so it lands everywhere at once):
-   the card-header variant idles COLLAPSED — a round icon button (or, with an active
-   query, a compact pill showing the text ellipsized). Tapping it expands the field
-   over the FULL header row (overlay — the row's other controls sit beneath, unseen)
-   and focuses it; blur/Escape collapses back. Sheet/ground searches (`ground`) keep
-   the always-expanded field — a sheet search owns its row already. `alwaysOpen`
-   opts a header search out of collapsing. */
+   COLLAPSING (user calls 2026-09-05): behavior is a CONDITION on the component —
+   `collapsible` idles the search COLLAPSED (round icon button; with an active query a
+   compact pill showing the text ellipsized). Tapping it expands the field over the
+   FULL header row (overlay — the row's other controls sit beneath, unseen) and
+   focuses it; blur/Escape collapses back. DEFAULT is the classic always-expanded
+   field — screens opt IN per surface (CoL table header does; everywhere else stays
+   expanded). */
 export const SearchPill: React.FC<{
   value: string
   onChange: (v: string) => void
   placeholder?: string
   /** Sage-ground/sheet variant: white fill + hairline outline; always expanded. */
   ground?: boolean
-  /** Opt a header search out of the collapse behavior. */
-  alwaysOpen?: boolean
+  /** Opt-IN: idle collapsed (icon / query pill), expand over the full row on tap. */
+  collapsible?: boolean
   height?: number
   sx?: Record<string, unknown>
-}> = ({ value, onChange, placeholder = 'Search…', ground, alwaysOpen, height = 44, sx }) => {
+}> = ({ value, onChange, placeholder = 'Search…', ground, collapsible, height = 44, sx }) => {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const [ov, setOv] = useState<{ left: number; width: number } | null>(null)
@@ -636,8 +636,8 @@ export const SearchPill: React.FC<{
     />
   )
 
-  // Sheets (and explicit opt-outs) keep the classic always-expanded field.
-  if (ground || alwaysOpen) return field(sx)
+  // Default = the classic always-expanded field; collapsing is per-surface opt-in.
+  if (!collapsible || ground) return field(sx)
 
   const expand = () => {
     const el = wrapRef.current
