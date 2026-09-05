@@ -23,12 +23,15 @@ import {
   DetailTable,
   DrillSheet,
   EmptyState,
+  ENCLOSURE_COMPOSITIONS,
+  enclosureCompositionOf,
+  genderTagOf,
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { AnimalCardId, AnimalTagKind, EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
 interface EncRow {
   name: string
@@ -41,20 +44,9 @@ interface EncRow {
   composition: string
 }
 
-// Composition from the COUNTS, never from the dataset's type labels — those carry the
-// banned breeding vocabulary ("Breeding Ready"). Plain words, no chips.
-const compositionOf = (male: number, female: number, unsexed: number, total: number): string => {
-  if (total <= 0) return 'Empty'
-  if (male > 0 && female > 0) return 'Both sexes'
-  if (unsexed === total) return 'Needs sexing'
-  if (male > 0 && unsexed === 0) return 'All male'
-  if (female > 0 && unsexed === 0) return 'All female'
-
-  return 'Mixed' // one sex plus unsexed animals
-}
-
-// Dropdown order — most actionable states first.
-const COMPOSITIONS = ['Both sexes', 'All male', 'All female', 'Needs sexing', 'Mixed', 'Empty']
+// Composition = the kit's shared vocabulary (user call 2026-09-05): Male · Female ·
+// Male & Female · Undetermined · Indeterminate · Group · Mixed · Empty. This tab has the
+// animal RECORDS, so the unsexed bucket splits into UD / ID / G per enclosure.
 
 /** The standard animal card row (2026-09-02), driven by the RECORD's real fields: gender →
  *  badge, ring/chip + AID → identifiers, name only when AID is the sole identifier. The kit's
@@ -68,7 +60,7 @@ const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, l
   const theme = useTheme() as any
   const c = theme.palette.customColors as Record<string, string>
 
-  const tag: AnimalTagKind = a.gender === 'male' ? 'male' : a.gender === 'female' ? 'female' : 'undetermined'
+  const tag: AnimalTagKind = genderTagOf(a.gender)
   const primary: AnimalCardId | null = a.ring
     ? { label: 'Ring', value: a.ring }
     : a.chip
@@ -176,6 +168,20 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
 
   const allRows: EncRow[] = useMemo(() => {
+    // The housing aggregates carry ONE unsexed bucket — the animal records say which
+    // KIND (undetermined / indeterminate / group), keyed by the same site+enclosure
+    // names the animals sheet already joins on.
+    const kindsByEnc = new Map<string, EnclosureSexKinds>()
+    for (const a of animals) {
+      if (!a.site || !a.enclosure) continue
+      const k = `${a.site}||${a.enclosure}`
+      const rec = kindsByEnc.get(k) || { ud: 0, id: 0, grp: 0 }
+      if (a.gender === 'undetermined') rec.ud++
+      else if (a.gender === 'indeterminate') rec.id++
+      else if (a.gender === 'group') rec.grp++
+      kindsByEnc.set(k, rec)
+    }
+
     const list: EncRow[] = []
     for (const s of housing?.sites || []) {
       for (const enc of s.enclosures) {
@@ -187,16 +193,16 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
           female: enc.female,
           unsexed: enc.unsexed,
           total: enc.total,
-          composition: compositionOf(enc.male, enc.female, enc.unsexed, enc.total)
+          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, kindsByEnc.get(`${s.name}||${enc.name}`))
         })
       }
     }
 
     return list
-  }, [housing])
+  }, [housing, animals])
 
   const siteNames = useMemo(() => Array.from(new Set(allRows.map(r => r.site))), [allRows])
-  const compositionOptions = useMemo(() => COMPOSITIONS.filter(c => allRows.some(r => r.composition === c)), [allRows])
+  const compositionOptions = useMemo(() => ENCLOSURE_COMPOSITIONS.filter(c => allRows.some(r => r.composition === c)), [allRows])
 
   // Enclosure count per composition — from ALL rows (the chips sit ABOVE search/site,
   // so their figures never shift under a search).
@@ -294,15 +300,26 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         titleMb={4}
         title={
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
-            {/* one scrolling row, never wraps — a wrapped second row reads as a second control */}
+            {/* one scrolling row, never wraps — a wrapped second row reads as a second
+                control. "All" leads (user call 2026-09-05): count = every enclosure,
+                selected while nothing else is picked, tap clears the selection. */}
             <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
-              {compositionOptions.map(comp => {
-                const on = comps.includes(comp)
+              {['All', ...compositionOptions].map(comp => {
+                const isAll = comp === 'All'
+                const on = isAll ? comps.length === 0 : comps.includes(comp)
+                const count = isAll ? allRows.length : compCounts.get(comp) || 0
 
                 return (
                   <Box
                     key={comp}
-                    onClick={() => toggleComp(comp)}
+                    onClick={() => {
+                      if (isAll) {
+                        setComps([])
+                        setPm(p => ({ ...p, page: 0 }))
+                      } else {
+                        toggleComp(comp)
+                      }
+                    }}
                     sx={{
                       height: 36,
                       px: 3.5,
@@ -322,7 +339,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                       {comp}
                     </Typography>
                     <Typography sx={{ fontSize: '13px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
-                      {(compCounts.get(comp) || 0).toLocaleString()}
+                      {count.toLocaleString()}
                     </Typography>
                   </Box>
                 )

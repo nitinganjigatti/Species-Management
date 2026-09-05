@@ -293,6 +293,52 @@ const TAG_LETTER: Record<AnimalTagKind, string> = {
   mortality: 'M'
 }
 
+/* ── enclosure sex composition — THE shared vocabulary (user call 2026-09-05) ──────────
+   One function for every enclosure list (Enclosure Demographics, Housing) so the words
+   never drift. Derived from COUNTS, never the dataset's type labels (those carry the
+   banned "Breeding Ready" vocabulary). The aggregates carry ONE unsexed bucket, so
+   callers that have the animal RECORDS pass `kinds` to split it into Undetermined /
+   Indeterminate / Group (a group accession = ONE record: one AID, several identifiers
+   maybe, but it counts as 1 — so a Group enclosure's figures stay honest). Without
+   `kinds`, unsexed-only enclosures read Undetermined — the dominant reality (ID = 114
+   animals in the whole dump, G = none yet). */
+export interface EnclosureSexKinds {
+  ud: number
+  id: number
+  grp: number
+}
+
+/** Record gender → card badge kind. The dump's vocabulary is male / female /
+ *  undetermined / indeterminate (114 records) / group (none yet) — before this helper
+ *  every caller collapsed the last three into UD, so an indeterminate animal wore the
+ *  wrong letter. */
+export const genderTagOf = (g?: string): AnimalTagKind =>
+  g === 'male' ? 'male' : g === 'female' ? 'female' : g === 'indeterminate' ? 'indetermined' : g === 'group' ? 'group' : 'undetermined'
+
+export const ENCLOSURE_COMPOSITIONS = ['Male', 'Female', 'Male & Female', 'Undetermined', 'Indeterminate', 'Group', 'Mixed', 'Empty']
+
+export const enclosureCompositionOf = (
+  male: number,
+  female: number,
+  unsexed: number,
+  total: number,
+  kinds?: EnclosureSexKinds
+): string => {
+  if (total <= 0) return 'Empty'
+  if (male > 0 && female > 0) return 'Male & Female'
+  if (unsexed === 0) return male > 0 ? 'Male' : 'Female'
+  if (male > 0 || female > 0) return 'Mixed' // one sex plus unsexed animals
+
+  // Only unsexed animals — the records (when given) say WHICH kind of unsexed.
+  const n = kinds ? kinds.ud + kinds.id + kinds.grp : 0
+  if (kinds && n > 0) {
+    if (kinds.grp === n) return 'Group'
+    if (kinds.id === n) return 'Indeterminate'
+  }
+
+  return 'Undetermined'
+}
+
 export interface AnimalCardId {
   label: string // "Ear Tag" · "AID" · "Ring" · …
   value: string

@@ -16,6 +16,8 @@ import {
   DetailTable,
   DrillSheet,
   EmptyState,
+  enclosureCompositionOf,
+  genderTagOf,
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
@@ -35,7 +37,7 @@ const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, l
   const theme = useTheme() as any
   const c = theme.palette.customColors as Record<string, string>
 
-  const tag: AnimalTagKind = a.gender === 'male' ? 'male' : a.gender === 'female' ? 'female' : 'undetermined'
+  const tag: AnimalTagKind = genderTagOf(a.gender)
   const primary: AnimalCardId | null = a.ring
     ? { label: 'Ring', value: a.ring }
     : a.chip
@@ -74,17 +76,11 @@ const RealAnimalCardRow: React.FC<{ a: AnimalRecord; last?: boolean }> = ({ a, l
   )
 }
 
-// Composition from the COUNTS, never the dataset's type labels (those carry the banned
-// "Breeding Ready" vocabulary). Plain text, no chip — same words as Enclosure Demographics.
-const compositionOf = (male: number, female: number, unsexed: number, total: number): string => {
-  if (total <= 0) return 'Empty'
-  if (male > 0 && female > 0) return 'Both sexes'
-  if (unsexed === total) return 'Needs sexing'
-  if (male > 0 && unsexed === 0) return 'All male'
-  if (female > 0 && unsexed === 0) return 'All female'
-
-  return 'Mixed' // one sex plus unsexed animals
-}
+// Composition = the kit's shared enclosureCompositionOf — same words as Enclosure
+// Demographics (user call 2026-09-05). Aggregates only here (no per-record UD/ID/G
+// split): unsexed-only enclosures read Undetermined.
+const compositionOf = (male: number, female: number, unsexed: number, total: number): string =>
+  enclosureCompositionOf(male, female, unsexed, total)
 
 interface HousingTabProps {
   housing?: SpeciesHousing

@@ -35,6 +35,7 @@ import {
   DrillSheet,
   EmptyState,
   FilterChip,
+  genderTagOf,
   HeroPhotoContext,
   RowMetaText,
   SectionCard,
@@ -68,9 +69,8 @@ const ageBandOf = (age?: string): (typeof AGE_BANDS)[number] => {
 
 const chipOf = (a: AnimalRecord): string => a.chip || a.ring || ''
 
-// Card badge from the REAL gender field — anything not male/female prints Unsexed (UD).
-const tagOf = (g?: string): 'male' | 'female' | 'undetermined' =>
-  g === 'male' ? 'male' : g === 'female' ? 'female' : 'undetermined'
+// Card badge from the REAL gender field — the kit's shared mapping (UD / ID / G split).
+const tagOf = genderTagOf
 
 /* ── card identity (user calls 2026-09-05): the card shows EXACTLY two identity lines —
    the user picks PRIMARY + SECONDARY in settings from ALL identifier types the system

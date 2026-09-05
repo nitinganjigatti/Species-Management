@@ -27,6 +27,7 @@ import {
   ChartHoverCard,
   DetailTable,
   EmptyState,
+  genderTagOf,
   HeroPhotoContext,
   ListSheet,
   synthAnimalIdentity,
@@ -457,8 +458,8 @@ const capWord = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : un
 const sumK = (recs: { k?: number }[]) => recs.reduce((s, r) => s + (r.k || 1), 0)
 const byDateDesc = <T extends { d: string }>(recs: T[]) => [...recs].sort((a, b) => (a.d < b.d ? 1 : -1))
 
-// Real gender → card badge kind (anything unlabelled reads Undetermined).
-const genderTag = (g?: string): ListRow['tag'] => (g === 'male' ? 'male' : g === 'female' ? 'female' : 'undetermined')
+// Real gender → card badge kind — the kit's shared mapping (UD / ID / G split).
+const genderTag = (g?: string): ListRow['tag'] => genderTagOf(g)
 
 /* Animal-card upgrade (2026-09-02): rows WITH an aid render as the standard AnimalCardRow
  * (ListSheet does the swap) — real gender badge on births, maroon mortality badge on
