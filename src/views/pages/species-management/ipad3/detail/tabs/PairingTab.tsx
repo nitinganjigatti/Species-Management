@@ -39,7 +39,12 @@ interface EncRow {
   section?: string
   male: number
   female: number
-  unsexed: number
+  // The aggregate's ONE unsexed bucket, split by the records (user call 2026-09-05 —
+  // the table shows the FULL sex anatomy even where a class is empty): any unsexed
+  // remainder the records can't name stays UD, so the row always sums to Total.
+  ud: number
+  id: number
+  grp: number
   total: number
   composition: string
 }
@@ -185,15 +190,20 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     const list: EncRow[] = []
     for (const s of housing?.sites || []) {
       for (const enc of s.enclosures) {
+        const kinds = kindsByEnc.get(`${s.name}||${enc.name}`)
+        const id = Math.min(kinds?.id || 0, enc.unsexed)
+        const grp = Math.min(kinds?.grp || 0, Math.max(enc.unsexed - id, 0))
         list.push({
           name: enc.name,
           site: s.name,
           section: enc.section,
           male: enc.male,
           female: enc.female,
-          unsexed: enc.unsexed,
+          ud: Math.max(enc.unsexed - id - grp, 0),
+          id,
+          grp,
           total: enc.total,
-          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, kindsByEnc.get(`${s.name}||${enc.name}`))
+          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, kinds)
         })
       }
     }
@@ -280,9 +290,13 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       headerName: 'Composition',
       renderCell: p => txt(p.row.composition)
     },
+    // The FULL sex anatomy rides the table even where a class is empty (user call
+    // 2026-09-05) — ID/G print the pale dash until such records exist.
     numCol('male', 'M'),
     numCol('female', 'F'),
-    numCol('unsexed', 'U'),
+    numCol('ud', 'UD'),
+    numCol('id', 'ID'),
+    numCol('grp', 'G'),
     numCol('total', 'Total', { total: true })
   ]
 
