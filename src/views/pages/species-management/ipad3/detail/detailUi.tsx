@@ -629,7 +629,6 @@ export const SearchPill: React.FC<{
   sx?: Record<string, unknown>
 }> = ({ value, onChange, placeholder = 'Search…', ground, collapsible, elastic, height = 44, sx }) => {
   const [open, setOpen] = useState(false)
-  const [focused, setFocused] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const [ov, setOv] = useState<{ left: number; width: number } | null>(null)
 
@@ -658,7 +657,9 @@ export const SearchPill: React.FC<{
     />
   )
 
-  // Elastic (user call 2026-09-05, CoL table): compact while idle, grows on focus.
+  // Elastic (user calls 2026-09-05): a FLEX FILLER — takes the row's free space and
+  // yields ONLY what the other controls need (down to a floor), never snapping to an
+  // icon. When Custom's year selects appear, the field shrinks just enough to fit them.
   if (elastic && !ground) {
     return (
       <TextField
@@ -666,13 +667,10 @@ export const SearchPill: React.FC<{
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         sx={{
           ...fieldSx,
-          width: focused ? 300 : 170,
-          transition: 'width 220ms ease',
-          flexShrink: 0,
+          // '&&' beats ControlsRow's flexShrink:0-on-children rule
+          '&&': { flex: '1 1 auto', minWidth: 130 },
           ...sx
         }}
         InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}

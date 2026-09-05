@@ -1318,9 +1318,7 @@ const AnimalEventsTable: React.FC<{
   /** The MIRRORED page-level period filter (demo review 2026-09-04) — replaces the old
    *  table-scoped year dropdown so one window governs charts AND table. */
   periodCtl?: React.ReactNode
-  /** Custom range active → the search collapses to make room for the year selects. */
-  customActive?: boolean
-}> = ({ events, mode, onModeChange, counts, viewMode, onViewModeChange, onDrillSite, periodCtl, customActive }) => {
+}> = ({ events, mode, onModeChange, counts, viewMode, onViewModeChange, onDrillSite, periodCtl }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
 
@@ -1415,17 +1413,10 @@ const AnimalEventsTable: React.FC<{
       })}
     </Box>
   )
-  // ELASTIC normally; while CUSTOM is active the year selects need the room, so the
-  // search COLLAPSES to the icon/query pill (user call 2026-09-05 — the two SearchPill
-  // conditions combine per state).
+  // ELASTIC (user call 2026-09-05): the search fills the row's free space and yields
+  // only what the other controls need — Custom's year selects squeeze it, never an icon.
   const searchField = (
-    <SearchPill
-      {...(customActive ? { collapsible: true } : { elastic: true })}
-      value={q}
-      onChange={setQ}
-      placeholder={isSite ? 'Search sites…' : 'Search animals…'}
-      height={TABLE_CTRL_H}
-    />
+    <SearchPill elastic value={q} onChange={setQ} placeholder={isSite ? 'Search sites…' : 'Search animals…'} height={TABLE_CTRL_H} />
   )
 
   const ageFilterCtl = mode === 'deaths' && (
@@ -1870,7 +1861,6 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           setTableView('animal')
         }}
         periodCtl={periodCtl}
-        customActive={periodMode === 'range'}
       />
 
       <ListSheet view={sheet} onClose={() => setSheet(null)} />
