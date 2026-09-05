@@ -1471,47 +1471,108 @@ export const ColumnSettingsSheet: React.FC<{
     ...(identityOptions ? ([{ key: 'identity', label: 'Card Identity' }] as { key: 'identity'; label: string }[]) : [])
   ]
 
-  /* one identity slot — single choice over ALL types; the other slot's pick is locked */
-  const identityGroup = (slotLabel: string, cur: string, other: string, set: (v: string) => void) => (
-    <Box sx={{ mb: 5 }}>
-      <Typography
-        sx={{ pb: 1, fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
-      >
-        {slotLabel}
+  /* ONE list, pick exactly TWO (user call 2026-09-05 — two slot-lists was too much):
+     first pick = primary, second = secondary; the secondary row offers "Make Primary"
+     to swap; unchecking the primary promotes the remaining one; a third pick is locked. */
+  const toggleIdent = (v: string) => {
+    if (v === prim) {
+      setPrim(sec)
+      setSec('')
+    } else if (v === sec) {
+      setSec('')
+    } else if (!prim) {
+      setPrim(v)
+    } else if (!sec) {
+      setSec(v)
+    }
+    // two already picked → locked (rows render disabled)
+  }
+  const identityList = (
+    <>
+      <Typography sx={{ pb: 2, fontSize: '14px', color: c.neutralSecondary }}>
+        Pick two — the card shows the primary on top, the secondary under it.
       </Typography>
       {(identityOptions || []).map(o => {
-        const taken = o.value === other
-        const on = cur === o.value
+        const isPrim = o.value === prim
+        const isSec = o.value === sec
+        const on = isPrim || isSec
+        const locked = !on && !!prim && !!sec
 
         return (
           <Box
             key={o.value}
-            onClick={() => !taken && set(o.value)}
+            onClick={() => !locked && toggleIdent(o.value)}
             sx={{
-              height: 44,
+              height: 48,
               display: 'flex',
               alignItems: 'center',
               gap: 1,
               borderRadius: '10px',
-              opacity: taken ? 0.35 : 1,
-              cursor: taken ? 'default' : 'pointer',
-              '&:hover': taken ? {} : { backgroundColor: c.Surface }
+              opacity: locked ? 0.35 : 1,
+              cursor: locked ? 'default' : 'pointer',
+              '&:hover': locked ? {} : { backgroundColor: c.Surface }
             }}
           >
             <Checkbox
               checked={on}
-              disabled={taken}
-              onChange={() => !taken && set(o.value)}
+              disabled={locked}
+              onChange={() => !locked && toggleIdent(o.value)}
               onClick={e => e.stopPropagation()}
               sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
             />
-            <Typography variant='body1' sx={{ color: c.OnSurfaceVariant, fontWeight: on ? 600 : 400 }} noWrap>
+            <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant, fontWeight: on ? 600 : 400 }} noWrap>
               {o.label}
             </Typography>
+            {isPrim && (
+              <Box
+                component='span'
+                sx={{
+                  px: 2.5,
+                  height: 26,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  borderRadius: '999px',
+                  bgcolor: skin.LIST_GREEN,
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  flexShrink: 0
+                }}
+              >
+                Primary
+              </Box>
+            )}
+            {isSec && (
+              <Box
+                component='span'
+                onClick={e => {
+                  e.stopPropagation()
+                  // swap — the secondary takes the lead
+                  setSec(prim)
+                  setPrim(o.value)
+                }}
+                sx={{
+                  px: 2.5,
+                  height: 26,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  borderRadius: '999px',
+                  border: `1px solid ${skin.TRACK}`,
+                  color: skin.INK2,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: skin.ROW_HOVER }
+                }}
+              >
+                Make Primary
+              </Box>
+            )}
           </Box>
         )
       })}
-    </Box>
+    </>
   )
 
   return (
@@ -1706,12 +1767,7 @@ export const ColumnSettingsSheet: React.FC<{
               </>
             )}
 
-            {section === 'identity' && identityOptions && (
-              <>
-                {identityGroup('Primary', prim, sec, setPrim)}
-                {identityGroup('Secondary', sec, prim, setSec)}
-              </>
-            )}
+            {section === 'identity' && identityOptions && identityList}
           </Box>
         </Box>
       </Box>
