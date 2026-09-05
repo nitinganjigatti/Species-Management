@@ -561,7 +561,10 @@ export const statementRows = (
   const byKey = new Map<string, StatementRow>()
 
   for (const e of universe) {
-    if (e.delta === 0) continue // reclass / neutral transfers — no count change
+    // Reclass sits out (count-neutral bookkeeping) — but TRANSFERS always show (user
+    // call 2026-09-05: the ledger has EVERYTHING): neutral ones ride as delta-0 rows
+    // (no In/Out), directional ones count. Reconciliation keeps its site-scope gate.
+    if (e.delta === 0 && e.kind !== 'transfer') continue
     total += e.delta
     if (start && e.date < start) continue
     const key = `${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}`

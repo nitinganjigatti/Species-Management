@@ -241,8 +241,10 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     setDrill(d => {
       if (!d) return d
       const next = { ...d, ...patch }
-      // site scope gone → transfer facets go with it (they only resolve against sites)
-      if (!next.sites.length) next.kinds = next.kinds.filter(k => !isTransferKind(k))
+      // site scope gone → direction goes with it: In/Out picks fold into neutral Transfer
+      if (!next.sites.length) {
+        next.kinds = Array.from(new Set(next.kinds.map(k => (isTransferKind(k) ? ('transfer' as LedgerEventKind) : k))))
+      }
 
       return next
     })
@@ -262,12 +264,9 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       return resolveEvents(events, scope)
         .filter(r => {
           if (start && r.date < start) return false
-          if (f.kinds.length) {
-            if (!f.kinds.includes(r.kind)) return false
-          } else if (r.kind === 'transfer' && f.sites.length < 2) {
-            // the unfiltered list: neutral transfers show only inside a multi-site scope
-            return false
-          }
+          // Transfers show at EVERY scope (user call 2026-09-05 — the ledger has
+          // everything); neutral ones are just delta-0 rows.
+          if (f.kinds.length && !f.kinds.includes(r.kind)) return false
           if (
             f.classes.length &&
             !(f.classes.includes(r.cls) || (r.kind === 'reclass' && r.fromCls && f.classes.includes(r.fromCls)))
@@ -529,7 +528,8 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
           {
             key: 'event',
             label: 'Event',
-            options: [...EVENT_FACET_BASE, ...(f.sites.length ? (['transfer_in', 'transfer_out'] as LedgerEventKind[]) : [])].map(k => ({
+            // Site scope = directional options; All Sites = the one neutral Transfer.
+            options: [...EVENT_FACET_BASE, ...((f.sites.length ? ['transfer_in', 'transfer_out'] : ['transfer']) as LedgerEventKind[])].map(k => ({
               value: k,
               label: EVENT_LABEL[k],
               count: rowsFor({ ...f, kinds: [k] }).length
@@ -789,10 +789,10 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
                     // line; multi-site = both, the neutral chip doesn't say the direction)
                     <>
                       <RowMetaText>{ddMMMyyyy(r.date)}</RowMetaText>
-                      {tKind && (neutralTransfers || r.kind === 'transfer_in') && r.fromSite && (
+                      {tKind && (r.kind !== 'transfer_out' || neutralTransfers) && r.fromSite && (
                         <RowMetaText>From: {r.fromSite}</RowMetaText>
                       )}
-                      {tKind && (neutralTransfers || r.kind === 'transfer_out') && r.toSite && (
+                      {tKind && (r.kind !== 'transfer_in' || neutralTransfers) && r.toSite && (
                         <RowMetaText>To: {r.toSite}</RowMetaText>
                       )}
                     </>
