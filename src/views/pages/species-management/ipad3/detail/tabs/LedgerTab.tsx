@@ -336,10 +336,30 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const stmtColumns: GridColDef[] = useMemo(
     () => [
       {
-        minWidth: 160,
+        // Site rides UNDER the date (user call 2026-09-05) — no separate Site column;
+        // transfers show their route ("RRC → Gagua") on that line instead.
+        minWidth: 230,
         field: 'dateMs',
         headerName: 'Date',
-        renderCell: (p: any) => <CellText weight={600}>{ddMMMyyyy((p.row as StatementRow).date)}</CellText>
+        renderCell: (p: any) => {
+          const r = p.row as StatementRow
+          const siteLine = !showSiteCol
+            ? null
+            : isTransferKind(r.kind)
+            ? `${r.events[0]?.fromSite ?? '—'} → ${r.events[0]?.toSite ?? '—'}`
+            : r.sites.join(', ') || null
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
+              <CellText weight={600}>{ddMMMyyyy(r.date)}</CellText>
+              {siteLine && (
+                <Typography sx={{ fontSize: '13px', color: skin.FAINT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {siteLine}
+                </Typography>
+              )}
+            </Box>
+          )
+        }
       },
       {
         flex: 1,
@@ -388,26 +408,6 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
           )
         }
       },
-      ...(showSiteCol
-        ? [
-            {
-              minWidth: 200,
-              field: 'sites',
-              headerName: 'Site',
-              sortable: false,
-              renderCell: (p: any) => {
-                const r = p.row as StatementRow
-                if (isTransferKind(r.kind)) {
-                  const e = r.events[0]
-
-                  return <CellText>{`${e?.fromSite ?? '—'} → ${e?.toSite ?? '—'}`}</CellText>
-                }
-
-                return r.sites.length ? <CellText>{r.sites.join(', ')}</CellText> : dashCell
-              }
-            } as GridColDef
-          ]
-        : []),
       {
         minWidth: 110,
         field: 'balance',
