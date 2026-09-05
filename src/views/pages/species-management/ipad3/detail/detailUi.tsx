@@ -248,6 +248,9 @@ export const CellText: React.FC<{ children?: React.ReactNode; color?: string; we
           : {
               minWidth: 0,
               lineHeight: 1.3,
+              // The DataGrid puts white-space:nowrap on every CELL — the inherited value
+              // forbids line breaks, so wrapping needs an explicit 'normal' here.
+              whiteSpace: 'normal',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',

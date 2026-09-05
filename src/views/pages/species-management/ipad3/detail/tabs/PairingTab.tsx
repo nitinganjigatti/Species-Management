@@ -291,6 +291,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
               fontWeight: 600,
               color: cc.OnSurfaceVariant,
               lineHeight: 1.25,
+              whiteSpace: 'normal', // cells inherit the grid's nowrap — re-allow breaks
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
