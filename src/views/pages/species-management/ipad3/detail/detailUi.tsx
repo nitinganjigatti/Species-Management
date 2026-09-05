@@ -235,7 +235,28 @@ export const CellText: React.FC<{ children?: React.ReactNode; color?: string; we
   const c = cc(theme)
 
   return (
-    <Typography sx={{ fontSize: CELL_FONT, color: color || skin.INK2, fontWeight: weight }} noWrap={noWrap}>
+    <Typography
+      sx={{
+        fontSize: CELL_FONT,
+        color: color || skin.INK2,
+        fontWeight: weight,
+        // Grid cells are flex rows — without minWidth:0 the text keeps its one-line
+        // width and CLIPS mid-word at the cell edge (user-caught 2026-09-05, Site
+        // column). Long text wraps to a 2nd line instead, clamped so rows never grow.
+        ...(noWrap
+          ? {}
+          : {
+              minWidth: 0,
+              lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              overflowWrap: 'break-word'
+            })
+      }}
+      noWrap={noWrap}
+    >
       {children ?? '—'}
     </Typography>
   )
