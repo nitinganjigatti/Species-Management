@@ -289,10 +289,23 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
     }
   })
 
-  // Enclosure name with its site in small faint type beneath — the site-below-enclosure rule.
+  // Enclosure name with its site in small faint type beneath — the site-below-enclosure
+  // rule. A long name WRAPS to a second line instead of clipping (user call 2026-09-05),
+  // clamped at 2 so the 72px row never overflows.
   const enclosureCell = (p: GridRenderCellParams) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
-      <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+      <Typography
+        sx={{
+          fontSize: '1rem',
+          fontWeight: 600,
+          color: cc.OnSurfaceVariant,
+          lineHeight: 1.25,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}
+      >
         {p.row.name}
       </Typography>
       {p.row.site ? (

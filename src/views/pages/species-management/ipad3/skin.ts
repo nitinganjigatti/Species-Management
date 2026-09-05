@@ -83,7 +83,7 @@ export const TAB_ICON_OFF = '#1f515b' // icons on resting (non-active) tabs
 
 /** Segmented view toggles (user hexes 2026-09-01) — slate-navy track at 15%,
  *  active segment's text + icon in the full-strength slate-navy. */
-export const TOGGLE_TRACK = 'rgba(31,81,91,0.15)' // #1F515B @ 15%
+export const TOGGLE_TRACK = '#E8F4F2' // pale teal track (user call 2026-09-05; was #1F515B @ 15%)
 export const TOGGLE_ON = '#1f515b' // active segment ink (text + icon)
 
 /** The species-detail BANNER — iPad 3 bluish ramp (Figma 62:652 overlay 62:654,

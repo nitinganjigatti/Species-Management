@@ -284,7 +284,19 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       // single-site species) already names it, so the sub-line goes.
       renderCell: p => (
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minWidth: 0 }}>
-          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
+          {/* long names wrap to a 2nd line, clamped at 2 (user call 2026-09-05) */}
+          <Typography
+            sx={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: cc.OnSurfaceVariant,
+              lineHeight: 1.25,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}
+          >
             {p.row.name}
           </Typography>
           {!site && siteNames.length > 1 && (

@@ -2733,9 +2733,22 @@ export const DetailTable: React.FC<{
     })
   }
 
+  // The LAST column gets extra right padding (user call 2026-09-05: a right-aligned
+  // Total sat flush against the table edge) — tagged by class so the rule survives
+  // flexed widths and the grid's own scrollbar filler elements.
+  const lastPadded = columns.map((c, i) =>
+    i === columns.length - 1 && typeof c.cellClassName !== 'function' && typeof (c as any).headerClassName !== 'function'
+      ? {
+          ...c,
+          cellClassName: [c.cellClassName, 'dg-col-last'].filter(Boolean).join(' '),
+          headerClassName: [(c as any).headerClassName, 'dg-col-last'].filter(Boolean).join(' ')
+        }
+      : c
+  )
+
   const table = (
     <CommonTable
-      columns={columns}
+      columns={lastPadded}
       indexedRows={rows}
       total={total}
       loading={false}
@@ -2774,6 +2787,7 @@ export const DetailTable: React.FC<{
         // A wrapped header ignores headerAlign (it only positions the container) — keep
         // right-aligned columns' header TEXT right-aligned too when it breaks to two lines.
         '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderTitle': { textAlign: 'right' },
+        '& .dg-col-last': { paddingRight: '28px !important' },
         ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
         ...stickyStyle
       }}
