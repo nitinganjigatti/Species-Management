@@ -377,11 +377,17 @@ export const enclosureCompositionOf = (
   if (unsexed === 0) return male > 0 ? 'Male' : 'Female'
   if (male > 0 || female > 0) return 'Mixed' // one sex plus unsexed animals
 
-  // Only unsexed animals — the records (when given) say WHICH kind of unsexed.
+  // Only unsexed animals — the records (when given) say WHICH kind of unsexed. A PURE
+  // enclosure wears its kind's name; a blend of kinds reads Mixed (user call
+  // 2026-09-05: UD and ID are two different things — never label a UD+ID enclosure
+  // "Undetermined").
   const n = kinds ? kinds.ud + kinds.id + kinds.grp : 0
   if (kinds && n > 0) {
     if (kinds.grp === n) return 'Group'
     if (kinds.id === n) return 'Indeterminate'
+    if (kinds.ud === n) return 'Undetermined'
+
+    return 'Mixed'
   }
 
   return 'Undetermined'

@@ -197,17 +197,20 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         const kinds = kindsByEnc.get(`${s.name}||${enc.name}`)
         const id = Math.min(kinds?.id || 0, enc.unsexed)
         const grp = Math.min(kinds?.grp || 0, Math.max(enc.unsexed - id, 0))
+        const ud = Math.max(enc.unsexed - id - grp, 0)
         list.push({
           name: enc.name,
           site: s.name,
           section: enc.section,
           male: enc.male,
           female: enc.female,
-          ud: Math.max(enc.unsexed - id - grp, 0),
+          ud,
           id,
           grp,
           total: enc.total,
-          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, kinds)
+          // The RECONCILED split feeds the classifier — Composition always agrees with
+          // the UD | ID | G columns on the same row.
+          composition: enclosureCompositionOf(enc.male, enc.female, enc.unsexed, enc.total, { ud, id, grp })
         })
       }
     }
