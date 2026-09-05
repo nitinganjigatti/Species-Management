@@ -23,7 +23,8 @@ import {
   RowMetaText,
   SectionCard,
   splitUnsexed,
-  synthAnimalIdentity
+  synthAnimalIdentity,
+  ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 
@@ -452,36 +453,15 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
           ...(multiSection ? [{ key: 'section', label: 'Section-Wise', icon: 'mdi:floor-plan' }] : []),
           { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
         ]
+        // The kit ViewToggle (2026-09-05) — single-site species map their forced 'site'
+        // state onto the visible Enclosure-Wise segment.
         const viewToggle = (
-            <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: 44, p: '3px', gap: '2px', borderRadius: '999px', bgcolor: skin.TOGGLE_TRACK, boxSizing: 'border-box' }}>
-              {toggleItems.map(v => {
-                const on = tableView === v.key || (!multiSite && tableView === 'site' && v.key === 'enclosure')
-
-                return (
-                  <Box
-                    key={v.key}
-                    onClick={() => setTableView(v.key as 'site' | 'section' | 'enclosure')}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      px: 3.5,
-                      borderRadius: '999px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      bgcolor: on ? '#ffffff' : 'transparent',
-                      ...skin.cardPressSx,
-                      transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
-                    }}
-                  >
-                    <Icon icon={v.icon} fontSize='1rem' color={on ? skin.TOGGLE_ON : skin.MUTED} />
-                    <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.TOGGLE_ON : skin.MUTED, whiteSpace: 'nowrap' }}>
-                      {v.label}
-                    </Typography>
-                  </Box>
-                )
-              })}
-            </Box>
+          <ViewToggle
+            height={44}
+            items={toggleItems}
+            value={!multiSite && tableView === 'site' ? 'enclosure' : tableView}
+            onChange={k => setTableView(k as 'site' | 'section' | 'enclosure')}
+          />
         )
 
         const stackedHeader = (

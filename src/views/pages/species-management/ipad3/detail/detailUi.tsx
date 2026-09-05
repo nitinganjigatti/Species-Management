@@ -380,6 +380,79 @@ export const enclosureAnimalsOf = (
   return [...joined, ...synth]
 }
 
+/* ── ViewToggle — THE segmented view control (user call 2026-09-05: ONE component so a
+   styling change lands everywhere; previously hand-rolled in Housing / CoL / Lab /
+   Assessments). Sage TOGGLE_TRACK track, white active pill wearing the accent ink,
+   optional leading icon and quiet tabular count. Scrolls, never wraps. */
+export const ViewToggle: React.FC<{
+  items: { key: string; label: string; icon?: string; count?: string | number }[]
+  value: string
+  onChange: (key: string) => void
+  /** Fixed track height (the table-control 44); omit for content height (py-based). */
+  height?: number
+  /** Track corner radius — pill by default; Lab's request-kind toggle passes '10px'. */
+  radius?: string
+  sx?: Record<string, unknown>
+}> = ({ items, value, onChange, height, radius = '999px', sx }) => (
+  <Box
+    sx={{
+      display: 'inline-flex',
+      alignItems: 'stretch',
+      alignSelf: 'flex-start',
+      maxWidth: '100%',
+      ...(height ? { height } : {}),
+      p: '3px',
+      gap: '2px',
+      borderRadius: radius,
+      bgcolor: skin.TOGGLE_TRACK,
+      boxSizing: 'border-box',
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+      '&::-webkit-scrollbar': { display: 'none' },
+      WebkitOverflowScrolling: 'touch',
+      ...sx
+    }}
+  >
+    {items.map(v => {
+      const on = value === v.key
+
+      return (
+        <Box
+          key={v.key}
+          onClick={() => onChange(v.key)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flexShrink: 0,
+            px: 3.5,
+            ...(height ? {} : { py: 1.5 }),
+            borderRadius: radius === '999px' ? '999px' : '8px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            bgcolor: on ? '#ffffff' : 'transparent',
+            ...skin.cardPressSx,
+            transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
+          }}
+        >
+          {v.icon && <Icon icon={v.icon} fontSize='1rem' color={on ? skin.TOGGLE_ON : skin.MUTED} />}
+          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.TOGGLE_ON : skin.MUTED, whiteSpace: 'nowrap' }}>
+            {v.label}
+          </Typography>
+          {v.count != null && (
+            <Typography
+              component='span'
+              sx={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: on ? skin.TOGGLE_ON : skin.FAINT }}
+            >
+              {v.count}
+            </Typography>
+          )}
+        </Box>
+      )
+    })}
+  </Box>
+)
+
 /** Clamp a record-derived kind split against an aggregate's single unsexed bucket —
  *  any unsexed remainder the records can't name stays UD, so a row ALWAYS sums to its
  *  Total (the table rule, user call 2026-09-05). Returns the display fields

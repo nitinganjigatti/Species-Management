@@ -27,7 +27,8 @@ import {
   StatTile,
   synthAnimalIdentity,
   TileGrid,
-  VBarChart
+  VBarChart,
+  ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import { resolveRange, type RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
@@ -1631,69 +1632,22 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
 
 /* ------------------------------------------------------------------ Category tabs — underline rail */
 
+// The kit ViewToggle (2026-09-05) — this wrapper only keeps the "(N)"-in-label parsing
+// its callers rely on (count renders as the quiet tabular figure).
 const CategoryTabs: React.FC<{ options: { label: string; value: string }[]; value: string; onChange: (v: string) => void }> = ({
   options,
   value,
   onChange
 }) => (
-  // CC SegmentToggle grammar: one sage track, the active segment a white pill wearing
-  // the accent ink; counts ride as tabular figures. Scrolls, never wraps.
-  <Box
-    sx={{
-      display: 'inline-flex',
-      alignSelf: 'flex-start',
-      maxWidth: '100%',
-      alignItems: 'center',
-      p: '3px',
-      gap: '2px',
-      bgcolor: skin.TOGGLE_TRACK,
-      borderRadius: '999px',
-      overflowX: 'auto',
-      scrollbarWidth: 'none',
-      '&::-webkit-scrollbar': { display: 'none' },
-      WebkitOverflowScrolling: 'touch'
-    }}
-  >
-    {options.map(o => {
-      const on = o.value === value
+  <ViewToggle
+    value={value}
+    onChange={onChange}
+    items={options.map(o => {
       const m = o.label.match(/^(.*?)\s*\((\d[\d,]*)\)\s*$/)
-      const name = m ? m[1] : o.label
-      const count = m ? m[2] : null
 
-      return (
-        <Box
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            flexShrink: 0,
-            px: 3.5,
-            py: 1.5,
-            borderRadius: '999px',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            bgcolor: on ? '#ffffff' : 'transparent',
-            ...skin.cardPressSx,
-            transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
-          }}
-        >
-          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.TOGGLE_ON : skin.MUTED, whiteSpace: 'nowrap' }}>
-            {name}
-          </Typography>
-          {count && (
-            <Typography
-              component='span'
-              sx={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: on ? skin.TOGGLE_ON : skin.FAINT }}
-            >
-              {count}
-            </Typography>
-          )}
-        </Box>
-      )
+      return { key: o.value, label: m ? m[1] : o.label, count: m ? m[2] : undefined }
     })}
-  </Box>
+  />
 )
 
 /* ------------------------------------------------------------------ Tab root */

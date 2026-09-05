@@ -35,6 +35,7 @@ import {
   sheetPaperSx,
   SHEET_PX,
   StatusChip,
+  ViewToggle,
   TrendAreaChart,
   TrendRangeTabs
 , SheetDrawer} from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -520,27 +521,21 @@ const ScopePage: React.FC<{
           )
         ) : (
           <>
-            {/* Single | Pool — a pool is ONE request for several animals, one shared result */}
-            <Box sx={{ display: 'inline-flex', alignSelf: 'flex-start', p: '3px', borderRadius: '10px', backgroundColor: skin.TOGGLE_TRACK, mb: 3 }}>
-              {(['single', 'pool'] as const).map(k => {
-                const on = reqKind === k
-
-                return (
-                  <Box
-                    key={k}
-                    onClick={() => {
-                      setReqKind(k)
-                      setReqPm({ page: 0, pageSize: 10 })
-                    }}
-                    sx={{ px: 4, py: 1.5, borderRadius: '8px', cursor: 'pointer', backgroundColor: on ? '#ffffff' : 'transparent' }}
-                  >
-                    <Typography variant='body2' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.TOGGLE_ON : c.neutralSecondary }}>
-                      {k === 'single' ? `Single (${singles.length})` : `Pool (${pools.length})`}
-                    </Typography>
-                  </Box>
-                )
-              })}
-            </Box>
+            {/* Single | Pool — a pool is ONE request for several animals, one shared
+                result. The kit ViewToggle (2026-09-05), keeping this toggle's square corners. */}
+            <ViewToggle
+              radius='10px'
+              sx={{ mb: 3 }}
+              items={[
+                { key: 'single', label: 'Single', count: singles.length },
+                { key: 'pool', label: 'Pool', count: pools.length }
+              ]}
+              value={reqKind}
+              onChange={k => {
+                setReqKind(k as typeof reqKind)
+                setReqPm({ page: 0, pageSize: 10 })
+              }}
+            />
             {requests.length ? (
               // Rows deliberately NOT wired — the real app's lab-request detail page owns this tap.
               <DetailTable

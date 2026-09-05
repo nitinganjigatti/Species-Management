@@ -31,6 +31,7 @@ import {
   HeroPhotoContext,
   ListSheet,
   synthAnimalIdentity,
+  ViewToggle,
   sheetPaperSx,
   SHEET_PX,
   SheetDrawer,
@@ -1349,6 +1350,7 @@ const TABLE_MODES: { key: CircleSubTab; label: string; icon: string }[] = [
   { key: 'births', label: 'Births', icon: 'mdi:egg-outline' },
   { key: 'deaths', label: 'Deaths', icon: 'mdi:grave-stone' }
 ]
+// The kit ViewToggle (2026-09-05) — this local wrapper only keeps the generic key type.
 function PillToggle<T extends string>({
   items,
   value,
@@ -1358,41 +1360,7 @@ function PillToggle<T extends string>({
   value: T
   onChange: (v: T) => void
 }) {
-  const theme = useTheme() as any
-  const cc = theme.palette.customColors as Record<string, string>
-
-  return (
-    // The standard view toggle (Housing grammar): sage track, white active pill, green-ink type.
-    <Box sx={{ display: 'inline-flex', alignItems: 'stretch', height: TABLE_CTRL_H, p: '3px', gap: '2px', borderRadius: '999px', bgcolor: skin.TOGGLE_TRACK, boxSizing: 'border-box' }}>
-      {items.map(v => {
-        const on = value === v.key
-
-        return (
-          <Box
-            key={v.key}
-            onClick={() => onChange(v.key)}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 3.5,
-              borderRadius: '999px',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              bgcolor: on ? '#ffffff' : 'transparent',
-              ...skin.cardPressSx,
-              transition: `transform ${skin.DUR_STD} ${skin.EASE}, background-color ${skin.DUR_FAST} ${skin.EASE}`
-            }}
-          >
-            <Icon icon={v.icon} fontSize='1rem' color={on ? skin.TOGGLE_ON : skin.MUTED} />
-            <Typography sx={{ fontSize: '15px', fontWeight: 500, color: on ? skin.TOGGLE_ON : skin.MUTED, whiteSpace: 'nowrap' }}>
-              {v.label}
-            </Typography>
-          </Box>
-        )
-      })}
-    </Box>
-  )
+  return <ViewToggle height={TABLE_CTRL_H} items={items} value={value} onChange={k => onChange(k as T)} />
 }
 
 const eventHaystack = (e: any) =>
