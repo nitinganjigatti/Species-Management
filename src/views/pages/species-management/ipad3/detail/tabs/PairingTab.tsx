@@ -3,8 +3,9 @@
 // Enclosure Demographics (stakeholder call 2026-08-27, built 2026-08-28) — the pairing
 // concept is retired: no parentage data means "pairs" was indefensible, and the readiness
 // meters were graphs where a table was asked for. The tab IS one framed table now — every
-// enclosure's sex composition directly visible — with a pill search + Composition + Site
-// dropdowns above it. Row tap goes straight to the animals sheet (the old middle sheet,
+// enclosure's sex composition directly visible — with a multi-select composition chip row
+// (enclosure counts, demo review 2026-09-04) over a pill search + Site dropdown. Row tap
+// goes straight to the animals sheet (the old middle sheet,
 // enclosures-per-readiness-type, died with the buckets).
 
 import React, { useEffect, useMemo, useState } from 'react'
@@ -18,7 +19,6 @@ import {
   SiteFilterSelect,
   AnimalCardRow,
   AnimalIdCard,
-  CategoryFilter,
   CellText,
   DetailTable,
   DrillSheet,
@@ -169,7 +169,9 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const cc = theme.palette.customColors as Record<string, string>
   const [encDrill, setEncDrill] = useState<{ site: string; enclosure: string } | null>(null)
   const [q, setQ] = useState('')
-  const [composition, setComposition] = useState<string | null>(null)
+  // Composition = MULTI-select chips (demo review 2026-09-04): the chip row is the
+  // top-level scope — search + site work WITHIN the selected compositions. Empty = all.
+  const [comps, setComps] = useState<string[]>([])
   const [site, setSite] = useState<string | null>(null)
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
 
@@ -196,16 +198,30 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const siteNames = useMemo(() => Array.from(new Set(allRows.map(r => r.site))), [allRows])
   const compositionOptions = useMemo(() => COMPOSITIONS.filter(c => allRows.some(r => r.composition === c)), [allRows])
 
+  // Enclosure count per composition — from ALL rows (the chips sit ABOVE search/site,
+  // so their figures never shift under a search).
+  const compCounts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of allRows) m.set(r.composition, (m.get(r.composition) || 0) + 1)
+
+    return m
+  }, [allRows])
+
+  const toggleComp = (v: string) => {
+    setComps(s => (s.includes(v) ? s.filter(x => x !== v) : [...s, v]))
+    setPm(p => ({ ...p, page: 0 }))
+  }
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
 
     return allRows.filter(
       r =>
         (!query || `${r.name} ${r.site} ${r.section || ''}`.toLowerCase().includes(query)) &&
-        (!composition || r.composition === composition) &&
+        (!comps.length || comps.includes(r.composition)) &&
         (!site || r.site === site)
     )
-  }, [allRows, q, composition, site])
+  }, [allRows, q, comps, site])
 
   if (!housing || !housing.sites?.length) return <EmptyState message='No enclosure data available' />
 
@@ -269,54 +285,83 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Controls live INSIDE the table card (user call 2026-09-01): pill search
-          stretching, Composition + Site pickers beside it. Single-site species
-          never see the site dropdown. */}
+      {/* Controls live INSIDE the table card (user call 2026-09-01). Demo review
+          2026-09-04 + user call 2026-09-05: composition = a MULTI-SELECT chip row on
+          top (label + enclosure count, tap toggles — replaces the old dropdown);
+          search + site sit below and work within the chip selection. Single-site
+          species never see the site dropdown. */}
       <SectionCard
         titleMb={4}
         title={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
-        <TextField
-          size='small'
-          placeholder='Search enclosures…'
-          value={q}
-          onChange={e => {
-            setQ(e.target.value)
-            setPm(p => ({ ...p, page: 0 }))
-          }}
-          sx={{
-            flex: 1,
-            minWidth: 220,
-            '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', height: 44 },
-            '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-            '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
-          }}
-          InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
-        />
-        <CategoryFilter
-          radius='999px'
-          width={200}
-          options={compositionOptions}
-          value={composition}
-          onChange={v => {
-            setComposition(v)
-            setPm(p => ({ ...p, page: 0 }))
-          }}
-          placeholder='All compositions'
-          icon='mdi:gender-male-female'
-        />
-        {siteNames.length > 1 && (
-          // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
-          <SiteFilterSelect
-            sites={siteNames.map(name => ({ site: name, caption: `${allRows.filter(r => r.site === name).length.toLocaleString()} enclosures` }))}
-            value={site}
-            onChange={v => {
-              setSite(v)
-              setPm(p => ({ ...p, page: 0 }))
-            }}
-            allCaption={`${allRows.length.toLocaleString()} enclosures`}
-          />
-        )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
+            {/* one scrolling row, never wraps — a wrapped second row reads as a second control */}
+            <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+              {compositionOptions.map(comp => {
+                const on = comps.includes(comp)
+
+                return (
+                  <Box
+                    key={comp}
+                    onClick={() => toggleComp(comp)}
+                    sx={{
+                      height: 36,
+                      px: 3.5,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      borderRadius: '999px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      border: `1px solid ${on ? skin.LIST_GREEN : skin.HAIR}`,
+                      backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.1) : '#ffffff',
+                      '&:hover': { backgroundColor: on ? skin.mixOverWhite(skin.LIST_GREEN, 0.13) : skin.ROW_HOVER }
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '14px', fontWeight: on ? 600 : 500, color: on ? skin.LIST_GREEN : skin.INK2 }}>
+                      {comp}
+                    </Typography>
+                    <Typography sx={{ fontSize: '13px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
+                      {(compCounts.get(comp) || 0).toLocaleString()}
+                    </Typography>
+                  </Box>
+                )
+              })}
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
+              <TextField
+                size='small'
+                placeholder='Search enclosures…'
+                value={q}
+                onChange={e => {
+                  setQ(e.target.value)
+                  setPm(p => ({ ...p, page: 0 }))
+                }}
+                sx={{
+                  flex: 1,
+                  minWidth: 220,
+                  '& .MuiInputBase-root': { bgcolor: skin.FIELD_BG, borderRadius: '999px', height: 44 },
+                  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                  '& .MuiInputBase-root.Mui-focused': { boxShadow: `0 0 0 2px ${skin.FOCUS_RING}` }
+                }}
+                InputProps={{
+                  startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} />
+                }}
+              />
+              {siteNames.length > 1 && (
+                // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+                <SiteFilterSelect
+                  sites={siteNames.map(name => ({ site: name, caption: `${allRows.filter(r => r.site === name).length.toLocaleString()} enclosures` }))}
+                  value={site}
+                  onChange={v => {
+                    setSite(v)
+                    setPm(p => ({ ...p, page: 0 }))
+                  }}
+                  allCaption={`${allRows.length.toLocaleString()} enclosures`}
+                />
+              )}
+            </Box>
           </Box>
         }
       >

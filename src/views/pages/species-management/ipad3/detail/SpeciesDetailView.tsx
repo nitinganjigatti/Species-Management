@@ -71,7 +71,9 @@ const TAB_ICONS: Record<string, string> = {
   profile: 'mdi:card-account-details-outline',
   ledger: 'mdi:notebook-outline',
   population: 'mdi:paw',
-  pairing: 'mdi:heart-outline',
+  // Demo review 2026-09-04: the heart read as the retired "pairing" concept — this tab
+  // is sex demographics now, so it wears the sex-composition mark.
+  pairing: 'mdi:gender-male-female',
   housing: 'mdi:home-outline',
   circle: 'mdi:autorenew',
   assessments: 'mdi:clipboard-check-outline',
