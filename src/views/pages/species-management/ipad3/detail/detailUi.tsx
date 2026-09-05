@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Autocomplete, Avatar, Box, Button, Checkbox, Drawer, IconButton, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
+import { Autocomplete, Avatar, Box, Button, Checkbox, Drawer, IconButton, MenuItem, Select, TextField, Typography, Tooltip, useMediaQuery } from '@mui/material'
 import type { DrawerProps } from '@mui/material'
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
@@ -623,10 +623,13 @@ export const SearchPill: React.FC<{
   ground?: boolean
   /** Opt-IN: idle collapsed (icon / query pill), expand over the full row on tap. */
   collapsible?: boolean
+  /** Opt-IN: elastic — always visible, GROWS on focus and shrinks back on blur. */
+  elastic?: boolean
   height?: number
   sx?: Record<string, unknown>
-}> = ({ value, onChange, placeholder = 'Search…', ground, collapsible, height = 44, sx }) => {
+}> = ({ value, onChange, placeholder = 'Search…', ground, collapsible, elastic, height = 44, sx }) => {
   const [open, setOpen] = useState(false)
+  const [focused, setFocused] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const [ov, setOv] = useState<{ left: number; width: number } | null>(null)
 
@@ -654,6 +657,28 @@ export const SearchPill: React.FC<{
       InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
     />
   )
+
+  // Elastic (user call 2026-09-05, CoL table): compact while idle, grows on focus.
+  if (elastic && !ground) {
+    return (
+      <TextField
+        size='small'
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        sx={{
+          ...fieldSx,
+          width: focused ? 300 : 170,
+          transition: 'width 220ms ease',
+          flexShrink: 0,
+          ...sx
+        }}
+        InputProps={{ startAdornment: <Icon icon='mdi:magnify' fontSize='1.15rem' style={{ marginRight: 6, color: skin.FAINT }} /> }}
+      />
+    )
+  }
 
   // Default = the classic always-expanded field; collapsing is per-surface opt-in.
   if (!collapsible || ground) return field(sx)
@@ -757,6 +782,55 @@ export const ControlsRow: React.FC<{ children: React.ReactNode; sx?: Record<stri
     {children}
   </Box>
 )
+
+/* ── PillSelect — compact required single-choice dropdown in the pill grammar (the
+   space-saving stand-in for a ViewToggle when a header row is crowded — user call
+   2026-09-05, CoL table's Animal/Site view). Always has a value; no empty option. */
+export const PillSelect: React.FC<{
+  value: string
+  items: { value: string; label: string; icon?: string }[]
+  onChange: (v: string) => void
+  height?: number
+  minWidth?: number
+}> = ({ value, items, onChange, height = 44, minWidth = 150 }) => {
+  const active = items.find(i => i.value === value)
+
+  return (
+    <Select
+      size='small'
+      value={value}
+      onChange={e => onChange(String(e.target.value))}
+      IconComponent={SelectChevron}
+      renderValue={() => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+          {active?.icon && <Icon icon={active.icon} fontSize='1.1rem' color={skin.INK2} />}
+          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: skin.INK2 }} noWrap>
+            {active?.label ?? value}
+          </Typography>
+        </Box>
+      )}
+      sx={{
+        height,
+        minWidth,
+        bgcolor: '#ffffff',
+        borderRadius: '999px',
+        '& .MuiSelect-select': { display: 'flex', alignItems: 'center', py: 0 },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
+      }}
+      MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320, borderRadius: '10px' } } } }}
+    >
+      {items.map(i => (
+        <MenuItem key={i.value} value={i.value}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {i.icon && <Icon icon={i.icon} fontSize='1.1rem' color={skin.INK2} />}
+            {i.label}
+          </Box>
+        </MenuItem>
+      ))}
+    </Select>
+  )
+}
 
 /* ── ChipFilterRow — one scrolling row of multi-select filter chips w/ counts and a
    leading "All" (the Pairing composition strip, kit-level per user call 2026-09-05).

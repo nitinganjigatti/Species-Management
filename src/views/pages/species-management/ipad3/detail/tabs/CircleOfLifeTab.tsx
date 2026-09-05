@@ -27,11 +27,13 @@ import {
   CellText,
   ChartHoverCard,
   ControlsRow,
+  countCol,
   DetailTable,
   EmptyState,
   genderTagOf,
   HeroPhotoContext,
   ListSheet,
+  PillSelect,
   synthAnimalIdentity,
   ViewToggle,
   YearLinesChart,
@@ -1121,7 +1123,10 @@ interface SiteAgg {
   enclosures: number // distinct enclosures with events at this site
   male: number
   female: number
-  unsexed: number
+  // Unsexed split by the EVENT records' gender kinds (the table standard 2026-09-05).
+  ud: number
+  ind: number
+  grp: number
   breeds: string[] // distinct breeds (births only)
   topCause?: string // most frequent manner of death (deaths only)
   necropsyPending: number
@@ -1136,7 +1141,7 @@ const buildSiteRows = (events: (LifecycleBirth | LifecycleDeath)[], mode: Circle
     const site = e.s || 'Unknown'
     let r = map.get(site)
     if (!r) {
-      r = { site, count: 0, records: 0, encl: new Set<string>(), male: 0, female: 0, unsexed: 0, breeds: new Set<string>(), causes: new Map<string, number>(), necropsyPending: 0, necropsyDone: 0, ageSum: 0, ageN: 0, ageMax: 0 }
+      r = { site, count: 0, records: 0, encl: new Set<string>(), male: 0, female: 0, ud: 0, ind: 0, grp: 0, breeds: new Set<string>(), causes: new Map<string, number>(), necropsyPending: 0, necropsyDone: 0, ageSum: 0, ageN: 0, ageMax: 0 }
       map.set(site, r)
     }
     const k = e.k || 1
@@ -1145,7 +1150,9 @@ const buildSiteRows = (events: (LifecycleBirth | LifecycleDeath)[], mode: Circle
     if (e.e) r.encl.add(e.e)
     if (e.g === 'male') r.male += k
     else if (e.g === 'female') r.female += k
-    else r.unsexed += k
+    else if (e.g === 'indeterminate') r.ind += k
+    else if (e.g === 'group') r.grp += k
+    else r.ud += k
     if (mode === 'births' && e.b) r.breeds.add(e.b)
     if (mode === 'deaths') {
       if (e.m) r.causes.set(e.m, (r.causes.get(e.m) || 0) + k)
@@ -1165,7 +1172,9 @@ const buildSiteRows = (events: (LifecycleBirth | LifecycleDeath)[], mode: Circle
     enclosures: r.encl.size,
     male: r.male,
     female: r.female,
-    unsexed: r.unsexed,
+    ud: r.ud,
+    ind: r.ind,
+    grp: r.grp,
     breeds: Array.from(r.breeds) as string[],
     topCause: r.causes.size ? (Array.from(r.causes.entries()) as [string, number][]).sort((a, b) => b[1] - a[1])[0][0] : undefined,
     necropsyPending: r.necropsyPending,
@@ -1184,10 +1193,23 @@ const SiteIdCell: React.FC<{ site: string }> = ({ site }) => {
   const cc = theme.palette.customColors as Record<string, string>
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
-      <Avatar sx={{ width: 40, height: 40, bgcolor: cc.Surface, color: cc.Outline }}>
-        <Icon icon='mdi:map-marker-outline' fontSize='1.3rem' />
-      </Avatar>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, py: 1, minWidth: 0 }}>
+      {/* VISIBLE icon chip (user call 2026-09-05 — the pale Surface avatar read as blank);
+          the Lab request-cell grammar: tinted square, deep-ink mark. */}
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          flexShrink: 0,
+          borderRadius: '8px',
+          backgroundColor: cc.displaybgPrimary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Icon icon='mdi:map-marker-outline' fontSize={20} color={cc.OnPrimaryContainer} />
+      </Box>
       <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: cc.OnSurfaceVariant }} noWrap>
         {site}
       </Typography>
@@ -1212,12 +1234,9 @@ const buildSiteColumns = (mode: CircleSubTab, theme: any, hasBreed: boolean): Gr
     headerName: header,
     renderCell: p => txt(Number(p.row[field] || 0).toLocaleString(), color, 600)
   })
-  // Male / Female / Unsexed — same colour language as the sex tiles (teal · orange · grey).
-  const sexes: GridColDef[] = [
-    { width: 90, sortable: false, field: 'male', headerName: 'Male', renderCell: p => txt(Number(p.row.male || 0).toLocaleString(), theme.palette.secondary.main, 600) },
-    { width: 90, sortable: false, field: 'female', headerName: 'Female', renderCell: p => txt(Number(p.row.female || 0).toLocaleString(), cc.Tertiary, 600) },
-    { width: 100, sortable: false, field: 'unsexed', headerName: 'Unsexed', renderCell: p => txt(Number(p.row.unsexed || 0).toLocaleString(), cc.neutralSecondary, 600) }
-  ]
+  // THE full gender anatomy (the Pairing/Housing table standard, user call 2026-09-05):
+  // M | F | UD | ID | G via the kit countCol — zeros print the pale dash.
+  const sexes: GridColDef[] = [countCol('male', 'M'), countCol('female', 'F'), countCol('ud', 'UD'), countCol('ind', 'ID'), countCol('grp', 'G')]
   const years = (field: string, header: string, color: string): GridColDef => ({
     width: 110,
     sortable: false,
@@ -1283,18 +1302,6 @@ const TABLE_MODES: { key: CircleSubTab; label: string; icon: string }[] = [
   { key: 'births', label: 'Births', icon: 'mdi:egg-outline' },
   { key: 'deaths', label: 'Deaths', icon: 'mdi:grave-stone' }
 ]
-// The kit ViewToggle (2026-09-05) — this local wrapper only keeps the generic key type.
-function PillToggle<T extends string>({
-  items,
-  value,
-  onChange
-}: {
-  items: { key: T; label: string; icon: string }[]
-  value: T
-  onChange: (v: T) => void
-}) {
-  return <ViewToggle height={TABLE_CTRL_H} items={items} value={value} onChange={k => onChange(k as T)} />
-}
 
 const eventHaystack = (e: any) =>
   [e.idv, e.idn, e.aid, e.s, e.e, e.m, e.y, e.b, e.d, e.a].filter(v => v != null).join(' ').toLowerCase()
@@ -1406,10 +1413,10 @@ const AnimalEventsTable: React.FC<{
       })}
     </Box>
   )
-  // Collapsible HERE only (user call 2026-09-05) — the period tabs + custom year
-  // selects need the row; other screens keep the expanded search.
+  // ELASTIC here (user call 2026-09-05): always visible, compact while idle, grows on
+  // focus — the period tabs + custom year selects share the one scrolling row.
   const searchField = (
-    <SearchPill collapsible value={q} onChange={setQ} placeholder={isSite ? 'Search sites…' : 'Search animals…'} height={TABLE_CTRL_H} />
+    <SearchPill elastic value={q} onChange={setQ} placeholder={isSite ? 'Search sites…' : 'Search animals…'} height={TABLE_CTRL_H} />
   )
 
   const ageFilterCtl = mode === 'deaths' && (
@@ -1432,13 +1439,13 @@ const AnimalEventsTable: React.FC<{
       {searchField}
       {periodCtl}
       {ageFilterCtl}
-      <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
+      <PillSelect items={TABLE_VIEWS.map(v => ({ value: v.key, label: v.label, icon: v.icon }))} value={viewMode} onChange={v => onViewModeChange(v as 'animal' | 'site')} height={TABLE_CTRL_H} />
     </ControlsRow>
   ) : (
     <ControlsRow>
       {periodCtl}
       {ageFilterCtl}
-      <PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />
+      <PillSelect items={TABLE_VIEWS.map(v => ({ value: v.key, label: v.label, icon: v.icon }))} value={viewMode} onChange={v => onViewModeChange(v as 'animal' | 'site')} height={TABLE_CTRL_H} />
       {searchField}
     </ControlsRow>
   )
@@ -1453,7 +1460,7 @@ const AnimalEventsTable: React.FC<{
 
   if (!events.length) {
     return (
-      <SectionCard title={modeTabs} action={<PillToggle items={TABLE_VIEWS} value={viewMode} onChange={onViewModeChange} />}>
+      <SectionCard title={modeTabs} action={<PillSelect items={TABLE_VIEWS.map(v => ({ value: v.key, label: v.label, icon: v.icon }))} value={viewMode} onChange={v => onViewModeChange(v as 'animal' | 'site')} height={TABLE_CTRL_H} />}>
         <EmptyState message='No data for this selection' />
       </SectionCard>
     )
