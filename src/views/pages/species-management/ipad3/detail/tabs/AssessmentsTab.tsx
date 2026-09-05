@@ -75,49 +75,8 @@ const axisDate = (d: string): string => {
   return `${m[3]} ${MONTHS[Number(m[2]) - 1] ?? m[2]}\n${m[1].slice(2)}`
 }
 
-type ChipTone = 'error' | 'warning' | 'success' | 'neutral' | 'info' | 'primary'
-
-/** Headline stat chip (count + label) with a tone-colored left rail — the row above the charts. */
-// CC pair per tone: the DOT wears the bright fill (a mark), the COUNT wears the
-// tone's readable ink — never the bright as type, never a wash over the card.
-const CHIP_TONES: Record<ChipTone, { dot: string; ink: string }> = {
-  success: { dot: skin.TONE_FILL.good, ink: skin.TONE_TYPE.good },
-  warning: { dot: skin.TONE_FILL.warn, ink: skin.TONE_TYPE.warn },
-  error: { dot: skin.TONE_FILL.bad, ink: skin.TONE_TYPE.bad },
-  info: { dot: '#00abab', ink: skin.strokeOf('#00abab') },
-  primary: { dot: skin.ACCENT_FILL, ink: skin.ACCENT_INK },
-  neutral: { dot: skin.TONE_FILL.neutral, ink: skin.VALUE }
-}
-
-const StatChip: React.FC<{ count: React.ReactNode; label: string; tone: ChipTone; onClick?: () => void }> = ({ count, label, tone, onClick }) => {
-  const t = CHIP_TONES[tone]
-
-  return (
-    <Box
-      onClick={onClick}
-      sx={{
-        flex: '1 1 150px',
-        maxWidth: 240,
-        cursor: onClick ? 'pointer' : 'default',
-        ...skin.cardSx,
-        borderRadius: '12px',
-        px: 3,
-        py: 2,
-        ...(onClick && { ...skin.cardPressSx, '&:hover': { backgroundColor: '#fcfcfb' } })
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Box sx={{ width: 8, height: 8, flexShrink: 0, borderRadius: '50%', bgcolor: t.dot }} />
-        <Typography sx={{ fontSize: '22px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: t.ink, lineHeight: 1.1 }}>
-          {count}
-        </Typography>
-      </Box>
-      <Typography variant='caption' sx={{ color: skin.FAINT, display: 'block', mt: 0.5 }}>
-        {label}
-      </Typography>
-    </Box>
-  )
-}
+// StatChip (dot + 22px count) retired 2026-09-05 (user call: "stat strip is not as per
+// our standard") — headline strips are the kit StatTile in a TileGrid, like every tab.
 
 /** Bucket a numeric type's animals into ~6 ranges for a distribution histogram (+ drill items). */
 const bucketize = (animals: { id: string; name?: string; value: number }[], nb = 6) => {
@@ -555,12 +514,12 @@ const WeightPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => v
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        <StatChip count={data.length} label='Assessed' tone='neutral' />
-        <StatChip count={gaining.length} label='Gaining' tone='success' />
-        <StatChip count={declining.length} label='Declining' tone='error' />
-        <StatChip count={stable.length} label='Stable' tone='neutral' />
-      </Box>
+      <TileGrid>
+        <StatTile label='Assessed' value={data.length} />
+        <StatTile label='Gaining' value={gaining.length} tone='success' />
+        <StatTile label='Declining' value={declining.length} tone='error' />
+        <StatTile label='Stable' value={stable.length} />
+      </TileGrid>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {a.weightDistribution?.length ? (
           <SectionCard title='Weight Distribution'>
@@ -670,13 +629,13 @@ const BcsPanel: React.FC<{ a: SpeciesAssessments; onAnimal: (id: string) => void
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {noBcs > 0 && <StatChip count={noBcs} label='with no BCS records' tone='error' />}
-        {over.length > 0 && <StatChip count={over.length} label='overweight (BCS > 3.5)' tone='neutral' />}
-        {under.length > 0 && <StatChip count={under.length} label='underweight (BCS < 2.5)' tone='error' />}
-        <StatChip count={improved.length} label='improved toward ideal' tone='success' />
-        <StatChip count={declined.length} label='declined from ideal' tone='warning' />
-      </Box>
+      <TileGrid>
+        {noBcs > 0 && <StatTile label='No BCS Records' value={noBcs} tone='error' />}
+        {over.length > 0 && <StatTile label='Overweight' value={over.length} sub='BCS > 3.5' />}
+        {under.length > 0 && <StatTile label='Underweight' value={under.length} sub='BCS < 2.5' tone='error' />}
+        <StatTile label='Improved' value={improved.length} sub='toward ideal' tone='success' />
+        <StatTile label='Declined' value={declined.length} sub='from ideal' tone='warning' />
+      </TileGrid>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
         {a.bcsDistribution?.length ? (
           <SectionCard title='BCS Distribution'>
