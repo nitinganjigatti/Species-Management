@@ -1,21 +1,21 @@
 'use client'
 
-// iPad 3 Ledger tab (2026-09-03; drill-sheet rework 2026-09-04) — the species inventory
-// ledger, designed in the mockup round (.superdesign/design_iterations/ledger_tab_v1.html):
-// 1. Verdict strip (SignalsBand anatomy) — Opening · Additions · Reductions · Closing.
-// 2. Monthly Movement — the diverging additions/reductions columns (MovementChart, the
-//    BarColumns grammar) on the 2026-09-03 time-axis standard: Last-12-Months is
-//    chronological; 2Y/3Y/All go cumulative Jan–Dec and drills group by year.
-// 3. Reconciliation — the gender-wise DetailTable grid (M · F · UD · ID · G · Total):
-//    Opening + Additions − Reductions = Closing; Closing wears the inset verdict panel.
-// EVERY number opens THE ONE DrillSheet — the tab's list surface (2026-09-04 rework; the
-// old bottom Ledger table is deleted). The sheet's title stays a GENERIC "Ledger Records"
-// (the tapped context is a FILTER OBJECT the user can edit, so a specific title would
-// lie): taps pre-select filters, the standard SpeciesFilterSheet (Event / Sex / Site /
-// Duration) edits them, applied filters ride as removable FilterChips — a chart-bar month
-// is a chip too, never a facet. TRANSFERS (synthesized in ledger.ts) surface only under
-// a site scope: one site = directional Transfer In/Out (counted in grid + chart),
-// several = neutral "Transfer" rows w/ From:+To: meta (boundary-crossing moves count).
+// iPad 3 Ledger tab — demo-review rework (2026-09-05, Subhash + Nita call 2026-09-04):
+// ONE card, TWO underline sub-tabs (the Lab Recurring-Tests anatomy):
+// 1. LEDGER — the bank statement of the species count: one row per DAY + EVENT
+//    (same-day same-event rows AGGREGATE — "4 Acquisition" is one row, a birth and a
+//    death the same day are two), latest first, columns Date · Event · In · Out ·
+//    (Site) · running Total. Duration filter (default Last 12 Months) applies HERE only.
+// 2. RECONCILIATION — the gender-wise grid (M · F · UD · ID · G · Total), ALWAYS ALL
+//    TIME (user call: opening balance is always the 0 baseline); Closing keeps the
+//    inset verdict panel.
+// The verdict strip and the Monthly Movement chart are DELETED (user call — chart may
+// be revived elsewhere later). Every number opens THE ONE DrillSheet ("Ledger Records",
+// 2026-09-04 rework): the tap pre-selects an editable filter object (standard
+// SpeciesFilterSheet: Event / Sex / Site / Duration facets), applied filters ride as
+// removable FilterChips — a statement row adds its DAY as a chip. TRANSFERS
+// (synthesized in ledger.ts) surface only under a site scope: one site = directional
+// Transfer In/Out (counted), several = neutral "Transfer" (boundary-crossing counts).
 
 import React, { useMemo, useState } from 'react'
 import { Box, Typography } from '@mui/material'
@@ -40,10 +40,9 @@ import {
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { AnimalCardId, AnimalTagKind } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import type { FilterSheetSection } from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
-import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
-import MovementChart from './ledger/MovementChart'
 import {
   CLASS_LABEL,
   CLASS_SHORT,
@@ -57,32 +56,24 @@ import {
   presetStart,
   resolveEvents,
   signed,
+  statementRows,
   stockRows
 } from './ledger/ledger'
-import type { ClassCounts, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset } from './ledger/ledger'
+import type { ClassCounts, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset, StatementRow } from './ledger/ledger'
 
 interface LedgerTabProps {
   animals?: AnimalRecord[]
 }
 
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-
 /* ── the drill filter object — the sheet lists whatever this says, live ─────── */
-
-interface MonthScope {
-  monthIndex: number
-  /** Absent = the cumulative "this month across all years" scope. */
-  year?: number
-}
 
 interface DrillFilter {
   kinds: LedgerEventKind[]
   classes: LedgerClass[]
   sites: string[]
   preset: LedgerPreset
-  /** Chart-bar scope — always a removable CHIP, never a facet. */
-  month?: MonthScope
+  /** Statement-row scope (that row's day) — always a removable CHIP, never a facet. */
+  day?: Date
   /** Stock mode: the membership list at a boundary (Event facet omitted). */
   stock?: 'opening' | 'closing'
 }
@@ -90,6 +81,8 @@ interface DrillFilter {
 // The Event facet's fixed vocabulary; transfer directions join only under a site scope.
 const EVENT_FACET_BASE: LedgerEventKind[] = ['birth', 'acquisition', 'census', 'reclass', 'death', 'disposal']
 const isTransferKind = (k: LedgerEventKind) => k === 'transfer' || k === 'transfer_in' || k === 'transfer_out'
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 
 const tagOf = (e: LedgerEvent): AnimalTagKind => (e.kind === 'death' ? 'mortality' : e.cls)
 
@@ -220,13 +213,16 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const all = useMemo(() => animals || [], [animals])
   const events = useMemo(() => deriveLedgerEvents(all), [all])
 
+  // Duration scopes the STATEMENT only — Reconciliation is always All Time (user call).
+  const [subTab, setSubTab] = useState<'ledger' | 'recon'>('ledger')
   const [preset, setPreset] = useState<LedgerPreset>('last_1y')
   // Site scope is MULTI-select on this tab (user call 2026-09-04); [] = all sites.
   const [siteSel, setSiteSel] = useState<string[]>([])
   const sites = useMemo(() => Array.from(new Set(all.map(a => a.site).filter(Boolean))).sort() as string[], [all])
   const multiSite = sites.length > 1
 
-  const led = useMemo(() => computeLedger(events, preset, siteSel), [events, preset, siteSel])
+  // Reconciliation math — ALL TIME always: opening = the 0 baseline, closing = today.
+  const led = useMemo(() => computeLedger(events, 'all', siteSel), [events, siteSel])
   const periodLabel = LEDGER_PRESETS.find(p => p.key === preset)!.label
 
   /* ── drill state = a FILTER OBJECT — rows recompute live from events ── */
@@ -235,8 +231,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const [drillQ, setDrillQ] = useState('')
   const [drillFiltersOpen, setDrillFiltersOpen] = useState(false)
 
-  // Entry points PRE-SELECT filters (the core ask — never "go back to change"):
-  // the sheet opens scoped to whatever was tapped, seeded with the page's period + sites.
+  // Entry points PRE-SELECT filters (the core ask — never "go back to change").
   const openDrill = (partial: Partial<DrillFilter>) => {
     setDrillQ('')
     setDrill({ kinds: [], classes: [], sites: [...siteSel], preset, ...partial })
@@ -269,12 +264,9 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
           if (start && r.date < start) return false
           if (f.kinds.length) {
             if (!f.kinds.includes(r.kind)) return false
-          } else {
-            // the unfiltered list: neutral transfers show only inside a multi-site scope,
-            // and a month bar scopes MOVEMENT — delta-0 rows (reclass/neutral) sit out
-            // so the list count matches the bar the user tapped.
-            if (r.kind === 'transfer' && f.sites.length < 2) return false
-            if (f.month && r.delta === 0) return false
+          } else if (r.kind === 'transfer' && f.sites.length < 2) {
+            // the unfiltered list: neutral transfers show only inside a multi-site scope
+            return false
           }
           if (
             f.classes.length &&
@@ -282,27 +274,22 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
           ) {
             return false
           }
-          if (f.month) {
-            if (r.date.getMonth() !== f.month.monthIndex) return false
-            if (f.month.year != null && r.date.getFullYear() !== f.month.year) return false
-          }
+          if (f.day && !sameDay(r.date, f.day)) return false
 
           return true
         })
         .sort((a, b) => b.date.getTime() - a.date.getTime())
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [events]
   )
 
-  const kindDrill = (kind: LedgerEventKind, cls?: LedgerClass) => openDrill({ kinds: [kind], classes: cls ? [cls] : [] })
+  // Reconciliation entries open ALL-TIME drills (their numbers are all-time — the
+  // list must match); a statement row pins its DAY as a chip, so no duration rides.
+  const kindDrill = (kind: LedgerEventKind, cls?: LedgerClass) =>
+    openDrill({ kinds: [kind], classes: cls ? [cls] : [], preset: 'all' })
   const stockDrill = (boundary: 'opening' | 'closing', cls?: LedgerClass) =>
-    openDrill({ stock: boundary, classes: cls ? [cls] : [] })
-
-  const monthDrill = (i: number) => {
-    const b = led.months[i]
-    openDrill({ month: led.cumulative ? { monthIndex: b.monthIndex } : { monthIndex: b.monthIndex, year: b.start!.getFullYear() } })
-  }
+    openDrill({ stock: boundary, classes: cls ? [cls] : [], preset: 'all' })
+  const rowDrill = (r: StatementRow) => openDrill({ kinds: [r.kind], day: r.date, preset: 'all' })
 
   /* ── controls (the Population/Housing header grammar) ── */
 
@@ -326,6 +313,113 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     />
   )
 
+  /* ── the bank statement ── */
+
+  const stmtData = useMemo(
+    () => statementRows(events, preset, siteSel).map(r => ({ ...r, dateMs: r.date.getTime() })),
+    [events, preset, siteSel]
+  )
+  const stmt = useSortableTable(stmtData, { field: 'dateMs', sort: 'desc' }, 20)
+
+  // Direction only holds inside ONE site — a multi-site scope wears the neutral chip.
+  const neutralStmtTransfers = siteSel.length > 1
+  // Site column: when the visible statement spans >1 site, or transfers need their route.
+  const showSiteCol = useMemo(() => {
+    const s = new Set<string>()
+    stmtData.forEach(r => r.sites.forEach(x => s.add(x)))
+
+    return s.size > 1 || stmtData.some(r => isTransferKind(r.kind))
+  }, [stmtData])
+
+  const dashCell = <CellText color={skin.DASH_INK}>—</CellText>
+
+  const stmtColumns: GridColDef[] = useMemo(
+    () => [
+      {
+        minWidth: 160,
+        field: 'dateMs',
+        headerName: 'Date',
+        renderCell: (p: any) => <CellText weight={600}>{ddMMMyyyy((p.row as StatementRow).date)}</CellText>
+      },
+      {
+        flex: 1,
+        minWidth: 200,
+        field: 'kind',
+        headerName: 'Event',
+        sortable: false,
+        renderCell: (p: any) => {
+          const r = p.row as StatementRow
+
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <EventChip kind={isTransferKind(r.kind) && neutralStmtTransfers ? 'transfer' : r.kind} />
+              {r.count > 1 && (
+                <Typography component='span' sx={{ fontSize: '14px', color: skin.FAINT }}>
+                  × {r.count}
+                </Typography>
+              )}
+            </Box>
+          )
+        }
+      },
+      {
+        minWidth: 100,
+        field: 'in',
+        headerName: 'In',
+        sortable: false,
+        renderCell: (p: any) => {
+          const r = p.row as StatementRow
+
+          return r.delta > 0 ? <CellText weight={600} color={skin.LIST_GREEN}>{`+${r.delta.toLocaleString()}`}</CellText> : dashCell
+        }
+      },
+      {
+        minWidth: 100,
+        field: 'out',
+        headerName: 'Out',
+        sortable: false,
+        renderCell: (p: any) => {
+          const r = p.row as StatementRow
+
+          return r.delta < 0 ? (
+            <CellText weight={600} color={skin.strokeOf(cc.Tertiary)}>{`−${Math.abs(r.delta).toLocaleString()}`}</CellText>
+          ) : (
+            dashCell
+          )
+        }
+      },
+      ...(showSiteCol
+        ? [
+            {
+              minWidth: 200,
+              field: 'sites',
+              headerName: 'Site',
+              sortable: false,
+              renderCell: (p: any) => {
+                const r = p.row as StatementRow
+                if (isTransferKind(r.kind)) {
+                  const e = r.events[0]
+
+                  return <CellText>{`${e?.fromSite ?? '—'} → ${e?.toSite ?? '—'}`}</CellText>
+                }
+
+                return r.sites.length ? <CellText>{r.sites.join(', ')}</CellText> : dashCell
+              }
+            } as GridColDef
+          ]
+        : []),
+      {
+        minWidth: 110,
+        field: 'balance',
+        headerName: 'Total',
+        sortable: false,
+        renderCell: (p: any) => <CellText weight={600}>{(p.row as StatementRow).balance.toLocaleString()}</CellText>
+      }
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [showSiteCol, neutralStmtTransfers, cc]
+  )
+
   if (!all.length) {
     return (
       <SectionCard title='Ledger'>
@@ -334,10 +428,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     )
   }
 
-  /* ── reconciliation — THE standard DetailTable (user call 2026-09-04: no hand-built
-     tables). One static grid: Opening → additions → reductions → Closing; direction
-     reads from the pill tones (green +, orange −, grey anchors), so the old
-     ADDITIONS/REDUCTIONS block-label rows are retired with the hand-rolled markup. ── */
+  /* ── reconciliation — THE standard DetailTable (all-time always) ── */
 
   interface ReconRow {
     id: string
@@ -369,7 +460,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const reconPill = (row: ReconRow, cls?: LedgerClass) => {
     const v = cls ? row.byClass[cls] : row.total
     if (row.anchor) {
-      // Opening = quiet grey baseline · Closing = the solid-navy verdict chips.
+      // Opening = the all-time 0 baseline (renders as dashes) · Closing = navy verdict.
       return v > 0 ? (
         <CountPill value={v} tone={row.boundary === 'closing' ? 'navy' : 'grey'} onClick={() => stockDrill(row.boundary!, cls)} />
       ) : (
@@ -420,11 +511,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     else drillGroups.push({ label, rows: [r] })
   })
   const drillMultiSite = new Set(drillRows.map(r => r.site).filter(Boolean)).size > 1
-  // Direction only holds inside ONE site — a multi-site scope wears the neutral chip.
   const neutralTransfers = (drill?.sites.length ?? 0) > 1
-
-  const monthChipLabel = (m: MonthScope) =>
-    m.year != null ? `${MONTH_ABBR[m.monthIndex]} ${m.year}` : `${MONTH_FULL[m.monthIndex]} · All years`
 
   const drillChips = !drill
     ? []
@@ -432,7 +519,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         ...(drill.stock
           ? [{ key: 'stock', label: drill.stock === 'opening' ? 'Opening Stock' : 'Closing Stock', onClear: () => patchDrill({ stock: undefined }) }]
           : []),
-        ...(drill.month ? [{ key: 'month', label: monthChipLabel(drill.month), onClear: () => patchDrill({ month: undefined }) }] : []),
+        ...(drill.day ? [{ key: 'day', label: ddMMMyyyy(drill.day), onClear: () => patchDrill({ day: undefined }) }] : []),
         ...drill.kinds.map(k => ({ key: `kind:${k}`, label: EVENT_LABEL[k], onClear: () => patchDrill({ kinds: drill.kinds.filter(x => x !== k) }) })),
         ...drill.classes.map(c => ({ key: `cls:${c}`, label: CLASS_LABEL[c], onClear: () => patchDrill({ classes: drill.classes.filter(x => x !== c) }) })),
         ...drill.sites.map(s => ({ key: `site:${s}`, label: s, onClear: () => patchDrill({ sites: drill.sites.filter(x => x !== s) }) })),
@@ -496,7 +583,6 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       kinds: drill?.stock ? [] : ((sel.event || []) as LedgerEventKind[]),
       classes: (sel.sex || []) as LedgerClass[],
       sites: sel.site || [],
-      // Duration is SINGLE-choice — on apply the last-added value wins; none = All Time.
       preset: (dur.length ? dur[dur.length - 1] : 'all') as LedgerPreset
     })
   }
@@ -548,90 +634,110 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     </Box>
   )
 
+  /* ── the two sub-tabs (Lab Recurring-Tests underline anatomy) ── */
+
+  const subTabsNode = (
+    <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {(
+        [
+          { key: 'ledger', label: `Ledger (${stmt.total.toLocaleString()})` },
+          { key: 'recon', label: 'Reconciliation' }
+        ] as { key: 'ledger' | 'recon'; label: string }[]
+      ).map(t => {
+        const on = subTab === t.key
+
+        return (
+          <Box
+            key={t.key}
+            onClick={() => setSubTab(t.key)}
+            role='tab'
+            aria-selected={on}
+            sx={{
+              py: 1.5,
+              mb: '-1px',
+              borderBottom: '2.5px solid',
+              borderColor: on ? skin.ACCENT_FILL : 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            <Typography variant='body1' sx={{ fontWeight: 600, whiteSpace: 'nowrap', color: on ? skin.ACCENT_INK : cc.neutralSecondary }}>
+              {t.label}
+            </Typography>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* headline + scope controls */}
+      {/* headline + site scope (site applies to BOTH sub-tabs) */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK, mr: 'auto' }}>Ledger</Typography>
-        {periodCtl}
         {siteCtl}
       </Box>
 
-      {/* verdict strip — every stat drill-opens its list, filters pre-set */}
-      <SignalsBand
-        cells={[
-          { key: 'open', label: 'Opening Stock', count: led.openingTotal, tone: 'neutral', onOpen: () => openDrill({ stock: 'opening' }) },
-          {
-            key: 'add',
-            label: 'Additions',
-            count: led.additionsTotal,
-            display: `+${led.additionsTotal.toLocaleString()}`,
-            tone: 'good',
-            onOpen: () => openDrill({ kinds: siteSel.length ? ['birth', 'acquisition', 'census', 'transfer_in'] : ['birth', 'acquisition', 'census'] })
-          },
-          {
-            key: 'cut',
-            label: 'Reductions',
-            count: led.reductionsTotal,
-            display: `−${led.reductionsTotal.toLocaleString()}`,
-            onOpen: () => openDrill({ kinds: siteSel.length ? ['death', 'disposal', 'transfer_out'] : ['death', 'disposal'] })
-          },
-          { key: 'close', label: 'Closing Stock', count: led.closingTotal, tone: 'neutral', onOpen: () => openDrill({ stock: 'closing' }) }
-        ]}
-      />
-
-      {/* monthly movement */}
-      <SectionCard title='Monthly Movement'>
-        <MovementChart months={led.months} cumulative={led.cumulative} cutFill={cc.Tertiary} onSelect={monthDrill} />
-      </SectionCard>
-
-      {/* reconciliation — the standard frameless DetailTable inside the white card.
-          Closing Stock = the VERDICT row (user direction 2026-09-04): light navy wash
-          across the row (incl. the pinned label cell, on hover too), solid #1F515B chips
-          w/ white figures, heavier rule above. Navy = identity ink, not add/reduce. */}
-      <SectionCard title='Reconciliation'>
-        <Box
-          sx={{
-            // Closing wash = an INSET ROUNDED PANEL, not a full-bleed row (user reference
-            // 2026-09-04): #AFEFEB @ 30% flattened over white, floating with padding
-            // around it via a ::before under the cell content; no rule line, the panel's
-            // own gap separates it from the last reduction row. Hover deepens the panel.
-            '&& .MuiDataGrid-row[data-id="closing"]': { position: 'relative', backgroundColor: 'transparent' },
-            '&& .MuiDataGrid-row[data-id="closing"]::before': {
-              content: '""',
-              position: 'absolute',
-              inset: '8px 10px',
-              borderRadius: '12px',
-              backgroundColor: skin.mixOverWhite('#afefeb', 0.3),
-              pointerEvents: 'none'
-            },
-            '&& .MuiDataGrid-row[data-id="closing"]:hover::before': {
-              backgroundColor: skin.mixOverWhite('#afefeb', 0.4)
-            },
-            '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell': {
-              backgroundColor: 'transparent',
-              borderBottom: 'none',
-              position: 'relative'
-            },
-            // no rule ABOVE the panel (that line is the last cut row's bottom hairline) and
-            // no pinned-column vertical divider beside "Closing Stock" — the panel floats clean
-            [`&& .MuiDataGrid-row[data-id="${lastCutId}"] .MuiDataGrid-cell`]: { borderBottom: 'none' },
-            '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell[data-field="label"]': { borderRight: 'none' }
-          }}
-        >
-          <DetailTable
-            columns={reconColumns}
-            rows={reconRows}
-            total={reconRows.length}
-            hideFooter
-            stickyFields={['label']}
-            onRowClick={(p: any) => {
-              const r = p.row as ReconRow
-              if (r.anchor) stockDrill(r.boundary!)
-              else if (r.kind) kindDrill(r.kind)
+      {/* ONE card, two underline sub-tabs. Duration control rides the Ledger tab only —
+          Reconciliation is ALWAYS all time (user call 2026-09-04). */}
+      <SectionCard titleMb={3} title={subTabsNode} action={subTab === 'ledger' ? periodCtl : undefined}>
+        {subTab === 'ledger' ? (
+          stmt.total ? (
+            <DetailTable
+              columns={stmtColumns}
+              rows={stmt.rows}
+              total={stmt.total}
+              paginationModel={stmt.paginationModel}
+              setPaginationModel={stmt.setPaginationModel}
+              sortModel={stmt.sortModel}
+              handleSortModel={stmt.handleSortModel}
+              onRowClick={(p: any) => rowDrill(p.row as StatementRow)}
+            />
+          ) : (
+            <EmptyState message='No entries in this period' />
+          )
+        ) : (
+          <Box
+            sx={{
+              // Closing wash = an INSET ROUNDED PANEL, not a full-bleed row (user reference
+              // 2026-09-04): #AFEFEB @ 30% flattened over white, floating with padding
+              // around it via a ::before under the cell content; no rule line, the panel's
+              // own gap separates it from the last reduction row. Hover deepens the panel.
+              '&& .MuiDataGrid-row[data-id="closing"]': { position: 'relative', backgroundColor: 'transparent' },
+              '&& .MuiDataGrid-row[data-id="closing"]::before': {
+                content: '""',
+                position: 'absolute',
+                inset: '8px 10px',
+                borderRadius: '12px',
+                backgroundColor: skin.mixOverWhite('#afefeb', 0.3),
+                pointerEvents: 'none'
+              },
+              '&& .MuiDataGrid-row[data-id="closing"]:hover::before': {
+                backgroundColor: skin.mixOverWhite('#afefeb', 0.4)
+              },
+              '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell': {
+                backgroundColor: 'transparent',
+                borderBottom: 'none',
+                position: 'relative'
+              },
+              [`&& .MuiDataGrid-row[data-id="${lastCutId}"] .MuiDataGrid-cell`]: { borderBottom: 'none' },
+              '&& .MuiDataGrid-row[data-id="closing"] .MuiDataGrid-cell[data-field="label"]': { borderRight: 'none' }
             }}
-          />
-        </Box>
+          >
+            <DetailTable
+              columns={reconColumns}
+              rows={reconRows}
+              total={reconRows.length}
+              hideFooter
+              stickyFields={['label']}
+              onRowClick={(p: any) => {
+                const r = p.row as ReconRow
+                // Opening is the all-time 0 baseline — nothing behind it to list.
+                if (r.boundary === 'closing') stockDrill('closing')
+                else if (r.kind) kindDrill(r.kind)
+              }}
+            />
+          </Box>
+        )}
       </SectionCard>
 
       {/* THE list surface — one DrillSheet, generic title (the tapped context is an

@@ -88,8 +88,9 @@ export interface LedgerEvent {
   former?: boolean
 }
 
-export type LedgerPreset = 'last_1y' | 'last_2y' | 'last_3y' | 'all'
+export type LedgerPreset = 'last_1m' | 'last_1y' | 'last_2y' | 'last_3y' | 'all'
 export const LEDGER_PRESETS: { key: LedgerPreset; label: string }[] = [
+  { key: 'last_1m', label: 'Last 30 Days' },
   { key: 'last_1y', label: 'Last 12 Months' },
   { key: 'last_2y', label: 'Last 2 Years' },
   { key: 'last_3y', label: 'Last 3 Years' },
@@ -307,6 +308,7 @@ const MONTHS_3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
 
 export const presetStart = (preset: LedgerPreset, now: Date): Date | null => {
   if (preset === 'all') return null
+  if (preset === 'last_1m') return new Date(now.getTime() - 30 * DAY)
   const years = preset === 'last_1y' ? 1 : preset === 'last_2y' ? 2 : 3
   const d = new Date(now.getFullYear(), now.getMonth() - years * 12 + 1, 1)
 
@@ -485,6 +487,61 @@ export const computeLedger = (
     months: cumulative ? seasonal : chronoKeys.map(k => chronoMap.get(k)!),
     rows: rows.slice().reverse()
   }
+}
+
+/* ── the bank-statement rows (demo review 2026-09-04) ────────────────────────
+   The Ledger sub-tab = a bank statement of the species count: one row per
+   DAY + EVENT KIND (Subhash's aggregation rule — 4 same-day acquisitions = ONE
+   row "+4"; a birth and a death the same day = two rows), latest first, each
+   carrying the running balance. Count-changing events only (reclass and
+   internal/org-scope neutral transfers sit out — they don't move the number). */
+
+export interface StatementRow {
+  id: string
+  date: Date
+  kind: LedgerEventKind
+  /** How many events the row aggregates (the drill lists exactly these). */
+  count: number
+  /** Signed total change (census events can carry ±n each). */
+  delta: number
+  /** Running total after the row's last event. */
+  balance: number
+  /** Distinct sites touched (display only when the scope spans several). */
+  sites: string[]
+  events: LedgerEvent[]
+}
+
+export const statementRows = (
+  all: LedgerEvent[],
+  preset: LedgerPreset,
+  sites: string[] | null,
+  now = new Date()
+): StatementRow[] => {
+  const universe = resolveEvents(all, sites)
+  const start = presetStart(preset, now)
+  let total = 0
+  const rows: StatementRow[] = []
+  const byKey = new Map<string, StatementRow>()
+
+  for (const e of universe) {
+    if (e.delta === 0) continue // reclass / neutral transfers — no count change
+    total += e.delta
+    if (start && e.date < start) continue
+    const key = `${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}:${e.kind}`
+    let r = byKey.get(key)
+    if (!r) {
+      r = { id: key, date: e.date, kind: e.kind, count: 0, delta: 0, balance: total, sites: [], events: [] }
+      byKey.set(key, r)
+      rows.push(r)
+    }
+    r.count += 1
+    r.delta += e.delta
+    r.balance = total
+    if (e.site && !r.sites.includes(e.site)) r.sites.push(e.site)
+    r.events.push(e)
+  }
+
+  return rows.reverse() // latest first
 }
 
 /* ── stock membership (Opening / Closing drills) ─────────────────────────────
