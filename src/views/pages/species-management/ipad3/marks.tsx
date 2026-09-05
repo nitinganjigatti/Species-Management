@@ -134,6 +134,8 @@ export function useChartTip() {
     const maxW = Math.min(300, (typeof window !== 'undefined' ? window.innerWidth : 600) - 24)
     const below = tip.y < 96
     const left = Math.min(Math.max(tip.x - 60, 12), (typeof window !== 'undefined' ? window.innerWidth : 600) - maxW - 12)
+    // THE platform tooltip anatomy (= detailUi trendTooltipHTML, user call 2026-09-05):
+    // Surface-tinted header band + 16px dot rows — pies/bars read like the trend charts.
     node = createPortal(
       <Box
         sx={{
@@ -144,23 +146,28 @@ export function useChartTip() {
           zIndex: 9999,
           pointerEvents: 'none',
           maxWidth: maxW,
+          minWidth: 150,
           backgroundColor: '#ffffff',
           borderRadius: '10px',
-          px: 2.5,
-          py: 2,
-          boxShadow: skin.SHADOW_TIP
+          overflow: 'hidden',
+          p: 0,
+          boxShadow: '0px 4px 18px rgba(0, 0, 0, 0.14)'
         }}
       >
-        <Typography sx={{ fontSize: '12px', fontWeight: 600, color: skin.INK, lineHeight: 1.35 }}>{tip.title}</Typography>
-        {tip.rows.map((r, i) => (
-          <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75 }}>
-            {r.fill && <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: r.fill, flexShrink: 0 }} />}
-            <Typography sx={{ fontSize: '12px', color: skin.FAINT }}>{r.label}</Typography>
-            <Typography sx={{ fontSize: '12px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}>
-              {r.value}
-            </Typography>
-          </Box>
-        ))}
+        <Box sx={{ px: '18px', py: '12px', backgroundColor: skin.TABLE_HEAD_BG, borderBottom: `1px solid ${skin.TRACK}` }}>
+          <Typography sx={{ fontSize: '16px', fontWeight: 600, color: skin.TABLE_HEAD_INK, lineHeight: 1.35 }}>{tip.title}</Typography>
+        </Box>
+        <Box sx={{ py: 1 }}>
+          {tip.rows.map((r, i) => (
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, px: '18px', py: 1 }}>
+              {r.fill && <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: r.fill, flexShrink: 0 }} />}
+              <Typography sx={{ fontSize: '16px', color: skin.FAINT }}>{r.label}</Typography>
+              <Typography sx={{ fontSize: '16px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.VALUE, ml: 'auto' }}>
+                {r.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>,
       document.body
     )
