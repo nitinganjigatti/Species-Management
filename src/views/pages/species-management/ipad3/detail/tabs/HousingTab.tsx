@@ -273,7 +273,7 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   // Numbers right-aligned (the 2026-08-27 table rule); zeros print the pale em dash;
   // Total = bold list-green (the scan anchor, same as the listing).
   const num = (field: string, opts?: { total?: boolean; header?: string }): GridColDef => ({
-    width: 70,
+    width: 64, // compact count column (user call 2026-09-05) — 20/16 cell pad leaves room for 3 digits
     sortable: false,
     align: 'right',
     headerAlign: 'right',
@@ -336,27 +336,29 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
 
   // NO serial numbers (demo-review hard rule 2026-09-04); every table carries the FULL
   // gender anatomy M | F | UD | ID | G | Total (the Pairing standard, user call 2026-09-05).
+  // Count columns are FIXED width — flexed numbers ballooned while the name column
+  // stayed pinched (user-caught 2026-09-05); every spare pixel now goes to the name.
   const siteColumns: GridColDef[] = [
-    { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
-    { ...num('male'), flex: 1, minWidth: 64 },
-    { ...num('female'), flex: 1, minWidth: 64 },
-    { ...num('ud'), flex: 1, minWidth: 64 },
-    { ...num('ind'), flex: 1, minWidth: 64 },
-    { ...num('grp'), flex: 1, minWidth: 64 },
-    { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
-    { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
+    { minWidth: 234, flex: 1, sortable: false, field: 'name', headerName: 'Site', renderCell: p => txt(p.row.name, cc.OnSurfaceVariant, 600) },
+    num('male'),
+    num('female'),
+    num('ud'),
+    num('ind'),
+    num('grp'),
+    { ...num('total', { total: true, header: 'Total' }), width: 96 },
+    { ...num('nEncl', { header: 'Encl' }), width: 84 }
   ]
   // Section rows reuse the enclosure identity cell (name + site sub-line) and the
   // site table's count columns, plus the Encl count.
   const sectionColumns: GridColDef[] = [
-    { minWidth: 234, flex: 2.6, sortable: false, field: 'name', headerName: 'Section', renderCell: enclosureCell },
-    { ...num('male'), flex: 1, minWidth: 64 },
-    { ...num('female'), flex: 1, minWidth: 64 },
-    { ...num('ud'), flex: 1, minWidth: 64 },
-    { ...num('ind'), flex: 1, minWidth: 64 },
-    { ...num('grp'), flex: 1, minWidth: 64 },
-    { ...num('total', { total: true, header: 'Total' }), flex: 1, minWidth: 96 },
-    { ...num('nEncl', { header: 'Encl' }), flex: 1, minWidth: 84 }
+    { minWidth: 234, flex: 1, sortable: false, field: 'name', headerName: 'Section', renderCell: enclosureCell },
+    num('male'),
+    num('female'),
+    num('ud'),
+    num('ind'),
+    num('grp'),
+    { ...num('total', { total: true, header: 'Total' }), width: 96 },
+    { ...num('nEncl', { header: 'Encl' }), width: 84 }
   ]
   const enclosureColumns: GridColDef[] = [
     { minWidth: 240, flex: 1, sortable: false, field: 'name', headerName: 'Enclosure', renderCell: enclosureCell },
