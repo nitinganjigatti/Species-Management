@@ -447,7 +447,6 @@ export const computeOverviewSignals = (
   const all = computeSignals(clinical, inWin)
   const repeat = all.find(s => s.key === 'repeat')!
   const relapse = all.find(s => s.key === 'relapse')!
-  const undiagnosed = all.find(s => s.key === 'undiagnosed')!
 
   /* repeat-sick ∪ relapse — one card: fragile animals, whether many illnesses or one returning */
   const merged = new Map<string, SignalAnimal>()
@@ -465,39 +464,9 @@ export const computeOverviewSignals = (
     animals: repeatAnimals
   }
 
-  /* severe — active cases with prognosis Poor/Grave or High severity, worst record per animal */
-  const worstByAid = new Map<string, ClinicalRecord>()
-  for (const r of allRecords(clinical, inWin)) {
-    if (r.status !== 'active' || !severeRank(r)) continue
-    const prev = worstByAid.get(r.aid)
-    if (!prev || severeRank(r) > severeRank(prev) || (severeRank(r) === severeRank(prev) && r.durationDays > prev.durationDays))
-      worstByAid.set(r.aid, r)
-  }
-  const severeAnimals: SignalAnimal[] = [...worstByAid.values()]
-    .sort((a, b) => severeRank(b) - severeRank(a) || b.durationDays - a.durationDays)
-    .map(r => ({
-      aid: r.aid,
-      name: r.name,
-      site: r.site,
-      enclosure: r.enclosure,
-      condition: r.type,
-      detail: r.prognosis && SEVERE_RANK[r.prognosis] ? `Prognosis ${r.prognosis}` : 'Severity High',
-      pill: `Active • ${r.durationDays} d`,
-      pillTone: 'error',
-      date: r.date
-    }))
-  const severeCard: HealthSignal = {
-    key: 'severe',
-    label: 'Severe Cases',
-    severity: 'critical',
-    icon: 'mdi:alert-octagon-outline',
-    count: severeAnimals.length,
-    hint: 'Prognosis Poor or Grave, or High severity',
-    explainer: 'Active cases whose prognosis is Poor or Grave, or whose symptom severity is High — the animals in the most danger right now.',
-    animals: severeAnimals
-  }
-
-  return [repeatCard, undiagnosed, severeCard]
+  // Severe Cases + Undiagnosed cards RETIRED (demo review 2026-09-04: no severity
+  // split; Undiagnosed → the Under-Medication cell, computed in OverviewPanel from rx).
+  return [repeatCard]
 }
 
 /* ── insights (the 7 analytics) ────────────────────────────────────────────── */

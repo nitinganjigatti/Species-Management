@@ -565,10 +565,11 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
 const OverviewPanel: React.FC<{
   preventive?: SpeciesPreventive | null
   clinical?: SpeciesClinical | null
+  rx?: RxProgram | null
   range: RangeSelection
   onRange: (r: RangeSelection) => void
   onGoToTab: (t: TabKey) => void
-}> = ({ preventive, clinical, range, onRange, onGoToTab }) => {
+}> = ({ preventive, clinical, rx, range, onRange, onGoToTab }) => {
   const { c, theme } = useCells()
   const inWin = useWindow(range)
   const [drill, setDrill] = useState<OviAnimal | null>(null)
@@ -694,11 +695,19 @@ const OverviewPanel: React.FC<{
         <DashboardDateRange value={range} onChange={onRange} />
       </Box>
 
-      {/* 2 · the stat strip (listing StatBand anatomy) — sick-now leads the three signals */}
+      {/* 2 · the stat strip — Sick Right Now · Repeat Sick · Under Medication (demo
+          review 2026-09-04: Undiagnosed → Under Medication = animals on an active
+          prescription — distinct animals dosed in the last 30 days; Severe RETIRED). */}
       <SignalsBand
         cells={[
           { key: 'sickNow', label: 'Sick Right Now', count: sickNow.length, onOpen: openSickNow },
-          ...signals.map(sig => ({ key: sig.key, label: sig.label, count: sig.count, onOpen: () => openSignal(sig) }))
+          ...signals.map(sig => ({ key: sig.key, label: sig.label, count: sig.count, onOpen: () => openSignal(sig) })),
+          {
+            key: 'underMedication',
+            label: 'Under Medication',
+            count: rx?.summary.given30 ?? 0,
+            onOpen: () => onGoToTab('prescription')
+          }
         ]}
       />
 
@@ -3415,7 +3424,7 @@ const MedicalTab: React.FC<Props> = ({ preventive, clinical, speciesId }) => {
 
   const renderPanel = () => {
     if (tab === 'overview')
-      return <OverviewPanel preventive={preventive} clinical={clinical} range={range} onRange={setRange} onGoToTab={setTab} />
+      return <OverviewPanel preventive={preventive} clinical={clinical} rx={rx} range={range} onRange={setRange} onGoToTab={setTab} />
 
     if (tab === 'clinical') {
       const sym = clinical?.programs?.symptoms
