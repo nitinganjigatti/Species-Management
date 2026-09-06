@@ -12,8 +12,8 @@ import React, { useMemo, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import type { SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
-import { SectionCard, TrendAreaChart, TREND_RANGES, ViewToggle } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import type { RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
+import { SectionCard, TrendAreaChart, ViewToggle } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import { computeSickTrend } from './signals'
 import SignalDrawer, { type SignalDrawerPayload } from './SignalDrawer'
 import AnimalHealthRecord from './AnimalHealthRecord'
@@ -22,19 +22,44 @@ const SickTrendCard: React.FC<{
   clinical?: SpeciesClinical | null
   preventive?: SpeciesPreventive | null
 }> = ({ clinical, preventive }) => {
-  const [trendRange, setTrendRange] = useState<RangePreset>('last_1y')
+  /* THE standard period control (user call 2026-09-06): 1Y | 2Y | 3Y | Custom — the CoL
+     grammar; 'All' retired (demo review 2026-09-04). Custom = year From/To, cap 5. */
+  const [trendRange, setTrendRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [yearFrom, setYearFrom] = useState<number | null>(null)
+  const [yearTo, setYearTo] = useState<number | null>(null)
   const [drill, setDrill] = useState<SignalDrawerPayload | null>(null)
   const [recordAid, setRecordAid] = useState<string | null>(null)
+  const NOW = useMemo(() => new Date(), [])
 
-  const sickTrend = useMemo(
-    () =>
-      computeSickTrend(
-        clinical,
-        trendRange === 'all' ? null : trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12,
-        new Date()
-      ),
-    [clinical, trendRange]
-  )
+  // Years the data actually covers — from the all-time trend's span back from today.
+  const years = useMemo(() => {
+    const span = computeSickTrend(clinical, null, NOW).labels.length
+    const first = new Date(NOW.getFullYear(), NOW.getMonth() - (span - 1), 1).getFullYear()
+
+    return Array.from({ length: NOW.getFullYear() - first + 1 }, (_, i) => NOW.getFullYear() - i)
+  }, [clinical, NOW])
+  const CAP = 5
+  const enterCustom = () => {
+    setTrendRange('custom')
+    if (yearFrom == null && yearTo == null) {
+      setYearFrom(Math.max(years[years.length - 1] ?? NOW.getFullYear(), NOW.getFullYear() - (CAP - 1)))
+      setYearTo(NOW.getFullYear())
+    }
+  }
+
+  const sickTrend = useMemo(() => {
+    if (trendRange === 'custom') {
+      const to = yearTo ?? NOW.getFullYear()
+      const from = yearFrom ?? to
+      // anchor at the window's end (or today when it ends this year); span = whole years
+      const anchor = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31)
+      const months = (to - from) * 12 + anchor.getMonth() + 1
+
+      return computeSickTrend(clinical, Math.max(1, months), anchor)
+    }
+
+    return computeSickTrend(clinical, trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12, NOW)
+  }, [clinical, trendRange, yearFrom, yearTo, NOW])
 
   // ONE accent in lightness steps (the CC chart rule): new cases = full CORAL,
   // the carried-over base band = the pale step of the same hue.
@@ -47,14 +72,29 @@ const SickTrendCard: React.FC<{
     <>
       <SectionCard
         title='Sick Animals Each Month'
-        // The standard pill ViewToggle (user call 2026-09-06 — was the underline tabs)
+        // THE standard period control (user call 2026-09-06): pill 1Y|2Y|3Y|Custom +
+        // capped year From/To — the CoL/Eggs grammar.
         action={
-          <ViewToggle
-            sx={{ flexShrink: 0 }}
-            items={TREND_RANGES.map(r => ({ key: r.key, label: r.label }))}
-            value={trendRange}
-            onChange={k => setTrendRange(k as RangePreset)}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={[
+                { key: 'last_1y', label: '1Y' },
+                { key: 'last_2y', label: '2Y' },
+                { key: 'last_3y', label: '3Y' },
+                { key: 'custom', label: 'Custom' }
+              ]}
+              value={trendRange}
+              onChange={k => (k === 'custom' ? enterCustom() : setTrendRange(k as 'last_1y' | 'last_2y' | 'last_3y'))}
+            />
+            {trendRange === 'custom' && (
+              <>
+                <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(years, yearTo, CAP, 'from')} anyLabel='From' />
+                <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(years, yearFrom, CAP, 'to')} anyLabel='To' />
+              </>
+            )}
+          </Box>
         }
         titleMb={2}
       >
