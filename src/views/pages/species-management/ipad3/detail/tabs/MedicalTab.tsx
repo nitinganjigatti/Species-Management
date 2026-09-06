@@ -3248,7 +3248,11 @@ const ClinicalMergedPanel: React.FC<{
   const [q, setQ] = useState('')
   // bottom sheet (row tap): month graph + conditional Active/Resolved animal tabs
   const [typeSheet, setTypeSheet] = useState<{ domain: Domain; name: string } | null>(null)
-  const [sheetRange, setSheetRange] = useState<RangePreset>('last_1y')
+  /* THE standard period control (user call 2026-09-06): pill 1Y | 2Y | 3Y | Custom +
+     capped year From/To — the CoL/SickTrendCard grammar; 'All' retired (demo review 2026-09-04). */
+  const [sheetRange, setSheetRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [sheetYearFrom, setSheetYearFrom] = useState<number | null>(null)
+  const [sheetYearTo, setSheetYearTo] = useState<number | null>(null)
   const [sheetTab, setSheetTab] = useState<'active' | 'resolved'>('active')
   const [sheetMonth, setSheetMonth] = useState<{ y: number; m: number; label: string } | null>(null)
   // animal-card-list sheet → the standard search + site facet (user call 2026-09-06)
@@ -3336,6 +3340,8 @@ const ClinicalMergedPanel: React.FC<{
   // Row tap → the bottom sheet, fresh at 1Y with no month scope and a clean filter bar.
   const openType = (name: string) => {
     setSheetRange('last_1y')
+    setSheetYearFrom(null)
+    setSheetYearTo(null)
     setSheetMonth(null)
     setSheetTab('active')
     setSheetQ('')
@@ -3343,36 +3349,58 @@ const ClinicalMergedPanel: React.FC<{
     setTypeSheet({ domain, name })
   }
 
+  // Years the open type's records cover — for the Custom From/To pickers (cap 5).
+  const sheetYears = useMemo(() => {
+    const today = new Date()
+    let first = today.getFullYear()
+    if (typeSheet) {
+      for (const r of (typeSheet.domain === 'symptom' ? symptoms : diagnosis)?.records ?? []) {
+        if (r.type !== typeSheet.name) continue
+        const y = Number(r.date.slice(0, 4))
+        if (Number.isFinite(y) && y >= 1900 && y < first) first = y
+      }
+    }
+
+    return Array.from({ length: today.getFullYear() - first + 1 }, (_, i) => today.getFullYear() - i)
+  }, [typeSheet, symptoms, diagnosis])
+
   // Per-type graph sheet: distinct animals affected per month. The sheet has its own
-  // 1Y·2Y·3Y·All range tabs, so it reads the RAW program records, not the page window.
+  // standard period control (pill 1Y|2Y|3Y|Custom), so it reads the RAW program records,
+  // not the page window. Custom = whole years [from..to], anchored at the range's end
+  // (today when it ends this year) — the CoL/SickTrendCard semantics.
   const sheetSeries = useMemo(() => {
     if (!typeSheet) return null
-    const now = new Date()
+    const today = new Date()
     const src = (typeSheet.domain === 'symptom' ? symptoms : diagnosis)?.records ?? []
     const recs = src.filter(r => r.type === typeSheet.name)
-    let n = sheetRange === 'last_2y' ? 24 : sheetRange === 'last_3y' ? 36 : 12
-    if (sheetRange === 'all' && recs.length) {
-      const earliest = recs.reduce((min, r) => (r.date < min ? r.date : min), recs[0].date)
-      const ed = new Date(earliest)
-      n = Math.max(12, (now.getFullYear() - ed.getFullYear()) * 12 + (now.getMonth() - ed.getMonth()) + 1)
-    }
+    const to = sheetYearTo ?? today.getFullYear()
+    const from = sheetYearFrom ?? to
+    const now = sheetRange === 'custom' && to < today.getFullYear() ? new Date(to, 11, 31) : today
+    const n =
+      sheetRange === 'custom' ? Math.max(1, (to - from) * 12 + now.getMonth() + 1) : sheetRange === 'last_2y' ? 24 : sheetRange === 'last_3y' ? 36 : 12
     const winStart = new Date(now.getFullYear(), now.getMonth() - (n - 1), 1)
-    const inRange = recs.filter(r => new Date(r.date) >= winStart)
+    const winEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    const inRange = recs.filter(r => {
+      const d = new Date(r.date)
+
+      return d >= winStart && d < winEnd
+    })
     const series = monthlyAnimals(inRange, now, n)
     const peakIdx = series.reduce((mx, b, i) => (b.value > series[mx].value ? i : mx), 0)
 
     return {
       series,
+      anchor: now,
       totalAnimals: new Set(inRange.map(r => r.aid)).size,
       totalEpisodes: inRange.length,
       peakLabel: series[peakIdx]?.value ? monthForBar(peakIdx, series.length, now).label : '—'
     }
-  }, [typeSheet, symptoms, diagnosis, sheetRange])
+  }, [typeSheet, symptoms, diagnosis, sheetRange, sheetYearFrom, sheetYearTo])
 
   // Bar click → scope the animal list below to that month (tap again / ✕ chip to clear).
   const onSheetBar = (i: number) => {
     if (!sheetSeries) return
-    const mf = monthForBar(i, sheetSeries.series.length, new Date())
+    const mf = monthForBar(i, sheetSeries.series.length, sheetSeries.anchor)
     setSheetMonth(prev => (prev && prev.y === mf.y && prev.m === mf.m ? null : mf))
   }
 
@@ -3385,14 +3413,25 @@ const ClinicalMergedPanel: React.FC<{
     const now = new Date()
     const src = (typeSheet.domain === 'symptom' ? symptoms : diagnosis)?.records ?? []
     let recs = src.filter(r => r.type === typeSheet.name)
-    let n = sheetRange === 'last_2y' ? 24 : sheetRange === 'last_3y' ? 36 : 12
-    if (sheetRange === 'all' && recs.length) {
-      const earliest = recs.reduce((min, r) => (r.date < min ? r.date : min), recs[0].date)
-      const ed = new Date(earliest)
-      n = Math.max(12, (now.getFullYear() - ed.getFullYear()) * 12 + (now.getMonth() - ed.getMonth()) + 1)
-    }
-    const winStart = new Date(now.getFullYear(), now.getMonth() - (n - 1), 1)
-    recs = recs.filter(r => new Date(r.date) >= winStart)
+    // Same window as the chart (presets anchored at today; Custom = whole years [from..to]).
+    const to = sheetYearTo ?? now.getFullYear()
+    const from = sheetYearFrom ?? to
+    const anchor = sheetRange === 'custom' && to < now.getFullYear() ? new Date(to, 11, 31) : now
+    const n =
+      sheetRange === 'custom'
+        ? Math.max(1, (to - from) * 12 + anchor.getMonth() + 1)
+        : sheetRange === 'last_2y'
+        ? 24
+        : sheetRange === 'last_3y'
+        ? 36
+        : 12
+    const winStart = new Date(anchor.getFullYear(), anchor.getMonth() - (n - 1), 1)
+    const winEnd = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1)
+    recs = recs.filter(r => {
+      const d = new Date(r.date)
+
+      return d >= winStart && d < winEnd
+    })
     if (sheetMonth) {
       recs = recs.filter(r => {
         const d = new Date(r.date)
@@ -3422,7 +3461,7 @@ const ClinicalMergedPanel: React.FC<{
     resolved.sort((a, b) => ((a.date ?? '') < (b.date ?? '') ? 1 : -1))
 
     return { active, resolved }
-  }, [typeSheet, symptoms, diagnosis, sheetRange, sheetMonth])
+  }, [typeSheet, symptoms, diagnosis, sheetRange, sheetYearFrom, sheetYearTo, sheetMonth])
 
   /* ── the ONE table's columns (Housing anatomy + CoL grammar): No serial · type name ·
      right-aligned counts · quiet severity/prognosis type. No status column (2026-08-27). ── */
@@ -3581,14 +3620,56 @@ const ClinicalMergedPanel: React.FC<{
                       <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
                         Animals Affected by Month
                       </Typography>
-                      <TrendRangeTabs
-                        value={sheetRange}
-                        onPick={p => {
-                          setSheetRange(p)
-                          setSheetMonth(null)
-                        }}
-                        color={skin.ACCENT_INK}
-                      />
+                      {/* THE standard period control (user call 2026-09-06): pill 1Y|2Y|3Y|Custom +
+                          capped year From/To — TrendRangeTabs' 'All' retired. */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+                        <ViewToggle
+                          height={CTRL_H}
+                          items={[
+                            { key: 'last_1y', label: '1Y' },
+                            { key: 'last_2y', label: '2Y' },
+                            { key: 'last_3y', label: '3Y' },
+                            { key: 'custom', label: 'Custom' }
+                          ]}
+                          value={sheetRange}
+                          onChange={k => {
+                            setSheetMonth(null)
+                            if (k === 'custom') {
+                              setSheetRange('custom')
+                              if (sheetYearFrom == null && sheetYearTo == null) {
+                                const today = new Date()
+                                setSheetYearFrom(Math.max(sheetYears[sheetYears.length - 1] ?? today.getFullYear(), today.getFullYear() - 4))
+                                setSheetYearTo(today.getFullYear())
+                              }
+                            } else {
+                              setSheetRange(k as 'last_1y' | 'last_2y' | 'last_3y')
+                            }
+                          }}
+                        />
+                        {sheetRange === 'custom' && (
+                          <>
+                            <RangeSelect
+                              value={sheetYearFrom}
+                              onPick={y => {
+                                setSheetYearFrom(y)
+                                setSheetMonth(null)
+                              }}
+                              items={yearItemsFor(sheetYears, sheetYearTo, 5, 'from')}
+                              anyLabel='From'
+                            />
+                            <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                            <RangeSelect
+                              value={sheetYearTo}
+                              onPick={y => {
+                                setSheetYearTo(y)
+                                setSheetMonth(null)
+                              }}
+                              items={yearItemsFor(sheetYears, sheetYearFrom, 5, 'to')}
+                              anyLabel='To'
+                            />
+                          </>
+                        )}
+                      </Box>
                     </Box>
                     {/* Naveen's columns mark (house gradient bars) — axis = month over bare
                         2-digit year; a bar tap scopes the animal list to that month. */}
