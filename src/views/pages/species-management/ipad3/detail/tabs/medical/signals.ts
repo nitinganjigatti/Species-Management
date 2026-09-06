@@ -52,6 +52,9 @@ export interface SignalAnimal {
   state?: 'active' | 'resolved' | 'died'
   /** The animal's conditions, one per entry — the row shows the first + "+N more". */
   activeConditions?: string[]
+  /** Active-condition COUNT for the tag when the names should NOT render on the row
+   *  (e.g. Repeat Sick — the drill sheet lists them; user call 2026-09-06). */
+  activeCount?: number
 }
 
 /** A same-condition transmission chain inside one enclosure (spreading / outbreak groups). */
@@ -224,23 +227,28 @@ export const computeSignals = (
     }
   }
 
-  /* repeat-sick — ≥ N episodes of anything */
-  const repeat: SignalAnimal[] = []
+  /* repeat-sick — ≥ N episodes of anything. Row = Active(·N) tag + "Sick N times" ONLY
+     (user call 2026-09-06): no condition names — the animal's drill sheet lists them. */
+  const repeatRaw: { row: SignalAnimal; n: number }[] = []
   for (const list of byAnimal.values()) {
     if (list.length < T.repeatEpisodes) continue
     const latest = [...list].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
-    repeat.push({
-      aid: latest.aid,
-      name: latest.name,
-      site: latest.site,
-      enclosure: latest.enclosure,
-      detail: episodeSummary(list),
-      pill: `${list.length} times`,
-      pillTone: 'warning',
-      date: latest.date
+    const activeNow = new Set(list.filter(r => r.status === 'active').map(r => r.type))
+    repeatRaw.push({
+      n: list.length,
+      row: {
+        aid: latest.aid,
+        name: latest.name,
+        site: latest.site,
+        enclosure: latest.enclosure,
+        detail: `Sick ${list.length} times`,
+        state: activeNow.size ? 'active' : 'resolved',
+        activeCount: activeNow.size,
+        date: latest.date
+      }
     })
   }
-  repeat.sort((a, b) => parseInt(b.pill ?? '0') - parseInt(a.pill ?? '0'))
+  const repeat = repeatRaw.sort((a, b) => b.n - a.n).map(x => x.row)
 
   /* relapse — same condition returning on the same animal after a real gap */
   const relapse: SignalAnimal[] = []
@@ -263,8 +271,8 @@ export const computeSignals = (
         enclosure: latest.enclosure,
         condition: type,
         detail: `${tr.length} times`,
-        pill: latest.status === 'active' ? 'Active again' : 'Resolved',
-        pillTone: latest.status === 'active' ? 'error' : 'success',
+        state: latest.status === 'active' ? 'active' : 'resolved',
+        activeCount: new Set(list.filter(r => r.status === 'active').map(r => r.type)).size,
         date: latest.date
       })
       break // one relapsing condition is enough to list the animal once

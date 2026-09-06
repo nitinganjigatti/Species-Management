@@ -97,7 +97,9 @@ const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void
   const conds = a.activeConditions ?? (a.condition ? a.condition.split(/,\s*/).filter(Boolean) : [])
   const state: 'active' | 'resolved' | 'died' =
     a.state ?? (/died/i.test(a.pill || '') ? 'died' : /resolved/i.test(a.pill || '') ? 'resolved' : 'active')
-  const tagLabel = state === 'active' ? (conds.length > 1 ? `Active · ${conds.length}` : 'Active') : state === 'died' ? 'Died' : 'Resolved'
+  // tag count: explicit activeCount wins (rows that hide the names, e.g. Repeat Sick)
+  const n = a.activeCount ?? conds.length
+  const tagLabel = state === 'active' ? (n > 1 ? `Active · ${n}` : 'Active') : state === 'died' ? 'Died' : 'Resolved'
   const tagTone: SignalAnimal['pillTone'] = state === 'active' ? 'warning' : state === 'died' ? 'error' : 'success'
   const condLine = conds.length ? (conds.length > 1 ? `${conds[0]}  +${conds.length - 1} more` : conds[0]) : ''
   // one item per row (card-list hard rule): date and detail each take their own line;
