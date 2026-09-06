@@ -2929,6 +2929,7 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
   const [yearTo, setYearTo] = useState<number | null>(null)
   const NOW = useMemo(() => new Date(), [])
   const [q, setQ] = useState('')
+  const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [drill, setDrill] = useState<PreventiveTypeAnimal | null>(null)
   const [monthDrill, setMonthDrill] = useState<{ label: string } | null>(null)
 
@@ -2944,17 +2945,18 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
     const query = q.trim().toLowerCase()
 
     return med.animals
-      .filter(a => !query || `${a.name} ${a.aid} ${a.site}`.toLowerCase().includes(query))
+      .filter(a => (!siteFilter || a.site === siteFilter) && (!query || `${a.name} ${a.aid} ${a.site}`.toLowerCase().includes(query)))
       .map(a => ({ id: a.aid, ...a, courses: coursesByAid.get(a.aid) ?? 1, doseCount: a.doses.length }))
-  }, [med.animals, q, coursesByAid])
+  }, [med.animals, q, siteFilter, coursesByAid])
   const tbl = useSortableTable(rows, { field: 'lastGiven', sort: 'desc' })
   const onQ = (v: string) => {
     setQ(v)
     tbl.setPaginationModel(p => ({ ...p, page: 0 }))
   }
 
-  // Standard animal-card column (2026-09-02): identity card carries encl + site.
-  const showCardSite = new Set(med.animals.map(a => a.site)).size > 1
+  // Standard animal-card column (2026-09-02): site line only while the VISIBLE list
+  // spans >1 site — a site pick flips the card to its enclosure line (2026-09-06 rule).
+  const showCardSite = !siteFilter && new Set(med.animals.map(a => a.site)).size > 1
   const columns: GridColDef[] = [
     {
       field: 'name',
@@ -3105,7 +3107,26 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
         )}
       </SectionCard>
 
-      {/* Portrait: title row, then full-width search (shipped two-row grammar). */}
+      {/* Site filter (THE standard dropdown, 2026-09-02) lives beside search. Portrait:
+          title row, then full-width search + right-aligned filter (two-row grammar). */}
+      {(() => {
+        const siteFilterCtl = (
+          <SiteFilterControl
+            sites={med.sites ?? []}
+            sitesTotal={med.sitesTotal ?? 0}
+            tracked={med.tracked}
+            value={siteFilter}
+            onChange={v => {
+              setSiteFilter(v)
+              tbl.setPaginationModel(p => ({ ...p, page: 0 }))
+            }}
+            overdueWord='missed'
+            caption={st => `${st.animals.toLocaleString()} animal${st.animals === 1 ? '' : 's'} treated`}
+          />
+        )
+        const searchCtl = <TableSearch value={q} onChange={onQ} placeholder='Search animals…' grow={portrait} />
+
+        return (
       <SectionCard
         title={
           <Box sx={{ display: 'flex', flexDirection: portrait ? 'column' : 'row', gap: 4, width: portrait ? '100%' : undefined, minWidth: 0 }}>
@@ -3115,10 +3136,22 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
                 • {med.tracked.toLocaleString()}
               </Box>
             </Typography>
-            {portrait && <TableSearch value={q} onChange={onQ} placeholder='Search animals…' grow />}
+            {portrait && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                {searchCtl}
+                {siteFilterCtl}
+              </Box>
+            )}
           </Box>
         }
-        action={portrait ? undefined : <TableSearch value={q} onChange={onQ} placeholder='Search animals…' />}
+        action={
+          portrait ? undefined : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {siteFilterCtl}
+              {searchCtl}
+            </Box>
+          )
+        }
         titleMb={3}
       >
         {rows.length ? (
@@ -3138,6 +3171,8 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
           <EmptyState message='No animals match this search' />
         )}
       </SectionCard>
+        )
+      })()}
 
       <RxMonthDrawer data={monthDrill} med={med} onClose={() => setMonthDrill(null)} />
       <DoseHistoryDrawer animal={drill} typeName={med.name} icon={RX_ICON} dose={med.dose} showLate={false} onClose={() => setDrill(null)} />
