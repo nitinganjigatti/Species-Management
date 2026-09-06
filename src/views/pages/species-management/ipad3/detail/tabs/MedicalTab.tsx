@@ -48,8 +48,6 @@ import {
 import type { YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 // THE standard period control's pieces (SickTrendCard grammar — CoL owns them)
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
-import DatePicker from 'react-datepicker'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -1517,28 +1515,21 @@ const UPCOMING_CAP_DAYS = 60
 /** "Given in Last 60 Days" — the trailing administered-dose window (mirrors the upcoming cap). */
 const GIVEN_WINDOW_DAYS = 60
 
-/** Upcoming-sheet preset windows (task: Next 7 / Next 15 / Custom; default = the full 60). */
-type UpcomingPreset = 'w7' | 'w15' | 'w60' | 'custom'
-const UPCOMING_PRESET_ITEMS: { key: UpcomingPreset; label: string }[] = [
-  { key: 'w7', label: '7 Days' },
-  { key: 'w15', label: '15 Days' },
-  { key: 'w60', label: '60 Days' },
-  { key: 'custom', label: 'Custom' }
+/** Upcoming-sheet window presets (user call 2026-09-06: a DROPDOWN beside the site
+ *  dropdown — Next 7/15/30/60 Days, NO custom; default = the full 60). */
+type UpcomingPreset = 'w7' | 'w15' | 'w30' | 'w60'
+const UPCOMING_WINDOW_ITEMS: { key: UpcomingPreset; label: string }[] = [
+  { key: 'w7', label: 'Next 7 Days' },
+  { key: 'w15', label: 'Next 15 Days' },
+  { key: 'w30', label: 'Next 30 Days' },
+  { key: 'w60', label: 'Next 60 Days' }
 ]
 const startOfDayMs = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 
-/** Resolve the upcoming window to concrete [lo..hi] ms bounds — ALWAYS inside today..+60 d
- *  (a custom from–to is clamped into the cap; nulls fall back to the window's edges). */
-const upcomingBounds = (preset: UpcomingPreset, from: Date | null, to: Date | null, now: Date) => {
+/** Resolve the upcoming window to concrete [lo..hi] ms bounds inside today..+60 d. */
+const upcomingBounds = (preset: UpcomingPreset, now: Date) => {
   const lo0 = startOfDayMs(now)
-  const cap = lo0 + UPCOMING_CAP_DAYS * STATUS_DAY_MS + (STATUS_DAY_MS - 1)
-  if (preset === 'custom') {
-    return {
-      lo: from ? Math.max(lo0, startOfDayMs(from)) : lo0,
-      hi: to ? Math.min(cap, startOfDayMs(to) + (STATUS_DAY_MS - 1)) : cap
-    }
-  }
-  const days = preset === 'w7' ? 7 : preset === 'w15' ? 15 : UPCOMING_CAP_DAYS
+  const days = preset === 'w7' ? 7 : preset === 'w15' ? 15 : preset === 'w30' ? 30 : UPCOMING_CAP_DAYS
 
   return { lo: lo0, hi: lo0 + days * STATUS_DAY_MS + (STATUS_DAY_MS - 1) }
 }
@@ -1561,7 +1552,7 @@ const givenInWindow = (a: PreventiveTypeAnimal, cutMs: number): string | null =>
  *  given60 = DISTINCT animals with an administered dose in the last 60 days. */
 const stripCounts = (types: PreventiveType[]) => {
   const now = new Date()
-  const { lo, hi } = upcomingBounds('w60', null, null, now)
+  const { lo, hi } = upcomingBounds('w60', now)
   const givenCut = now.getTime() - GIVEN_WINDOW_DAYS * STATUS_DAY_MS
   let overdue = 0
   let upcoming60 = 0
@@ -1588,30 +1579,6 @@ const OVERDUE_BUCKETS = [
   { label: '90+ Days', value: 'd90', min: 91, max: Infinity }
 ]
 
-/** The Upcoming custom-range trigger — a pill TextField the DatePicker opens from; shows the
- *  picked from–to in the module's dd MMM yyyy grammar (never MM/DD). */
-const UpcomingRangeInput = React.forwardRef<HTMLInputElement, any>((props, ref) => {
-  const fmtD = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-  const s = props.start ? fmtD(props.start) : ''
-  const e = props.end ? ` – ${fmtD(props.end)}` : ''
-
-  return (
-    <TextField
-      size='small'
-      inputRef={ref}
-      {...props}
-      value={s ? `${s}${e}` : ''}
-      placeholder='From – To'
-      sx={{
-        width: 250,
-        '& .MuiInputBase-root': { height: CTRL_H, borderRadius: '999px', bgcolor: '#ffffff', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
-        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
-      }}
-    />
-  )
-})
-
 /** Stat-strip drill: one sheet, three tabs — Overdue / Given (last 60 d) / Upcoming (next
  *  60 d) — the clicked tile lands on its tab. Overdue/Upcoming rows are animal × medicine
  *  (an animal overdue for two vaccines = two missed doses = two rows); the Given tab lists
@@ -1634,10 +1601,9 @@ const PreventiveStatusSheet: React.FC<{
   // site facet (task 2026-09-06): dropdown beside the search, default All Sites
   const [siteSel, setSiteSel] = useState<string | null>(null)
 
-  // Upcoming presets (task 2026-09-06): pill 7/15/60/Custom; default = the full 60-day window
+  // Upcoming window (user call 2026-09-06): a dropdown beside the site dropdown —
+  // Next 7/15/30/60 Days, no custom; default = the full 60-day window
   const [upPreset, setUpPreset] = useState<UpcomingPreset>('w60')
-  const [upFrom, setUpFrom] = useState<Date | null>(null)
-  const [upTo, setUpTo] = useState<Date | null>(null)
 
   // applied filters (chips) + the drawer's working copy (committed on Apply)
   const [vaccines, setVaccines] = useState<string[]>([])
@@ -1655,8 +1621,6 @@ const PreventiveStatusSheet: React.FC<{
       setQ('')
       setSiteSel(null)
       setUpPreset('w60')
-      setUpFrom(null)
-      setUpTo(null)
     }
   }, [openTab])
 
@@ -1670,7 +1634,7 @@ const PreventiveStatusSheet: React.FC<{
     const matchQ = (a: PreventiveTypeAnimal, t: PreventiveType) =>
       !query || a.name.toLowerCase().includes(query) || t.name.toLowerCase().includes(query) || a.site.toLowerCase().includes(query)
     // Upcoming = the next dose falls inside the picked window — always within today..+60 d.
-    const { lo, hi } = upcomingBounds(upPreset, upFrom, upTo, now)
+    const { lo, hi } = upcomingBounds(upPreset, now)
     const mk = (tb: 'overdue' | 'due') => {
       const out: StatusSheetRow[] = []
       for (const t of types) {
@@ -1728,7 +1692,7 @@ const PreventiveStatusSheet: React.FC<{
     }
 
     return { overdue: mk('overdue'), given: mkGiven(), due: mk('due') }
-  }, [types, q, vaccines, ageBuckets, upPreset, upFrom, upTo])
+  }, [types, q, vaccines, ageBuckets, upPreset])
 
   // Site facet options = sites present in the ACTIVE tab's rows (pre-site-filter), with counts.
   const siteOpts = useMemo(() => {
@@ -1784,38 +1748,10 @@ const PreventiveStatusSheet: React.FC<{
           onClose={onClose}
         />
         <SheetTabs tabs={tabs} value={tab} onPick={setTab} />
-        {/* Upcoming presets (2026-09-06): kit pill 7/15/60/Custom; Custom = a from–to date
-            range CLAMPED inside the next 60 days. Default = the full 60-day window. */}
-        {tab === 'due' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', px: SHEET_PX, pt: 3 }}>
-            <ViewToggle
-              height={CTRL_H}
-              items={UPCOMING_PRESET_ITEMS}
-              value={upPreset}
-              onChange={k => setUpPreset(k as UpcomingPreset)}
-            />
-            {upPreset === 'custom' && (
-              <DatePickerWrapper>
-                <DatePicker
-                  selectsRange
-                  startDate={upFrom}
-                  endDate={upTo}
-                  selected={upFrom}
-                  minDate={new Date()}
-                  maxDate={new Date(Date.now() + UPCOMING_CAP_DAYS * STATUS_DAY_MS)}
-                  shouldCloseOnSelect={false}
-                  onChange={(dates: [Date | null, Date | null]) => {
-                    setUpFrom(dates[0])
-                    setUpTo(dates[1])
-                  }}
-                  customInput={<UpcomingRangeInput start={upFrom} end={upTo} />}
-                />
-              </DatePickerWrapper>
-            )}
-          </Box>
-        )}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, pr: SHEET_PX }}>
-          {/* the shared sheet search + site facet (SheetFilterBar); sites carry row counts */}
+          {/* the shared sheet search + site facet; on Upcoming the WINDOW dropdown rides
+              beside the site dropdown (user call 2026-09-06): Next 7/15/30/60 Days, no
+              custom — default the full 60. */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <SheetFilterBar
               search={q}
@@ -1826,6 +1762,16 @@ const PreventiveStatusSheet: React.FC<{
               onFacet={v => setSiteSel(v ? siteOpts.find(o => o.label === v)?.site ?? null : null)}
               facetPlaceholder='All Sites'
               facetIcon='mdi:map-marker-outline'
+              {...(tab === 'due'
+                ? {
+                    facet2Options: UPCOMING_WINDOW_ITEMS.map(i => i.label),
+                    facet2Value: UPCOMING_WINDOW_ITEMS.find(i => i.key === upPreset)?.label ?? null,
+                    onFacet2: (v: string | null) =>
+                      setUpPreset((UPCOMING_WINDOW_ITEMS.find(i => i.label === v)?.key ?? 'w60') as UpcomingPreset),
+                    facet2Placeholder: 'Next 60 Days',
+                    facet2Icon: 'mdi:calendar-range-outline'
+                  }
+                : {})}
             />
           </Box>
           <Box sx={{ pt: 2 }}>
