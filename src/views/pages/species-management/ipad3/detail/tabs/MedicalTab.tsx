@@ -48,7 +48,6 @@ import type { YearSeries } from 'src/views/pages/species-management/ipad3/detail
 // THE standard period control's pieces (SickTrendCard grammar — CoL owns them)
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
-import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 // App-standard filter drawer (the hospital Add-Patient animal-picker filter) — reused as-is.
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -3484,6 +3483,9 @@ const ClinicalMergedPanel: React.FC<{
 
     return {
       yearSeries,
+      // all-time record count for the open type — the chart is conditional on it
+      // (demo review 2026-09-04: a 1-record drill gets no graph, it isn't a trend)
+      typeTotal: recs.length,
       totalAnimals: new Set(inRange.map(r => r.aid)).size,
       totalEpisodes: inRange.length
     }
@@ -3699,7 +3701,10 @@ const ClinicalMergedPanel: React.FC<{
                   onClose={() => setTypeSheet(null)}
                 />
                 <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                  {/* pb keeps clear air between the month axis and the status tabs */}
+                  {/* Chart is CONDITIONAL on multiple records (demo review 2026-09-04):
+                      one record isn't a trend — the sheet opens straight on the list.
+                      pb keeps clear air between the month axis and the status tabs. */}
+                  {sheetSeries.typeTotal > 1 && (
                   <Box sx={{ px: SHEET_PX, pt: 4, pb: 6 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                       <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
@@ -3768,6 +3773,7 @@ const ClinicalMergedPanel: React.FC<{
                       }
                     />
                   </Box>
+                  )}
                   {act0.length && res0.length ? (
                     <SheetTabs
                       tabs={[

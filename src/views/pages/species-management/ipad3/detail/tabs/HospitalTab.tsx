@@ -25,9 +25,8 @@ import {
   SectionCard,
   synthAnimalIdentity,
   thinScrollbarSx,
-  TrendAreaChart,
   ViewToggle
-, GappedSegmentBar } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, GappedSegmentBar, YearLinesChart, type YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import DashboardDateRange, {
@@ -44,6 +43,7 @@ import {
   computeHospital,
   losBuckets,
   monthlyAdmissions,
+  MONTH_ABBR,
   type Admission,
   type HospAnimal
 } from './hospital/hospital'
@@ -403,18 +403,46 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
     }
   }
 
+  // Admissions Trend as the kit YearLinesChart (demo review 2026-09-04): one line per
+  // calendar year over Jan–Dec, ≤5 lines, counted from the SAME admissions the month
+  // drill lists. Presets = last 12/24/36 months anchored at today; Custom = whole years
+  // [from..to], anchored at the range's end (today when it ends this year).
   const trend = useMemo(() => {
+    let winStart: Date
+    let winEnd: Date
     if (trendRange === 'custom') {
       const to = yearTo ?? NOW.getFullYear()
       const from = yearFrom ?? to
-      // anchor at the window's end (or today when it ends this year); span = whole years
-      const anchor = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31)
-      const months = (to - from) * 12 + anchor.getMonth() + 1
-
-      return monthlyAdmissions(allAdmissions, Math.max(1, months), anchor)
+      winEnd = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31, 23, 59, 59)
+      winStart = new Date(from, 0, 1)
+    } else {
+      const n = trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12
+      winStart = new Date(NOW.getFullYear(), NOW.getMonth() - (n - 1), 1)
+      winEnd = NOW
     }
+    const lo = winStart.getTime()
+    const hi = winEnd.getTime()
+    const counts = new Map<number, number[]>()
+    const items = new Map<string, Admission[]>()
+    for (const a of allAdmissions) {
+      const t = new Date(a.admittedOn).getTime()
+      if (isNaN(t) || t < lo || t > hi) continue
+      const y = Number(a.admittedOn.slice(0, 4))
+      const m = Number(a.admittedOn.slice(5, 7)) - 1
+      if (!Number.isFinite(y) || m < 0 || m > 11) continue
+      const arr = counts.get(y) ?? Array(12).fill(0)
+      arr[m]++
+      counts.set(y, arr)
+      const k = `${y}-${m}`
+      items.set(k, [...(items.get(k) ?? []), a])
+    }
+    // newest year first — drives the chart's lightness ladder; ≤5 lines (the kit rule)
+    const series: YearSeries[] = [...counts.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, CAP)
+      .map(([year, values]) => ({ year, values }))
 
-    return monthlyAdmissions(allAdmissions, trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12, NOW)
+    return { series, items }
   }, [allAdmissions, trendRange, yearFrom, yearTo, NOW])
   const buckets = useMemo(() => losBuckets(rollup?.admissions ?? []), [rollup])
 
@@ -461,12 +489,14 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       animals: (rollup?.mortality ?? []).map(admissionRow)
     })
 
-  const openMonth = (i: number) => {
-    const list = trend.perMonth[i]
+  // Dot tap → that year-month's admissions (the sheet must match the dot's number).
+  const openMonth = (year: number, monthIdx: number) => {
+    const list = trend.items.get(`${year}-${monthIdx}`)
     if (!list?.length) return
+    const label = `${MONTH_ABBR[monthIdx]} ${year}`
     setDrill({
-      title: `${trend.labels[i]} — admissions`,
-      explainer: `${list.length} admissions started in ${trend.labels[i]}.`,
+      title: `${label} — admissions`,
+      explainer: `${list.length} admissions started in ${label}.`,
       icon: 'mdi:chart-line',
       tone: 'neutral',
       animals: list.map(admissionRow)
@@ -740,7 +770,13 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
               }
               titleMb={4}
             >
-              <TrendAreaChart values={trend.values} labels={trend.labels} color={skin.ACCENT_FILL} name='Admissions' height={230} onPointClick={openMonth} />
+              {/* kit YearLinesChart (THE line standard, demo review 2026-09-04) — one line
+                  per calendar year, Jan–Dec axis; a dot tap opens that month's admissions */}
+              {trend.series.length ? (
+                <YearLinesChart series={trend.series} accent={skin.ACCENT_FILL} noun='admissions' height={280} onPoint={openMonth} />
+              ) : (
+                <EmptyState message='No admissions in this period' />
+              )}
             </SectionCard>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, alignItems: 'stretch' }}>
               <SectionCard title='Length of Stay' titleMb={2}>

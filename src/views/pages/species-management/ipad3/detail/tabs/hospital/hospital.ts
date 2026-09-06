@@ -178,7 +178,7 @@ export const buildAdmissions = (clinical: SpeciesClinical | null | undefined): A
   })
 }
 
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** Admissions bucketed per month — labels like "Aug '25" (the module's month/year axis format).
  *  `monthsBack` null = from the first admission; perMonth carries the admissions for drills. */
