@@ -224,12 +224,10 @@ const AnimalHealthRecord: React.FC<{
 
     const lastUpdate = events[0]
 
-    // status rollup (same thresholds as the Overview attention table)
-    const poor = active.some(r => r.prognosis === 'Poor' || r.prognosis === 'Grave')
+    // status rollup — 'Critical' RETIRED everywhere in Medical (user call 2026-09-06:
+    // not data-backed); two states only.
     const status =
-      active.length >= 2 || overdue.length >= 3 || poor
-        ? { label: 'Critical', tone: 'error' as const }
-        : active.length || overdue.length
+      active.length || overdue.length
         ? { label: 'Needs Attention', tone: 'warning' as const }
         : { label: 'Healthy', tone: 'success' as const }
 

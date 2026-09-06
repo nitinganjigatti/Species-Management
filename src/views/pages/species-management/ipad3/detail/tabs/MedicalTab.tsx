@@ -398,7 +398,7 @@ interface OviAnimal {
   worst: 'Poor' | 'Guarded' | null
   latest: string
   score: number
-  status: 'Healthy' | 'Needs Attention' | 'Critical'
+  status: 'Healthy' | 'Needs Attention'
   events: { domain: string; type: string; date: string; status: string; days?: number; lastGiven?: string; prognosis?: string; severity?: string; durationDays?: number; outcome?: 'died' }[]
 }
 
@@ -455,9 +455,10 @@ const buildRollup = (clinical: SpeciesClinical | null | undefined, preventive: S
   }
 
   for (const g of m.values()) {
-    const critical = g.activeClinical >= 2 || g.overdue >= 3 || g.worst === 'Poor'
-    g.status = critical ? 'Critical' : g.activeClinical > 0 || g.overdue > 0 ? 'Needs Attention' : 'Healthy'
-    g.score = (critical ? 1000 : 0) + g.activeClinical * 10 + g.overdue
+    // 'Critical' RETIRED everywhere in Medical (user call 2026-09-06 — not data-backed):
+    // the rollup knows two states only.
+    g.status = g.activeClinical > 0 || g.overdue > 0 ? 'Needs Attention' : 'Healthy'
+    g.score = g.activeClinical * 10 + g.overdue
   }
 
   return [...m.values()]
@@ -505,10 +506,7 @@ const OverviewAnimalDrawer: React.FC<{ group: OviAnimal | null; onClose: () => v
               label='Active Care & Health'
               noDivider={history.length === 0}
               chip={
-                <StatusChip
-                  label={group.status}
-                  tone={group.status === 'Critical' ? 'error' : group.status === 'Needs Attention' ? 'warning' : 'success'}
-                />
+                <StatusChip label={group.status} tone={group.status === 'Needs Attention' ? 'warning' : 'success'} />
               }
             >
               {shown.map((e, i) => {
