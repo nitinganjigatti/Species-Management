@@ -39,7 +39,8 @@ import {
   SheetDrawer,
   StatusChip,
   ViewToggle,
-  TrendAreaChart
+  TrendAreaChart,
+  CategoryFilter
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import DashboardDateRange, {
   resolveRange,
@@ -614,6 +615,8 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   const [monitorPm, setMonitorPm] = useState({ page: 0, pageSize: 10 })
   // Table searches (shown only past 10 rows) — typing resets the page.
   const [testsQ, setTestsQ] = useState('')
+  // department-wise filter on All Tests (demo review 2026-09-04)
+  const [testsDept, setTestsDept] = useState<string | null>(null)
   const [chronicQ, setChronicQ] = useState('')
   const inWin = useWindow(range)
 
@@ -679,13 +682,13 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   /* THE primary cut — every test used on this species: unique animals + test count, busiest
    * first. items = requests carrying the test (deduped) for the drill sheet. */
   const allTests = (() => {
-    const m = new Map<string, { animals: Set<string>; tests: number; items: LabRequest[] }>()
+    const m = new Map<string, { animals: Set<string>; tests: number; items: LabRequest[]; dept: string }>()
     for (const r of rollup.requests) {
       const seenInReq = new Set<string>()
       for (const t of r.tests) {
         let e = m.get(t.name)
         if (!e) {
-          e = { animals: new Set(), tests: 0, items: [] }
+          e = { animals: new Set(), tests: 0, items: [], dept: t.dept }
           m.set(t.name, e)
         }
         e.tests++
@@ -698,7 +701,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
     }
 
     return [...m.entries()]
-      .map(([test, e]) => ({ test, animals: e.animals.size, tests: e.tests, items: e.items }))
+      .map(([test, e]) => ({ test, animals: e.animals.size, tests: e.tests, items: e.items, dept: e.dept }))
       .sort((a, b) => b.tests - a.tests)
   })()
 
@@ -837,13 +840,33 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
 
   const testAvg = allTests.length ? allTests.reduce((s2, t) => s2 + t.tests, 0) / allTests.length : 0
   const testCols: GridColDef[] = [
-    { minWidth: 180, flex: 1, sortable: false, field: 'test', headerName: 'Test', renderCell: p => txt(p.row.test, c.OnSurfaceVariant, 600) },
+    {
+      minWidth: 180,
+      flex: 1,
+      sortable: false,
+      field: 'test',
+      headerName: 'Test',
+      // department as the quiet sub-line (repeat-table grammar) — the dept filter's context
+      renderCell: p => (
+        <Box sx={{ minWidth: 0 }}>
+          <CellText color={c.OnSurfaceVariant} weight={600}>
+            {p.row.test}
+          </CellText>
+          <Typography sx={{ fontSize: '0.9375rem', color: c.neutralSecondary }} noWrap>
+            {p.row.dept}
+          </Typography>
+        </Box>
+      )
+    },
     { width: 175, sortable: false, field: 'animals', headerName: 'Unique Animals', renderCell: p => txt(p.row.animals) },
     { width: 100, sortable: false, field: 'tests', headerName: 'Tests', renderCell: p => txt(p.row.tests, p.row.tests >= testAvg * 1.3 ? skin.CORAL : undefined, 700) }
   ]
   const testRowsAll = allTests.map((t, i) => ({ ...t, id: i }))
+  const testDepts = [...new Set(allTests.map(t => t.dept))].sort()
   const testsNeedle = testsQ.trim().toLowerCase()
-  const testRows = testsNeedle ? testRowsAll.filter(t => t.test.toLowerCase().includes(testsNeedle)) : testRowsAll
+  const testRows = testRowsAll.filter(
+    t => (!testsDept || t.dept === testsDept) && (!testsNeedle || t.test.toLowerCase().includes(testsNeedle))
+  )
 
 
   /* Frequently Repeated Tests — number columns right-aligned (stakeholder table rule),
@@ -1148,14 +1171,27 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
         title='All Tests'
         titleMb={2}
         action={
-          <LocalSearch
-            value={testsQ}
-            onChange={v => {
-              setTestsQ(v)
-              setTestsPm(p => ({ ...p, page: 0 }))
-            }}
-            placeholder='Search tests…'
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* department-wise filter (demo review 2026-09-04) beside the search */}
+            <CategoryFilter
+              options={testDepts}
+              value={testsDept}
+              onChange={v => {
+                setTestsDept(v)
+                setTestsPm(p => ({ ...p, page: 0 }))
+              }}
+              icon='mdi:flask-outline'
+              placeholder='All Departments'
+            />
+            <LocalSearch
+              value={testsQ}
+              onChange={v => {
+                setTestsQ(v)
+                setTestsPm(p => ({ ...p, page: 0 }))
+              }}
+              placeholder='Search tests…'
+            />
+          </Box>
         }
       >
         {testRows.length ? (
