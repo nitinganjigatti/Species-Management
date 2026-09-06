@@ -42,8 +42,7 @@ import {
   SheetDrawer,
   thinScrollbarSx,
   SectionCard,
-  SelectChevron,
-  TrendRangeTabs
+  SelectChevron
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import DashboardDateRange, {
