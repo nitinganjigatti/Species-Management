@@ -42,8 +42,7 @@ import {
   SheetStats,
   StatusChip,
   thinScrollbarSx,
-  TrendAreaChart,
-  TrendRangeTabs
+  TrendAreaChart
 , HeaderSubTabs, SearchPill, SheetDrawer, UnderlineTabs, ViewToggle, YearLinesChart} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 // THE standard period control's pieces (SickTrendCard grammar — CoL owns them)
@@ -101,36 +100,6 @@ const useWindow = (range: RangeSelection) => {
 
     return (lo == null || t >= lo) && t <= hi
   }
-}
-
-/** Distinct animals per month over the trailing `months` — drives the per-type graph sheet. */
-const monthlyAnimals = (rows: ClinicalRecord[], now: Date, months = 12) => {
-  const buckets: { label: string; value: number }[] = []
-  const sets: Record<string, Set<string>> = {}
-  const idx: Record<string, number> = {}
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const k = `${d.getFullYear()}-${d.getMonth()}`
-    idx[k] = buckets.length
-    sets[k] = new Set()
-    buckets.push({ label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, value: 0 })
-  }
-  for (const r of rows) {
-    const d = new Date(r.date)
-    const k = `${d.getFullYear()}-${d.getMonth()}`
-    if (idx[k] != null) sets[k].add(r.aid)
-  }
-  for (const k in idx) buckets[idx[k]].value = sets[k].size
-
-  return buckets
-}
-
-/** Bar index (0 = 11 months ago … len-1 = current) → the calendar month it represents. */
-const monthForBar = (i: number, len: number, now: Date) => {
-  const monthsAgo = len - 1 - i
-  const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
-
-  return { y: d.getFullYear(), m: d.getMonth(), label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
 }
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -827,9 +796,6 @@ const padMonthsToNow = (months: string[]): string[] => {
 
 /** Zero-fill a per-month series to the padded axis length. */
 const padSeries = (s: number[], len: number) => (s.length >= len ? s : [...s, ...Array(len - s.length).fill(0)])
-
-/** "Aug '23" sidecar label → the two-line no-apostrophe axis form ("Aug\n23"). */
-const twoLineMonth = (m: string) => m.replace(" '", '\n')
 
 /** ISO dose date → its "Aug '23" month-label key (the sidecar months format). */
 const doseMonthLabel = (iso: string) => {
@@ -2956,7 +2922,12 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
   const { txt, c, theme } = useCells()
   const heroPhoto = React.useContext(HeroPhotoContext)
   const portrait = useMediaQuery('(orientation: portrait)')
-  const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
+  /* THE standard period control (mirror of the vaccine detail, user call 2026-09-06):
+     pill 1Y | 2Y | 3Y | Custom + capped year From/To; TrendRangeTabs' 'All' retired. */
+  const [trendRange, setTrendRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [yearFrom, setYearFrom] = useState<number | null>(null)
+  const [yearTo, setYearTo] = useState<number | null>(null)
+  const NOW = useMemo(() => new Date(), [])
   const [q, setQ] = useState('')
   const [drill, setDrill] = useState<PreventiveTypeAnimal | null>(null)
   const [monthDrill, setMonthDrill] = useState<{ label: string } | null>(null)
@@ -3011,10 +2982,65 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
     { field: 'lastGiven', headerName: 'Last Given', width: 170, renderCell: p => txt(p.row.lastGiven ? fmtDate(p.row.lastGiven) : '—', c.neutralSecondary) }
   ]
 
-  // Rolling windows anchor at TODAY (padded axis — same rule as the preventive detail).
-  const rxAxis = useMemo(() => padMonthsToNow(rx.months), [rx.months])
-  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : rxAxis.length || 36)
-  const n = monthsOf(doseRange)
+  // Years this medicine's dose dates cover — for the Custom From/To pickers.
+  const years = useMemo(() => {
+    let first = NOW.getFullYear()
+    for (const a of med.animals)
+      for (const d of a.doses) {
+        const y = Number(d.slice(0, 4))
+        if (Number.isFinite(y) && y >= 1900 && y < first) first = y
+      }
+
+    return Array.from({ length: NOW.getFullYear() - first + 1 }, (_, i) => NOW.getFullYear() - i)
+  }, [med, NOW])
+  const CAP = 5
+  const enterCustom = () => {
+    setTrendRange('custom')
+    if (yearFrom == null && yearTo == null) {
+      setYearFrom(Math.max(years[years.length - 1] ?? NOW.getFullYear(), NOW.getFullYear() - (CAP - 1)))
+      setYearTo(NOW.getFullYear())
+    }
+  }
+
+  // Doses Administered as the kit YearLinesChart (vaccine-detail mirror): one line per
+  // calendar year over Jan–Dec, ≤5 lines, counted from the SAME dose records the month
+  // drill lists. Presets = last 12/24/36 months anchored at today; Custom = whole years
+  // [from..to], anchored at the range's end (today when it ends this year).
+  const doseSeries = useMemo<YearSeries[]>(() => {
+    let winStart: Date
+    let winEnd: Date
+    if (trendRange === 'custom') {
+      const to = yearTo ?? NOW.getFullYear()
+      const from = yearFrom ?? to
+      winEnd = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31, 23, 59, 59)
+      winStart = new Date(from, 0, 1)
+    } else {
+      const n = trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12
+      winStart = new Date(NOW.getFullYear(), NOW.getMonth() - (n - 1), 1)
+      winEnd = NOW
+    }
+    const lo = winStart.getTime()
+    const hi = winEnd.getTime()
+    const by = new Map<number, number[]>()
+    for (const a of med.animals) {
+      for (const d of a.doses) {
+        const t = new Date(d).getTime()
+        if (isNaN(t) || t < lo || t > hi) continue
+        const y = Number(d.slice(0, 4))
+        const m = Number(d.slice(5, 7)) - 1
+        if (!Number.isFinite(y) || m < 0 || m > 11) continue
+        const arr = by.get(y) ?? Array(12).fill(0)
+        arr[m]++
+        by.set(y, arr)
+      }
+    }
+
+    // newest year first — drives the chart's lightness ladder; ≤5 lines (the kit rule)
+    return [...by.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, CAP)
+      .map(([year, values]) => ({ year, values }))
+  }, [med, trendRange, yearFrom, yearTo, NOW])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -3028,34 +3054,55 @@ const PrescriptionDetail: React.FC<{ med: RxMedicine; rx: RxProgram; onBack: () 
         </Typography>
       </Box>
 
+      {/* Prescriptions total dropped here too (demo review 2026-09-04 stat rule). */}
       <SignalsBand
         cells={[
-          { key: 'animals', label: 'Animals', count: med.tracked, tone: 'neutral' },
-          { key: 'courses', label: 'Prescriptions', count: med.courses, tone: 'neutral' },
+          { key: 'animals', label: 'Animals Treated', count: med.tracked, tone: 'neutral' },
           { key: 'given', label: 'Doses Given', count: med.dosesGiven, tone: 'neutral' },
           { key: 'missed', label: 'Doses Missed', count: med.dosesMissed }
         ]}
       />
 
       {/* Administered ONLY (2026-08-27 punch-list pattern) — missed lives in the stat strip
-          and the month drill, not in the plot. */}
+          and the month drill, not in the plot. Kit YearLinesChart + THE standard period
+          control (vaccine-detail mirror); dot tap → that year-month's dose sheet. */}
       <SectionCard
         title='Doses Administered'
-        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={skin.ACCENT_INK} />}
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={[
+                { key: 'last_1y', label: '1Y' },
+                { key: 'last_2y', label: '2Y' },
+                { key: 'last_3y', label: '3Y' },
+                { key: 'custom', label: 'Custom' }
+              ]}
+              value={trendRange}
+              onChange={k => (k === 'custom' ? enterCustom() : setTrendRange(k as 'last_1y' | 'last_2y' | 'last_3y'))}
+            />
+            {trendRange === 'custom' && (
+              <>
+                <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(years, yearTo, CAP, 'from')} anyLabel='From' />
+                <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(years, yearFrom, CAP, 'to')} anyLabel='To' />
+              </>
+            )}
+          </Box>
+        }
         titleMb={3}
       >
-        <BarColumns
-          bars={rxAxis.slice(-n).map((m, i) => [twoLineMonth(m), padSeries(med.dosesPerMonth, rxAxis.length).slice(-n)[i] ?? 0] as [string, number])}
-          fill={skin.ACCENT_FILL}
-          noun='doses'
-          height={250}
-          minSlot={64}
-          valueLabels
-          onSelect={label => {
-            const m = rxAxis.slice(-n).find(x => twoLineMonth(x) === label)
-            if (m) setMonthDrill({ label: m })
-          }}
-        />
+        {doseSeries.length ? (
+          <YearLinesChart
+            series={doseSeries}
+            accent={skin.ACCENT_FILL}
+            noun='doses'
+            height={280}
+            onPoint={(year, monthIdx) => setMonthDrill({ label: `${MONTHS[monthIdx]} '${String(year).slice(-2)}` })}
+          />
+        ) : (
+          <EmptyState message='No doses administered in this period' />
+        )}
       </SectionCard>
 
       {/* Portrait: title row, then full-width search (shipped two-row grammar). */}
@@ -3168,9 +3215,10 @@ const PrescriptionIndex: React.FC<{ rx: RxProgram; onPick: (name: string) => voi
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Total-prescriptions stat retired (demo review 2026-09-04: "Animals treated yes,
+          total prescriptions NO") — the prescription list stays reachable as a sheet tab. */}
       <SignalsBand
         cells={[
-          { key: 'courses', label: 'Prescriptions', count: rx.summary.prescriptions, tone: 'neutral', onOpen: () => setStatusSheet('courses') },
           { key: 'animals', label: 'Animals Treated', count: rx.summary.animalsTreated, tone: 'neutral', onOpen: () => setStatusSheet('animals') },
           { key: 'd30', label: 'Given in Last 30 Days', count: rx.summary.given30, tone: 'neutral', onOpen: () => setStatusSheet('d30') },
           { key: 'd60', label: 'Given in Last 60 Days', count: rx.summary.given60, tone: 'neutral', onOpen: () => setStatusSheet('d60') },
