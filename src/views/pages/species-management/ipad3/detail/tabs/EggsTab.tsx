@@ -22,6 +22,7 @@ import {
   SHEET_PX,
   sheetPaperSx,
   StatusChip,
+  PillSelect,
   TrendAreaChart,
   ViewToggle,
   YearLinesChart,
@@ -200,15 +201,22 @@ const BreedingAnalytics: React.FC<{
   const portrait = useMediaQuery('(orientation: portrait)')
   const heroPhoto = React.useContext(HeroPhotoContext)
   const [openFemale, setOpenFemale] = useState<FemaleRow | null>(null)
-  const [rosterTab, setRosterTabRaw] = useState<'all' | 'none' | 'one' | 'twoPlus'>('all')
+  const [rosterTab, setRosterTabRaw] = useState<'all' | 'laid'>('all')
+  // Clutch segmentation is a FILTER, not tabs (user call 2026-09-06 — the 1/2+ clutch
+  // tabs read as confusing; clutch counts live on the laid rows themselves).
+  const [clutchFilter, setClutchFilterRaw] = useState<'all' | 'one' | 'twoPlus'>('all')
   const [q, setQRaw] = useState('')
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [sheet, setSheet] = useState<SheetSpec | null>(null)
   const [femTab, setFemTab] = useState<string>('laid')
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
   // any roster re-scope (tab / search / site) lands back on page 1
-  const setRosterTab = (v: 'all' | 'none' | 'one' | 'twoPlus') => {
+  const setRosterTab = (v: 'all' | 'laid') => {
     setRosterTabRaw(v)
+    setPm(p => ({ ...p, page: 0 }))
+  }
+  const setClutchFilter = (v: 'all' | 'one' | 'twoPlus') => {
+    setClutchFilterRaw(v)
     setPm(p => ({ ...p, page: 0 }))
   }
   const setQ = (v: string) => {
@@ -286,16 +294,18 @@ const BreedingAnalytics: React.FC<{
   const roster = useMemo(() => {
     const query = q.trim().toLowerCase()
 
-    const inTab = (f: FemaleRow) =>
-      rosterTab === 'all' ? true : rosterTab === 'none' ? !f.laid : rosterTab === 'one' ? f.clutches === 1 : f.clutches >= 2
+    const inTab = (f: FemaleRow) => (rosterTab === 'all' ? true : f.laid)
+    const inClutch = (f: FemaleRow) =>
+      clutchFilter === 'all' ? true : clutchFilter === 'one' ? f.clutches === 1 : f.clutches >= 2
 
     return s.females_rows.filter(
       f =>
         inTab(f) &&
+        inClutch(f) &&
         (!siteFilter || f.site === siteFilter) &&
         (!query || `${f.name} ${f.identifier} ${f.site} ${f.enclosure}`.toLowerCase().includes(query))
     )
-  }, [s.females_rows, rosterTab, siteFilter, q])
+  }, [s.females_rows, rosterTab, clutchFilter, siteFilter, q])
 
   /* site dropdown options — every site that holds a female, biggest first */
   const siteOpts = useMemo(() => {
@@ -604,11 +614,11 @@ const BreedingAnalytics: React.FC<{
   const rosterTabs = (
     // Never wraps: one row, overflow scrolls (the kit's underline-tab pattern).
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflowX: 'auto', ...thinScrollbarSx(theme) }}>
+      {/* TWO tabs only (user call 2026-09-06): All Females | Laid — the laid-nothing and
+          clutch-bucket tabs retired; clutch segmentation moved to the PillSelect filter. */}
       {[
-        { key: 'all' as const, label: 'All Females', n: s.totalFemales, accent: theme.palette.primary.dark },
-        { key: 'none' as const, label: 'Laid Nothing', n: s.neverLaid, accent: c.Tertiary },
-        { key: 'one' as const, label: '1 Clutch', n: s.clutchBuckets.one, accent: theme.palette.primary.dark },
-        { key: 'twoPlus' as const, label: '2+ Clutches', n: s.clutchBuckets.twoPlus, accent: theme.palette.primary.dark }
+        { key: 'all' as const, label: 'All Females', n: scopedFemales.length, accent: theme.palette.primary.dark },
+        { key: 'laid' as const, label: 'Laid', n: scoped.laidFemales, accent: theme.palette.primary.dark }
       ].map(t => {
         const active = rosterTab === t.key
 
@@ -798,12 +808,27 @@ const BreedingAnalytics: React.FC<{
           site dropdown + search in the action slot. Landscape: one row. Portrait: tabs row,
           then ONE scrolling controls row (the ControlsRow rule — never a wrapped second line). ── */}
       {(() => {
-        // site moved to the page-scope strip (2026-09-06) — the roster keeps tabs + search
+        // site moved to the page-scope strip (2026-09-06) — the roster keeps tabs, the
+        // clutch FILTER (kit PillSelect — replaced the clutch tabs, user call) + search
+        const clutchCtl = (
+          <PillSelect
+            value={clutchFilter}
+            onChange={v => setClutchFilter(v as 'all' | 'one' | 'twoPlus')}
+            items={[
+              { value: 'all', label: 'All Clutches', icon: 'mdi:egg-outline' },
+              { value: 'one', label: '1 Clutch', icon: 'mdi:egg-outline' },
+              { value: 'twoPlus', label: '2+ Clutches', icon: 'mdi:egg-outline' }
+            ]}
+          />
+        )
         const searchCtl = <SearchPill elastic value={q} onChange={setQ} placeholder='Search females…' />
         const stackedHeader = (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
             {rosterTabs}
-            <ControlsRow>{searchCtl}</ControlsRow>
+            <ControlsRow>
+              {searchCtl}
+              {clutchCtl}
+            </ControlsRow>
           </Box>
         )
 
@@ -813,6 +838,7 @@ const BreedingAnalytics: React.FC<{
         action={
           portrait ? undefined : (
             <ControlsRow sx={{ width: 'auto', flex: '1 1 auto', justifyContent: 'flex-end', ml: 3, maxWidth: 520 }}>
+              {clutchCtl}
               {searchCtl}
             </ControlsRow>
           )
