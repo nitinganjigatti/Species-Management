@@ -632,7 +632,7 @@ const inMonth = (m: number, f: number | null, t: number | null) => {
 }
 
 /** Custom-range year options — the far end is CAPPED so a range never exceeds `cap` years. */
-const yearItemsFor = (years: number[], anchor: number | null, cap: number, side: 'from' | 'to') =>
+export const yearItemsFor = (years: number[], anchor: number | null, cap: number, side: 'from' | 'to') =>
   years
     .filter(y => anchor == null || (side === 'from' ? y <= anchor && y >= anchor - (cap - 1) : y >= anchor && y <= anchor + (cap - 1)))
     .map(y => ({ value: y, label: String(y) }))
