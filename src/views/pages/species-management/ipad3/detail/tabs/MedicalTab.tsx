@@ -877,6 +877,9 @@ const MostUsedMonthDrawer: React.FC<{
     .filter(x => !site || x.a.site === site)
     .filter(x => !query || x.a.name.toLowerCase().includes(query) || x.a.site.toLowerCase().includes(query))
 
+  // Card location rule (HARD, 2026-09-06): site line only while the VISIBLE list spans >1 site.
+  const multiSite = !site && new Set(shown.map(x => x.a.site)).size > 1
+
   return (
     <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && type && (
@@ -902,7 +905,7 @@ const MostUsedMonthDrawer: React.FC<{
               <AnimalCardRow
                 key={x.a.aid}
                 aid={x.a.aid}
-                site={!site && siteOptions.length > 1 ? x.a.site : undefined}
+                site={multiSite ? x.a.site : undefined}
                 meta={<RowMetaText>{fmtDate(x.date)}</RowMetaText>}
                 last={i === shown.length - 1}
                 onClick={() => setDrill(x.a)}
@@ -1381,14 +1384,40 @@ const MonthDosesDrawer: React.FC<{
   // two tabs only — Administered (on-time + late) vs Overdue; mixing them in an "All" list
   // made a "26d late" chip read like another overdue. Counts live in the header stats.
   const [tab, setTab] = useState<'given' | 'missed'>('given')
-  // each month opens on Administered
+  // animal-card-list sheet → the standard search + site facet (user call 2026-09-06)
+  const [q, setQ] = useState('')
+  const [site, setSite] = useState<string | null>(null)
+  // each month opens on Administered with a clean slate
   useEffect(() => {
-    if (data) setTab('given')
+    if (data) {
+      setTab('given')
+      setQ('')
+      setSite(null)
+    }
   }, [data])
   const rows = data?.rows ?? []
-  const given = rows.filter(r => r.kind === 'given')
-  const missed = rows.filter(r => r.kind === 'missed')
-  const shown = tab === 'given' ? given : missed
+  const query = q.trim().toLowerCase()
+  const matchQ = (r: MonthRow) =>
+    !query ||
+    r.a.name.toLowerCase().includes(query) ||
+    r.a.aid.toLowerCase().includes(query) ||
+    r.a.site.toLowerCase().includes(query)
+  const given = rows.filter(r => r.kind === 'given' && matchQ(r))
+  const missed = rows.filter(r => r.kind === 'missed' && matchQ(r))
+  // Site facet options = sites in the ACTIVE tab's rows (pre-site-filter), labelled "Site (N)".
+  const siteCounts = new Map<string, number>()
+  for (const r of tab === 'given' ? given : missed) siteCounts.set(r.a.site, (siteCounts.get(r.a.site) ?? 0) + 1)
+  if (site && !siteCounts.has(site)) siteCounts.set(site, 0)
+  const siteOpts = [...siteCounts.entries()]
+    .sort((x, y) => x[0].localeCompare(y[0]))
+    .map(([s, n]) => ({ site: s, label: `${s} (${n.toLocaleString()})` }))
+  const bySite = (rs: MonthRow[]) => (site ? rs.filter(r => r.a.site === site) : rs)
+  const shownGiven = bySite(given)
+  const shownMissed = bySite(missed)
+  const shown = tab === 'given' ? shownGiven : shownMissed
+  // Card location rule (HARD, 2026-09-06): site line only while the VISIBLE list spans >1 site;
+  // a single site (picked or the only one left) → the enclosure line instead.
+  const multiSite = !site && new Set(shown.map(r => r.a.site)).size > 1
   const tabs: { key: 'given' | 'missed'; label: string }[] = [
     { key: 'given', label: 'Administered' },
     { key: 'missed', label: 'Overdue' }
@@ -1402,13 +1431,23 @@ const MonthDosesDrawer: React.FC<{
             icon={icon}
             title={`${data.label} • ${typeName}`}
             stats={[
-              { label: 'Administered', value: given.length },
-              { label: 'Overdue', value: missed.length }
+              { label: 'Administered', value: shownGiven.length },
+              { label: 'Overdue', value: shownMissed.length }
             ]}
             onClose={onClose}
           />
           <SheetTabs tabs={tabs} value={tab} onPick={setTab} />
-          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
+          <SheetFilterBar
+            search={q}
+            onSearch={setQ}
+            searchPlaceholder='Search animals…'
+            facetOptions={siteOpts.map(o => o.label)}
+            facetValue={site ? siteOpts.find(o => o.site === site)?.label ?? null : null}
+            onFacet={v => setSite(v ? siteOpts.find(o => o.label === v)?.site ?? null : null)}
+            facetPlaceholder='All Sites'
+            facetIcon='mdi:map-marker-outline'
+          />
+          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
             {/* Standard animal-card rows (user call 2026-09-02): AnimalIdCard left, status chip
                 + ONE date right (administered date only — the "Scheduled • given" pair retired;
                 Overdue rows keep their scheduled date since nothing was given). */}
@@ -1416,7 +1455,7 @@ const MonthDosesDrawer: React.FC<{
               <AnimalCardRow
                 key={`${r.a.aid}-${r.date}`}
                 aid={r.a.aid}
-                site={new Set(rows.map(x => x.a.site)).size > 1 ? r.a.site : undefined}
+                site={multiSite ? r.a.site : undefined}
                 trailing={
                   r.kind === 'missed' ? (
                     // no "overdue" word — the tab already says it
@@ -1466,6 +1505,32 @@ const BucketDrawer: React.FC<{
   const theme = useTheme() as any
   const c = cc(theme)
 
+  // animal-card-list sheet → the standard search + site facet (user call 2026-09-06)
+  const [q, setQ] = useState('')
+  const [site, setSite] = useState<string | null>(null)
+  useEffect(() => {
+    if (data) {
+      setQ('')
+      setSite(null)
+    }
+  }, [data])
+
+  const animals = data?.animals ?? []
+  const query = q.trim().toLowerCase()
+  const matched = animals.filter(
+    a => !query || a.name.toLowerCase().includes(query) || a.aid.toLowerCase().includes(query) || a.site.toLowerCase().includes(query)
+  )
+  // Site facet options = sites in the sheet's (search-filtered) rows, labelled "Site (N)".
+  const siteCounts = new Map<string, number>()
+  for (const a of matched) siteCounts.set(a.site, (siteCounts.get(a.site) ?? 0) + 1)
+  if (site && !siteCounts.has(site)) siteCounts.set(site, 0)
+  const siteOpts = [...siteCounts.entries()]
+    .sort((x, y) => x[0].localeCompare(y[0]))
+    .map(([s, n]) => ({ site: s, label: `${s} (${n.toLocaleString()})` }))
+  const shown = site ? matched.filter(a => a.site === site) : matched
+  // Card location rule (HARD, 2026-09-06): site line only while the VISIBLE list spans >1 site.
+  const multiSite = !site && new Set(shown.map(x => x.site)).size > 1
+
   return (
     <SheetDrawer open={!!data} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
       {data && (
@@ -1474,22 +1539,32 @@ const BucketDrawer: React.FC<{
             icon={icon}
             iconTone={{ bg: c.BgTeritary, fg: c.Tertiary }}
             title={`Overdue ${data.label} • ${typeName}`}
-            stats={[{ label: 'Animals', value: data.animals.length }]}
+            stats={[{ label: 'Animals', value: shown.length }]}
             onClose={onClose}
           />
-          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
-            {data.animals.map((a, i) => (
+          <SheetFilterBar
+            search={q}
+            onSearch={setQ}
+            searchPlaceholder='Search animals…'
+            facetOptions={siteOpts.map(o => o.label)}
+            facetValue={site ? siteOpts.find(o => o.site === site)?.label ?? null : null}
+            onFacet={v => setSite(v ? siteOpts.find(o => o.label === v)?.site ?? null : null)}
+            facetPlaceholder='All Sites'
+            facetIcon='mdi:map-marker-outline'
+          />
+          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
+            {shown.map((a, i) => (
               <AnimalCardRow
                 key={a.aid}
                 aid={a.aid}
-                site={new Set(data.animals.map(x => x.site)).size > 1 ? a.site : undefined}
-                last={i === data.animals.length - 1}
+                site={multiSite ? a.site : undefined}
+                last={i === shown.length - 1}
                 onClick={() => onAnimal(a)}
                 chevron
                 trailing={<StatusChip label={`${a.days ?? 0} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />}
               />
             ))}
-            {!data.animals.length && <SheetEmpty>No animals in this bucket.</SheetEmpty>}
+            {!shown.length && <SheetEmpty>No animals in this bucket.</SheetEmpty>}
           </Box>
         </Sheet>
       )}
@@ -2805,6 +2880,10 @@ const RxMonthDrawer: React.FC<{
     .filter(m => !site || m.site === site)
     .filter(m => !query || m.name.toLowerCase().includes(query) || m.site.toLowerCase().includes(query))
 
+  // Card location rule (HARD, 2026-09-06): site line only while the VISIBLE list spans >1 site.
+  const shownSites = tab === 'given' ? shownGiven.map(g => g.a.site) : shownMissed.map(m => m.site)
+  const multiSite = !site && new Set(shownSites).size > 1
+
   const tabs: { key: 'given' | 'missed'; label: string }[] = [
     { key: 'given', label: `Administered • ${shownGiven.length}` },
     { key: 'missed', label: `Missed • ${shownMissed.length}` }
@@ -2832,7 +2911,7 @@ const RxMonthDrawer: React.FC<{
                 <AnimalCardRow
                   key={`${g.a.aid}-${g.date}`}
                   aid={g.a.aid}
-                  site={!site && siteOptions.length > 1 ? g.a.site : undefined}
+                  site={multiSite ? g.a.site : undefined}
                   meta={<RowMetaText>{fmtDate(g.date)}</RowMetaText>}
                   last={i === shownGiven.length - 1}
                   onClick={() => setDrill(g.a)}
@@ -2844,7 +2923,7 @@ const RxMonthDrawer: React.FC<{
                 <AnimalCardRow
                   key={`${m.aid}-${m.date}`}
                   aid={m.aid}
-                  site={!site && siteOptions.length > 1 ? m.site : undefined}
+                  site={multiSite ? m.site : undefined}
                   meta={
                     <>
                       <RowMetaText strong>{m.reason}</RowMetaText>
@@ -3172,6 +3251,9 @@ const ClinicalMergedPanel: React.FC<{
   const [sheetRange, setSheetRange] = useState<RangePreset>('last_1y')
   const [sheetTab, setSheetTab] = useState<'active' | 'resolved'>('active')
   const [sheetMonth, setSheetMonth] = useState<{ y: number; m: number; label: string } | null>(null)
+  // animal-card-list sheet → the standard search + site facet (user call 2026-09-06)
+  const [sheetQ, setSheetQ] = useState('')
+  const [sheetSite, setSheetSite] = useState<string | null>(null)
   const [animalDrill, setAnimalDrill] = useState<AniGroup | null>(null)
 
   const inWin = useWindow(range)
@@ -3251,11 +3333,13 @@ const ClinicalMergedPanel: React.FC<{
     if (g) setAnimalDrill(g)
   }
 
-  // Row tap → the bottom sheet, fresh at 1Y with no month scope.
+  // Row tap → the bottom sheet, fresh at 1Y with no month scope and a clean filter bar.
   const openType = (name: string) => {
     setSheetRange('last_1y')
     setSheetMonth(null)
     setSheetTab('active')
+    setSheetQ('')
+    setSheetSite(null)
     setTypeSheet({ domain, name })
   }
 
@@ -3452,11 +3536,36 @@ const ClinicalMergedPanel: React.FC<{
           sheetSeries &&
           sheetAnimals &&
           (() => {
-            const act = sheetAnimals.active
-            const res = sheetAnimals.resolved
+            // Search + site facet (user call 2026-09-06): filter the VISIBLE lists; the
+            // tab structure (mix vs quiet ledger line) follows the UNfiltered statuses so
+            // typing a query never collapses the tabs.
+            const query = sheetQ.trim().toLowerCase()
+            const matchQ = (a: SheetAnimalRow) =>
+              !query ||
+              a.name.toLowerCase().includes(query) ||
+              a.aid.toLowerCase().includes(query) ||
+              a.site.toLowerCase().includes(query) ||
+              a.enclosure.toLowerCase().includes(query)
+            const act0 = sheetAnimals.active
+            const res0 = sheetAnimals.resolved
             // Tabs render ONLY when the statuses mix (Necropsy rule); otherwise a quiet ledger line.
-            const shownTab: 'active' | 'resolved' = act.length && res.length ? sheetTab : act.length ? 'active' : 'resolved'
+            const shownTab: 'active' | 'resolved' = act0.length && res0.length ? sheetTab : act0.length ? 'active' : 'resolved'
+            // Site facet options = sites in the ACTIVE tab's (search-filtered) rows, "Site (N)".
+            const tabRows = (shownTab === 'active' ? act0 : res0).filter(matchQ)
+            const siteCounts = new Map<string, number>()
+            for (const a of tabRows) siteCounts.set(a.site, (siteCounts.get(a.site) ?? 0) + 1)
+            if (sheetSite && !siteCounts.has(sheetSite)) siteCounts.set(sheetSite, 0)
+            const siteOpts = [...siteCounts.entries()]
+              .sort((x, y) => x[0].localeCompare(y[0]))
+              .map(([s, n]) => ({ site: s, label: `${s} (${n.toLocaleString()})` }))
+            const bySite = (rs: SheetAnimalRow[]) => (sheetSite ? rs.filter(a => a.site === sheetSite) : rs)
+            const act = bySite(act0.filter(matchQ))
+            const res = bySite(res0.filter(matchQ))
             const list = shownTab === 'active' ? act : res
+            const filtered = !!query || !!sheetSite
+            // Card location rule (HARD, 2026-09-06): site line only while the VISIBLE list
+            // spans >1 site; a single site → the enclosure line instead (kit suppresses it).
+            const multiSite = !sheetSite && new Set(list.map(x => x.site)).size > 1
 
             return (
               <Sheet>
@@ -3503,7 +3612,7 @@ const ClinicalMergedPanel: React.FC<{
                       }}
                     />
                   </Box>
-                  {act.length && res.length ? (
+                  {act0.length && res0.length ? (
                     <SheetTabs
                       tabs={[
                         { key: 'active' as const, label: `Active (${act.length.toLocaleString()})` },
@@ -3515,10 +3624,22 @@ const ClinicalMergedPanel: React.FC<{
                   ) : (
                     <Box sx={{ px: SHEET_PX, pt: 3, pb: 2, borderBottom: `1px solid ${c.SurfaceVariant}` }}>
                       <Typography variant='body2' sx={{ color: skin.MUTED }}>
-                        {act.length ? `${act.length.toLocaleString()} active` : `All ${res.length.toLocaleString()} resolved`}
+                        {shownTab === 'active'
+                          ? `${act.length.toLocaleString()} active`
+                          : `${filtered ? '' : 'All '}${res.length.toLocaleString()} resolved`}
                       </Typography>
                     </Box>
                   )}
+                  <SheetFilterBar
+                    search={sheetQ}
+                    onSearch={setSheetQ}
+                    searchPlaceholder='Search animals…'
+                    facetOptions={siteOpts.map(o => o.label)}
+                    facetValue={sheetSite ? siteOpts.find(o => o.site === sheetSite)?.label ?? null : null}
+                    onFacet={v => setSheetSite(v ? siteOpts.find(o => o.label === v)?.site ?? null : null)}
+                    facetPlaceholder='All Sites'
+                    facetIcon='mdi:map-marker-outline'
+                  />
                   {sheetMonth && (
                     <Box sx={{ px: SHEET_PX, pt: 3 }}>
                       <FilterChip label={sheetMonth.label} onClear={() => setSheetMonth(null)} />
@@ -3531,7 +3652,7 @@ const ClinicalMergedPanel: React.FC<{
                           key={a.aid}
                           aid={a.aid}
                           enclosure={a.enclosure}
-                          site={new Set(list.map(x => x.site)).size > 1 ? a.site : undefined}
+                          site={multiSite ? a.site : undefined}
                           titleExtra={
                             <>
                               {a.times > 1 && (
