@@ -3385,24 +3385,26 @@ const ClinicalMergedPanel: React.FC<{
 
       return d >= winStart && d < winEnd
     })
-    const series = monthlyAnimals(inRange, now, n)
-    const peakIdx = series.reduce((mx, b, i) => (b.value > series[mx].value ? i : mx), 0)
+    // Kit YearLinesChart series (THE line standard, demo review 2026-09-04): distinct
+    // animals per (year, month), newest year first, ≤5 lines.
+    const perYM = new Map<number, Set<string>[]>()
+    for (const r of inRange) {
+      const d = new Date(r.date)
+      const arr = perYM.get(d.getFullYear()) ?? Array.from({ length: 12 }, () => new Set<string>())
+      arr[d.getMonth()].add(r.aid)
+      perYM.set(d.getFullYear(), arr)
+    }
+    const yearSeries: YearSeries[] = [...perYM.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, 5)
+      .map(([year, sets]) => ({ year, values: sets.map(s => s.size) }))
 
     return {
-      series,
-      anchor: now,
+      yearSeries,
       totalAnimals: new Set(inRange.map(r => r.aid)).size,
-      totalEpisodes: inRange.length,
-      peakLabel: series[peakIdx]?.value ? monthForBar(peakIdx, series.length, now).label : '—'
+      totalEpisodes: inRange.length
     }
   }, [typeSheet, symptoms, diagnosis, sheetRange, sheetYearFrom, sheetYearTo])
-
-  // Bar click → scope the animal list below to that month (tap again / ✕ chip to clear).
-  const onSheetBar = (i: number) => {
-    if (!sheetSeries) return
-    const mf = monthForBar(i, sheetSeries.series.length, sheetSeries.anchor)
-    setSheetMonth(prev => (prev && prev.y === mf.y && prev.m === mf.m ? null : mf))
-  }
 
   // Animal groups for the open type — same range window as the chart, further scoped by a
   // bar-picked month. Active = a bout still running (an animal with mixed bouts is Active —
@@ -3671,26 +3673,16 @@ const ClinicalMergedPanel: React.FC<{
                         )}
                       </Box>
                     </Box>
-                    {/* Naveen's columns mark (house gradient bars) — axis = month over bare
-                        2-digit year; a bar tap scopes the animal list to that month. */}
-                    <BarColumns
-                      bars={sheetSeries.series.map(s => {
-                        const [mon, yr] = s.label.split(' ')
-
-                        return [`${mon}\n${yr.slice(2)}`, s.value] as [string, number]
-                      })}
-                      fill={skin.CORAL}
+                    {/* Kit YearLinesChart (THE line standard) — one line per calendar year,
+                        Jan–Dec axis; a dot tap scopes the animal list to that month. */}
+                    <YearLinesChart
+                      series={sheetSeries.yearSeries}
+                      accent={skin.CORAL}
                       noun='animals'
                       height={220}
-                      minSlot={72}
-                      onSelect={label => {
-                        const i = sheetSeries.series.findIndex(s => {
-                          const [mon, yr] = s.label.split(' ')
-
-                          return `${mon}\n${yr.slice(2)}` === label
-                        })
-                        if (i >= 0) onSheetBar(i)
-                      }}
+                      onPoint={(y, m) =>
+                        setSheetMonth(prev => (prev && prev.y === y && prev.m === m ? null : { y, m, label: `${MONTHS[m]} ${y}` }))
+                      }
                     />
                   </Box>
                   {act0.length && res0.length ? (
