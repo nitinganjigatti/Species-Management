@@ -27,7 +27,7 @@ import {
   thinScrollbarSx,
   TrendAreaChart,
   ViewToggle
-} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, GappedSegmentBar } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import DashboardDateRange, {
@@ -580,50 +580,6 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
   const losTotal = Math.max(1, buckets.reduce((n, b) => n + b.items.length, 0))
   const past14Pct = Math.round((((buckets[3]?.items.length ?? 0) + (buckets[4]?.items.length ?? 0)) / losTotal) * 100)
 
-  const segStrip = (
-    segs: { key: string; pct: number; color: string; text?: string; onClick?: () => void }[],
-    labels: { pct: number; text: React.ReactNode }[]
-  ) => (
-    <>
-      <Box sx={{ display: 'flex', height: 30, borderRadius: '8px', overflow: 'hidden' }}>
-        {segs.map(g => (
-          <Box
-            key={g.key}
-            onClick={g.onClick}
-            sx={{
-              width: `${g.pct}%`,
-              backgroundColor: g.color,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              fontWeight: 700,
-              color: theme.palette.common.white,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              cursor: g.onClick ? 'pointer' : 'default',
-              '&:hover': g.onClick ? { filter: 'brightness(1.08)' } : undefined
-            }}
-          >
-            {g.pct >= 4 ? g.text : ''}
-          </Box>
-        ))}
-      </Box>
-      <Box sx={{ display: 'flex', mt: 1 }}>
-        {labels.map((l, i) => (
-          <Typography
-            key={i}
-            // overflow visible: narrow segments (e.g. "1–3 d", "30 d +") keep their full
-            // label, spilling symmetrically past the segment instead of ellipsizing.
-            sx={{ width: `${l.pct}%`, fontSize: '14px', color: c.neutralSecondary, textAlign: 'center', px: '2px', whiteSpace: 'nowrap', overflow: 'visible' }}
-          >
-            {l.text}
-          </Typography>
-        ))}
-      </Box>
-    </>
-  )
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {/* Row 1 · section header — heading left, time window right (no orphan control row) */}
@@ -709,16 +665,17 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
             </Box>{' '}
             of the {losTotal.toLocaleString()} admissions run past 14 days
           </Typography>
-          {segStrip(
-            buckets.map((b, i) => ({
+          {/* gapped blocks (user call 2026-09-06): each bucket its own block + own label */}
+          <GappedSegmentBar
+            segments={buckets.map((b, i) => ({
               key: b.label,
-              pct: (b.items.length / losTotal) * 100,
-              color: [skin.ACCENT_FILL, skin.ACCENT_FILL, skin.TONE_FILL.warn, skin.CORAL, skin.TONE_TYPE.bad][i],
+              count: b.items.length,
+              color: [skin.ACCENT_FILL, skin.ACCENT_FILL, skin.TONE_FILL.warn, skin.CORAL][i] ?? skin.CORAL,
               text: String(b.items.length),
+              sub: b.label,
               onClick: () => openBucket(b.label)
-            })),
-            buckets.map(b => ({ pct: (b.items.length / losTotal) * 100, text: b.label }))
-          )}
+            }))}
+          />
           </>
         )
 
@@ -730,16 +687,26 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, mb: 3 }}>
             Where this species&apos; surgeries happen
           </Typography>
-          {segStrip(
-            [
-              { key: 'hospital', pct: rate(s.hospital, s.total), color: skin.TAB_PILL, text: `In hospital • ${s.hospital}`, onClick: () => openSurgery('hospital') },
-              { key: 'field', pct: rate(s.field, s.total), color: skin.ACCENT_FILL, text: `Field • ${s.field}`, onClick: () => openSurgery('field') }
-            ],
-            [
-              { pct: rate(s.hospital, s.total), text: `${rate(s.hospital, s.total)}%` },
-              { pct: rate(s.field, s.total), text: `${rate(s.field, s.total)}%` }
-            ]
-          )}
+          <GappedSegmentBar
+            segments={[
+              {
+                key: 'hospital',
+                count: s.hospital,
+                color: skin.TAB_PILL,
+                text: `In hospital • ${s.hospital}`,
+                sub: `${rate(s.hospital, s.total)}%`,
+                onClick: () => openSurgery('hospital')
+              },
+              {
+                key: 'field',
+                count: s.field,
+                color: skin.ACCENT_FILL,
+                text: `Field • ${s.field}`,
+                sub: `${rate(s.field, s.total)}%`,
+                onClick: () => openSurgery('field')
+              }
+            ]}
+          />
           </>
         )
 

@@ -265,6 +265,52 @@ export const CellText: React.FC<{ children?: React.ReactNode; color?: string; we
   )
 }
 
+/** Gapped segment bar (user call 2026-09-06, replacing the connected strip): each bucket
+ *  is its OWN rounded block with a gap to the next — width follows its count but never
+ *  collapses below its inner label (fit-content floor), and the sub-label sits centered
+ *  under ITS block, so tiny counts stay legible. Hospital Length-of-Stay + Surgery render
+ *  this; any future distribution bar copies it. */
+export const GappedSegmentBar: React.FC<{
+  segments: { key: string; count: number; color: string; text: React.ReactNode; sub: React.ReactNode; onClick?: () => void }[]
+  height?: number
+}> = ({ segments, height = 30 }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+      {segments.map(g => (
+        <Box
+          key={g.key}
+          sx={{ flex: `${Math.max(g.count, 0.0001)} 1 0px`, minWidth: 'fit-content', display: 'flex', flexDirection: 'column', minHeight: 0 }}
+        >
+          <Box
+            onClick={g.onClick}
+            sx={{
+              height,
+              px: 2.5,
+              borderRadius: '8px',
+              backgroundColor: g.color,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: 700,
+              color: theme.palette.common.white,
+              whiteSpace: 'nowrap',
+              cursor: g.onClick ? 'pointer' : 'default',
+              '&:hover': g.onClick ? { filter: 'brightness(1.08)' } : undefined
+            }}
+          >
+            {g.text}
+          </Box>
+          <Typography sx={{ mt: 1, fontSize: '14px', color: c.neutralSecondary, textAlign: 'center', whiteSpace: 'nowrap' }}>{g.sub}</Typography>
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
 /** Synthetic approximate-death marker (demo review 2026-09-04: approximate death dates
  *  get a flag under the date). The dump carries NO such field — derived deterministically
  *  from the record like the module's other synth features; a REAL flag needs the backend. */
