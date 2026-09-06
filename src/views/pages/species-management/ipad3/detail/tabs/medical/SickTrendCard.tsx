@@ -12,7 +12,7 @@ import React, { useMemo, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import type { SpeciesClinical, SpeciesPreventive } from 'src/lib/api/species-management/detail'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
-import { SectionCard, TrendAreaChart, TrendRangeTabs } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import { SectionCard, TrendAreaChart, TREND_RANGES, ViewToggle } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { RangePreset } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
 import { computeSickTrend } from './signals'
 import SignalDrawer, { type SignalDrawerPayload } from './SignalDrawer'
@@ -47,7 +47,15 @@ const SickTrendCard: React.FC<{
     <>
       <SectionCard
         title='Sick Animals Each Month'
-        action={<TrendRangeTabs value={trendRange} onPick={setTrendRange} color={skin.ACCENT_INK} />}
+        // The standard pill ViewToggle (user call 2026-09-06 — was the underline tabs)
+        action={
+          <ViewToggle
+            sx={{ flexShrink: 0 }}
+            items={TREND_RANGES.map(r => ({ key: r.key, label: r.label }))}
+            value={trendRange}
+            onChange={k => setTrendRange(k as RangePreset)}
+          />
+        }
         titleMb={2}
       >
         {/* legend — the split is the point of the chart, so it reads before the plot */}
