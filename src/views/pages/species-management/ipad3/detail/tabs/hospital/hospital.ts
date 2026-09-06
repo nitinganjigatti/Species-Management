@@ -220,13 +220,13 @@ export const monthlyAdmissions = (
   return { labels, values, perMonth }
 }
 
-/** Length-of-stay distribution — fixed buckets, items carried for chart drills. */
+/** Length-of-stay distribution — fixed buckets, items carried for chart drills.
+ *  FOUR buckets (demo review 2026-09-04 — was 5; the 15–30/30+ tail merged). */
 export const LOS_BUCKETS = [
   { label: '1–3 d', min: 0, max: 3 },
   { label: '4–7 d', min: 4, max: 7 },
   { label: '8–14 d', min: 8, max: 14 },
-  { label: '15–30 d', min: 15, max: 30 },
-  { label: '30 d +', min: 31, max: Infinity }
+  { label: '15 d +', min: 15, max: Infinity }
 ] as const
 
 export const losBuckets = (admissions: Admission[]): { label: string; items: Admission[] }[] =>

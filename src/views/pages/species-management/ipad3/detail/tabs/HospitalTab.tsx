@@ -245,7 +245,8 @@ const AdmissionsSection: React.FC<{ admissions: Admission[]; portrait: boolean; 
   ]
 
   const TABS: { key: AdmTab; label: string }[] = [
-    { key: 'admitted', label: 'Admitted' },
+    // "Currently Admitted" (demo review 2026-09-04) — the tab lists animals in care NOW
+    { key: 'admitted', label: 'Currently Admitted' },
     { key: 'discharged', label: 'Discharged' },
     { key: 'mortality', label: 'Mortality' }
   ]
