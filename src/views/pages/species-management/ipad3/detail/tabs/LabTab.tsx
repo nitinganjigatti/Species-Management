@@ -39,14 +39,13 @@ import {
   SheetDrawer,
   StatusChip,
   ViewToggle,
-  TrendAreaChart,
-  TrendRangeTabs
+  TrendAreaChart
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import DashboardDateRange, {
   resolveRange,
-  type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
+import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import SpeciesFilterSheet from 'src/views/pages/species-management/ipad3/SpeciesFilterSheet'
 import {
@@ -145,12 +144,16 @@ const AnimalIdCell: React.FC<{ aid: string; name?: string; site?: string; enclos
   const s = synthAnimalIdentity(aid)
 
   return (
+    // TABLE-VIEW minimal card = the Population grammar (user call 2026-09-05): EXACTLY
+    // 3 text rows — two identifiers + ONE location line (site while the visible list
+    // spans sites, enclosure once it's a single site); photo 94 → 75.
     <AnimalIdCard
       identifiers={s.identifiers}
-      enclosure={enclosure || s.enclosure}
+      enclosure={showSite ? undefined : enclosure || s.enclosure}
       site={showSite ? site : undefined}
       tag={s.tag}
       name={name && name !== aid ? name : undefined}
+      size={75}
       photo={s.hasPhoto ? heroPhoto?.src : undefined}
       photoPos={heroPhoto?.bgPos}
     />
@@ -291,7 +294,10 @@ const ScopePage: React.FC<{
     ...labSel.map(v => ({ key: `lab-${v}`, label: `Lab: ${v}`, onClear: clearOf('lab', v) }))
   ]
 
-  const multiSite = new Set(universe.map(r => r.site)).size > 1
+  // Card location-line rule (user 2026-09-05): SITE while the VISIBLE list spans >1 site,
+  // ENCLOSURE once a site filter narrows it (or all rows sit on one site) — so the check
+  // reads the filtered items, not the universe.
+  const multiSite = new Set(items.map(r => r.site)).size > 1
   const needle = q.trim().toLowerCase()
 
   /* animal-wise rollup — POOL requests count for EVERY member animal (the shared result
@@ -478,7 +484,7 @@ const ScopePage: React.FC<{
               total={animals.length}
               paginationModel={animPm}
               setPaginationModel={setAnimPm}
-              rowHeight={146}
+              rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
               onRowClick={(p: any) => {
                 const soloTest = testSel.length === 1 ? testSel[0] : null
                 if (soloTest && TEST_MEASURES[soloTest] && onTrend) onTrend(p.row.aid, soloTest)
@@ -513,7 +519,10 @@ const ScopePage: React.FC<{
                 total={requests.length}
                 paginationModel={reqPm}
                 setPaginationModel={setReqPm}
-                rowHeight={146}
+                // 75px minimal-card block + breathing room (Population standard, 2026-09-05) —
+                // the Single view carries the card; Pool's 3-line RequestIdCell fits the same
+                // height, so the toggle never jumps.
+                rowHeight={128}
               />
             ) : (
               <EmptyState message={needle ? 'No requests match your search' : `No ${reqKind} requests in this scope`} />
@@ -575,7 +584,11 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [range, setRange] = useState<RangeSelection>({ preset: 'all', start: null, end: null })
-  const [trendRange, setTrendRange] = useState<RangePreset>('last_1y')
+  /* THE standard period control (user call 2026-09-06): 1Y | 2Y | 3Y | Custom — the CoL
+     grammar; 'All' retired into Custom (demo review 2026-09-04). Custom = year From/To, cap 5. */
+  const [trendRange, setTrendRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [yearFrom, setYearFrom] = useState<number | null>(null)
+  const [yearTo, setYearTo] = useState<number | null>(null)
   // Request drills (pulse stats + trend months): scope PAGE (back button) with its own filter
   // bar — the arrival scope is just the pre-applied status/period (user call 2026-09-02).
   const [scope, setScope] = useState<{ status: StatusFilter; range: RangeSelection; extra?: Record<string, string[]> } | null>(null)
@@ -610,15 +623,39 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
   // Long-term monitoring pairs — UNWINDOWED on purpose (a lifelong signal must not drop off
   // the table because the page period is "Last 1 year"); test-wise rollup happens below.
   const monitoring = useMemo(() => monitoredAnimals(allRequests, now), [allRequests, now])
-  const trend = useMemo(
-    () =>
-      monthlyLabRequests(
-        allRequests,
-        trendRange === 'all' ? null : trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12,
-        now
-      ),
-    [allRequests, trendRange, now]
-  )
+
+  // Years the data actually covers — for the Custom year From/To pickers.
+  const years = useMemo(() => {
+    let first = now.getFullYear()
+    for (const r of allRequests) {
+      const y = new Date(r.date).getFullYear()
+      if (!isNaN(y) && y < first) first = y
+    }
+
+    return Array.from({ length: now.getFullYear() - first + 1 }, (_, i) => now.getFullYear() - i)
+  }, [allRequests, now])
+  const CAP = 5
+  const enterCustom = () => {
+    setTrendRange('custom')
+    if (yearFrom == null && yearTo == null) {
+      setYearFrom(Math.max(years[years.length - 1] ?? now.getFullYear(), now.getFullYear() - (CAP - 1)))
+      setYearTo(now.getFullYear())
+    }
+  }
+
+  const trend = useMemo(() => {
+    if (trendRange === 'custom') {
+      const to = yearTo ?? now.getFullYear()
+      const from = yearFrom ?? to
+      // anchor at the window's end (or today when it ends this year); span = whole years
+      const anchor = to >= now.getFullYear() ? now : new Date(to, 11, 31)
+      const months = (to - from) * 12 + anchor.getMonth() + 1
+
+      return monthlyLabRequests(allRequests, Math.max(1, months), anchor)
+    }
+
+    return monthlyLabRequests(allRequests, trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12, now)
+  }, [allRequests, trendRange, yearFrom, yearTo, now])
 
   /* ── scope openers — stat cells + trend months open the inner PAGE; the tapped thing
    * becomes the page's pre-applied filter (status or a custom month range) ── */
@@ -996,7 +1033,28 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
               </Box>
             )}
           </Typography>
-          <TrendRangeTabs value={trendRange} onPick={setTrendRange} color={skin.ACCENT_INK} />
+          {/* THE standard period control (user call 2026-09-06): pill 1Y|2Y|3Y|Custom +
+              capped year From/To — the CoL/SickTrendCard grammar. */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={[
+                { key: 'last_1y', label: '1Y' },
+                { key: 'last_2y', label: '2Y' },
+                { key: 'last_3y', label: '3Y' },
+                { key: 'custom', label: 'Custom' }
+              ]}
+              value={trendRange}
+              onChange={k => (k === 'custom' ? enterCustom() : setTrendRange(k as 'last_1y' | 'last_2y' | 'last_3y'))}
+            />
+            {trendRange === 'custom' && (
+              <>
+                <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(years, yearTo, CAP, 'from')} anyLabel='From' />
+                <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(years, yearFrom, CAP, 'to')} anyLabel='To' />
+              </>
+            )}
+          </Box>
         </Box>
 
         <TrendAreaChart values={trend.values} labels={trend.labels} color={skin.ACCENT_FILL} name='Lab requests' height={230} onPointClick={openMonth} />
@@ -1212,7 +1270,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                       total={animalRows.length}
                       paginationModel={testAnimPm}
                       setPaginationModel={setTestAnimPm}
-                      rowHeight={146}
+                      rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
                       onRowClick={(p: any) => {
                         const entry = animalTestEntry(p.row.aid, testSheet)
                         if (entry) setTrendEntry(entry)
@@ -1226,7 +1284,9 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                       total={requestRows.length}
                       paginationModel={testReqPm}
                       setPaginationModel={setTestReqPm}
-                      rowHeight={146}
+                      // matches the Animal Wise view's 128 (Population standard) so the tab
+                      // switch never jumps; the 3-line RequestIdCell fits comfortably.
+                      rowHeight={128}
                     />
                   )}
                 </Box>
@@ -1261,8 +1321,12 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                     <AnimalCardRow
                       key={e.aid}
                       aid={e.aid}
+                      // ONE location line (user rule 2026-09-05): site while the list spans
+                      // sites, enclosure once it's a single site — never both. '' (not
+                      // undefined) blocks AnimalCardRow's synth-enclosure backfill.
                       site={multiSite ? e.site : undefined}
-                      enclosure={e.enclosure}
+                      enclosure={multiSite ? '' : e.enclosure}
+                      size={75} // the standard minimal card size (Population grammar)
                       trailing={
                         e.lastResult ? (
                           <StatusChip label={RESULT_LABEL[e.lastResult]} tone={RESULT_TONE[e.lastResult]} />
