@@ -44,7 +44,12 @@ import {
   thinScrollbarSx,
   TrendAreaChart,
   TrendRangeTabs
-, HeaderSubTabs, SearchPill, SheetDrawer, UnderlineTabs} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, HeaderSubTabs, SearchPill, SheetDrawer, UnderlineTabs, ViewToggle, YearLinesChart} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+// THE standard period control's pieces (SickTrendCard grammar — CoL owns them)
+import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
+import DatePicker from 'react-datepicker'
+import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import { BarColumns } from 'src/views/pages/species-management/ipad3/marks'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
@@ -750,8 +755,9 @@ const wordingFor = (key: TabKey, _kind: string) => {
     coverageLabel: 'Coverage',
     overdueLabel: 'Overdue',
     overdueWord: 'overdue',
-    // "due"/"due on" is BANNED for future items — future = "upcoming" (user rule 2026-07-14)
-    dueLabel: 'Upcoming in 30 Days',
+    // "due"/"due on" is BANNED for future items — future = "upcoming" (user rule 2026-07-14).
+    // Window widened 30 → 60 days (demo review 2026-09-04 / user call 2026-09-06).
+    dueLabel: 'Upcoming in 60 Days',
     dueShort: 'Upcoming',
     dueWord: 'upcoming',
     doseNoun: 'Doses given',
@@ -772,17 +778,22 @@ const PROGRAM_ICON: Record<string, string> = {
 }
 
 /** Standard stat tiles (Clinical/Hospital pattern) — the species-level coverage roll-up was
- *  removed per the 2026-07-30 review ("how will that number help?"); coverage lives per-vaccine. */
+ *  removed per the 2026-07-30 review ("how will that number help?"); coverage lives per-vaccine.
+ *  3 stats (demo review 2026-09-04): Overdue · Given in Last 60 Days (distinct animals with an
+ *  administered dose in the trailing 60 days) · Upcoming in 60 Days (window widened from 30).
+ *  Counts derive from the SAME animal rows the drill sheet lists — a tile must open a sheet
+ *  showing exactly its number (the sidecar's precomputed summary has disagreed before). */
 const PreventiveStatStrip: React.FC<{
-  s: PreventiveProgram['summary']
+  counts: { overdue: number; given60: number; upcoming60: number }
   w: ReturnType<typeof wordingFor>
   onPick: (t: StatusSheetTab) => void
-}> = ({ s, w, onPick }) => (
+}> = ({ counts, w, onPick }) => (
   // CC StatBand strip (2026-09-01 reskin sweep); Never Given removed same day.
   <SignalsBand
     cells={[
-      { key: 'overdue', label: w.overdueLabel, count: s.overdue, onOpen: () => onPick('overdue') },
-      { key: 'due', label: w.dueLabel, count: s.dueIn30, tone: 'neutral', onOpen: () => onPick('due') }
+      { key: 'overdue', label: w.overdueLabel, count: counts.overdue, onOpen: () => onPick('overdue') },
+      { key: 'given', label: 'Given in Last 60 Days', count: counts.given60, tone: 'neutral', onOpen: () => onPick('given') },
+      { key: 'due', label: w.dueLabel, count: counts.upcoming60, tone: 'neutral', onOpen: () => onPick('due') }
     ]}
   />
 )
@@ -1114,6 +1125,9 @@ const PreventiveIndex: React.FC<{
   // worst first — the 90+ bucket is the action column (a sortModel field MUST exist as a column)
   const tbl = useSortableTable(rows, { field: 'd90', sort: 'desc' })
 
+  // Strip counts from the SAME animal rows the drill sheet lists (tile == sheet).
+  const stripStats = useMemo(() => stripCounts(types), [types])
+
   const num = (v: number, color: string, weight = 600) => (
     <Typography sx={{ fontSize: '1rem', fontWeight: weight, color, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
   )
@@ -1152,7 +1166,7 @@ const PreventiveIndex: React.FC<{
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <PreventiveStatStrip s={prog.summary} w={w} onPick={setStatusSheet} />
+      <PreventiveStatStrip counts={stripStats} w={w} onPick={setStatusSheet} />
       <PreventiveStatusSheet
         openTab={statusSheet}
         prog={prog}
@@ -1317,25 +1331,16 @@ const DoseHistoryDrawer: React.FC<{
               )}
               {animal.doses.map((d, i) => {
                 const amt = animal.amounts?.[i]
-                const late = showLate ? doseLateDays(animal.aid, typeName, d) : 0
 
                 return (
-                  // ONE state grammar (2026-09-01): title mirrors the pending row's verb+date
-                  // ("Administered {date}"), punctuality beneath in the small-caps subline —
-                  // "Same Day" or "Delayed • N d". "Last Given"/"Late" wordings retired.
+                  // ADMINISTERED DATES ONLY (user call 2026-09-06): the delayed-vs-scheduled
+                  // comparison retired — no per-dose delay counts, no scheduled-date math.
+                  // The overdue-since fact lives in the pending row above.
                   <SheetRow
                     key={i}
                     icon={icon}
                     iconSize={32}
                     title={`Administered ${fmtDate(d)}`}
-                    // normal case (user call 2026-09-01 — no all-caps), small/semibold/grey
-                    caption={
-                      showLate ? (
-                        <Box component='span' sx={{ fontSize: '14px', fontWeight: 600, color: c.neutralSecondary }}>
-                          {late > 0 ? `Delayed • ${late} d` : 'Same Day'}
-                        </Box>
-                      ) : undefined
-                    }
                     last={i === animal.doses.length - 1}
                     // right side: TOTAL given on the title line; weight-based medicines show
                     // their rate (e.g. "5 mg/kg") directly beneath it
@@ -1494,17 +1499,87 @@ const BucketDrawer: React.FC<{
   )
 }
 
-/* ── species-level status sheet — stat-tile click → Overdue / Upcoming (Never Given removed
-   from every screen/scenario, user call 2026-09-01) ── */
-type StatusSheetTab = 'overdue' | 'due'
-type StatusSheetRow = { a: PreventiveTypeAnimal; type: PreventiveType; days: number }
+/* ── species-level status sheet — stat-tile click → Overdue / Given 60 / Upcoming (Never
+   Given removed from every screen/scenario, user call 2026-09-01) ── */
+type StatusSheetTab = 'overdue' | 'given' | 'due'
+type StatusSheetRow = {
+  a: PreventiveTypeAnimal
+  type: PreventiveType
+  days: number
+  /** Given tab: the latest administered date inside the 60-day window. */
+  date?: string
+  /** Given tab: how many medicines this animal received in the window (rows are distinct animals). */
+  meds?: number
+}
 const STATUS_DAY_MS = 86400000
-const UPCOMING_WINDOWS = [
-  { label: 'Next 30 Days', value: 30 },
-  { label: 'Next 60 Days', value: 60 },
-  { label: 'Next 90 Days', value: 90 },
-  { label: 'Next 6 Months', value: 180 }
+/** The one upcoming horizon (user call 2026-09-06): everything "upcoming" looks 60 days out. */
+const UPCOMING_CAP_DAYS = 60
+/** "Given in Last 60 Days" — the trailing administered-dose window (mirrors the upcoming cap). */
+const GIVEN_WINDOW_DAYS = 60
+
+/** Upcoming-sheet preset windows (task: Next 7 / Next 15 / Custom; default = the full 60). */
+type UpcomingPreset = 'w7' | 'w15' | 'w60' | 'custom'
+const UPCOMING_PRESET_ITEMS: { key: UpcomingPreset; label: string }[] = [
+  { key: 'w7', label: '7 Days' },
+  { key: 'w15', label: '15 Days' },
+  { key: 'w60', label: '60 Days' },
+  { key: 'custom', label: 'Custom' }
 ]
+const startOfDayMs = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+
+/** Resolve the upcoming window to concrete [lo..hi] ms bounds — ALWAYS inside today..+60 d
+ *  (a custom from–to is clamped into the cap; nulls fall back to the window's edges). */
+const upcomingBounds = (preset: UpcomingPreset, from: Date | null, to: Date | null, now: Date) => {
+  const lo0 = startOfDayMs(now)
+  const cap = lo0 + UPCOMING_CAP_DAYS * STATUS_DAY_MS + (STATUS_DAY_MS - 1)
+  if (preset === 'custom') {
+    return {
+      lo: from ? Math.max(lo0, startOfDayMs(from)) : lo0,
+      hi: to ? Math.min(cap, startOfDayMs(to) + (STATUS_DAY_MS - 1)) : cap
+    }
+  }
+  const days = preset === 'w7' ? 7 : preset === 'w15' ? 15 : UPCOMING_CAP_DAYS
+
+  return { lo: lo0, hi: lo0 + days * STATUS_DAY_MS + (STATUS_DAY_MS - 1) }
+}
+
+/** Has this animal an administered dose inside the trailing given-window? (dose dates first,
+ *  lastGiven as the fallback where the record carries no dose list). */
+const givenInWindow = (a: PreventiveTypeAnimal, cutMs: number): string | null => {
+  let latest: string | null = null
+  for (const d of a.doses) {
+    const t = new Date(d).getTime()
+    if (!isNaN(t) && t >= cutMs && (!latest || d > latest)) latest = d
+  }
+  if (!latest && a.lastGiven && new Date(a.lastGiven).getTime() >= cutMs) latest = a.lastGiven
+
+  return latest
+}
+
+/** The stat strip's three counts, derived from the SAME animal rows the sheet lists:
+ *  overdue = animal × medicine rows; upcoming60 = rows with the next dose inside 60 days;
+ *  given60 = DISTINCT animals with an administered dose in the last 60 days. */
+const stripCounts = (types: PreventiveType[]) => {
+  const now = new Date()
+  const { lo, hi } = upcomingBounds('w60', null, null, now)
+  const givenCut = now.getTime() - GIVEN_WINDOW_DAYS * STATUS_DAY_MS
+  let overdue = 0
+  let upcoming60 = 0
+  const given = new Set<string>()
+  for (const t of types) {
+    for (const a of t.animals) {
+      if (a.status === 'overdue') overdue++
+      else if (a.status !== 'never' && a.nextDue) {
+        const dueT = new Date(a.nextDue).getTime()
+        if (!isNaN(dueT) && dueT >= lo && dueT <= hi) upcoming60++
+      }
+      if (givenInWindow(a, givenCut)) given.add(a.aid)
+    }
+  }
+
+  return { overdue, given60: given.size, upcoming60 }
+}
+
 // same buckets as the medicine table's overdue-age columns
 const OVERDUE_BUCKETS = [
   { label: '0–30 Days', value: 'd30', min: 0, max: 30 },
@@ -1513,10 +1588,35 @@ const OVERDUE_BUCKETS = [
   { label: '90+ Days', value: 'd90', min: 91, max: Infinity }
 ]
 
-/** Stat-strip drill: one sheet, three tabs (the clicked tile lands on its tab). Rows are
- *  animal × medicine (an animal overdue for two vaccines = two missed doses = two rows),
- *  medicine named under the animal. Search + the app-standard CustomFilterDrawer (medicine
- *  multi-select; Upcoming window 30d default → up to 6 months). Row → dose history. */
+/** The Upcoming custom-range trigger — a pill TextField the DatePicker opens from; shows the
+ *  picked from–to in the module's dd MMM yyyy grammar (never MM/DD). */
+const UpcomingRangeInput = React.forwardRef<HTMLInputElement, any>((props, ref) => {
+  const fmtD = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  const s = props.start ? fmtD(props.start) : ''
+  const e = props.end ? ` – ${fmtD(props.end)}` : ''
+
+  return (
+    <TextField
+      size='small'
+      inputRef={ref}
+      {...props}
+      value={s ? `${s}${e}` : ''}
+      placeholder='From – To'
+      sx={{
+        width: 250,
+        '& .MuiInputBase-root': { height: CTRL_H, borderRadius: '999px', bgcolor: '#ffffff', fontSize: '15px', fontWeight: 500, color: skin.INK2 },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER },
+        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER_HOVER }
+      }}
+    />
+  )
+})
+
+/** Stat-strip drill: one sheet, three tabs — Overdue / Given (last 60 d) / Upcoming (next
+ *  60 d) — the clicked tile lands on its tab. Overdue/Upcoming rows are animal × medicine
+ *  (an animal overdue for two vaccines = two missed doses = two rows); the Given tab lists
+ *  DISTINCT animals. Search + site facet (SheetFilterBar) + the app-standard
+ *  CustomFilterDrawer (medicine / overdue-age multi-select). Row → dose history. */
 const PreventiveStatusSheet: React.FC<{
   openTab: StatusSheetTab | null
   prog: PreventiveProgram
@@ -1531,15 +1631,21 @@ const PreventiveStatusSheet: React.FC<{
   const [q, setQ] = useState('')
   const [drill, setDrill] = useState<StatusSheetRow | null>(null)
 
+  // site facet (task 2026-09-06): dropdown beside the search, default All Sites
+  const [siteSel, setSiteSel] = useState<string | null>(null)
+
+  // Upcoming presets (task 2026-09-06): pill 7/15/60/Custom; default = the full 60-day window
+  const [upPreset, setUpPreset] = useState<UpcomingPreset>('w60')
+  const [upFrom, setUpFrom] = useState<Date | null>(null)
+  const [upTo, setUpTo] = useState<Date | null>(null)
+
   // applied filters (chips) + the drawer's working copy (committed on Apply)
   const [vaccines, setVaccines] = useState<string[]>([])
-  const [windowDays, setWindowDays] = useState<number>(30)
   const [ageBuckets, setAgeBuckets] = useState<string[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
   const [filterMenu, setFilterMenu] = useState<string>(w.typeCol)
   const [filterQ, setFilterQ] = useState('')
   const [pendVaccines, setPendVaccines] = useState<string[]>([])
-  const [pendWindow, setPendWindow] = useState<number[]>([30])
   const [pendBuckets, setPendBuckets] = useState<string[]>([])
 
   // each open lands on the clicked tile's tab with a clean slate
@@ -1547,6 +1653,10 @@ const PreventiveStatusSheet: React.FC<{
     if (openTab) {
       setTab(openTab)
       setQ('')
+      setSiteSel(null)
+      setUpPreset('w60')
+      setUpFrom(null)
+      setUpTo(null)
     }
   }, [openTab])
 
@@ -1555,20 +1665,23 @@ const PreventiveStatusSheet: React.FC<{
 
   const lists = useMemo(() => {
     const query = q.trim().toLowerCase()
-    const now = Date.now()
-    const mk = (tb: StatusSheetTab) => {
+    const now = new Date()
+    const nowMs = now.getTime()
+    const matchQ = (a: PreventiveTypeAnimal, t: PreventiveType) =>
+      !query || a.name.toLowerCase().includes(query) || t.name.toLowerCase().includes(query) || a.site.toLowerCase().includes(query)
+    // Upcoming = the next dose falls inside the picked window — always within today..+60 d.
+    const { lo, hi } = upcomingBounds(upPreset, upFrom, upTo, now)
+    const mk = (tb: 'overdue' | 'due') => {
       const out: StatusSheetRow[] = []
       for (const t of types) {
         if (vaccines.length && !vaccines.includes(t.name)) continue
         for (const a of t.animals) {
           let days = a.days ?? 0
           if (tb === 'due') {
-            // upcoming = anything whose next dose falls inside the window (covered animals
-            // roll in as the window widens past 30 days)
             if (a.status === 'overdue' || a.status === 'never' || !a.nextDue) continue
-            const until = Math.ceil((new Date(a.nextDue).getTime() - now) / STATUS_DAY_MS)
-            if (until < 0 || until > windowDays) continue
-            days = until
+            const dueT = new Date(a.nextDue).getTime()
+            if (isNaN(dueT) || dueT < lo || dueT > hi) continue
+            days = Math.ceil((dueT - nowMs) / STATUS_DAY_MS)
           } else if (a.status !== tb) continue
           if (
             tb === 'overdue' &&
@@ -1576,13 +1689,7 @@ const PreventiveStatusSheet: React.FC<{
             !OVERDUE_BUCKETS.some(b => ageBuckets.includes(b.value) && days >= b.min && days <= b.max)
           )
             continue
-          if (
-            query &&
-            !a.name.toLowerCase().includes(query) &&
-            !t.name.toLowerCase().includes(query) &&
-            !a.site.toLowerCase().includes(query)
-          )
-            continue
+          if (!matchQ(a, t)) continue
           out.push({ a, type: t, days })
         }
       }
@@ -1590,28 +1697,64 @@ const PreventiveStatusSheet: React.FC<{
       return out.sort(
         tb === 'overdue'
           ? (x, y) => y.days - x.days // longest overdue first
-          : tb === 'due'
-          ? (x, y) => x.days - y.days // soonest first
-          : (x, y) => x.a.name.localeCompare(y.a.name)
+          : (x, y) => x.days - y.days // soonest first
       )
     }
+    // Given in Last 60 Days — DISTINCT animals (the tile's definition): one row per animal,
+    // stamped with its latest administered date in the window; `meds` = medicines received.
+    const mkGiven = () => {
+      const cut = nowMs - GIVEN_WINDOW_DAYS * STATUS_DAY_MS
+      const byAid = new Map<string, StatusSheetRow>()
+      for (const t of types) {
+        if (vaccines.length && !vaccines.includes(t.name)) continue
+        for (const a of t.animals) {
+          const latest = givenInWindow(a, cut)
+          if (!latest || !matchQ(a, t)) continue
+          const prev = byAid.get(a.aid)
+          if (!prev) {
+            byAid.set(a.aid, { a, type: t, days: 0, date: latest, meds: 1 })
+          } else {
+            prev.meds = (prev.meds ?? 1) + 1
+            if (latest > (prev.date ?? '')) {
+              prev.a = a
+              prev.type = t
+              prev.date = latest
+            }
+          }
+        }
+      }
 
-    return { overdue: mk('overdue'), due: mk('due') }
-  }, [types, q, vaccines, windowDays, ageBuckets])
-  const shown = lists[tab]
+      return [...byAid.values()].sort((x, y) => ((x.date ?? '') < (y.date ?? '') ? 1 : -1)) // newest first
+    }
+
+    return { overdue: mk('overdue'), given: mkGiven(), due: mk('due') }
+  }, [types, q, vaccines, ageBuckets, upPreset, upFrom, upTo])
+
+  // Site facet options = sites present in the ACTIVE tab's rows (pre-site-filter), with counts.
+  const siteOpts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of lists[tab]) m.set(r.a.site, (m.get(r.a.site) ?? 0) + 1)
+    if (siteSel && !m.has(siteSel)) m.set(siteSel, 0)
+
+    return [...m.entries()].sort((x, y) => x[0].localeCompare(y[0])).map(([site, n]) => ({ site, label: `${site} (${n.toLocaleString()})` }))
+  }, [lists, tab, siteSel])
+  const bySite = (rows: StatusSheetRow[]) => (siteSel ? rows.filter(r => r.a.site === siteSel) : rows)
+  const shown = bySite(lists[tab])
+  // Card location rule (HARD, 2026-09-06): >1 site in the list → SITE line (no enclosure);
+  // a single site (picked in the facet, or the only one present) → ENCLOSURE line (no site).
+  const multiSite = !siteSel && new Set(shown.map(x => x.a.site)).size > 1
 
   const tabs: { key: StatusSheetTab; label: string }[] = [
-    { key: 'overdue', label: `${w.overdueLabel} • ${lists.overdue.length}` },
-    { key: 'due', label: `${w.dueShort} • ${lists.due.length}` }
+    { key: 'overdue', label: `${w.overdueLabel} • ${bySite(lists.overdue).length}` },
+    { key: 'given', label: `Given • ${bySite(lists.given).length}` },
+    { key: 'due', label: `${w.dueShort} • ${bySite(lists.due).length}` }
   ]
 
-  const windowLabel = UPCOMING_WINDOWS.find(o => o.value === windowDays)?.label ?? `Next ${windowDays} Days`
   const ageMenu = `${w.overdueLabel} Age`
-  const appliedCount = vaccines.length + ageBuckets.length + (windowDays !== 30 ? 1 : 0)
+  const appliedCount = vaccines.length + ageBuckets.length
 
   const openFilter = () => {
     setPendVaccines(vaccines)
-    setPendWindow([windowDays])
     setPendBuckets(ageBuckets)
     setFilterMenu(w.typeCol)
     setFilterQ('')
@@ -1619,22 +1762,17 @@ const PreventiveStatusSheet: React.FC<{
   }
   const applyFilters = () => {
     setVaccines(pendVaccines)
-    setWindowDays(pendWindow[0] ?? 30)
     setAgeBuckets(pendBuckets)
     setFilterOpen(false)
   }
   const clearAll = () => {
     setPendVaccines([])
-    setPendWindow([30])
     setPendBuckets([])
   }
 
   const filteredTypeItems = filterQ.trim()
     ? typeItems.filter(i => i.label.toLowerCase().includes(filterQ.trim().toLowerCase()))
     : typeItems
-  const filteredWindows = filterQ.trim()
-    ? UPCOMING_WINDOWS.filter(o => o.label.toLowerCase().includes(filterQ.trim().toLowerCase()))
-    : UPCOMING_WINDOWS
 
   return (
     <SheetDrawer open={!!openTab} onClose={onClose} PaperProps={{ sx: sheetPaperSx('md') }}>
@@ -1646,9 +1784,49 @@ const PreventiveStatusSheet: React.FC<{
           onClose={onClose}
         />
         <SheetTabs tabs={tabs} value={tab} onPick={setTab} />
+        {/* Upcoming presets (2026-09-06): kit pill 7/15/60/Custom; Custom = a from–to date
+            range CLAMPED inside the next 60 days. Default = the full 60-day window. */}
+        {tab === 'due' && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', px: SHEET_PX, pt: 3 }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={UPCOMING_PRESET_ITEMS}
+              value={upPreset}
+              onChange={k => setUpPreset(k as UpcomingPreset)}
+            />
+            {upPreset === 'custom' && (
+              <DatePickerWrapper>
+                <DatePicker
+                  selectsRange
+                  startDate={upFrom}
+                  endDate={upTo}
+                  selected={upFrom}
+                  minDate={new Date()}
+                  maxDate={new Date(Date.now() + UPCOMING_CAP_DAYS * STATUS_DAY_MS)}
+                  shouldCloseOnSelect={false}
+                  onChange={(dates: [Date | null, Date | null]) => {
+                    setUpFrom(dates[0])
+                    setUpTo(dates[1])
+                  }}
+                  customInput={<UpcomingRangeInput start={upFrom} end={upTo} />}
+                />
+              </DatePickerWrapper>
+            )}
+          </Box>
+        )}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, pr: SHEET_PX }}>
+          {/* the shared sheet search + site facet (SheetFilterBar); sites carry row counts */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <SheetSearch value={q} onChange={setQ} placeholder={`Search animals, ${w.typeNoun}, sites…`} />
+            <SheetFilterBar
+              search={q}
+              onSearch={setQ}
+              searchPlaceholder={`Search animals, ${w.typeNoun}, sites…`}
+              facetOptions={siteOpts.map(o => o.label)}
+              facetValue={siteSel ? siteOpts.find(o => o.site === siteSel)?.label ?? null : null}
+              onFacet={v => setSiteSel(v ? siteOpts.find(o => o.label === v)?.site ?? null : null)}
+              facetPlaceholder='All Sites'
+              facetIcon='mdi:map-marker-outline'
+            />
           </Box>
           <Box sx={{ pt: 2 }}>
             <FilterButton
@@ -1671,35 +1849,51 @@ const PreventiveStatusSheet: React.FC<{
                 onClear={() => setAgeBuckets(prev => prev.filter(x => x !== b))}
               />
             ))}
-            {windowDays !== 30 && <FilterChip label={windowLabel} onClear={() => setWindowDays(30)} />}
           </Box>
         )}
         <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, pt: 1 }}>
-          {shown.map((r, i) => (
-            <AnimalCardRow
-              key={`${r.type.name}-${r.a.aid}`}
-              aid={r.a.aid}
-              site={new Set(shown.map(x => x.a.site)).size > 1 ? r.a.site : undefined}
-              last={i === shown.length - 1}
-              onClick={() => setDrill(r)}
-              chevron
-              trailing={
-                tab === 'overdue' ? (
-                  <StatusChip label={`${r.days} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />
-                ) : tab === 'due' ? (
-                  // imminent = yellow attention, never coral — these doses aren't a failure
-                  <StatusChip label={r.days <= 0 ? 'Today' : `In ${r.days}d`} tone={r.days <= 7 ? 'caution' : 'neutral'} />
-                ) : undefined
-              }
-              // medicine + (Upcoming only) its date — the identity lines live in the card
-              meta={
-                <>
-                  <RowMetaText strong>{r.type.name}</RowMetaText>
-                  {tab === 'due' && r.a.nextDue && <RowMetaText>{fmtDate(r.a.nextDue)}</RowMetaText>}
-                </>
-              }
-            />
-          ))}
+          {/* THE minimal animal card (2026-09-06): 75px block, EXACTLY 3 text rows — two
+              identifiers + ONE location line (site XOR enclosure per the multiSite rule). */}
+          {shown.map((r, i) => {
+            const s = synthAnimalIdentity(r.a.aid)
+
+            return (
+              <AnimalCardRow
+                key={`${r.type.name}-${r.a.aid}`}
+                aid={r.a.aid}
+                size={75}
+                identifiers={s.identifiers}
+                tag={s.tag}
+                site={multiSite ? r.a.site : undefined}
+                enclosure={multiSite ? undefined : s.enclosure}
+                last={i === shown.length - 1}
+                onClick={() => setDrill(r)}
+                chevron
+                trailing={
+                  tab === 'overdue' ? (
+                    <StatusChip label={`${r.days} d`} tone='error' bg={skin.mixOverWhite(skin.TONE_FILL.bad, 0.12)} />
+                  ) : tab === 'due' ? (
+                    // imminent = yellow attention, never coral — these doses aren't a failure
+                    <StatusChip label={r.days <= 0 ? 'Today' : `In ${r.days}d`} tone={r.days <= 7 ? 'caution' : 'neutral'} />
+                  ) : undefined
+                }
+                // medicine + date (Upcoming: the scheduled date · Given: the administered date)
+                meta={
+                  tab === 'given' ? (
+                    <>
+                      <RowMetaText strong>{(r.meds ?? 1) > 1 ? `${r.meds} medicines` : r.type.name}</RowMetaText>
+                      {r.date && <RowMetaText>{fmtDate(r.date)}</RowMetaText>}
+                    </>
+                  ) : (
+                    <>
+                      <RowMetaText strong>{r.type.name}</RowMetaText>
+                      {tab === 'due' && r.a.nextDue && <RowMetaText>{fmtDate(r.a.nextDue)}</RowMetaText>}
+                    </>
+                  )
+                }
+              />
+            )
+          })}
           {!shown.length && <SheetEmpty>No animals in this group.</SheetEmpty>}
         </Box>
       </Sheet>
@@ -1709,11 +1903,10 @@ const PreventiveStatusSheet: React.FC<{
         onClose={() => setFilterOpen(false)}
         onApply={applyFilters}
         onClearAll={clearAll}
-        filterLists={[w.typeCol, ageMenu, 'Upcoming Window']}
+        filterLists={[w.typeCol, ageMenu]}
         selectedOptions={{
           [w.typeCol]: pendVaccines,
-          [ageMenu]: pendBuckets,
-          'Upcoming Window': pendWindow[0] === 30 ? [] : pendWindow
+          [ageMenu]: pendBuckets
         }}
         selectedItem={filterMenu}
         onSelectItem={(m: string) => {
@@ -1757,19 +1950,6 @@ const PreventiveStatusSheet: React.FC<{
             placeholder='Search…'
           />
         )}
-        {filterMenu === 'Upcoming Window' && (
-          <FilterContent
-            menuName='Upcoming Window'
-            searchQuery={filterQ}
-            onSearch={setFilterQ}
-            selectedOptions={pendWindow}
-            onOptionChange={(id: number) => setPendWindow([id])} // single-select: picking replaces
-            items={filteredWindows}
-            isAllSelected={false}
-            searchLoading={false}
-            placeholder='Search…'
-          />
-        )}
       </CustomFilterDrawer>
 
       <DoseHistoryDrawer
@@ -1796,8 +1976,13 @@ const PreventiveDetail: React.FC<{
   // Portrait: the status tabs + site filter + search don't fit one header row —
   // stack as two deliberate rows (tabs / full-width search + right-aligned filter).
   const portrait = useMediaQuery('(orientation: portrait)')
-  // ONE range drives both dose-administration panels (given | delayed) — they tell one story.
-  const [doseRange, setDoseRange] = useState<RangePreset>('last_1y')
+  /* THE standard period control for the doses chart (user call 2026-09-06): pill
+     1Y | 2Y | 3Y | Custom + capped year From/To — the CoL/SickTrendCard grammar;
+     TrendRangeTabs' 'All' retired (demo review 2026-09-04). */
+  const [trendRange, setTrendRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [yearFrom, setYearFrom] = useState<number | null>(null)
+  const [yearTo, setYearTo] = useState<number | null>(null)
+  const NOW = useMemo(() => new Date(), [])
   const [statusTab, setStatusTab] = useState<'overdue' | 'due'>('overdue')
   const [siteFilter, setSiteFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
@@ -1805,38 +1990,68 @@ const PreventiveDetail: React.FC<{
   const [monthDrill, setMonthDrill] = useState<{ label: string; rows: MonthRow[] } | null>(null)
   const [bucketDrill, setBucketDrill] = useState<{ label: string; animals: PreventiveTypeAnimal[] } | null>(null)
 
-  // Chart values derived from the SAME dose records the month drill lists — the sidecar's
-  // precomputed dosesPerMonth doesn't reconcile with the decoded per-animal dose dates, and a
-  // bar that says 8 must open a sheet that shows 8. Missed doses = currently-overdue animals,
-  // attributed to the month their lapsed due date fell in (full bar height = due that month).
-  const { derivedDosesPerMonth, derivedAnimalsPerMonth, derivedMissedPerMonth } = useMemo(() => {
-    const counts = new Map<string, number>()
-    const animalSets = new Map<string, Set<string>>()
-    const missed = new Map<string, number>()
+  // Years the dose data actually covers (for the Custom From/To pickers) — dose dates
+  // back from today; the chart always has this year available.
+  const years = useMemo(() => {
+    let first = NOW.getFullYear()
+    for (const a of type.animals)
+      for (const d of a.doses) {
+        const y = Number(d.slice(0, 4))
+        if (Number.isFinite(y) && y >= 1900 && y < first) first = y
+      }
+
+    return Array.from({ length: NOW.getFullYear() - first + 1 }, (_, i) => NOW.getFullYear() - i)
+  }, [type, NOW])
+  const CAP = 5
+  const enterCustom = () => {
+    setTrendRange('custom')
+    if (yearFrom == null && yearTo == null) {
+      setYearFrom(Math.max(years[years.length - 1] ?? NOW.getFullYear(), NOW.getFullYear() - (CAP - 1)))
+      setYearTo(NOW.getFullYear())
+    }
+  }
+
+  // Doses Administered as the kit YearLinesChart (demo review 2026-09-04): one line per
+  // calendar year over Jan–Dec, ≤5 lines. Values derive from the SAME dose records the
+  // month drill lists (the sidecar's precomputed dosesPerMonth doesn't reconcile — a dot
+  // that says 8 must open a sheet that shows 8). The picked window filters WHICH doses
+  // count (CoL semantics): presets = last 12/24/36 months anchored at today; Custom =
+  // whole years [from..to], anchored at the range's end (today when it ends this year).
+  const doseSeries = useMemo<YearSeries[]>(() => {
+    let winStart: Date
+    let winEnd: Date
+    if (trendRange === 'custom') {
+      const to = yearTo ?? NOW.getFullYear()
+      const from = yearFrom ?? to
+      winEnd = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31, 23, 59, 59)
+      winStart = new Date(from, 0, 1)
+    } else {
+      const n = trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12
+      winStart = new Date(NOW.getFullYear(), NOW.getMonth() - (n - 1), 1)
+      winEnd = NOW
+    }
+    const lo = winStart.getTime()
+    const hi = winEnd.getTime()
+    const by = new Map<number, number[]>()
     for (const a of type.animals) {
       for (const d of a.doses) {
-        const key = d.slice(0, 7)
-        counts.set(key, (counts.get(key) ?? 0) + 1)
-        ;(animalSets.get(key) ?? animalSets.set(key, new Set()).get(key)!).add(a.aid)
+        const t = new Date(d).getTime()
+        if (isNaN(t) || t < lo || t > hi) continue
+        const y = Number(d.slice(0, 4))
+        const m = Number(d.slice(5, 7)) - 1
+        if (!Number.isFinite(y) || m < 0 || m > 11) continue
+        const arr = by.get(y) ?? Array(12).fill(0)
+        arr[m]++
+        by.set(y, arr)
       }
-      if (a.status === 'overdue' && a.nextDue) {
-        const key = a.nextDue.slice(0, 7)
-        missed.set(key, (missed.get(key) ?? 0) + 1)
-      }
-    }
-    const keyOf = (label: string) => {
-      const m = /^([A-Za-z]{3})\s*'(\d{2})$/.exec(label.trim())
-      const mi = m ? MONTHS.indexOf(m[1]) : -1
-
-      return m && mi >= 0 ? `20${m[2]}-${String(mi + 1).padStart(2, '0')}` : null
     }
 
-    return {
-      derivedDosesPerMonth: months.map(l => counts.get(keyOf(l) ?? '') ?? 0),
-      derivedAnimalsPerMonth: months.map(l => animalSets.get(keyOf(l) ?? '')?.size ?? 0),
-      derivedMissedPerMonth: months.map(l => missed.get(keyOf(l) ?? '') ?? 0)
-    }
-  }, [type, months])
+    // newest year first — drives the chart's lightness ladder; ≤5 lines (the kit rule)
+    return [...by.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, CAP)
+      .map(([year, values]) => ({ year, values }))
+  }, [type, trendRange, yearFrom, yearTo, NOW])
 
   // This vaccine's overdue animals by age — mirrors the index table's buckets (V7).
   const buckets = useMemo(() => {
@@ -1885,12 +2100,6 @@ const PreventiveDetail: React.FC<{
     setMonthDrill({ label: `${m[1]} ${year}`, rows })
   }
 
-  // Rolling windows anchor at TODAY: pad the axis (and series) up to the current month.
-  const axisMonths = useMemo(() => padMonthsToNow(months), [months])
-  const monthsOf = (preset: RangePreset) => (preset === 'last_1y' ? 12 : preset === 'last_2y' ? 24 : axisMonths.length || 36)
-  const slice = (arr: number[], preset: RangePreset) => padSeries(arr, axisMonths.length).slice(-monthsOf(preset))
-  const sliceLabels = (preset: RangePreset) => axisMonths.slice(-monthsOf(preset))
-  // >12 columns: thin the axis captions but keep full labels for tooltips
   // Two tabs only — Overdue · Upcoming (All/Covered dropped 2026-09-01: the work lives here;
   // coverage is the header ledger's job). Counts come from the ACTUAL animal list, never the
   // sidecar's precomputed rollup (seen disagreeing: 90 vs 30) — tabs must match their rows.
@@ -2046,34 +2255,57 @@ const PreventiveDetail: React.FC<{
         </Box>
       </Box>
 
-      {/* Administered ONLY (2026-08-27 punch-list): gradient columns with the count on every
-          month; overdue never rides the plot — it has its own section below (user call
-          2026-09-01: two separate sections, no repeated ledger line). */}
+      {/* Administered ONLY (2026-08-27 punch-list): the kit YearLinesChart (LINE, one line
+          per year, Jan–Dec axis, standard tooltip — demo review 2026-09-04); overdue never
+          rides the plot — it has its own section below (user call 2026-09-01). The period
+          control is THE standard: pill 1Y|2Y|3Y|Custom + capped-5 year From/To. Dot tap →
+          that year-month's schedule sheet (given + missed). */}
       <SectionCard
         title='Doses Administered'
-        action={<TrendRangeTabs value={doseRange} onPick={setDoseRange} color={skin.ACCENT_INK} />}
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={[
+                { key: 'last_1y', label: '1Y' },
+                { key: 'last_2y', label: '2Y' },
+                { key: 'last_3y', label: '3Y' },
+                { key: 'custom', label: 'Custom' }
+              ]}
+              value={trendRange}
+              onChange={k => (k === 'custom' ? enterCustom() : setTrendRange(k as 'last_1y' | 'last_2y' | 'last_3y'))}
+            />
+            {trendRange === 'custom' && (
+              <>
+                <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(years, yearTo, CAP, 'from')} anyLabel='From' />
+                <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(years, yearFrom, CAP, 'to')} anyLabel='To' />
+              </>
+            )}
+          </Box>
+        }
         titleMb={3}
       >
-        <BarColumns
-          bars={sliceLabels(doseRange).map((m, i) => [twoLineMonth(m), slice(derivedDosesPerMonth, doseRange)[i] ?? 0] as [string, number])}
-          fill={skin.ACCENT_FILL}
-          noun='doses'
-          height={250}
-          minSlot={64}
-          valueLabels
-          onSelect={label => {
-            const m = sliceLabels(doseRange).find(x => twoLineMonth(x) === label)
-            if (m) onDoseMonth(m)
-          }}
-        />
+        {doseSeries.length ? (
+          <YearLinesChart
+            series={doseSeries}
+            accent={skin.ACCENT_FILL}
+            noun='doses'
+            height={280}
+            onPoint={(year, monthIdx) => onDoseMonth(`${MONTHS[monthIdx]} '${String(year).slice(-2)}`)}
+          />
+        ) : (
+          <EmptyState message='No doses administered in this period' />
+        )}
       </SectionCard>
 
-      {/* Overdue by Age — its OWN titled section (2026-08-27 punch-list): animal-wise lateness
-          buckets counted from today, as StatBand cells (2026-09-01 — the bare-row layout was
-          rejected). Cell tap → that bucket's animal list. NOTE: cells count the per-vaccine
-          animal list; the sidecar's precomputed type.overdue can disagree (90 vs 30 seen in
-          review) — total intentionally NOT shown here until that pipeline is reconciled. */}
-      <SectionCard title='Overdue by Age' titleMb={3}>
+      {/* How Long Overdue (renamed from "Overdue by Age", user call 2026-09-06 — same
+          aging-bucket data): animal-wise lateness buckets counted from today, as StatBand
+          cells (2026-09-01 — the bare-row layout was rejected). Cell tap → that bucket's
+          animal list. NOTE: cells count the per-vaccine animal list; the sidecar's
+          precomputed type.overdue can disagree (90 vs 30 seen in review) — total
+          intentionally NOT shown here until that pipeline is reconciled. */}
+      <SectionCard title='How Long Overdue' titleMb={3}>
         <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))`, gap: 3 }}>
           {buckets.map((b, i) => {
             const live = b.animals.length > 0
