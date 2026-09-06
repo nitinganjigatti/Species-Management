@@ -686,59 +686,6 @@ const BreedingAnalytics: React.FC<{
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* ── ZONE 0 · page scope — period left, site right (the CoL strip grammar,
-          user call 2026-09-06). Site re-derives every number below from female rows. ── */}
-      <Box
-        sx={{
-          borderRadius: skin.CARD_RADIUS,
-          border: `1px solid ${skin.HAIR}`,
-          bgcolor: '#ffffff',
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', '& > *': { flexShrink: 0 } }}>
-          <ViewToggle
-            height={CTRL_H}
-            items={[
-              { key: 'last_1y', label: '1Y' },
-              { key: 'last_2y', label: '2Y' },
-              { key: 'last_3y', label: '3Y' },
-              { key: 'custom', label: 'Custom' }
-            ]}
-            value={periodMode === 'range' ? 'custom' : preset}
-            onChange={k => {
-              if (k === 'custom') enterCustom()
-              else {
-                setPeriodMode('quick')
-                setPreset(k as 'last_1y' | 'last_2y' | 'last_3y')
-              }
-            }}
-          />
-          {periodMode === 'range' && (
-            <>
-              <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(seriesYears, yearTo, CAP, 'from')} anyLabel='From' />
-              <Typography sx={{ color: c.neutralSecondary }}>–</Typography>
-              <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(seriesYears, yearFrom, CAP, 'to')} anyLabel='To' />
-            </>
-          )}
-        </Box>
-        <Box sx={{ flex: 1 }} />
-        {siteOpts.length > 1 && (
-          <SiteFilterControl
-            sites={siteOpts as any}
-            sitesTotal={siteOpts.length}
-            tracked={s.totalFemales}
-            value={siteFilter}
-            onChange={pickSite}
-            overdueWord='overdue'
-            caption={(x: any) => `${x.n} females`}
-          />
-        )}
-      </Box>
-
       {/* ── ZONE 0 · page scope — the CoL strip grammar (user call 2026-09-06):
           1Y|2Y|3Y|Custom left, site right, ONE white card. Site re-derives every
           number below from the per-female rows. ── */}
