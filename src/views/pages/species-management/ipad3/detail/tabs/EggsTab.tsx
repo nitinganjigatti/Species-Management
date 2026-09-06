@@ -549,13 +549,14 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
      Egg Weight (from the weighed egg records) and Females (laying females) join. Counts
      are plain volume/growth figures — neutral warm ink, Hatched in the list green;
      zeros go quiet on their own. Every live cell opens its drill sheet. ── */
+  // NO hint lines (user call 2026-09-06: two-line cells only — label + figure);
+  // Females = the laying-females COUNT alone (no "2 of 10").
   const bandCells = [
     {
       key: 'laid',
       label: 'Laid',
       count: s.laid,
       tone: 'neutral' as const,
-      hint: `${clutchTotal} clutches • avg ${s.avgClutchSize}`,
       onOpen: () => setSheet({ kind: 'eggsByFemale' })
     },
     {
@@ -563,7 +564,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
       label: 'Fertile',
       count: s.fertile,
       tone: 'neutral' as const,
-      hint: `of ${s.laid} laid`,
       onOpen: () => setSheet({ kind: 'fertility' })
     },
     {
@@ -571,7 +571,6 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
       label: 'Hatched',
       count: s.hatched,
       tone: 'good' as const,
-      hint: `of ${s.fertile} fertile`,
       onOpen: () => setSheet({ kind: 'outcome', outcome: 'hatched' })
     },
     ...(avgEggWeight
@@ -581,8 +580,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
             label: 'Avg Egg Weight',
             count: avgEggWeight.n,
             display: `${avgEggWeight.grams} g`,
-            tone: 'neutral' as const,
-            hint: `across ${avgEggWeight.n} weighed ${avgEggWeight.n === 1 ? 'egg' : 'eggs'}`
+            tone: 'neutral' as const
           }
         ]
       : []),
@@ -590,9 +588,7 @@ const BreedingAnalytics: React.FC<{ breeding: SpeciesFunnel; avgEggWeight?: { gr
       key: 'females',
       label: 'Females',
       count: s.laidFemales,
-      display: `${s.laidFemales} of ${s.totalFemales}`,
       tone: 'neutral' as const,
-      hint: `${s.neverLaid} laid nothing`,
       onOpen: () => {
         setFemTab('laid')
         setSheet({ kind: 'femalesLaid' })

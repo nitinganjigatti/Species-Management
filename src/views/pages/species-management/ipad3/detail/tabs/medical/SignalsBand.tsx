@@ -63,7 +63,11 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: skin.FAINT
+              color: skin.FAINT,
+              // labels are ONE line, always (user call 2026-09-06 — "Avg Egg Weight" wrapped)
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
             {cell.label}
