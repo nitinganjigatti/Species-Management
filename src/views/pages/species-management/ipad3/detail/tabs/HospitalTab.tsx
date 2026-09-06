@@ -26,12 +26,12 @@ import {
   synthAnimalIdentity,
   thinScrollbarSx,
   TrendAreaChart,
-  TrendRangeTabs
+  ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import DashboardDateRange, {
   resolveRange,
-  type RangePreset,
   type RangeSelection
 } from 'src/views/pages/species-management/ipad3/dashboard/DashboardDateRange'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
@@ -183,7 +183,9 @@ const AdmissionsSection: React.FC<{ admissions: Admission[]; portrait: boolean; 
     </CellText>
   )
 
-  // HARD RULE: the card's Site row only when the visible list spans >1 site
+  // TABLE-VIEW minimal card = the Population grammar (user call 2026-09-05): EXACTLY
+  // 3 text rows — two identifiers + ONE location line (SITE while the visible list
+  // spans sites, ENCLOSURE once a single site is picked / all rows share one); 94 → 75.
   const showCardSite = !site && new Set(rows.map(r => r.site)).size > 1
   const animalCardCell = (a: Admission) => {
     const syn = synthAnimalIdentity(a.aid)
@@ -191,9 +193,10 @@ const AdmissionsSection: React.FC<{ admissions: Admission[]; portrait: boolean; 
     return (
       <AnimalIdCard
         identifiers={syn.identifiers}
-        enclosure={a.enclosure || syn.enclosure}
+        enclosure={showCardSite ? undefined : a.enclosure || syn.enclosure}
         site={showCardSite ? a.site : undefined}
         tag={tab === 'mortality' ? 'mortality' : syn.tag}
+        size={75}
         photo={syn.hasPhoto ? heroPhoto?.src : undefined}
         photoPos={heroPhoto?.bgPos}
       />
@@ -340,7 +343,7 @@ const AdmissionsSection: React.FC<{ admissions: Admission[]; portrait: boolean; 
           setPaginationModel={tbl.setPaginationModel}
           sortModel={tbl.sortModel}
           handleSortModel={tbl.handleSortModel}
-          rowHeight={146} // 94px animal-card block + breathing room (table standard)
+          rowHeight={128} // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
           stickyFields={['name']} // HARD RULE: identity columns pinned when the table scrolls
           onRowClick={(p: { row: Admission }) => onAnimal(p.row.aid)}
         />
@@ -369,22 +372,49 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
   const portrait = useMediaQuery('(orientation: portrait)')
   const c = cc(theme)
   const [range, setRange] = useState<RangeSelection>({ preset: 'all', start: null, end: null })
-  const [trendRange, setTrendRange] = useState<RangePreset>('last_1y')
+
+  /* THE standard period control (user call 2026-09-06): 1Y | 2Y | 3Y | Custom — the CoL
+     grammar; 'All' retired (demo review 2026-09-04). Custom = year From/To, cap 5. */
+  const [trendRange, setTrendRange] = useState<'last_1y' | 'last_2y' | 'last_3y' | 'custom'>('last_1y')
+  const [yearFrom, setYearFrom] = useState<number | null>(null)
+  const [yearTo, setYearTo] = useState<number | null>(null)
   const [drill, setDrill] = useState<SignalDrawerPayload | null>(null)
   const [recordAid, setRecordAid] = useState<string | null>(null)
+  const NOW = useMemo(() => new Date(), [])
   const inWin = useWindow(range)
 
   const rollup = useMemo(() => computeHospital(clinical, inWin), [clinical, range])
   const allAdmissions = useMemo(() => buildAdmissions(clinical), [clinical])
-  const trend = useMemo(
-    () =>
-      monthlyAdmissions(
-        allAdmissions,
-        trendRange === 'all' ? null : trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12,
-        new Date()
-      ),
-    [allAdmissions, trendRange]
-  )
+
+  // Years the data actually covers — from the all-time trend's span back from today.
+  const years = useMemo(() => {
+    const span = monthlyAdmissions(allAdmissions, null, NOW).labels.length
+    const first = new Date(NOW.getFullYear(), NOW.getMonth() - (span - 1), 1).getFullYear()
+
+    return Array.from({ length: NOW.getFullYear() - first + 1 }, (_, i) => NOW.getFullYear() - i)
+  }, [allAdmissions, NOW])
+  const CAP = 5
+  const enterCustom = () => {
+    setTrendRange('custom')
+    if (yearFrom == null && yearTo == null) {
+      setYearFrom(Math.max(years[years.length - 1] ?? NOW.getFullYear(), NOW.getFullYear() - (CAP - 1)))
+      setYearTo(NOW.getFullYear())
+    }
+  }
+
+  const trend = useMemo(() => {
+    if (trendRange === 'custom') {
+      const to = yearTo ?? NOW.getFullYear()
+      const from = yearFrom ?? to
+      // anchor at the window's end (or today when it ends this year); span = whole years
+      const anchor = to >= NOW.getFullYear() ? NOW : new Date(to, 11, 31)
+      const months = (to - from) * 12 + anchor.getMonth() + 1
+
+      return monthlyAdmissions(allAdmissions, Math.max(1, months), anchor)
+    }
+
+    return monthlyAdmissions(allAdmissions, trendRange === 'last_2y' ? 24 : trendRange === 'last_3y' ? 36 : 12, NOW)
+  }, [allAdmissions, trendRange, yearFrom, yearTo, NOW])
   const buckets = useMemo(() => losBuckets(rollup?.admissions ?? []), [rollup])
 
   /* ── drawer openers ── */
@@ -716,7 +746,30 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
           <>
             <SectionCard
               title='Admissions Trend • Per Month'
-              action={<TrendRangeTabs value={trendRange} onPick={setTrendRange} color={skin.ACCENT_INK} />}
+              // THE standard period control (user call 2026-09-06): pill 1Y|2Y|3Y|Custom +
+              // capped year From/To — the CoL/Eggs grammar (SickTrendCard verbatim).
+              action={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', flexShrink: 0, '& > *': { flexShrink: 0 } }}>
+                  <ViewToggle
+                    height={CTRL_H}
+                    items={[
+                      { key: 'last_1y', label: '1Y' },
+                      { key: 'last_2y', label: '2Y' },
+                      { key: 'last_3y', label: '3Y' },
+                      { key: 'custom', label: 'Custom' }
+                    ]}
+                    value={trendRange}
+                    onChange={k => (k === 'custom' ? enterCustom() : setTrendRange(k as 'last_1y' | 'last_2y' | 'last_3y'))}
+                  />
+                  {trendRange === 'custom' && (
+                    <>
+                      <RangeSelect value={yearFrom} onPick={setYearFrom} items={yearItemsFor(years, yearTo, CAP, 'from')} anyLabel='From' />
+                      <Typography sx={{ color: skin.FAINT }}>–</Typography>
+                      <RangeSelect value={yearTo} onPick={setYearTo} items={yearItemsFor(years, yearFrom, CAP, 'to')} anyLabel='To' />
+                    </>
+                  )}
+                </Box>
+              }
               titleMb={4}
             >
               <TrendAreaChart values={trend.values} labels={trend.labels} color={skin.ACCENT_FILL} name='Admissions' height={230} onPointClick={openMonth} />
