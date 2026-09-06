@@ -204,11 +204,16 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
               : s.identifiers
 
           return (
+            // TABLE-VIEW minimal card = the Population grammar (user call 2026-09-05):
+            // EXACTLY 3 text rows — max two identifiers + ONE location line (site while
+            // the visible list spans sites, enclosure once a single site is picked /
+            // all rows are one site — never both); photo 94 → 75.
             <AnimalIdCard
               identifiers={identifiers}
-              enclosure={p.row.e || s.enclosure}
+              enclosure={cardShowsSite ? undefined : p.row.e || s.enclosure}
               site={cardShowsSite ? p.row.s : undefined}
               tag='mortality' // death list: the maroon badge, never gender
+              size={75}
               photo={s.hasPhoto ? heroPhoto?.src : undefined}
               photoPos={heroPhoto?.bgPos}
             />
@@ -396,7 +401,8 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
             sortModel={table.sortModel}
             handleSortModel={table.handleSortModel}
             stickyFields={['animal']}
-            rowHeight={146}
+            // 75px minimal-card block + breathing room (Population standard, 2026-09-05)
+            rowHeight={128}
             onRowClick={
               detailsRoute ? (p: any) => p.row.aid && window.location.assign(detailsRoute(p.row.aid)) : undefined
             }
