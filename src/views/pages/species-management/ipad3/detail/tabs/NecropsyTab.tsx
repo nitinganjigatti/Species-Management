@@ -34,7 +34,7 @@ import {
   HeroPhotoContext,
   SectionCard,
   synthAnimalIdentity
-} from 'src/views/pages/species-management/ipad3/detail/detailUi'
+, DeathDateCell, isApproxDeathDate } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 
 // TODO(route): the necropsy module's detail page is /necropsy/necropsy/[id] but [id] is a
@@ -220,7 +220,12 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
           )
         }
       },
-      { width: 165, field: 'd', headerName: 'Date of Death', renderCell: (p: any) => <CellText noWrap>{p.row.date}</CellText> },
+      {
+        width: 165,
+        field: 'd',
+        headerName: 'Date of Death',
+        renderCell: (p: any) => <DeathDateCell date={p.row.date} approx={isApproxDeathDate(p.row.aid, p.row.d)} />
+      },
       { width: 170, field: 'm', headerName: 'Cause of Death', renderCell: (p: any) => txt(p.row.m || '—', cc.Tertiary, 600) },
       {
         width: 150,
@@ -345,16 +350,16 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
   )
 
   const stackedHeader = (
+    // Filters rides the controls row BESIDE the site dropdown (user call 2026-09-06),
+    // never the title row — title stands alone.
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-        <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
-          {titleText}
-        </Typography>
-        {filtersBtn}
-      </Box>
+      <Typography variant='subtitle1' sx={{ fontSize: '20px', fontWeight: 600, whiteSpace: 'nowrap', color: skin.INK }}>
+        {titleText}
+      </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
         {search}
         {siteFilterCtl}
+        {filtersBtn}
       </Box>
     </Box>
   )

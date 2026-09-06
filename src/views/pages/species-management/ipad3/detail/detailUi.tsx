@@ -265,6 +265,35 @@ export const CellText: React.FC<{ children?: React.ReactNode; color?: string; we
   )
 }
 
+/** Synthetic approximate-death marker (demo review 2026-09-04: approximate death dates
+ *  get a flag under the date). The dump carries NO such field — derived deterministically
+ *  from the record like the module's other synth features; a REAL flag needs the backend. */
+export const isApproxDeathDate = (aid?: string, d?: string) => {
+  const s = `${aid || ''}|${d || ''}`
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+
+  return h % 4 === 0
+}
+
+/** Death-date cell — the date with a quiet "Approximate" caption beneath when flagged.
+ *  THE single copy: Mortality + Necropsy tables both render this. */
+export const DeathDateCell: React.FC<{ date: string; approx?: boolean }> = ({ date, approx }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <CellText noWrap>{date}</CellText>
+      {approx && (
+        <Typography sx={{ fontSize: '0.9375rem', color: c.neutralSecondary, fontStyle: 'italic' }} noWrap>
+          Approximate
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
 /** Standard animal/entity identity cell — avatar + name (16px/600) over a light-grey 16px sub line.
  *  THE single copy: Assessments, Circle of Life, Medical (and any new tab) all render this. */
 export const AnimalCell: React.FC<{ name?: string; sub?: string; avatar?: string; size?: number }> = ({
