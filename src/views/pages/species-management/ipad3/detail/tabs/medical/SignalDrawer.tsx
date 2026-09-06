@@ -88,8 +88,22 @@ const StatusPill: React.FC<{ label: string; tone?: SignalAnimal['pillTone'] }> =
 const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void }> = ({ a, last, onClick }) => {
   const theme = useTheme() as any
   const c = cc(theme)
-  // one item per row (card-list hard rule): date and detail each take their own line
-  const parts = [a.date ? fmtDate(a.date) : '', a.detail].filter(Boolean)
+
+  /* Row anatomy (user call 2026-09-06, COMPONENT-level so every sheet obeys):
+     ONE status tag — Active (·N when several conditions) / Resolved / Died; 'Critical'
+     is not data-backed and NEVER renders. Below it ONE condition + "+N more" (never a
+     comma list), then the date. Structured state/activeConditions win; legacy pill
+     strings are normalized so older callers comply automatically. */
+  const conds = a.activeConditions ?? (a.condition ? a.condition.split(/,\s*/).filter(Boolean) : [])
+  const state: 'active' | 'resolved' | 'died' =
+    a.state ?? (/died/i.test(a.pill || '') ? 'died' : /resolved/i.test(a.pill || '') ? 'resolved' : 'active')
+  const tagLabel = state === 'active' ? (conds.length > 1 ? `Active · ${conds.length}` : 'Active') : state === 'died' ? 'Died' : 'Resolved'
+  const tagTone: SignalAnimal['pillTone'] = state === 'active' ? 'warning' : state === 'died' ? 'error' : 'success'
+  const condLine = conds.length ? (conds.length > 1 ? `${conds[0]}  +${conds.length - 1} more` : conds[0]) : ''
+  // one item per row (card-list hard rule): date and detail each take their own line;
+  // "N active conditions" details are redundant with the tag count — suppressed.
+  const detail = /active condition/i.test(a.detail || '') ? '' : a.detail
+  const parts = [a.date ? fmtDate(a.date) : '', detail].filter(Boolean)
   const chipNode = a.chip ? (
     <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 2, minWidth: 0, maxWidth: '100%' }}>
       <Tooltip
@@ -151,12 +165,13 @@ const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void
       last={last}
       onClick={onClick}
       chevron={!!onClick}
-      trailing={a.pill ? <StatusPill label={a.pill} tone={a.pillTone} /> : undefined}
+      size={75} // the standard minimal card size (Population grammar)
+      trailing={a.state || a.pill ? <StatusPill label={tagLabel} tone={tagTone} /> : undefined}
       meta={
         <>
-          {a.condition && (
+          {condLine && (
             <RowMetaText strong wrap>
-              {a.condition}
+              {condLine}
             </RowMetaText>
           )}
           {parts.map((line, li) => (

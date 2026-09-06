@@ -46,6 +46,12 @@ export interface SignalAnimal {
   /** Optional caption chip — a compact count/label whose tooltip lists the items
    *  (e.g. Lab: "3 tests" → per-test names + statuses). Generic: any tab can use it. */
   chip?: { label: string; items: string[] }
+  /** Structured state (user call 2026-09-06): the DRAWER decides the tag — Active (·N),
+   *  Resolved, Died. 'Critical' is not data-backed and never renders. Callers that still
+   *  pass legacy pill strings get normalized by the drawer row. */
+  state?: 'active' | 'resolved' | 'died'
+  /** The animal's conditions, one per entry — the row shows the first + "+N more". */
+  activeConditions?: string[]
 }
 
 /** A same-condition transmission chain inside one enclosure (spreading / outbreak groups). */

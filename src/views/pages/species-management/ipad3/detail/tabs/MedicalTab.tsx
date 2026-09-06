@@ -607,15 +607,16 @@ const OverviewPanel: React.FC<{
       explainer: 'Animals with an active symptom or clinical assessment in this window.',
       icon: 'mdi:heart-pulse',
       tone: 'error',
+      // Structured state (user call 2026-09-06): the drawer renders Active·N + first
+      // condition "+N more" — no Critical (not data-backed), no "N active conditions" line.
       animals: sickNow.map(g => ({
         aid: g.aid,
         name: g.name,
         site: g.site,
         enclosure: g.enclosure,
-        condition: g.activeTypes.join(', '),
-        detail: g.activeClinical > 1 ? `${g.activeClinical} active conditions` : '',
-        pill: g.status === 'Critical' ? 'Critical' : 'Active',
-        pillTone: g.status === 'Critical' ? ('error' as const) : ('warning' as const),
+        detail: '',
+        state: 'active' as const,
+        activeConditions: g.activeTypes,
         date: g.latest
       }))
     })
