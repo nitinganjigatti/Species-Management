@@ -1257,7 +1257,9 @@ export const AnimalIdCard: React.FC<{
             {nameLine}
           </Typography>
         )}
-        {enclosure && (
+        {/* ONE location line, enforced here (user call 2026-09-06 — the 3-row rule is a
+            COMPONENT guarantee, not caller discipline): site wins when both arrive. */}
+        {enclosure && !site && (
           <Typography sx={{ fontSize: '0.9375rem', fontWeight: 500, color: c.OnSurfaceVariant }} noWrap>
             Encl: {enclosure}
           </Typography>
@@ -1390,7 +1392,7 @@ export const AnimalCardRow: React.FC<{
   last?: boolean
   onClick?: () => void
   size?: number
-}> = ({ aid, site, enclosure, tag, identifiers, titleExtra, name, age, weight, trailing, meta, chevron, last, onClick, size }) => {
+}> = ({ aid, site, enclosure, tag, identifiers, titleExtra, name, age, weight, trailing, meta, chevron, last, onClick, size = 75 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const heroPhoto = React.useContext(HeroPhotoContext)
@@ -1411,9 +1413,12 @@ export const AnimalCardRow: React.FC<{
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <AnimalIdCard
           identifiers={identifiers ?? s.identifiers}
-          // synth enclosure only backfills SYNTH-identity rows — a real-data caller
-          // (identifiers passed) omitting enclosure means "scoped, don't show one"
-          enclosure={identifiers ? enclosure : enclosure ?? s.enclosure}
+          // HARD RULE, enforced at the COMPONENT (user call 2026-09-06 — callers kept
+          // leaking a 4-row card): ONE location line only. A row that carries `site`
+          // NEVER shows an enclosure (and the synth backfill is blocked); enclosure
+          // renders only when no site rides the row. Default size = the 75px minimal
+          // card — sheet lists are ALWAYS the minimal card.
+          enclosure={site ? undefined : identifiers ? enclosure : enclosure ?? s.enclosure}
           site={site}
           tag={tag ?? s.tag}
           titleExtra={titleExtra}
