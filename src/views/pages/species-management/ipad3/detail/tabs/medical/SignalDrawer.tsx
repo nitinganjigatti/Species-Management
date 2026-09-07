@@ -99,8 +99,15 @@ const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void
     a.state ?? (/died/i.test(a.pill || '') ? 'died' : /resolved/i.test(a.pill || '') ? 'resolved' : 'active')
   // tag count: explicit activeCount wins (rows that hide the names, e.g. Repeat Sick)
   const n = a.activeCount ?? conds.length
-  const tagLabel = state === 'active' ? (n > 1 ? `Active · ${n}` : 'Active') : state === 'died' ? 'Died' : 'Resolved'
-  const tagTone: SignalAnimal['pillTone'] = state === 'active' ? 'warning' : state === 'died' ? 'error' : 'success'
+  // a.tag (user call 2026-09-07) replaces the status tag verbatim — e.g. Hospital stay "110D"
+  const tagLabel = a.tag ?? (state === 'active' ? (n > 1 ? `Active · ${n}` : 'Active') : state === 'died' ? 'Died' : 'Resolved')
+  const tagTone: SignalAnimal['pillTone'] = a.tag
+    ? a.pillTone ?? 'neutral'
+    : state === 'active'
+    ? 'warning'
+    : state === 'died'
+    ? 'error'
+    : 'success'
   const condLine = conds.length ? (conds.length > 1 ? `${conds[0]}  +${conds.length - 1} more` : conds[0]) : ''
   // one item per row (card-list hard rule): date and detail each take their own line;
   // "N active conditions" details are redundant with the tag count — suppressed.
@@ -168,7 +175,7 @@ const AnimalRow: React.FC<{ a: SignalAnimal; last: boolean; onClick?: () => void
       onClick={onClick}
       chevron={!!onClick}
       size={75} // the standard minimal card size (Population grammar)
-      trailing={a.state || a.pill ? <StatusPill label={tagLabel} tone={tagTone} /> : undefined}
+      trailing={a.tag || a.state || a.pill ? <StatusPill label={tagLabel} tone={tagTone} /> : undefined}
       meta={
         <>
           {condLine && (

@@ -77,15 +77,17 @@ const admissionRow = (a: Admission): SignalAnimal => ({
   pillTone: a.outcome === 'died' ? 'error' : a.status === 'active' ? 'warning' : 'success'
 })
 
-const animalRow = (g: HospAnimal, detail: string, pill: string, tone: SignalAnimal['pillTone']): SignalAnimal => ({
+/* Tag = the drill's own number (stay "110D" / "3 times"), NOT a redundant Active; no
+   "admitted N days" caption line (user call 2026-09-07). */
+const animalRow = (g: HospAnimal, tag: string, tone: SignalAnimal['pillTone']): SignalAnimal => ({
   aid: g.aid,
   name: g.name,
   site: g.site,
   enclosure: g.enclosure,
   condition: g.admissions[g.admissions.length - 1]?.condition,
-  detail,
+  detail: '',
   date: g.admissions[g.admissions.length - 1]?.admittedOn,
-  pill,
+  tag,
   pillTone: tone
 })
 
@@ -456,7 +458,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       animals: (rollup?.animals ?? [])
         .filter(a => a.currentlyAdmitted)
         .sort((x, y) => y.currentStayDays - x.currentStayDays)
-        .map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} D`, 'warning'))
+        .map(a => animalRow(a, `${a.currentStayDays}D`, 'warning'))
     })
 
   const openRepeat = () =>
@@ -468,7 +470,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       animals: (rollup?.animals ?? [])
         .filter(a => a.admissionCount >= 2)
         .sort((x, y) => y.admissionCount - x.admissionCount)
-        .map(a => animalRow(a, `${a.admissionCount} admissions`, `${a.admissionCount} times`, 'error'))
+        .map(a => animalRow(a, `${a.admissionCount} times`, 'error'))
     })
 
   const openLong = () =>
@@ -477,7 +479,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
       explainer: 'Animals currently admitted longer than 7 days — not recovering on the current course, or overdue a review.',
       icon: 'mdi:timer-sand',
       tone: 'warning',
-      animals: (rollup?.longStay ?? []).map(a => animalRow(a, `admitted ${a.currentStayDays} days`, `${a.currentStayDays} D`, 'warning'))
+      animals: (rollup?.longStay ?? []).map(a => animalRow(a, `${a.currentStayDays}D`, 'warning'))
     })
 
   const openMortality = () =>

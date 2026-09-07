@@ -50,6 +50,10 @@ export interface SignalAnimal {
    *  Resolved, Died. 'Critical' is not data-backed and never renders. Callers that still
    *  pass legacy pill strings get normalized by the drawer row. */
   state?: 'active' | 'resolved' | 'died'
+  /** Verbatim tag override (user call 2026-09-07): renders INSTEAD of the Active/Resolved/Died
+   *  tag, toned by pillTone — Hospital duration drills show the stay ("110D") / admission
+   *  count ("3 times") as the tag rather than a redundant Active. */
+  tag?: string
   /** The animal's conditions, one per entry — the row shows the first + "+N more". */
   activeConditions?: string[]
   /** Active-condition COUNT for the tag when the names should NOT render on the row
