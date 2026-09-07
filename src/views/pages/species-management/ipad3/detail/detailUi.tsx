@@ -1303,7 +1303,7 @@ export const AnimalIdCard: React.FC<{
               backgroundColor: skin.ANIMAL_TAG[tag]
             }}
           >
-            <Typography sx={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: '#ffffff', whiteSpace: 'nowrap' }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 600, lineHeight: 1, color: '#ffffff', whiteSpace: 'nowrap' }}>
               {tag === 'group' && groupCount != null ? `G ${groupCount}` : TAG_LETTER[tag]}
             </Typography>
           </Box>
@@ -4455,7 +4455,8 @@ const apexTooltipSx = (theme: any) => ({
 // Same tooltip HTML as the dashboard charts (kept v2-local so v1 files stay untouched).
 const trendTooltipHTML = (theme: any, title: string, rows: { color?: string; label: string; value: string }[]) => {
   const c = cc(theme)
-  const head = `<div style="padding:12px 18px;background:${c.Surface};border-bottom:1px solid ${c.SurfaceVariant};font-weight:600;color:${c.OnSurfaceVariant};">${title}</div>`
+  // Tooltip type scale (user 2026-09-07): title 16px, data rows 14px.
+  const head = `<div style="padding:12px 18px;background:${c.Surface};border-bottom:1px solid ${c.SurfaceVariant};font-size:16px;font-weight:600;color:${c.OnSurfaceVariant};">${title}</div>`
   const body = rows
     .map(r =>
       r.color
@@ -4472,7 +4473,7 @@ const trendTooltipHTML = (theme: any, title: string, rows: { color?: string; lab
     )
     .join('')
 
-  return `<div style="font-size:16px;font-family:inherit;background:${theme.palette.background.paper};">${head}<div style="padding:8px 0;">${body}</div></div>`
+  return `<div style="font-size:14px;font-family:inherit;background:${theme.palette.background.paper};">${head}<div style="padding:8px 0;">${body}</div></div>`
 }
 
 /** THE standard chart tooltip on custom DOM charts (non-Apex bars, bands, cells): wraps the
