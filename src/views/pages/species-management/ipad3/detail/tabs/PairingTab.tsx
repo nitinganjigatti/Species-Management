@@ -35,7 +35,6 @@ import {
   ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
-import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 
 interface EncRow {
   name: string
@@ -107,79 +106,32 @@ const EnclosureAnimalsDrawer: React.FC<{
   )
 }
 
-/* ── site verdict (user calls 2026-09-07): dominance judged on SEXED animals only
-   (one sex >60% = dominated); when unsexed (UD+ID+G) reaches a THIRD of the site any
-   dominance claim would be a guess — the verdict becomes Needs Sexing instead. The
-   verdict rides as a chip ABOVE the site name in the row's first cell, never its own
-   column. Only Needs Sexing wears amber (a to-do); the rest stay quiet neutral. */
+/* ── site-wise composition buckets (user call 2026-09-07 — verdicts retired as not
+   insightful): every site row carries the FIVE buckets as columns — Male Only /
+   Female Only / Male & Female / Unsexed / Empty — each cell in ONE consistent grammar:
+   animals (bold) over "N encl." (quiet), dash when the bucket has no enclosures. */
 
-type SiteVerdict = 'male' | 'female' | 'balanced' | 'needsSexing'
+type Bucket = 'maleOnly' | 'femaleOnly' | 'mixed' | 'unsexed' | 'empty'
+
+// Enclosure composition → bucket. 'Mixed' (both sexes + unsexed) holds both sexes,
+// so it rides the Male & Female bucket; UD/ID/Group compositions are all Unsexed.
+const bucketOf = (c: string): Bucket =>
+  c === 'Male' ? 'maleOnly' : c === 'Female' ? 'femaleOnly' : c === 'Male & Female' || c === 'Mixed' ? 'mixed' : c === 'Empty' ? 'empty' : 'unsexed'
 
 interface SiteRow {
   site: string
-  male: number
-  female: number
-  ud: number
-  ind: number
-  grp: number
-  total: number
-  verdict: SiteVerdict
-  /** Enclosures in this site whose OWN verdict (same verdictOf rule per enclosure)
-   *  matches the site's — the chip's "- N ENCL" suffix (user call 2026-09-07). */
-  verdictEnc: number
-}
-
-const VERDICT_TEXT: Record<SiteVerdict, string> = {
-  male: 'Male Dominated',
-  female: 'Female Dominated',
-  balanced: 'Balanced',
-  needsSexing: 'Needs Sexing'
-}
-
-// Works on ANY row carrying the gender grid — sites and single enclosures alike.
-const verdictOf = (s: { male: number; female: number; ud: number; ind: number; grp: number; total: number }): SiteVerdict => {
-  const sexed = s.male + s.female
-  const unsexed = s.ud + s.ind + s.grp
-  if (s.total > 0 && (sexed === 0 || unsexed * 3 >= s.total)) return 'needsSexing'
-  if (s.male > 0.6 * sexed) return 'male'
-  if (s.female > 0.6 * sexed) return 'female'
-
-  return 'balanced'
-}
-
-const VerdictChip: React.FC<{ v: SiteVerdict; encl?: number }> = ({ v, encl }) => {
-  const warn = v === 'needsSexing'
-
-  return (
-    <Box
-      component='span'
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        height: 24,
-        px: 2.5,
-        borderRadius: '999px',
-        backgroundColor: warn ? skin.TONE_SOFT.warn : skin.TONE_SOFT.neutral,
-        whiteSpace: 'nowrap'
-      }}
-    >
-      <Typography
-        component='span'
-        sx={{
-          fontSize: '14px',
-          fontWeight: 600,
-          lineHeight: 1,
-          fontVariantNumeric: 'tabular-nums',
-          color: warn ? skin.strokeOf(skin.TONE_FILL.warn) : skin.TONE_TYPE.neutral
-        }}
-      >
-        {VERDICT_TEXT[v]}
-        {/* "- 4 ENCL" = 4 enclosures here classify as this verdict; hidden at 0 (a site
-            can aggregate to a verdict no single enclosure carries) */}
-        {encl != null && encl > 0 && ` - ${encl.toLocaleString()} ENCL`}
-      </Typography>
-    </Box>
-  )
+  maleOnlyA: number
+  maleOnlyE: number
+  femaleOnlyA: number
+  femaleOnlyE: number
+  mixedA: number
+  mixedE: number
+  unsexedA: number
+  unsexedE: number
+  emptyA: number
+  emptyE: number
+  totalA: number
+  totalE: number
 }
 
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
@@ -197,10 +149,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const multiSite = (housing?.sites?.length ?? 0) > 1
   const [view, setView] = useState<'site' | 'enclosure'>(multiSite ? 'site' : 'enclosure')
 
-  // Site-Wise controls (user call 2026-09-07): its own search + a MULTI-select verdict
-  // picker — empty selection = all sites (there is no state that hides everything).
+  // Site-Wise controls (user call 2026-09-07): its own search.
   const [qSite, setQSite] = useState('')
-  const [verdictSel, setVerdictSel] = useState<string[]>([])
 
   const allRows: EncRow[] = useMemo(() => {
     // The housing aggregates carry ONE unsexed bucket — the animal records say which
@@ -270,74 +220,45 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     return m
   }, [allRows])
 
-  /* ── headline strip (user call 2026-09-07): the enclosure mix at a glance — every
-     cell jumps to the Enclosure-Wise view with the matching composition chips ON
-     (multi-select, so Single-Gender = Male + Female together). Needs Sexing is the
-     one amber figure (a to-do, not an alarm). Empty joins only when it exists. ── */
-  const jumpToComps = (cs: string[]) => {
-    setComps(cs.filter(c => compositionOptions.includes(c)))
-    setView('enclosure')
-    setPm(p => ({ ...p, page: 0 }))
-  }
-  const nOf = (cs: string[]) => allRows.filter(r => cs.includes(r.composition)).length
-  const bandCells = [
-    { key: 'enclosures', label: 'Enclosures', count: allRows.length, tone: 'neutral' as const, onOpen: () => jumpToComps([]) },
-    { key: 'single', label: 'Single-Gender', count: nOf(['Male', 'Female']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Male', 'Female']) },
-    { key: 'mf', label: 'Male & Female', count: nOf(['Male & Female']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Male & Female']) },
-    {
-      key: 'needsSexing',
-      label: 'Needs Sexing',
-      count: nOf(['Undetermined', 'Indeterminate']),
-      tone: 'warn' as const,
-      onOpen: () => jumpToComps(['Undetermined', 'Indeterminate'])
-    },
-    ...(nOf(['Empty']) > 0
-      ? [{ key: 'empty', label: 'Empty', count: nOf(['Empty']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Empty']) }]
-      : [])
-  ]
-
-  /* ── site-wise rows: the gender grid summed per site + the verdict ── */
+  /* ── site-wise bucket rows (user call 2026-09-07): per site, each composition
+     bucket carries BOTH dimensions — animals living in that bucket's enclosures
+     and how many enclosures. One rule for every bucket, Male & Female included. ── */
   const siteRows: SiteRow[] = useMemo(() => {
-    const by = new Map<string, Omit<SiteRow, 'verdict' | 'verdictEnc'>>()
+    const by = new Map<string, SiteRow>()
     for (const r of allRows) {
-      const s = by.get(r.site) || { site: r.site, male: 0, female: 0, ud: 0, ind: 0, grp: 0, total: 0 }
-      s.male += r.male
-      s.female += r.female
-      s.ud += r.ud
-      s.ind += r.ind
-      s.grp += r.grp
-      s.total += r.total
+      const s =
+        by.get(r.site) ||
+        ({
+          site: r.site,
+          maleOnlyA: 0,
+          maleOnlyE: 0,
+          femaleOnlyA: 0,
+          femaleOnlyE: 0,
+          mixedA: 0,
+          mixedE: 0,
+          unsexedA: 0,
+          unsexedE: 0,
+          emptyA: 0,
+          emptyE: 0,
+          totalA: 0,
+          totalE: 0
+        } as SiteRow)
+      const b = bucketOf(r.composition)
+      ;(s as any)[`${b}A`] += r.total
+      ;(s as any)[`${b}E`] += 1
+      s.totalA += r.total
+      s.totalE += 1
       by.set(r.site, s)
     }
 
-    return [...by.values()]
-      .map(s => {
-        const verdict = verdictOf(s)
-
-        return { ...s, verdict, verdictEnc: allRows.filter(r => r.site === s.site && verdictOf(r) === verdict).length }
-      })
-      .sort((a, b) => b.total - a.total)
+    return [...by.values()].sort((a, b) => b.totalA - a.totalA)
   }, [allRows])
-
-  // Verdict picker options — ALWAYS the full vocabulary (user call 2026-09-07):
-  // zero-count verdicts render disabled/greyed, never removed, and SINK to the
-  // bottom (stable sort — the fixed order holds within each group).
-  const verdictOptions = useMemo(() => {
-    const m = new Map<SiteVerdict, number>()
-    for (const r of siteRows) m.set(r.verdict, (m.get(r.verdict) || 0) + 1)
-
-    return (['male', 'female', 'balanced', 'needsSexing'] as SiteVerdict[])
-      .map(v => ({ label: VERDICT_TEXT[v], n: m.get(v) || 0 }))
-      .sort((a, b) => (a.n === 0 ? 1 : 0) - (b.n === 0 ? 1 : 0))
-  }, [siteRows])
 
   const siteRowsFiltered = useMemo(() => {
     const query = qSite.trim().toLowerCase()
 
-    return siteRows.filter(
-      r => (!query || r.site.toLowerCase().includes(query)) && (!verdictSel.length || verdictSel.includes(VERDICT_TEXT[r.verdict]))
-    )
-  }, [siteRows, qSite, verdictSel])
+    return siteRows.filter(r => !query || r.site.toLowerCase().includes(query))
+  }, [siteRows, qSite])
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
@@ -380,28 +301,62 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     countCol('total', 'Total', { total: true })
   ]
 
-  // Site-wise columns — same gender grid, first cell = verdict chip ABOVE the site
-  // name (user call 2026-09-07: never a separate Verdict column).
+  // Site-wise bucket column — ONE consistent cell grammar (user call 2026-09-07):
+  // animals bold on top, "N encl." quiet under it; dash when the bucket has no
+  // enclosures. Empty's animal line is a dash by definition — same grammar, no special case.
+  const bucketCol = (b: Bucket | 'total', header: string): GridColDef => {
+    const fa = b === 'total' ? 'totalA' : `${b}A`
+    const fe = b === 'total' ? 'totalE' : `${b}E`
+
+    return {
+      minWidth: b === 'total' ? 116 : 132,
+      flex: 1,
+      sortable: false,
+      align: 'right',
+      headerAlign: 'right',
+      field: fa,
+      headerName: header,
+      renderCell: p => {
+        const a = p.row[fa] as number
+        const e = p.row[fe] as number
+        if (!e) return txtCell('—', skin.DASH_INK, 400)
+
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+            <Typography
+              sx={{
+                fontSize: '1rem',
+                fontWeight: b === 'total' ? 700 : 600,
+                fontVariantNumeric: 'tabular-nums',
+                color: b === 'total' ? skin.LIST_GREEN : a > 0 ? skin.INK : skin.DASH_INK
+              }}
+            >
+              {a > 0 ? a.toLocaleString() : '—'}
+            </Typography>
+            <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }}>
+              {e.toLocaleString()} encl.
+            </Typography>
+          </Box>
+        )
+      }
+    }
+  }
+
   const siteColumns: GridColDef[] = [
     {
-      minWidth: 240,
+      minWidth: 200,
       flex: 1,
       sortable: false,
       field: 'site',
       headerName: 'Site',
-      renderCell: p => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1.5 }}>
-          <VerdictChip v={(p.row as SiteRow).verdict} encl={(p.row as SiteRow).verdictEnc} />
-          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: skin.INK }}>{p.row.site}</Typography>
-        </Box>
-      )
+      renderCell: p => <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: skin.INK }}>{p.row.site}</Typography>
     },
-    countCol('male', 'M'),
-    countCol('female', 'F'),
-    countCol('ud', 'UD'),
-    countCol('ind', 'ID'),
-    countCol('grp', 'G'),
-    countCol('total', 'Total', { total: true })
+    bucketCol('maleOnly', 'Male Only'),
+    bucketCol('femaleOnly', 'Female Only'),
+    bucketCol('mixed', 'Male & Female'),
+    bucketCol('unsexed', 'Unsexed'),
+    bucketCol('empty', 'Empty'),
+    bucketCol('total', 'Total')
   ]
 
   const start = pm.page * pm.pageSize
@@ -410,10 +365,6 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* ── ZONE 0 · the enclosure mix at a glance — the standard SignalsBand; cells
-          jump into the Enclosure-Wise view with the matching chips ON ── */}
-      <SignalsBand cells={bandCells} />
-
       {/* Controls live INSIDE the table card (user call 2026-09-01). Heading + the
           Site-Wise | Enclosure-Wise toggle on row one (user call 2026-09-07, Housing's
           rule); the enclosure view keeps its MULTI-SELECT composition chips (demo
@@ -442,9 +393,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
             </Box>
 
             {view === 'site' && (
-              // Site-Wise controls (user call 2026-09-07): search + the multi-select
-              // verdict picker (the generalized SiteFilterSelect — bottom-sheet,
-              // checkbox rows, Apply commits; trigger reads "All Verdicts" at rest).
+              // Site-Wise controls (user call 2026-09-07): search only — the bucket
+              // columns ARE the data, nothing left to facet at this level.
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
                 <SearchPill
                   value={qSite}
@@ -454,27 +404,6 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                   }}
                   placeholder='Search sites…'
                   sx={{ flex: 1, minWidth: 220 }}
-                />
-                <SiteFilterSelect
-                  multiple
-                  multiValue={verdictSel}
-                  onMultiChange={vs => {
-                    setVerdictSel(vs)
-                    setPm(p => ({ ...p, page: 0 }))
-                  }}
-                  sites={verdictOptions.map(o => ({
-                    site: o.label,
-                    caption: `${o.n.toLocaleString()} ${o.n === 1 ? 'site' : 'sites'}`,
-                    disabled: o.n === 0
-                  }))}
-                  allCaption={`${siteRows.length.toLocaleString()} sites`}
-                  allLabel='All Verdicts'
-                  headerTitle='Verdicts'
-                  plural='Verdicts'
-                  searchPlaceholder='Search verdicts…'
-                  rowIcon='mdi:scale-balance'
-                  allIcon='mdi:filter-variant'
-                  emptyText='No verdicts match.'
                 />
               </Box>
             )}
