@@ -22,7 +22,8 @@ import {
   sheetPaperSx,
   SHEET_PX,
   UnderlineTabs,
-  useHeaderSubTabsSlot
+  useHeaderSubTabsSlot,
+  setDetailJump
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { SpeciesDetailHeader, SpeciesDetailTab } from 'src/types/species-management/detail'
 
@@ -455,10 +456,28 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // Banner stat cells — THREE (user call 2026-08-28: sex counts moved to the tag row
   // below): Animals = antzNotes80 yellow, Site = PrimaryContainer green (inherited from
   // the retired sex cells), Enclosure = Secondary teal.
-  const bannerCells: { label: string; value: string; color: string }[] = [
-    { label: 'Animals', value: (h?.total ?? 0).toLocaleString(), color: skin.BANNER_YELLOW },
-    { label: 'Site', value: (h?.sites ?? 0).toLocaleString(), color: skin.BANNER_GREEN },
-    { label: 'Enclosure', value: (h?.enclosures ?? 0).toLocaleString(), color: skin.BANNER_TEAL }
+  // Every cell is a JUMP (user call 2026-09-07): Animals → Population; Site/Enclosure →
+  // Housing landing on that view (single-site species force enclosure there anyway).
+  const bannerCells: { label: string; value: string; color: string; onTap: () => void }[] = [
+    { label: 'Animals', value: (h?.total ?? 0).toLocaleString(), color: skin.BANNER_YELLOW, onTap: () => onTabChange('population') },
+    {
+      label: 'Site',
+      value: (h?.sites ?? 0).toLocaleString(),
+      color: skin.BANNER_GREEN,
+      onTap: () => {
+        setDetailJump({ kind: 'housingView', view: 'site' })
+        onTabChange('housing')
+      }
+    },
+    {
+      label: 'Enclosure',
+      value: (h?.enclosures ?? 0).toLocaleString(),
+      color: skin.BANNER_TEAL,
+      onTap: () => {
+        setDetailJump({ kind: 'housingView', view: 'enclosure' })
+        onTabChange('housing')
+      }
+    }
   ]
 
   // Species with a real hero photo — everything else gets the antz logomark card.
@@ -733,6 +752,8 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
               {bannerCells.map((c, i) => (
                 <Box
                   key={c.label}
+                  onClick={c.onTap}
+                  role='button'
                   sx={{
                     flex: '1 0 0',
                     minWidth: '1px',
@@ -747,6 +768,10 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                     px: '10px',
                     pt: '16px',
                     pb: '15px',
+                    cursor: 'pointer',
+                    transition: `filter ${skin.DUR_FAST} ${skin.EASE}`,
+                    '&:hover': { filter: 'brightness(1.12)' },
+                    '&:active': { filter: 'brightness(1.2)' },
                     [LANDSCAPE]: { height: 122, px: '24px' }
                   }}
                 >
@@ -767,12 +792,15 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
               Unsexed (hidden at zero) · Chipped as LIGHT pills — the style the IUCN/CITES
               pills wore (swapped by user call: identity pills went glass, stats went light). */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', pl: '16px', pr: 0, [LANDSCAPE]: { pl: '24px', pr: 0 } }}>
+            {/* Sex pills JUMP to Pairing with the composition chip pre-applied (user call
+                2026-09-07): M → Male, F → Female, U → Undetermined. Chipped stays inert
+                until the Identification tab lands (parked, user call same day). */}
             {(
               [
-                { text: `M - ${m.toLocaleString()}`, color: skin.BANNER_TAG_MALE },
-                { text: `F - ${f.toLocaleString()}`, color: skin.BANNER_TAG_FEMALE },
+                { text: `M - ${m.toLocaleString()}`, color: skin.BANNER_TAG_MALE, comp: 'Male' },
+                { text: `F - ${f.toLocaleString()}`, color: skin.BANNER_TAG_FEMALE, comp: 'Female' },
                 ...((h?.total ?? 0) - m - f > 0
-                  ? [{ text: `U - ${((h?.total ?? 0) - m - f).toLocaleString()}`, color: skin.BANNER_TAG_UNSEXED }]
+                  ? [{ text: `U - ${((h?.total ?? 0) - m - f).toLocaleString()}`, color: skin.BANNER_TAG_UNSEXED, comp: 'Undetermined' }]
                   : []),
                 ...(typeof h?.chippedPct === 'number'
                   ? [
@@ -786,10 +814,19 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                       }
                     ]
                   : [])
-              ] as { text: string; color: string }[]
+              ] as { text: string; color: string; comp?: string }[]
             ).map(t => (
               <Box
                 key={t.text}
+                onClick={
+                  t.comp
+                    ? () => {
+                        setDetailJump({ kind: 'pairingComposition', composition: t.comp as string })
+                        onTabChange('pairing')
+                      }
+                    : undefined
+                }
+                role={t.comp ? 'button' : undefined}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -798,7 +835,12 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                   py: '7px',
                   borderRadius: '999px',
                   backgroundColor: skin.ROW_HOVER,
-                  border: `1px solid ${skin.HAIR}`
+                  border: `1px solid ${skin.HAIR}`,
+                  ...(t.comp && {
+                    cursor: 'pointer',
+                    transition: `background-color ${skin.DUR_FAST} ${skin.EASE}`,
+                    '&:hover': { backgroundColor: '#ffffff' }
+                  })
                 }}
               >
                 <Typography sx={{ fontSize: '15px', fontWeight: 700, lineHeight: 'normal', fontVariantNumeric: 'tabular-nums', color: t.color }}>

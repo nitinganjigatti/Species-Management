@@ -17,6 +17,7 @@ import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/
 import {
   SiteFilterSelect,
   ChipFilterRow,
+  clearDetailJump,
   countCol,
   DetailTable,
   DrillSheet,
@@ -25,6 +26,7 @@ import {
   enclosureAnimalsOf,
   enclosureCompositionOf,
   NameSiteCell,
+  peekDetailJump,
   RealAnimalCardRow,
   SearchPill,
   SectionCard,
@@ -151,6 +153,19 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
     return list
   }, [housing, animals])
+
+  // Banner jump (user call 2026-09-07): an M/F/U banner pill lands here with that
+  // composition chip pre-applied — but only when the ladder actually holds such an
+  // enclosure (a chip the row doesn't offer must never filter invisibly). Mount-only:
+  // the container gates this tab behind housing.isLoading, so allRows is already final.
+  useEffect(() => {
+    const j = peekDetailJump('pairingComposition')
+    if (j) {
+      if (allRows.some(r => r.composition === j.composition)) setComps([j.composition])
+      clearDetailJump()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const siteNames = useMemo(() => Array.from(new Set(allRows.map(r => r.site))), [allRows])
   const compositionOptions = useMemo(() => ENCLOSURE_COMPOSITIONS.filter(c => allRows.some(r => r.composition === c)), [allRows])

@@ -9,6 +9,7 @@ import type { AnimalRecord, SpeciesHousing } from 'src/types/species-management/
 import {
   SiteFilterSelect,
   CategoryFilter,
+  clearDetailJump,
   countCol,
   DetailTable,
   DrillSheet,
@@ -17,6 +18,7 @@ import {
   enclosureAnimalsOf,
   enclosureCompositionOf,
   NameSiteCell,
+  peekDetailJump,
   RealAnimalCardRow,
   SearchPill,
   SectionCard,
@@ -48,7 +50,11 @@ const HousingTab: React.FC<HousingTabProps> = ({ housing, animals = [] }) => {
   } | null>(null)
   const [animalQ, setAnimalQ] = useState('')
   const [sheetPm, setSheetPm] = useState({ page: 0, pageSize: 10 })
-  const [tableView, setTableView] = useState<'site' | 'section' | 'enclosure'>('site')
+  // Banner jump (user call 2026-09-07): the Site/Enclosure banner cells land here on
+  // their view — peek on mount, clear in the effect below (peek never clears, so
+  // strict-mode double-initializers agree).
+  const [tableView, setTableView] = useState<'site' | 'section' | 'enclosure'>(() => peekDetailJump('housingView')?.view ?? 'site')
+  useEffect(() => clearDetailJump(), [])
   // Composition filter = the LOCKED ladder vocabulary (user call 2026-09-05; "Single
   // Sexed" retired) — one word set across the whole module.
   const [composition, setComposition] = useState<string | null>(null)

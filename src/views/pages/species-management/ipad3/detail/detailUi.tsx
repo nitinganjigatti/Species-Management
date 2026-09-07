@@ -1154,6 +1154,23 @@ export const splitUnsexed = (unsexed: number, kinds?: EnclosureSexKinds) => {
 export const genderTagOf = (g?: string): AnimalTagKind =>
   g === 'male' ? 'male' : g === 'female' ? 'female' : g === 'indeterminate' ? 'indetermined' : g === 'group' ? 'group' : 'undetermined'
 
+/* ── one-shot cross-tab jump (user call 2026-09-07: the banner stats are clickable —
+   Animals → Population, Site/Enclosure → Housing on that view, M/F/U pill → Pairing
+   with the composition chip pre-applied). The banner SETS the intent then switches the
+   tab; the target tab PEEKS it on mount and clears it in an effect. Peek never clears,
+   so strict-mode double-initializers read the same value. Module-level on purpose —
+   the banner and the tab bodies live on opposite sides of the container's children. */
+export type DetailJump = { kind: 'housingView'; view: 'site' | 'enclosure' } | { kind: 'pairingComposition'; composition: string }
+let pendingDetailJump: DetailJump | null = null
+export const setDetailJump = (j: DetailJump) => {
+  pendingDetailJump = j
+}
+export const peekDetailJump = <K extends DetailJump['kind']>(kind: K): Extract<DetailJump, { kind: K }> | null =>
+  pendingDetailJump && pendingDetailJump.kind === kind ? (pendingDetailJump as Extract<DetailJump, { kind: K }>) : null
+export const clearDetailJump = () => {
+  pendingDetailJump = null
+}
+
 export const ENCLOSURE_COMPOSITIONS = ['Male', 'Female', 'Male & Female', 'Undetermined', 'Indeterminate', 'Group', 'Mixed', 'Empty']
 
 export const enclosureCompositionOf = (
