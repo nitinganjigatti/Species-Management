@@ -273,12 +273,13 @@ const SCALE: { code: string; name: string; fill: string; outline?: string; darkT
   { code: 'EX', name: 'Extinct', fill: '#000000' }
 ]
 
-const IucnScale: React.FC<{ status?: string; tint: Tint }> = ({ status, tint }) => {
+// Bare on the card — no tint panel, no white strip under the verdict (user call 2026-09-07).
+const IucnScale: React.FC<{ status?: string }> = ({ status }) => {
   const head = status ? gloss(status)[0] : undefined
   const current = head ? SCALE.find(c => c.name.toLowerCase() === head.toLowerCase()) : undefined
 
   return (
-    <Box sx={{ bgcolor: tint.tile, borderRadius: '12px', p: 4 }}>
+    <Box>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 3.5 }}>
         {SCALE.map(c => {
           const cur = c.code === current?.code
@@ -320,26 +321,10 @@ const IucnScale: React.FC<{ status?: string; tint: Tint }> = ({ status, tint }) 
           )
         })}
       </Box>
-      <Box
-        sx={{
-          bgcolor: '#ffffff',
-          border: `1px solid ${skin.HAIR}`,
-          borderRadius: '10px',
-          px: 4,
-          py: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          fontSize: '16px',
-          color: skin.INK2
-        }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '16px', color: skin.INK2 }}>
         IUCN&nbsp;:&nbsp;
         <Box component='b' sx={{ color: skin.ACCENT_INK, fontWeight: 700 }}>
           {head || 'Not Evaluated'}
-        </Box>
-        <Box sx={{ ml: 'auto', display: 'flex', color: skin.ACCENT_FILL }}>
-          <Icon icon='mdi:information' fontSize='1.25rem' />
         </Box>
       </Box>
     </Box>
@@ -462,7 +447,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, header }) => {
         </Section>
 
         <Section tint={T.mint} icon='mdi:shield-outline' title='Conservation Risk Level'>
-          <IucnScale status={header?.iucnStatus} tint={T.mint} />
+          <IucnScale status={header?.iucnStatus} />
         </Section>
       </Box>
 
