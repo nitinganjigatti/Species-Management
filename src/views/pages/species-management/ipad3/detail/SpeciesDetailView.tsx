@@ -54,7 +54,8 @@ interface SpeciesDetailViewProps {
 const stripParen = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim()
 
 const BASE_TABS: { labelKey: string; value: SpeciesDetailTab }[] = [
-  { labelKey: 'Overview', value: 'overview' },
+  // Overview HIDDEN for now (user call 2026-09-07) — restore by re-adding
+  // { labelKey: 'Overview', value: 'overview' } here + 'overview' in DetailContainer VALID_TABS.
   { labelKey: 'Profile', value: 'profile' },
   { labelKey: 'Ledger', value: 'ledger' },
   { labelKey: 'Population', value: 'population' },

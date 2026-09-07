@@ -46,7 +46,7 @@ const IpadDetailContainer = () => {
 
   // Deep-links (e.g. from the dashboard's single-species mode) land on a specific tab via ?tab=.
   const VALID_TABS: SpeciesDetailTab[] = [
-    'overview',
+    // 'overview' — tab HIDDEN for now (user call 2026-09-07); deep-links fall back to profile
     'profile',
     'ledger',
     'population',
@@ -64,7 +64,7 @@ const IpadDetailContainer = () => {
   const initialTab = ((): SpeciesDetailTab => {
     const q = searchParams?.get('tab') as SpeciesDetailTab | null
 
-    return q && VALID_TABS.includes(q) ? q : 'overview'
+    return q && VALID_TABS.includes(q) ? q : 'profile'
   })()
   const [tab, setTab] = useState<SpeciesDetailTab>(initialTab)
 
