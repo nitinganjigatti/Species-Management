@@ -349,7 +349,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       sortable: false,
       field: 'site',
       headerName: 'Site',
-      renderCell: p => <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: skin.INK }}>{p.row.site}</Typography>
+      // kit NameSiteCell — the identity-cell standard: wraps to 2 lines, never clips
+      renderCell: p => <NameSiteCell name={p.row.site} />
     },
     bucketCol('maleOnly', 'Male Only'),
     bucketCol('femaleOnly', 'Female Only'),
