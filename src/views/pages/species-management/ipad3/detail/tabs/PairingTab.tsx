@@ -9,7 +9,7 @@
 // enclosures-per-readiness-type, died with the buckets).
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
@@ -31,9 +31,11 @@ import {
   SearchPill,
   SectionCard,
   splitUnsexed,
-  txtCell
+  txtCell,
+  ViewToggle
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import type { EnclosureSexKinds } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 
 interface EncRow {
   name: string
@@ -105,6 +107,68 @@ const EnclosureAnimalsDrawer: React.FC<{
   )
 }
 
+/* ── site verdict (user calls 2026-09-07): dominance judged on SEXED animals only
+   (one sex >60% = dominated); when unsexed (UD+ID+G) reaches a THIRD of the site any
+   dominance claim would be a guess — the verdict becomes Needs Sexing instead. The
+   verdict rides as a chip ABOVE the site name in the row's first cell, never its own
+   column. Only Needs Sexing wears amber (a to-do); the rest stay quiet neutral. */
+
+type SiteVerdict = 'male' | 'female' | 'balanced' | 'needsSexing'
+
+interface SiteRow {
+  site: string
+  male: number
+  female: number
+  ud: number
+  ind: number
+  grp: number
+  total: number
+  verdict: SiteVerdict
+}
+
+const VERDICT_TEXT: Record<SiteVerdict, string> = {
+  male: 'Male Dominated',
+  female: 'Female Dominated',
+  balanced: 'Balanced',
+  needsSexing: 'Needs Sexing'
+}
+
+const verdictOf = (s: Omit<SiteRow, 'verdict'>): SiteVerdict => {
+  const sexed = s.male + s.female
+  const unsexed = s.ud + s.ind + s.grp
+  if (s.total > 0 && (sexed === 0 || unsexed * 3 >= s.total)) return 'needsSexing'
+  if (s.male > 0.6 * sexed) return 'male'
+  if (s.female > 0.6 * sexed) return 'female'
+
+  return 'balanced'
+}
+
+const VerdictChip: React.FC<{ v: SiteVerdict }> = ({ v }) => {
+  const warn = v === 'needsSexing'
+
+  return (
+    <Box
+      component='span'
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        height: 24,
+        px: 2.5,
+        borderRadius: '999px',
+        backgroundColor: warn ? skin.TONE_SOFT.warn : skin.TONE_SOFT.neutral,
+        whiteSpace: 'nowrap'
+      }}
+    >
+      <Typography
+        component='span'
+        sx={{ fontSize: '14px', fontWeight: 600, lineHeight: 1, color: warn ? skin.strokeOf(skin.TONE_FILL.warn) : skin.TONE_TYPE.neutral }}
+      >
+        {VERDICT_TEXT[v]}
+      </Typography>
+    </Box>
+  )
+}
+
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
   const [encDrill, setEncDrill] = useState<EncRow | null>(null)
   const [q, setQ] = useState('')
@@ -113,6 +177,12 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const [comps, setComps] = useState<string[]>([])
   const [site, setSite] = useState<string | null>(null)
   const [pm, setPm] = useState({ page: 0, pageSize: 10 })
+
+  // Site-Wise | Enclosure-Wise (user call 2026-09-07 — Housing's rule): multi-site
+  // species open on the site verdict table; single-site species have no site story
+  // to tell and go straight to enclosures (no toggle).
+  const multiSite = (housing?.sites?.length ?? 0) > 1
+  const [view, setView] = useState<'site' | 'enclosure'>(multiSite ? 'site' : 'enclosure')
 
   const allRows: EncRow[] = useMemo(() => {
     // The housing aggregates carry ONE unsexed bucket — the animal records say which
@@ -161,7 +231,10 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   useEffect(() => {
     const j = peekDetailJump('pairingComposition')
     if (j) {
-      if (allRows.some(r => r.composition === j.composition)) setComps([j.composition])
+      if (allRows.some(r => r.composition === j.composition)) {
+        setComps([j.composition])
+        setView('enclosure') // the chips are enclosure-view scope
+      }
       clearDetailJump()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -177,6 +250,49 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     for (const r of allRows) m.set(r.composition, (m.get(r.composition) || 0) + 1)
 
     return m
+  }, [allRows])
+
+  /* ── headline strip (user call 2026-09-07): the enclosure mix at a glance — every
+     cell jumps to the Enclosure-Wise view with the matching composition chips ON
+     (multi-select, so Single-Gender = Male + Female together). Needs Sexing is the
+     one amber figure (a to-do, not an alarm). Empty joins only when it exists. ── */
+  const jumpToComps = (cs: string[]) => {
+    setComps(cs.filter(c => compositionOptions.includes(c)))
+    setView('enclosure')
+    setPm(p => ({ ...p, page: 0 }))
+  }
+  const nOf = (cs: string[]) => allRows.filter(r => cs.includes(r.composition)).length
+  const bandCells = [
+    { key: 'enclosures', label: 'Enclosures', count: allRows.length, tone: 'neutral' as const, onOpen: () => jumpToComps([]) },
+    { key: 'single', label: 'Single-Gender', count: nOf(['Male', 'Female']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Male', 'Female']) },
+    { key: 'mf', label: 'Male & Female', count: nOf(['Male & Female']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Male & Female']) },
+    {
+      key: 'needsSexing',
+      label: 'Needs Sexing',
+      count: nOf(['Undetermined', 'Indeterminate']),
+      tone: 'warn' as const,
+      onOpen: () => jumpToComps(['Undetermined', 'Indeterminate'])
+    },
+    ...(nOf(['Empty']) > 0
+      ? [{ key: 'empty', label: 'Empty', count: nOf(['Empty']), tone: 'neutral' as const, onOpen: () => jumpToComps(['Empty']) }]
+      : [])
+  ]
+
+  /* ── site-wise rows: the gender grid summed per site + the verdict ── */
+  const siteRows: SiteRow[] = useMemo(() => {
+    const by = new Map<string, Omit<SiteRow, 'verdict'>>()
+    for (const r of allRows) {
+      const s = by.get(r.site) || { site: r.site, male: 0, female: 0, ud: 0, ind: 0, grp: 0, total: 0 }
+      s.male += r.male
+      s.female += r.female
+      s.ud += r.ud
+      s.ind += r.ind
+      s.grp += r.grp
+      s.total += r.total
+      by.set(r.site, s)
+    }
+
+    return [...by.values()].map(s => ({ ...s, verdict: verdictOf(s) })).sort((a, b) => b.total - a.total)
   }, [allRows])
 
   const filtered = useMemo(() => {
@@ -220,59 +336,126 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     countCol('total', 'Total', { total: true })
   ]
 
+  // Site-wise columns — same gender grid, first cell = verdict chip ABOVE the site
+  // name (user call 2026-09-07: never a separate Verdict column).
+  const siteColumns: GridColDef[] = [
+    {
+      minWidth: 240,
+      flex: 1,
+      sortable: false,
+      field: 'site',
+      headerName: 'Site',
+      renderCell: p => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1.5 }}>
+          <VerdictChip v={(p.row as SiteRow).verdict} />
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: skin.INK }}>{p.row.site}</Typography>
+        </Box>
+      )
+    },
+    countCol('male', 'M'),
+    countCol('female', 'F'),
+    countCol('ud', 'UD'),
+    countCol('ind', 'ID'),
+    countCol('grp', 'G'),
+    countCol('total', 'Total', { total: true })
+  ]
+
   const start = pm.page * pm.pageSize
   const indexed = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i }))
+  const sitePage = siteRows.slice(start, start + pm.pageSize).map(r => ({ ...r, id: r.site }))
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Controls live INSIDE the table card (user call 2026-09-01). Demo review
-          2026-09-04 + user call 2026-09-05: composition = a MULTI-SELECT chip row on
-          top (label + enclosure count, tap toggles — replaces the old dropdown);
-          search + site sit below and work within the chip selection. Single-site
-          species never see the site dropdown. */}
+      {/* ── ZONE 0 · the enclosure mix at a glance — the standard SignalsBand; cells
+          jump into the Enclosure-Wise view with the matching chips ON ── */}
+      <SignalsBand cells={bandCells} />
+
+      {/* Controls live INSIDE the table card (user call 2026-09-01). Heading + the
+          Site-Wise | Enclosure-Wise toggle on row one (user call 2026-09-07, Housing's
+          rule); the enclosure view keeps its MULTI-SELECT composition chips (demo
+          review 2026-09-04) + search + site dropdown below, exactly as before. */}
       <SectionCard
         titleMb={4}
         title={
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
-            {/* the kit ChipFilterRow — "All" leads, count = every enclosure, absent
-                classes auto-hide (compositionOptions carries present ones only) */}
-            <ChipFilterRow
-              items={compositionOptions.map(c => ({ key: c, label: c, count: compCounts.get(c) || 0 }))}
-              values={comps}
-              onChange={vs => {
-                setComps(vs)
-                setPm(p => ({ ...p, page: 0 }))
-              }}
-              allCount={allRows.length}
-            />
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
-              <SearchPill
-                value={q}
-                onChange={v => {
-                  setQ(v)
-                  setPm(p => ({ ...p, page: 0 }))
-                }}
-                placeholder='Search enclosures…'
-                sx={{ flex: 1, minWidth: 220 }}
-              />
-              {siteNames.length > 1 && (
-                // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
-                <SiteFilterSelect
-                  sites={siteNames.map(name => ({ site: name, caption: `${allRows.filter(r => r.site === name).length.toLocaleString()} enclosures` }))}
-                  value={site}
-                  onChange={v => {
-                    setSite(v)
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%', minWidth: 0 }}>
+              <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK, whiteSpace: 'nowrap' }}>
+                {view === 'site' ? 'Site Demographics' : 'Enclosure Demographics'}
+              </Typography>
+              {multiSite && (
+                <ViewToggle
+                  items={[
+                    { key: 'site', label: 'Site-Wise', icon: 'mdi:map-marker-outline' },
+                    { key: 'enclosure', label: 'Enclosure-Wise', icon: 'mdi:home-outline' }
+                  ]}
+                  value={view}
+                  onChange={k => {
+                    setView(k as 'site' | 'enclosure')
                     setPm(p => ({ ...p, page: 0 }))
                   }}
-                  allCaption={`${allRows.length.toLocaleString()} enclosures`}
                 />
               )}
             </Box>
+
+            {view === 'enclosure' && (
+              <>
+                {/* the kit ChipFilterRow — "All" leads, count = every enclosure, absent
+                    classes auto-hide (compositionOptions carries present ones only) */}
+                <ChipFilterRow
+                  items={compositionOptions.map(c => ({ key: c, label: c, count: compCounts.get(c) || 0 }))}
+                  values={comps}
+                  onChange={vs => {
+                    setComps(vs)
+                    setPm(p => ({ ...p, page: 0 }))
+                  }}
+                  allCount={allRows.length}
+                />
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
+                  <SearchPill
+                    value={q}
+                    onChange={v => {
+                      setQ(v)
+                      setPm(p => ({ ...p, page: 0 }))
+                    }}
+                    placeholder='Search enclosures…'
+                    sx={{ flex: 1, minWidth: 220 }}
+                  />
+                  {siteNames.length > 1 && (
+                    // THE standard site dropdown (2026-09-02): bottom-sheet picker with per-site counts
+                    <SiteFilterSelect
+                      sites={siteNames.map(name => ({ site: name, caption: `${allRows.filter(r => r.site === name).length.toLocaleString()} enclosures` }))}
+                      value={site}
+                      onChange={v => {
+                        setSite(v)
+                        setPm(p => ({ ...p, page: 0 }))
+                      }}
+                      allCaption={`${allRows.length.toLocaleString()} enclosures`}
+                    />
+                  )}
+                </Box>
+              </>
+            )}
           </Box>
         }
       >
-        {filtered.length ? (
+        {view === 'site' ? (
+          // Site row tap drills INTO that site's enclosures (the enclosure view,
+          // site-filtered — chips + search stay usable there).
+          <DetailTable
+            columns={siteColumns}
+            rows={sitePage}
+            total={siteRows.length}
+            rowHeight={76}
+            paginationModel={pm}
+            setPaginationModel={setPm}
+            onRowClick={(p: { row: SiteRow }) => {
+              setSite(p.row.site)
+              setView('enclosure')
+              setPm(x => ({ ...x, page: 0 }))
+            }}
+          />
+        ) : filtered.length ? (
           <DetailTable
             columns={columns}
             rows={indexed}

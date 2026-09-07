@@ -17,8 +17,9 @@ export interface SignalCell {
   count: number
   /** 'critical' (default) inks the figure CORAL; 'neutral' keeps the warm VALUE ink —
    *  for plain volume stats (doses given, animals treated) that aren't an alarm;
-   *  'good' wears the list green — growth figures (Ledger's Additions, 2026-09-03). */
-  tone?: 'critical' | 'neutral' | 'good'
+   *  'good' wears the list green — growth figures (Ledger's Additions, 2026-09-03);
+   *  'warn' wears the amber stroke — a to-do, not an alarm (Pairing's Needs Sexing). */
+  tone?: 'critical' | 'neutral' | 'good' | 'warn'
   /** Figure text override ("+26", "−12") — `count` still drives the zero-goes-quiet ink. */
   display?: string
   /** Quiet context line under the figure ("worst 4×", "mortality rate 3%") — optional. */
@@ -84,6 +85,8 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
                 ? skin.VALUE
                 : cell.tone === 'good'
                 ? skin.LIST_GREEN
+                : cell.tone === 'warn'
+                ? skin.strokeOf(skin.TONE_FILL.warn)
                 : skin.CORAL
             }}
           >
