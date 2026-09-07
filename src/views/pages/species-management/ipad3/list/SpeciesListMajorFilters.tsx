@@ -6,6 +6,7 @@ import { SheetDrawer } from 'src/views/pages/species-management/ipad3/detail/det
 import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { compactNumber, type FilterInsights, type SpeciesFilters } from 'src/views/pages/species-management/ipad3/list/speciesListing.utils'
+import * as skin from 'src/views/pages/species-management/ipad3/skin'
 
 export interface MajorFilterOption {
   value: string
@@ -96,7 +97,7 @@ const SpeciesListMajorFilters: React.FC<SpeciesListMajorFiltersProps> = ({ rows,
       <Box sx={{ py: 0.5, minWidth: 190 }}>
         <Typography
           variant='caption'
-          sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 0.5, color: cc.OnSurfaceVariant }}
+          sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, display: 'block', mb: 0.5, color: cc.OnSurfaceVariant }}
         >
           {opt.label}
         </Typography>
@@ -183,7 +184,7 @@ const SpeciesListMajorFilters: React.FC<SpeciesListMajorFiltersProps> = ({ rows,
                   color: cc.OnSurfaceVariant,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: skin.TRACK_CAPS,
                   width: 92,
                   flexShrink: 0,
                   pt: 1.1

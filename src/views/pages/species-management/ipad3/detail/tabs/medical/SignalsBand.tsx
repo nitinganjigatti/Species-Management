@@ -61,7 +61,7 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
             sx={{
               fontSize: '14px',
               fontWeight: 700,
-              letterSpacing: '0.08em',
+              letterSpacing: skin.TRACK_CAPS,
               textTransform: 'uppercase',
               color: skin.FAINT,
               // labels are ONE line, always (user call 2026-09-06 — "Avg Egg Weight" wrapped)
@@ -77,7 +77,6 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
               fontSize: '24px',
               fontWeight: 800,
               lineHeight: 1.05,
-              letterSpacing: '-0.6px',
               fontVariantNumeric: 'tabular-nums',
               color: !live
                 ? skin.DASH_INK

@@ -28,11 +28,11 @@ export const openSurgeryReport = (adm: Admission) => {
   body{background:var(--bg);color:var(--ink);padding:40px 16px}
   .sheet{max-width:820px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .head{background:var(--teal);color:#fff;padding:28px 36px;display:flex;justify-content:space-between;align-items:center}
-  .head .t{font-size:22px;font-weight:800;letter-spacing:.02em}
+  .head .t{font-size:22px;font-weight:800}
   .head .s{font-size:13px;color:rgba(255,255,255,.65);margin-top:4px;letter-spacing:.08em;text-transform:uppercase}
   .head .code{font-size:13px;color:rgba(255,255,255,.75);text-align:right;line-height:1.6}
   .body{padding:32px 36px}
-  h2{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin:26px 0 10px}
+  h2{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin:26px 0 10px}
   h2:first-child{margin-top:0}
   table{width:100%;border-collapse:collapse}
   td{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}

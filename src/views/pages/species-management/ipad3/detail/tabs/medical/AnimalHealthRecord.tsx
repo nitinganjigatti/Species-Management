@@ -294,7 +294,7 @@ const AnimalHealthRecord: React.FC<{
       <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.2, color: bad ? c.Tertiary : c.OnSurfaceVariant }}>
         {value}
       </Typography>
-      <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+      <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary }}>
         {label}
       </Typography>
     </Box>
@@ -303,7 +303,7 @@ const AnimalHealthRecord: React.FC<{
   const sectionHead = (icon: string, label: string, count: number, color: string) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, px: 3.5 }}>
       <Icon icon={icon} fontSize={15} color={color} />
-      <Typography sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.66px', textTransform: 'uppercase', color }}>
+      <Typography sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color }}>
         {label}
       </Typography>
       <Typography sx={{ fontSize: '15px', color: c.neutralSecondary, ml: 'auto' }}>{count}</Typography>
@@ -429,7 +429,7 @@ const AnimalHealthRecord: React.FC<{
               {data.activeSymptoms.length > 0 && (
                 <>
                   <Typography
-                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
                   >
                     Symptoms
                   </Typography>
@@ -457,7 +457,7 @@ const AnimalHealthRecord: React.FC<{
                 <>
                   {data.activeSymptoms.length > 0 && <Box sx={{ height: 12 }} />}
                   <Typography
-                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
                   >
                     Clinical assessments
                   </Typography>
@@ -588,7 +588,7 @@ const AnimalHealthRecord: React.FC<{
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
-                          <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+                          <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary }}>
                             {e.when}
                           </Typography>
                           {/* hospital stays + surgeries: the tag rides the DATE line (next to the range) */}
@@ -601,7 +601,6 @@ const AnimalHealthRecord: React.FC<{
                                 borderRadius: '10px',
                                 fontSize: '14px',
                                 fontWeight: 700,
-                                letterSpacing: '0.4px',
                                 textTransform: 'uppercase',
                                 backgroundColor: chipSx[e.kind].bg,
                                 color: chipSx[e.kind].fg
@@ -622,7 +621,6 @@ const AnimalHealthRecord: React.FC<{
                                 borderRadius: '10px',
                                 fontSize: '14px',
                                 fontWeight: 700,
-                                letterSpacing: '0.4px',
                                 textTransform: 'uppercase',
                                 backgroundColor: chipSx[e.kind].bg,
                                 color: chipSx[e.kind].fg
@@ -699,7 +697,7 @@ const AnimalHealthRecord: React.FC<{
                           />
                           <Box sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${c.OutlineVariant}`, boxShadow: 1, borderRadius: '10px', p: 3.5, maxWidth: 560 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
-                              <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.66px', textTransform: 'uppercase', color: c.neutralSecondary }}>
+                              <Typography sx={{ fontSize: '15px', fontWeight: 600, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary }}>
                                 {ch.when}
                               </Typography>
                               {ch.chip && (
@@ -711,7 +709,6 @@ const AnimalHealthRecord: React.FC<{
                                     borderRadius: '10px',
                                     fontSize: '14px',
                                     fontWeight: 700,
-                                    letterSpacing: '0.4px',
                                     textTransform: 'uppercase',
                                     backgroundColor: chipSx[ch.kind].bg,
                                     color: chipSx[ch.kind].fg

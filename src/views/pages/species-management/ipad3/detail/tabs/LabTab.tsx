@@ -1017,7 +1017,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
                 sx={{
                   fontSize: '14px',
                   fontWeight: 700,
-                  letterSpacing: '0.08em',
+                  letterSpacing: skin.TRACK_CAPS,
                   textTransform: 'uppercase',
                   color: skin.FAINT,
                   whiteSpace: 'nowrap',

@@ -119,7 +119,7 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
     </Typography>
   )
   const groupLabel = (text: string) => (
-    <Typography variant='caption' sx={{ color: skin.FAINT, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', mr: 0.5 }}>
+    <Typography variant='caption' sx={{ color: skin.FAINT, fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, mr: 0.5 }}>
       {text}
     </Typography>
   )
@@ -184,7 +184,7 @@ const SpeciesListAnalysisFilter: React.FC<SpeciesListAnalysisFilterProps> = ({
       {!vertical && (
         <Typography
           variant='body2'
-          sx={{ color: skin.INK2, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', width: 92, flexShrink: 0 }}
+          sx={{ color: skin.INK2, fontWeight: 700, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, width: 92, flexShrink: 0 }}
         >
           {label}
         </Typography>

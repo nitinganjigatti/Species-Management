@@ -469,7 +469,6 @@ export function Slices({
               textAnchor='middle'
               fontSize='20'
               fontWeight='700'
-              letterSpacing='-0.6'
               style={{ fontVariantNumeric: 'tabular-nums' }}
               fill={skin.VALUE}
             >

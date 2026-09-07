@@ -65,7 +65,7 @@ const SpeciesListFilterRail: React.FC<SpeciesListFilterRailProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Typography
           variant='subtitle2'
-          sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: skin.INK2 }}
+          sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: skin.INK2 }}
         >
           {label}
         </Typography>

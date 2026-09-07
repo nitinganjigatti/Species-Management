@@ -1141,7 +1141,7 @@ const SectionLabel: React.FC<{ children: React.ReactNode; sub?: React.ReactNode 
 
   return (
     <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap' }}>
-      <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em' }}>
+      <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', fontWeight: 600, letterSpacing: skin.TRACK_CAPS }}>
         {children}
       </Typography>
       {sub != null && (
@@ -1525,7 +1525,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                     sx={{ px: '18px', py: '14px', display: 'flex', flexDirection: 'column', gap: '9px', borderLeft: i === 0 ? 'none' : `1px solid ${skin.HAIR}` }}
                   >
                     <Typography
-                      sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+                      sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}
                       noWrap
                     >
                       {cl.label}
@@ -1535,7 +1535,6 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                         fontSize: '24px',
                         fontWeight: 800,
                         lineHeight: 1.05,
-                        letterSpacing: '-0.6px',
                         fontVariantNumeric: 'tabular-nums',
                         color: skin.VALUE
                       }}
@@ -1592,7 +1591,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                   return (
                     <Box key={i}>
                       <Typography
-                        sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT, mb: 1 }}
+                        sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT, mb: 1 }}
                       >
                         {cat}
                       </Typography>

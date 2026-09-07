@@ -742,7 +742,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
                 pb: 1,
                 fontSize: '14px',
                 fontWeight: 700,
-                letterSpacing: '0.08em',
+                letterSpacing: skin.TRACK_CAPS,
                 textTransform: 'uppercase',
                 color: skin.FAINT
               }}

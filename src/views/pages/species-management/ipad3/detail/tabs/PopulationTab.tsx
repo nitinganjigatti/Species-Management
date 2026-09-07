@@ -749,7 +749,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
             </Box>
             <Box sx={{ px: SHEET_PX }}>
               <Typography
-                sx={{ pt: 3, pb: 1, fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+                sx={{ pt: 3, pb: 1, fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}
               >
                 Tags
               </Typography>

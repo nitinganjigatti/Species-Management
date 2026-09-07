@@ -131,7 +131,7 @@ const VerdictBand: React.FC<{ stats: VerdictStat[] }> = ({ stats }) => {
         >
           <Typography
             variant='caption'
-            sx={{ color: skin.HERO_MUTE, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500, display: 'block', mb: 1.5 }}
+            sx={{ color: skin.HERO_MUTE, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, fontWeight: 500, display: 'block', mb: 1.5 }}
           >
             {s.label}
           </Typography>
@@ -142,7 +142,6 @@ const VerdictBand: React.FC<{ stats: VerdictStat[] }> = ({ stats }) => {
                 fontSize: '28px',
                 fontWeight: 700,
                 lineHeight: 1.15,
-                letterSpacing: '-0.02em',
                 fontVariantNumeric: 'tabular-nums',
                 color: skin.HERO_ON
               }}
@@ -238,12 +237,12 @@ const FireTile: React.FC<{ tile: Tile; count: number; onOpen: () => void }> = ({
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, fontWeight: 500 }}>
           {tile.label}
         </Typography>
         {active && <Icon icon='mdi:chevron-right' fontSize='1.1rem' color={skin.FAINT} />}
       </Box>
-      <Typography sx={{ fontSize: '28px', fontWeight: 700, lineHeight: 1.15, color: numColor, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+      <Typography sx={{ fontSize: '28px', fontWeight: 700, lineHeight: 1.15, color: numColor, fontVariantNumeric: 'tabular-nums' }}>
         {count}
       </Typography>
       <Typography variant='caption' sx={{ color: skin.FAINT, display: 'block', mt: 2 }} noWrap>
@@ -272,12 +271,12 @@ const StatusTile: React.FC<{ tile: Tile; value: string; ok: boolean; note: strin
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
+        <Typography variant='caption' sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, fontWeight: 500 }}>
           {tile.label}
         </Typography>
         <Icon icon={ok ? 'mdi:check-circle' : 'mdi:alert-circle'} fontSize='1.25rem' color={markColor} />
       </Box>
-      <Typography sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.15, color: skin.VALUE, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }} noWrap>
+      <Typography sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.15, color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }} noWrap>
         {value}
       </Typography>
       <Typography variant='caption' sx={{ color: noteColor, fontWeight: 600, display: 'block', mt: 2 }} noWrap>
@@ -444,7 +443,7 @@ const TrendCards: React.FC<{ trend: { label: string; births: number; deaths: num
   // Card title in INK; the headline count is TYPE so it wears the accent's ink partner.
   const header = (label: string, total: number, color: string) => (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-      <Typography variant='subtitle1' sx={{ fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
+      <Typography variant='subtitle1' sx={{ fontWeight: 600, color: skin.INK }}>
         {label}
       </Typography>
       <Typography sx={{ fontSize: '1.35rem', fontWeight: 700, color, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{total.toLocaleString()}</Typography>
@@ -548,7 +547,7 @@ const Dashboard2View: React.FC<{
       {/* Header — title + species picker */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' }}>
-          <Typography variant='h5' sx={{ fontWeight: 600, letterSpacing: '-0.4px', color: skin.INK }}>
+          <Typography variant='h5' sx={{ fontWeight: 600, color: skin.INK }}>
             {scope ? scope.name : 'Species Dashboard'}
           </Typography>
           <Typography variant='caption' sx={{ color: skin.FAINT, fontStyle: scope ? 'italic' : 'normal' }}>

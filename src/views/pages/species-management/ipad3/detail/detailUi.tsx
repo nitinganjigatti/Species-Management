@@ -159,14 +159,14 @@ export const DrillSheet: React.FC<{
         <Box sx={{ minWidth: 0, flex: 1 }}>
           {eyebrow != null && (
             <Typography
-              sx={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.FAINT }}
+              sx={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: skin.FAINT }}
               noWrap
             >
               {eyebrow}
             </Typography>
           )}
           {title != null && (
-            <Typography sx={{ mt: eyebrow != null ? '3px' : 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }} noWrap>
+            <Typography sx={{ mt: eyebrow != null ? '3px' : 0, fontSize: '20px', fontWeight: 600, color: skin.INK }} noWrap>
               {title}
             </Typography>
           )}
@@ -1755,7 +1755,7 @@ export const SheetRow: React.FC<{
               fontSize: '14px',
               fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '0.66px',
+              letterSpacing: skin.TRACK_CAPS,
               color: c.neutralSecondary,
               mt: hasCaption ? '2px' : 1
             }}
@@ -1799,7 +1799,7 @@ export const SheetStats: React.FC<{ items: { label: string; value: number | stri
         fontSize: '14px',
         fontWeight: 600,
         textTransform: 'uppercase',
-        letterSpacing: '0.66px',
+        letterSpacing: skin.TRACK_CAPS,
         color: c.neutralSecondary,
         lineHeight: 1.4,
         ...sx
@@ -2110,7 +2110,7 @@ export const SiteFilterSelect: React.FC<{
         </Typography>
         {opts.caption != null && opts.caption !== '' && (
           <Typography
-            sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.66px', color: c.neutralSecondary, mt: '2px' }}
+            sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: c.neutralSecondary, mt: '2px' }}
             noWrap
           >
             {opts.caption}
@@ -2503,7 +2503,7 @@ export const ColumnSettingsSheet: React.FC<{
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 3 }}>
           <Icon icon='mdi:cog-outline' fontSize={26} color={skin.LIST_GREEN} />
-          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }}>{title}</Typography>
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, color: skin.INK }}>{title}</Typography>
         </Box>
         <IconButton onClick={onClose}>
           <Icon icon='mdi:close' />
@@ -3168,7 +3168,7 @@ export const SectionCard: React.FC<{
       {(title || action) && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: titleMb }}>
           {typeof title === 'string' ? (
-            <Typography variant='subtitle1' sx={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
+            <Typography variant='subtitle1' sx={{ fontSize: '18px', fontWeight: 600, color: skin.INK }}>
               {title}
             </Typography>
           ) : (
@@ -3268,7 +3268,7 @@ export const StatTile: React.FC<{
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
-            sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: skin.FAINT }}
+            sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}
           >
             {label}
           </Typography>
@@ -3305,7 +3305,7 @@ export const StatTile: React.FC<{
         sx={{
           fontSize: '14px',
           fontWeight: 700,
-          letterSpacing: '0.06em',
+          letterSpacing: skin.TRACK_CAPS,
           textTransform: 'uppercase',
           color: cc(theme).neutralSecondary
         }}
@@ -3576,7 +3576,7 @@ export const DetailTable: React.FC<{
           fontSize: '14px',
           fontWeight: 600,
           textTransform: 'uppercase',
-          letterSpacing: '0.05em',
+          letterSpacing: skin.TRACK_CAPS,
           color: skin.TABLE_HEAD_INK,
           whiteSpace: 'normal',
           lineHeight: 1.2,

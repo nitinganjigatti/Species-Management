@@ -603,7 +603,7 @@ const HospitalTab: React.FC<Props> = ({ clinical }) => {
     gap: 3,
     p: 3.5
   }
-  const flowLabelSx = { fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT, whiteSpace: 'nowrap' }
+  const flowLabelSx = { fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT, whiteSpace: 'nowrap' }
   const flowValueSx = { fontSize: '28px', fontWeight: 800, color: skin.VALUE, lineHeight: 1.2, mt: 0.5, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }
 
   const s = rollup.surgery

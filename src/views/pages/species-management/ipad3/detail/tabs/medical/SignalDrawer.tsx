@@ -21,6 +21,7 @@ import {
   SHEET_PX
 , SheetDrawer} from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import { fmtDate, type SignalAnimal } from './signals'
+import * as skin from 'src/views/pages/species-management/ipad3/skin'
 
 export interface SignalDrawerPayload {
   title: string
@@ -71,7 +72,6 @@ const StatusPill: React.FC<{ label: string; tone?: SignalAnimal['pillTone'] }> =
         color: map.fg,
         fontSize: '14px',
         fontWeight: 600,
-        letterSpacing: '0.4px',
         whiteSpace: 'nowrap',
         flexShrink: 0
       }}
@@ -324,7 +324,7 @@ const SignalDrawer: React.FC<{
           {dist.length > 0 && (
             <Box sx={{ px: SHEET_PX, mt: 4 }}>
               <Typography
-                sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, mb: 2 }}
+                sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: c.neutralSecondary, mb: 2 }}
               >
                 {payload.distributionTitle ?? 'Result Distribution'}
               </Typography>

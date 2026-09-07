@@ -16,6 +16,8 @@ export const MUTED = '#5c574f' // secondary body, list meta
 export const FAINT = '#736e67' // notes, units, captions, table headers
 export const VALUE = '#2f2424' // figures / numbers (warm)
 export const HERO_INK = '#08100C' // hero figures only (green-black)
+// ONE tracking token for ALL uppercase text (user 2026-09-07); normal-case text carries NO letterSpacing.
+export const TRACK_CAPS = '0.08em'
 
 /** Surfaces & separation. Cards are white on the sage ground with a hairline —
  *  CC has essentially NO card shadows (five shadows in the whole app). */

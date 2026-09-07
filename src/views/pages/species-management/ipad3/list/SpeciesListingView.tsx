@@ -210,7 +210,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
             sx={{
               fontSize: '14px',
               fontWeight: 700,
-              letterSpacing: '0.14em',
+              letterSpacing: skin.TRACK_CAPS,
               textTransform: 'uppercase',
               color: skin.FAINT
             }}
@@ -222,7 +222,6 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
               fontSize: '24px',
               fontWeight: 800,
               lineHeight: 1.05,
-              letterSpacing: '-0.6px',
               fontVariantNumeric: 'tabular-nums',
               color: skin.VALUE
             }}
@@ -318,7 +317,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* ── Title on the sage ground + the Download pill — no card around them ── */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, px: 1, pt: 1 }}>
-          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.4px', color: skin.INK }}>
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, color: skin.INK }}>
             Species List
           </Typography>
           <Button
@@ -426,7 +425,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                 ) : (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.2px', color: skin.INK }}>
+                      <Typography sx={{ fontSize: '18px', fontWeight: 600, color: skin.INK }}>
                         Results
                       </Typography>
                       {/* The one line on the page that moves with the filters — both halves of the SAME set. */}
@@ -482,7 +481,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                       fontSize: '14px',
                       fontWeight: 600,
                       textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
+                      letterSpacing: skin.TRACK_CAPS,
                       color: skin.TABLE_HEAD_INK,
                       whiteSpace: 'normal',
                       lineHeight: 1.2,

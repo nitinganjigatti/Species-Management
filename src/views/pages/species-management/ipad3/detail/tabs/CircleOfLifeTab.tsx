@@ -223,7 +223,7 @@ export const MoreFiltersDrawer: React.FC<{
 
             return (
               <Box key={f.key} sx={{ mb: 3 }}>
-                <Typography variant='caption' sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: cc.OnSurfaceVariant }}>
+                <Typography variant='caption' sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: cc.OnSurfaceVariant }}>
                   {f.label}
                 </Typography>
                 {f.options.length > 8 && (
@@ -294,7 +294,7 @@ const SectionHeader: React.FC<{ title: string; sub?: string; action?: React.Reac
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 3, flexWrap: 'wrap', mt: 2 }}>
-      <Typography variant='caption' sx={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: cc.OnSurfaceVariant }}>
+      <Typography variant='caption' sx={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: cc.OnSurfaceVariant }}>
         {title}
       </Typography>
       {sub && (
@@ -834,7 +834,7 @@ const AgeAtDeathSection: React.FC<{ deaths: LifecycleDeath[] }> = ({ deaths }) =
             <Typography variant='h5' sx={{ fontWeight: 700, color: m.color }}>
               {m.value}
             </Typography>
-            <Typography variant='caption' sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <Typography variant='caption' sx={{ color: cc.neutralSecondary, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS }}>
               {m.label}
             </Typography>
           </Box>
@@ -1741,7 +1741,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   )
 
   const groupLabel = (text: string) => (
-    <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+    <Typography variant='caption' sx={{ color: cc.neutralSecondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS }}>
       {text}
     </Typography>
   )

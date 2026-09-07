@@ -150,14 +150,14 @@ export function VitalStrip({ segments }: { segments: VitalSegment[] }) {
           >
             <Typography
               variant='caption'
-              sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500, display: 'block' }}
+              sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, fontWeight: 500, display: 'block' }}
             >
               {s.label}
             </Typography>
 
             {s.total ? (
               <Typography
-                sx={{ fontSize: '28px', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: skin.ACCENT_INK, mt: 0.75 }}
+                sx={{ fontSize: '28px', fontWeight: 700, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums', color: skin.ACCENT_INK, mt: 0.75 }}
                 noWrap
               >
                 {s.value}
@@ -166,7 +166,7 @@ export function VitalStrip({ segments }: { segments: VitalSegment[] }) {
               <>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mt: 0.75 }}>
                   <Typography
-                    sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}
+                    sx={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}
                     noWrap
                   >
                     {s.value}
@@ -509,7 +509,7 @@ export function TaxonomyStatusStrip({ chips }: { chips: StatusChip[] }) {
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 variant='caption'
-                sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', lineHeight: 1.3 }}
+                sx={{ color: skin.FAINT, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, display: 'block', lineHeight: 1.3 }}
               >
                 {c.label}
               </Typography>

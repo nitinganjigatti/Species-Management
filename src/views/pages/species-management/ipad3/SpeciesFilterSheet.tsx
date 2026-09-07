@@ -124,7 +124,7 @@ const SpeciesFilterSheet: React.FC<SpeciesFilterSheetProps> = ({ open, onClose, 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 3 }}>
           <Icon icon='mage:filter' fontSize={26} color={skin.LIST_GREEN} />
-          <Typography sx={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }}>{heading}</Typography>
+          <Typography sx={{ fontSize: '22px', fontWeight: 600, color: skin.INK }}>{heading}</Typography>
         </Box>
         <IconButton onClick={onClose}>
           <Icon icon='mdi:close' />

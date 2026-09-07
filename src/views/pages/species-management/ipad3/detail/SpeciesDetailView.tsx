@@ -520,7 +520,7 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
                     <Icon icon='mdi:arrow-left' />
                   </IconButton>
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: skin.INK }} noWrap>
+                    <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK }} noWrap>
                       {h?.commonName || `Species #${speciesId}`}
                     </Typography>
                     {h?.scientificName && (

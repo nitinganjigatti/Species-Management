@@ -30,7 +30,7 @@ const SEX_HEAD_TYPE = {
   fontSize: '14px',
   fontWeight: 600,
   textTransform: 'uppercase',
-  letterSpacing: '0.05em',
+  letterSpacing: skin.TRACK_CAPS,
   color: skin.TABLE_HEAD_INK,
   lineHeight: 1.2
 } as const
