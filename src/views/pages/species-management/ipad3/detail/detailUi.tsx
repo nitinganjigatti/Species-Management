@@ -159,7 +159,7 @@ export const DrillSheet: React.FC<{
         <Box sx={{ minWidth: 0, flex: 1 }}>
           {eyebrow != null && (
             <Typography
-              sx={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.FAINT }}
+              sx={{ fontSize: '14px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.FAINT }}
               noWrap
             >
               {eyebrow}
@@ -1008,7 +1008,7 @@ export const ChipFilterRow: React.FC<{
           }}
         >
           <Typography sx={{ fontSize: '14px', fontWeight: on ? 600 : 500, color: on ? skin.LIST_GREEN : skin.INK2 }}>{it.label}</Typography>
-          <Typography sx={{ fontSize: '13px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
+          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: on ? skin.LIST_GREEN : skin.FAINT }}>
             {it.count.toLocaleString()}
           </Typography>
         </Box>
@@ -1028,7 +1028,7 @@ export const TagPill: React.FC<{ label: string }> = ({ label }) => (
       alignItems: 'center',
       borderRadius: '999px',
       backgroundColor: skin.TONE_SOFT.neutral,
-      fontSize: '13px',
+      fontSize: '14px',
       fontWeight: 600,
       color: skin.TONE_TYPE.neutral,
       whiteSpace: 'nowrap'
@@ -2448,7 +2448,7 @@ export const ColumnSettingsSheet: React.FC<{
                   borderRadius: '999px',
                   bgcolor: skin.LIST_GREEN,
                   color: '#ffffff',
-                  fontSize: '12px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   flexShrink: 0
                 }}
@@ -2473,7 +2473,7 @@ export const ColumnSettingsSheet: React.FC<{
                   borderRadius: '999px',
                   border: `1px solid ${skin.TRACK}`,
                   color: skin.INK2,
-                  fontSize: '12px',
+                  fontSize: '14px',
                   fontWeight: 600,
                   flexShrink: 0,
                   cursor: 'pointer',
@@ -2548,7 +2548,7 @@ export const ColumnSettingsSheet: React.FC<{
                       borderRadius: '999px',
                       display: 'grid',
                       placeItems: 'center',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       bgcolor: skin.LIST_GREEN,
                       color: '#ffffff'
@@ -3268,7 +3268,7 @@ export const StatTile: React.FC<{
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
-            sx={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: skin.FAINT }}
+            sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: skin.FAINT }}
           >
             {label}
           </Typography>
@@ -3807,7 +3807,7 @@ export const EntityListDrawer: React.FC<{
                       {it.value}
                     </Typography>
                     {unit && (
-                      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: skin.FAINT, display: 'block' }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: skin.FAINT, display: 'block' }}>
                         {unit}
                       </Typography>
                     )}
@@ -4146,7 +4146,7 @@ export const VBarChart: React.FC<{
           {legend.map(l => (
             <Box key={l.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <Box sx={{ width: 9, height: 9, borderRadius: '2.5px', backgroundColor: TONE_MARK[l.tone], flexShrink: 0 }} />
-              <Typography variant='caption' sx={{ fontSize: '13px', color: skin.INK2 }}>
+              <Typography variant='caption' sx={{ fontSize: '14px', color: skin.INK2 }}>
                 {l.label}
               </Typography>
             </Box>

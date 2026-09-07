@@ -27,7 +27,7 @@ const SEX_SLOT_W = 48
 // renderHeader bypasses .MuiDataGrid-columnHeaderTitle, so both header lines carry the
 // table's native header spec verbatim (see the listing view's columnHeaderTitle rule).
 const SEX_HEAD_TYPE = {
-  fontSize: '13px',
+  fontSize: '14px',
   fontWeight: 600,
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
@@ -92,7 +92,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter, sho
             }}
           />
         )}
-        <Typography component='span' sx={{ fontSize: '13px', fontWeight: 600, color: skin.MUTED }}>
+        <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: skin.MUTED }}>
           {code}
         </Typography>
       </Box>
@@ -195,7 +195,7 @@ export const buildSpeciesColumns = (theme: Theme, analysis?: AnalysisFilter, sho
                 {head != null ? `${head}y` : '—'}
               </Typography>
               {r.lifespanMax != null && (
-                <Typography sx={{ fontSize: '13px', color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
+                <Typography sx={{ fontSize: '14px', color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
                   max {r.lifespanMax}y · n={r.lifespanCount}
                 </Typography>
               )}

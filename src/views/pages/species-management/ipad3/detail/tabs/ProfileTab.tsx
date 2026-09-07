@@ -294,7 +294,7 @@ const IucnScale: React.FC<{ status?: string }> = ({ status }) => {
                 display: 'grid',
                 placeItems: 'center',
                 position: 'relative',
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: 700,
                 bgcolor: c.fill,
                 color: c.darkText ? skin.MUTED : '#ffffff',

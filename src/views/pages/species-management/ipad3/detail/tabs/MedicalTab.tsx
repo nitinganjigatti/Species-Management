@@ -249,7 +249,7 @@ const ChronicTag: React.FC = () => {
         verticalAlign: 'middle'
       }}
     >
-      <Typography component='span' sx={{ fontSize: '12px', fontWeight: 500, letterSpacing: '0.1px', color: c.medTagMaroonBorder }}>
+      <Typography component='span' sx={{ fontSize: '14px', fontWeight: 500, letterSpacing: '0.1px', color: c.medTagMaroonBorder }}>
         Chronic
       </Typography>
     </Box>
@@ -1114,7 +1114,7 @@ const PreventiveIndex: React.FC<{
       field,
       headerName,
       renderHeader: () => (
-        <Typography component='span' sx={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.TABLE_HEAD_INK, whiteSpace: 'nowrap' }}>
+        <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: skin.TABLE_HEAD_INK, whiteSpace: 'nowrap' }}>
           {headerName}
         </Typography>
       ),
@@ -2313,7 +2313,7 @@ const PreventiveDetail: React.FC<{
                   ...(live && { cursor: 'pointer', ...skin.cardPressSx, '&:hover': { backgroundColor: skin.ROW_HOVER } })
                 }}
               >
-                <Typography sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}>
+                <Typography sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}>
                   {b.label}
                 </Typography>
                 {/* chevron = the house "this opens something" affordance (Overview card grammar) */}

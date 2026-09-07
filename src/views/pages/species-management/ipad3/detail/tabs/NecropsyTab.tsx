@@ -289,7 +289,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ lifecycle }) => {
             borderRadius: '999px',
             display: 'grid',
             placeItems: 'center',
-            fontSize: '12px',
+            fontSize: '14px',
             fontWeight: 700,
             bgcolor: skin.ACCENT_FILL,
             color: '#ffffff'

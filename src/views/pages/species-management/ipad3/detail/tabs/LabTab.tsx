@@ -414,7 +414,7 @@ const ScopePage: React.FC<{
             borderRadius: '999px',
             display: 'grid',
             placeItems: 'center',
-            fontSize: '12px',
+            fontSize: '14px',
             fontWeight: 700,
             bgcolor: skin.ACCENT_FILL,
             color: '#ffffff'
@@ -1015,7 +1015,7 @@ const LabTab: React.FC<Props> = ({ clinical }) => {
               <Typography
                 className='lab-stat-lbl'
                 sx={{
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',

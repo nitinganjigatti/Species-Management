@@ -19,7 +19,7 @@ const baseChartOptions = (theme: any) => ({
   chart: { toolbar: { show: false }, fontFamily: 'inherit', animations: { enabled: false } },
   states: { active: { filter: { type: 'none' } } },
   dataLabels: { enabled: false },
-  tooltip: { theme: theme.palette.mode, style: { fontSize: '13px' } },
+  tooltip: { theme: theme.palette.mode, style: { fontSize: '14px' } },
   // CC gridlines: solid near-invisible hairlines, never dashed.
   grid: { borderColor: skin.GRID, strokeDashArray: 0 }
 })
@@ -85,7 +85,7 @@ const ChartLegend: React.FC<{
         >
           {/* CC SliceKey: a 9px rounded-SQUARE swatch, caption label in INK2, bold tabular value */}
           <Box sx={{ width: 9, height: 9, borderRadius: '2.5px', bgcolor: colors[i % colors.length], flexShrink: 0 }} />
-          <Typography variant='caption' sx={{ fontSize: '13px', color: skin.INK2 }}>
+          <Typography variant='caption' sx={{ fontSize: '14px', color: skin.INK2 }}>
             {d.label}{' '}
             <Box component='span' sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}>
               {d.value.toLocaleString()}
@@ -591,7 +591,7 @@ export function ColumnBarChart({
             offsetY: -20,
             formatter: (v: number) => (v ? v.toLocaleString() : ''),
             // value printed OUTSIDE the mark is type → it wears the accent's ink partner
-            style: { fontSize: '13px', fontWeight: 700, colors: [skin.strokeOf(color)] }
+            style: { fontSize: '14px', fontWeight: 700, colors: [skin.strokeOf(color)] }
           }
         : { enabled: false },
     legend: { show: false },
@@ -605,7 +605,7 @@ export function ColumnBarChart({
       categories: labels,
       // axis-only copy keeps the SAME x labels (transparent) so both charts reserve an
       // identical bottom band and the y rows line up.
-      labels: { style: { colors: axisOnly ? 'transparent' : skin.FAINT, fontSize: '12px' } },
+      labels: { style: { colors: axisOnly ? 'transparent' : skin.FAINT, fontSize: '14px' } },
       axisBorder: { show: false },
       axisTicks: { show: false }
     },
@@ -616,7 +616,7 @@ export function ColumnBarChart({
             max: Math.max(...values, 1),
             min: 0,
             forceNiceScale: true,
-            labels: { style: { colors: skin.FAINT, fontSize: '12px' }, align: 'left', minWidth: 24, offsetX: -14 }
+            labels: { style: { colors: skin.FAINT, fontSize: '14px' }, align: 'left', minWidth: 24, offsetX: -14 }
           },
     tooltip: axisOnly
       ? { enabled: false }
@@ -718,7 +718,7 @@ export function SmoothAreaChart({
           enabled: true,
           formatter: (v: number) => (v ? v.toLocaleString() : ''),
           offsetY: -5,
-          style: { fontSize: '13px', fontWeight: 700, colors: [skin.strokeOf(color)] },
+          style: { fontSize: '14px', fontWeight: 700, colors: [skin.strokeOf(color)] },
           background: { enabled: false }
         },
         markers: { size: 4, colors: [color], strokeColors: theme.palette.common.white, strokeWidth: 1.5, hover: { sizeOffset: 2 } },
@@ -732,14 +732,14 @@ export function SmoothAreaChart({
         },
         xaxis: {
           categories: labels,
-          labels: { style: { colors: skin.FAINT, fontSize: '12px' }, hideOverlappingLabels: true, rotate: 0 },
+          labels: { style: { colors: skin.FAINT, fontSize: '14px' }, hideOverlappingLabels: true, rotate: 0 },
           axisBorder: { show: false },
           axisTicks: { show: false },
           tooltip: { enabled: false }
         },
         yaxis: {
           tickAmount: 4,
-          labels: { style: { colors: skin.FAINT, fontSize: '12px' }, formatter: (v: number) => Math.round(v).toLocaleString() }
+          labels: { style: { colors: skin.FAINT, fontSize: '14px' }, formatter: (v: number) => Math.round(v).toLocaleString() }
         },
         tooltip: {
           custom: ({ series, seriesIndex, dataPointIndex }: any) =>

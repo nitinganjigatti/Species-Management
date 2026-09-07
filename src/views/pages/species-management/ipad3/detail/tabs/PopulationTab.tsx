@@ -447,7 +447,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
           return (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
               <CellText>{fmtDay(v.date)}</CellText>
-              <Typography sx={{ fontSize: '13px', color: skin.FAINT }} noWrap>
+              <Typography sx={{ fontSize: '14px', color: skin.FAINT }} noWrap>
                 {v.vaccine}
               </Typography>
             </Box>
@@ -466,7 +466,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
           return (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
               <CellText weight={600}>{fmtDay(v.date)}</CellText>
-              <Typography sx={{ fontSize: '13px', color: skin.FAINT }} noWrap>
+              <Typography sx={{ fontSize: '14px', color: skin.FAINT }} noWrap>
                 {v.vaccine}
               </Typography>
             </Box>
@@ -583,7 +583,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
             borderRadius: '999px',
             display: 'grid',
             placeItems: 'center',
-            fontSize: '12px',
+            fontSize: '14px',
             fontWeight: 700,
             bgcolor: skin.ACCENT_FILL,
             color: '#ffffff'
@@ -749,7 +749,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ animals, totalAnimals }) 
             </Box>
             <Box sx={{ px: SHEET_PX }}>
               <Typography
-                sx={{ pt: 3, pb: 1, fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+                sx={{ pt: 3, pb: 1, fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
               >
                 Tags
               </Typography>

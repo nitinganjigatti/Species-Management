@@ -129,7 +129,7 @@ export const MovementChart: React.FC<{
                         component='span'
                         sx={{
                           mb: '3px',
-                          fontSize: '11px',
+                          fontSize: '14px',
                           fontWeight: 700,
                           lineHeight: 1,
                           fontVariantNumeric: 'tabular-nums',
@@ -154,7 +154,7 @@ export const MovementChart: React.FC<{
                       />
                     </>
                   ) : (
-                    <Typography component='span' sx={{ mb: '4px', fontSize: '12px', color: skin.DASH_INK }}>
+                    <Typography component='span' sx={{ mb: '4px', fontSize: '14px', color: skin.DASH_INK }}>
                       —
                     </Typography>
                   )}
@@ -182,7 +182,7 @@ export const MovementChart: React.FC<{
                         component='span'
                         sx={{
                           mt: '3px',
-                          fontSize: '11px',
+                          fontSize: '14px',
                           fontWeight: 700,
                           lineHeight: 1,
                           fontVariantNumeric: 'tabular-nums',
@@ -199,7 +199,7 @@ export const MovementChart: React.FC<{
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <Typography
                     component='span'
-                    sx={{ display: 'block', fontSize: '12px', lineHeight: '16px', fontVariantNumeric: 'tabular-nums', color: skin.MUTED }}
+                    sx={{ display: 'block', fontSize: '14px', lineHeight: '18px', fontVariantNumeric: 'tabular-nums', color: skin.MUTED }}
                     noWrap
                   >
                     {m.label}
@@ -207,7 +207,7 @@ export const MovementChart: React.FC<{
                   {m.year && (
                     <Typography
                       component='span'
-                      sx={{ display: 'block', fontSize: '11px', lineHeight: '14px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}
+                      sx={{ display: 'block', fontSize: '14px', lineHeight: '18px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}
                       noWrap
                     >
                       {m.year}

@@ -1287,7 +1287,7 @@ const AlertsPanel: React.FC<{ a: SpeciesAssessments; onOpenGroup: (g: AlertGroup
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '0.85rem', color: skin.FAINT, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontSize: '14px', color: skin.FAINT, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
           {from} →{' '}
           <Box component='span' sx={{ color: skin.VALUE, fontWeight: 600 }}>
             {to}
@@ -1525,7 +1525,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                     sx={{ px: '18px', py: '14px', display: 'flex', flexDirection: 'column', gap: '9px', borderLeft: i === 0 ? 'none' : `1px solid ${skin.HAIR}` }}
                   >
                     <Typography
-                      sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
+                      sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT }}
                       noWrap
                     >
                       {cl.label}
@@ -1592,7 +1592,7 @@ const AnimalDrawer: React.FC<{ animal: AssessmentAnimal | null; speciesAvgWeight
                   return (
                     <Box key={i}>
                       <Typography
-                        sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT, mb: 1 }}
+                        sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: skin.FAINT, mb: 1 }}
                       >
                         {cat}
                       </Typography>

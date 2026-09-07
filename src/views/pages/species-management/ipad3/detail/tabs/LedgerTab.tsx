@@ -129,7 +129,7 @@ const EventChip: React.FC<{ kind: LedgerEventKind }> = ({ kind }) => {
         whiteSpace: 'nowrap'
       }}
     >
-      <Typography component='span' sx={{ fontSize: '13px', fontWeight: 600, color: ink, lineHeight: 1 }}>
+      <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: ink, lineHeight: 1 }}>
         {EVENT_LABEL[kind]}
       </Typography>
     </Box>
@@ -608,13 +608,13 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
             position: 'absolute',
             top: -4,
             right: -4,
-            minWidth: 18,
-            height: 18,
+            minWidth: 22,
+            height: 22,
             px: 1,
             borderRadius: '999px',
             display: 'grid',
             placeItems: 'center',
-            fontSize: '11px',
+            fontSize: '14px',
             fontWeight: 700,
             bgcolor: skin.ACCENT_FILL,
             color: '#ffffff'
@@ -740,7 +740,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
               sx={{
                 pt: 4,
                 pb: 1,
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',

@@ -224,7 +224,7 @@ export function BarColumns({
 
   const body = (
     // pt keeps the TOP gridline's tick label inside the scroller — edge labels never clip.
-    <Box sx={{ pl: '32px', pt: '12px', minWidth: minSlot ? `${bars.length * minSlot + 32}px` : undefined }}>
+    <Box sx={{ pl: '40px', pt: '12px', minWidth: minSlot ? `${bars.length * minSlot + 40}px` : undefined }}>
       <Box sx={{ position: 'relative', height, borderRadius: '8px' }}>
         {lines.map(v => (
           <Box
@@ -242,12 +242,12 @@ export function BarColumns({
               component='span'
               sx={{
                 position: 'absolute',
-                top: -8,
-                left: -32,
-                width: 24,
+                top: -9,
+                left: -40,
+                width: 32,
                 textAlign: 'right',
-                fontSize: '10px',
-                lineHeight: '12px',
+                fontSize: '14px',
+                lineHeight: '16px',
                 fontVariantNumeric: 'tabular-nums',
                 color: skin.FAINT
               }}
@@ -292,7 +292,7 @@ export function BarColumns({
                     sx={{
                       textAlign: 'center',
                       mb: '3px',
-                      fontSize: '11px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       lineHeight: 1,
                       fontVariantNumeric: 'tabular-nums',
@@ -502,7 +502,7 @@ export function SliceKey({ items, onSelect }: { items: Slice[]; onSelect?: (slic
               display: 'flex',
               alignItems: 'center',
               gap: 2,
-              fontSize: '13px',
+              fontSize: '14px',
               lineHeight: '18px',
               color: skin.INK2,
               ...(clickable && { cursor: 'pointer', borderRadius: '8px', px: 1, ...skin.cardPressSx, '&:hover': { backgroundColor: '#f6f7f6' } })
@@ -561,7 +561,7 @@ export function RankRows({
               <Typography sx={{ flexShrink: 0, fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.VALUE }}>
                 {fmt(r.value)}
               </Typography>
-              <Typography sx={{ width: 44, flexShrink: 0, textAlign: 'right', fontSize: '12px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}>
+              <Typography sx={{ width: 44, flexShrink: 0, textAlign: 'right', fontSize: '14px', fontVariantNumeric: 'tabular-nums', color: skin.FAINT }}>
                 {share >= 1 ? `${Math.round(share)}%` : '<1%'}
               </Typography>
             </Box>

@@ -208,7 +208,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
         >
           <Typography
             sx={{
-              fontSize: '10px',
+              fontSize: '14px',
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
@@ -479,7 +479,7 @@ const SpeciesListingView: React.FC<SpeciesListingViewProps> = ({
                     '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: skin.ROW_HOVER },
                     '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD, backgroundColor: skin.TABLE_HEAD_BG },
                     '& .MuiDataGrid-columnHeaderTitle': {
-                      fontSize: '13px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
