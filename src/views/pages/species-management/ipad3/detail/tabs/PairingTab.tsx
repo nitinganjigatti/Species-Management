@@ -184,6 +184,11 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   const multiSite = (housing?.sites?.length ?? 0) > 1
   const [view, setView] = useState<'site' | 'enclosure'>(multiSite ? 'site' : 'enclosure')
 
+  // Site-Wise controls (user call 2026-09-07): its own search + a MULTI-select verdict
+  // picker — empty selection = all sites (there is no state that hides everything).
+  const [qSite, setQSite] = useState('')
+  const [verdictSel, setVerdictSel] = useState<string[]>([])
+
   const allRows: EncRow[] = useMemo(() => {
     // The housing aggregates carry ONE unsexed bucket — the animal records say which
     // KIND (undetermined / indeterminate / group), keyed by the same site+enclosure
@@ -295,6 +300,22 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     return [...by.values()].map(s => ({ ...s, verdict: verdictOf(s) })).sort((a, b) => b.total - a.total)
   }, [allRows])
 
+  // Verdict picker options — only verdicts actually present, biggest bucket first.
+  const verdictOptions = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of siteRows) m.set(VERDICT_TEXT[r.verdict], (m.get(VERDICT_TEXT[r.verdict]) || 0) + 1)
+
+    return [...m.entries()].sort((a, b) => b[1] - a[1])
+  }, [siteRows])
+
+  const siteRowsFiltered = useMemo(() => {
+    const query = qSite.trim().toLowerCase()
+
+    return siteRows.filter(
+      r => (!query || r.site.toLowerCase().includes(query)) && (!verdictSel.length || verdictSel.includes(VERDICT_TEXT[r.verdict]))
+    )
+  }, [siteRows, qSite, verdictSel])
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
 
@@ -362,7 +383,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
   const start = pm.page * pm.pageSize
   const indexed = filtered.slice(start, start + pm.pageSize).map((e, i) => ({ ...e, id: start + i }))
-  const sitePage = siteRows.slice(start, start + pm.pageSize).map(r => ({ ...r, id: r.site }))
+  const sitePage = siteRowsFiltered.slice(start, start + pm.pageSize).map(r => ({ ...r, id: r.site }))
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -396,6 +417,40 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                 />
               )}
             </Box>
+
+            {view === 'site' && (
+              // Site-Wise controls (user call 2026-09-07): search + the multi-select
+              // verdict picker (the generalized SiteFilterSelect — bottom-sheet,
+              // checkbox rows, Apply commits; trigger reads "All Verdicts" at rest).
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', width: '100%', minWidth: 0 }}>
+                <SearchPill
+                  value={qSite}
+                  onChange={v => {
+                    setQSite(v)
+                    setPm(p => ({ ...p, page: 0 }))
+                  }}
+                  placeholder='Search sites…'
+                  sx={{ flex: 1, minWidth: 220 }}
+                />
+                <SiteFilterSelect
+                  multiple
+                  multiValue={verdictSel}
+                  onMultiChange={vs => {
+                    setVerdictSel(vs)
+                    setPm(p => ({ ...p, page: 0 }))
+                  }}
+                  sites={verdictOptions.map(([label, n]) => ({ site: label, caption: `${n.toLocaleString()} ${n === 1 ? 'site' : 'sites'}` }))}
+                  allCaption={`${siteRows.length.toLocaleString()} sites`}
+                  allLabel='All Verdicts'
+                  headerTitle='Verdicts'
+                  plural='Verdicts'
+                  searchPlaceholder='Search verdicts…'
+                  rowIcon='mdi:scale-balance'
+                  allIcon='mdi:filter-variant'
+                  emptyText='No verdicts match.'
+                />
+              </Box>
+            )}
 
             {view === 'enclosure' && (
               <>
@@ -440,21 +495,25 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         }
       >
         {view === 'site' ? (
-          // Site row tap drills INTO that site's enclosures (the enclosure view,
-          // site-filtered — chips + search stay usable there).
-          <DetailTable
-            columns={siteColumns}
-            rows={sitePage}
-            total={siteRows.length}
-            rowHeight={76}
-            paginationModel={pm}
-            setPaginationModel={setPm}
-            onRowClick={(p: { row: SiteRow }) => {
-              setSite(p.row.site)
-              setView('enclosure')
-              setPm(x => ({ ...x, page: 0 }))
-            }}
-          />
+          siteRowsFiltered.length ? (
+            // Site row tap drills INTO that site's enclosures (the enclosure view,
+            // site-filtered — chips + search stay usable there).
+            <DetailTable
+              columns={siteColumns}
+              rows={sitePage}
+              total={siteRowsFiltered.length}
+              rowHeight={76}
+              paginationModel={pm}
+              setPaginationModel={setPm}
+              onRowClick={(p: { row: SiteRow }) => {
+                setSite(p.row.site)
+                setView('enclosure')
+                setPm(x => ({ ...x, page: 0 }))
+              }}
+            />
+          ) : (
+            <EmptyState message='No sites match your filters' />
+          )
         ) : filtered.length ? (
           <DetailTable
             columns={columns}

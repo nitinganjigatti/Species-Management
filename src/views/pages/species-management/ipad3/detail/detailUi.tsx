@@ -2053,7 +2053,33 @@ export const SiteFilterSelect: React.FC<{
   multiple?: boolean
   multiValue?: string[]
   onMultiChange?: (v: string[]) => void
-}> = ({ sites, value, onChange, allCaption, sitesTotal, multiple, multiValue, onMultiChange }) => {
+  /** Facet wording overrides (2026-09-07 — the Pairing verdict filter reuses this picker
+   *  verbatim): every default keeps the site wording, so existing consumers are untouched. */
+  allLabel?: string
+  headerTitle?: string
+  searchPlaceholder?: string
+  rowIcon?: string
+  allIcon?: string
+  /** Multi-trigger plural — "3 Sites" / "3 Verdicts". */
+  plural?: string
+  emptyText?: string
+}> = ({
+  sites,
+  value,
+  onChange,
+  allCaption,
+  sitesTotal,
+  multiple,
+  multiValue,
+  onMultiChange,
+  allLabel,
+  headerTitle = 'Sites',
+  searchPlaceholder = 'Search sites…',
+  rowIcon = 'mdi:map-marker-outline',
+  allIcon = 'mdi:map-marker-multiple-outline',
+  plural = 'Sites',
+  emptyText = 'No sites match.'
+}) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [open, setOpen] = useState(false)
@@ -2063,11 +2089,11 @@ export const SiteFilterSelect: React.FC<{
   const applied = multiple ? sel.length > 0 : value != null
   const triggerLabel = multiple
     ? sel.length === 0
-      ? 'All sites'
+      ? allLabel ?? 'All sites'
       : sel.length === 1
       ? sel[0]
-      : `${sel.length} Sites`
-    : value ?? 'All sites'
+      : `${sel.length} ${plural}`
+    : value ?? allLabel ?? 'All sites'
 
   // Multi mode: sites already selected when the sheet OPENS ride to the top, right under
   // "All Sites" (user call 2026-09-04) — snapshotted at open so rows don't reshuffle while
@@ -2174,8 +2200,8 @@ export const SiteFilterSelect: React.FC<{
 
       <SheetDrawer open={open} onClose={() => setOpen(false)} PaperProps={{ sx: sheetPaperSx('md') }}>
         <Sheet>
-          <SheetHeader title='Sites' stats={[{ label: 'Sites', value: sitesTotal ?? sites.length }]} onClose={() => setOpen(false)} />
-          <SheetSearch value={siteQ} onChange={setSiteQ} placeholder='Search sites…' />
+          <SheetHeader title={headerTitle} stats={[{ label: headerTitle, value: sitesTotal ?? sites.length }]} onClose={() => setOpen(false)} />
+          <SheetSearch value={siteQ} onChange={setSiteQ} placeholder={searchPlaceholder} />
           <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3, mt: 1 }}>
             {!siteQ.trim() &&
               row({
@@ -2183,8 +2209,8 @@ export const SiteFilterSelect: React.FC<{
                 selected: multiple ? draft.length === 0 : value == null,
                 // multi: All Sites STAGES the default (empty) — Apply commits it
                 onClick: () => (multiple ? setDraft([]) : pick(null)),
-                icon: 'mdi:map-marker-multiple-outline',
-                title: 'All Sites',
+                icon: allIcon,
+                title: allLabel ?? 'All Sites',
                 caption: allCaption,
                 last: filtered.length === 0
               })}
@@ -2194,7 +2220,7 @@ export const SiteFilterSelect: React.FC<{
                 selected: multiple ? draft.includes(s.site) : value === s.site,
                 // multi: toggle the DRAFT in place, sheet stays open for the next pick
                 onClick: () => (multiple ? toggle(s.site) : pick(value === s.site ? null : s.site)),
-                icon: 'mdi:map-marker-outline',
+                icon: rowIcon,
                 title: s.site,
                 caption: s.caption,
                 last: i === ordered.length - 1
@@ -2202,7 +2228,7 @@ export const SiteFilterSelect: React.FC<{
             )}
             {filtered.length === 0 && siteQ.trim() && (
               <Typography variant='body2' sx={{ color: c.neutralSecondary, textAlign: 'center', mt: 4 }}>
-                No sites match.
+                {emptyText}
               </Typography>
             )}
           </Box>
