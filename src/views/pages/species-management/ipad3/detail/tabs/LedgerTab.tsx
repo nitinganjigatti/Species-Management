@@ -3,8 +3,8 @@
 // iPad 3 Ledger tab — demo-review rework (2026-09-05, Subhash + Nita call 2026-09-04):
 // ONE card, TWO underline sub-tabs (the Lab Recurring-Tests anatomy):
 // 1. LEDGER — the bank statement of the species count: ONE ROW PER DAY (user call
-//    2026-09-05), latest first — Date · Description (every event of the day as chips
-//    + ×N counts, "+N more" past 3) · In · Out (day totals) · running Total.
+//    2026-09-05), latest first — Date · Description (every event of the day as chips,
+//    count inside the pill "Birth 2", "+N more" past 3) · In · Out (day totals) · running Total.
 //    Duration filter (default Last 12 Months) applies HERE only.
 // 2. RECONCILIATION — the gender-wise grid (M · F · UD · ID · G · Total), ALWAYS ALL
 //    TIME (user call: opening balance is always the 0 baseline); Closing keeps the
@@ -98,7 +98,8 @@ const idsOf = (e: LedgerEvent): AnimalCardId[] => {
 
 /* ── event chip — the tone-soft fill + deep-ink pairing ─────────────────────── */
 
-const EventChip: React.FC<{ kind: LedgerEventKind }> = ({ kind }) => {
+// count rides INSIDE the pill — "Birth 2", never an external "× 2" (user call 2026-09-07)
+const EventChip: React.FC<{ kind: LedgerEventKind; count?: number }> = ({ kind, count }) => {
   const theme = useTheme() as any
   const cc = theme.palette.customColors as Record<string, string>
   const look: Record<LedgerEventKind, { bg: string; ink: string }> = {
@@ -131,6 +132,11 @@ const EventChip: React.FC<{ kind: LedgerEventKind }> = ({ kind }) => {
     >
       <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: ink, lineHeight: 1 }}>
         {EVENT_LABEL[kind]}
+        {count != null && count > 1 && (
+          <Box component='span' sx={{ ml: 1.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            {count}
+          </Box>
+        )}
       </Typography>
     </Box>
   )
@@ -341,7 +347,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
       },
       {
         // ONE row per day — this column DESCRIBES the day: every event kind as a chip
-        // (+ ×N count), so a birth-and-death day reads as both chips side by side.
+        // (count INSIDE the pill), so a birth-and-death day reads as both chips side by side.
         flex: 1,
         minWidth: 280,
         field: 'groups',
@@ -355,13 +361,8 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minWidth: 0, overflow: 'hidden' }}>
               {shown.map(g => (
-                <Box key={g.kind} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-                  <EventChip kind={isTransferKind(g.kind) && neutralStmtTransfers ? 'transfer' : g.kind} />
-                  {g.count > 1 && (
-                    <Typography component='span' sx={{ fontSize: '14px', color: skin.FAINT }}>
-                      × {g.count}
-                    </Typography>
-                  )}
+                <Box key={g.kind} sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  <EventChip kind={isTransferKind(g.kind) && neutralStmtTransfers ? 'transfer' : g.kind} count={g.count} />
                 </Box>
               ))}
               {rest > 0 && (
