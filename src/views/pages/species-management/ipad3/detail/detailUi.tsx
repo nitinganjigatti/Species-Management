@@ -1048,7 +1048,9 @@ export const txtCell = (v: React.ReactNode, color?: string, weight = 500) => (
 /** THE right-aligned count column (Pairing/Housing grammar): zeros print the pale em
  *  dash, `total` wears bold list-green (the scan anchor). */
 export const countCol = (field: string, header: string, opts?: { total?: boolean; width?: number }): GridColDef => ({
-  width: opts?.width ?? (opts?.total ? 96 : 64),
+  // total 96 → 116 (user-caught 2026-09-07): the TRACK_CAPS tracking widened caps
+  // headers and "TOTAL" clipped at the card edge — headers never truncate (hard rule).
+  width: opts?.width ?? (opts?.total ? 116 : 64),
   sortable: false,
   align: 'right',
   headerAlign: 'right',
@@ -2035,6 +2037,9 @@ export const CategoryFilter: React.FC<{
 export interface SiteFilterOption {
   site: string
   caption?: React.ReactNode
+  /** Rendered but untappable (2026-09-07 — Pairing lists every verdict, zero-count ones
+   *  greyed rather than removed, so the full vocabulary stays visible). */
+  disabled?: boolean
 }
 
 export const SiteFilterSelect: React.FC<{
@@ -2119,18 +2124,28 @@ export const SiteFilterSelect: React.FC<{
   }
   const toggle = (s: string) => setDraft(prev => (prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]))
 
-  const row = (opts: { key: string; selected: boolean; onClick: () => void; icon: string; title: string; caption?: React.ReactNode; last: boolean }) => (
+  const row = (opts: {
+    key: string
+    selected: boolean
+    onClick: () => void
+    icon: string
+    title: string
+    caption?: React.ReactNode
+    last: boolean
+    disabled?: boolean
+  }) => (
     <Box
       key={opts.key}
-      onClick={opts.onClick}
+      onClick={opts.disabled ? undefined : opts.onClick}
       sx={{
         display: 'flex',
         alignItems: 'center',
         gap: 2,
         py: 4,
         borderBottom: opts.last ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-        cursor: 'pointer',
-        '&:hover': { backgroundColor: c.Surface }
+        opacity: opts.disabled ? 0.4 : 1,
+        cursor: opts.disabled ? 'default' : 'pointer',
+        '&:hover': opts.disabled ? {} : { backgroundColor: c.Surface }
       }}
     >
       <Box
@@ -2223,7 +2238,8 @@ export const SiteFilterSelect: React.FC<{
                 icon: rowIcon,
                 title: s.site,
                 caption: s.caption,
-                last: i === ordered.length - 1
+                last: i === ordered.length - 1,
+                disabled: s.disabled
               })
             )}
             {filtered.length === 0 && siteQ.trim() && (

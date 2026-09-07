@@ -300,12 +300,13 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     return [...by.values()].map(s => ({ ...s, verdict: verdictOf(s) })).sort((a, b) => b.total - a.total)
   }, [allRows])
 
-  // Verdict picker options — only verdicts actually present, biggest bucket first.
+  // Verdict picker options — ALWAYS the full vocabulary in fixed order (user call
+  // 2026-09-07): zero-count verdicts render disabled/greyed, never removed.
   const verdictOptions = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const r of siteRows) m.set(VERDICT_TEXT[r.verdict], (m.get(VERDICT_TEXT[r.verdict]) || 0) + 1)
+    const m = new Map<SiteVerdict, number>()
+    for (const r of siteRows) m.set(r.verdict, (m.get(r.verdict) || 0) + 1)
 
-    return [...m.entries()].sort((a, b) => b[1] - a[1])
+    return (['male', 'female', 'balanced', 'needsSexing'] as SiteVerdict[]).map(v => ({ label: VERDICT_TEXT[v], n: m.get(v) || 0 }))
   }, [siteRows])
 
   const siteRowsFiltered = useMemo(() => {
@@ -439,7 +440,11 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
                     setVerdictSel(vs)
                     setPm(p => ({ ...p, page: 0 }))
                   }}
-                  sites={verdictOptions.map(([label, n]) => ({ site: label, caption: `${n.toLocaleString()} ${n === 1 ? 'site' : 'sites'}` }))}
+                  sites={verdictOptions.map(o => ({
+                    site: o.label,
+                    caption: `${o.n.toLocaleString()} ${o.n === 1 ? 'site' : 'sites'}`,
+                    disabled: o.n === 0
+                  }))}
                   allCaption={`${siteRows.length.toLocaleString()} sites`}
                   allLabel='All Verdicts'
                   headerTitle='Verdicts'
