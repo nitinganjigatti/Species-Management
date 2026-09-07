@@ -2286,7 +2286,7 @@ export const ColumnSettingsSheet: React.FC<{
   const theme = useTheme() as any
   const c = cc(theme)
 
-  const [section, setSection] = useState<'cols' | 'add' | 'identity'>('cols')
+  const [section, setSection] = useState<'cols' | 'identity'>('cols')
   const [order, setOrder] = useState<string[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [q, setQ] = useState('')
@@ -2311,14 +2311,18 @@ export const ColumnSettingsSheet: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const toggle = (key: string) =>
+  /* two-pane transfer (user call 2026-09-07): unchecking a selected row MOVES it to the
+     Add pane (it re-enters at the END on re-add — the transfer-list trade-off); the drag
+     grip stays order-only so a flick can never remove a column. */
+  const remove = (key: string) => {
+    setOrderSynced(orderRef.current.filter(k => k !== key))
     setChecked(prev => {
       const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+      next.delete(key)
 
       return next
     })
+  }
 
   const add = (key: string) => {
     setOrderSynced([...orderRef.current, key])
@@ -2374,14 +2378,18 @@ export const ColumnSettingsSheet: React.FC<{
   }
 
   const needle = q.trim().toLowerCase()
-  const addable = Object.keys(labels)
-    .filter(k => !order.includes(k))
+  const addablePool = Object.keys(labels).filter(k => !order.includes(k))
+  const addable = addablePool
     .filter(k => !needle || (labels[k] ?? k).toLowerCase().includes(needle))
     .sort((a, b) => (labels[a] ?? a).localeCompare(labels[b] ?? b))
+  // search earns its row only once the pool outgrows a glance (visibility follows the
+  // UNFILTERED pool so typing can never make the field vanish under itself)
+  const showAddSearch = addablePool.length > 8
 
-  const railItems: { key: 'cols' | 'add' | 'identity'; label: string; badge?: number }[] = [
-    { key: 'cols', label: `Selected ${noun}`, badge: checked.size },
-    { key: 'add', label: `Add ${noun}` },
+  /* rail: ONE Columns tab (the Selected/Add pair merged — both panes render side by
+     side, user call 2026-09-07) + Card Identity where the consumer passes it */
+  const railItems: { key: 'cols' | 'identity'; label: string; badge?: number }[] = [
+    { key: 'cols', label: noun, badge: checked.size },
     ...(identityOptions ? ([{ key: 'identity', label: 'Card Identity' }] as { key: 'identity'; label: string }[]) : [])
   ]
 
@@ -2495,7 +2503,8 @@ export const ColumnSettingsSheet: React.FC<{
       onClose={onClose}
       slotProps={{
         paper: {
-          sx: { width: { xs: '100%', sm: 560 }, backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }
+          // 760 (was 560): the two-pane Columns body needs ~260px per pane beside the rail
+          sx: { width: { xs: '100%', sm: 760 }, backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }
         }
       }}
     >
@@ -2563,126 +2572,141 @@ export const ColumnSettingsSheet: React.FC<{
         </Box>
 
         <Box sx={{ borderLeft: `1px solid ${skin.HAIR}`, pl: 5, pr: 1, flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          {section === 'add' && (
-            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, px: 4, height: skin.CONTROL_H, flexShrink: 0, borderRadius: '999px', backgroundColor: skin.FIELD_BG }}>
-              <Icon icon='mdi:magnify' fontSize={18} color={skin.FAINT} />
-              <Box
-                component='input'
-                value={q}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
-                placeholder='Search columns…'
-                sx={{
-                  border: 'none',
-                  outline: 'none',
-                  flex: 1,
-                  fontFamily: 'inherit',
-                  fontSize: '15px',
-                  color: c.OnSurfaceVariant,
-                  backgroundColor: 'transparent',
-                  '&::placeholder': { color: c.neutralSecondary }
-                }}
-              />
-            </Box>
-          )}
+          {section === 'cols' ? (
+            /* ── the two panes side by side (user call 2026-09-07): Selected (ordered,
+               drag = reorder, uncheck = move right) | Add (check = move left, at END) ── */
+            <Box sx={{ flex: 1, minHeight: 0, display: 'flex', gap: 5 }}>
+              {/* Selected — ordered */}
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  sx={{ pb: 2, flexShrink: 0, fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: c.neutralSecondary }}
+                >
+                  Selected · {order.length}
+                </Typography>
+                <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>
+                  {order.map((key, i) => {
+                    const dragging = dragKey === key
 
-          <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>
-            {section === 'cols' && (
-              <>
-                {order.map((key, i) => {
-                  const on = checked.has(key)
-                  const dragging = dragKey === key
+                    return (
+                      <Box
+                        key={key}
+                        onClick={() => remove(key)}
+                        sx={{
+                          height: COL_ROW_H,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          borderBottom: i === order.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+                          cursor: 'pointer',
+                          borderRadius: '10px',
+                          backgroundColor: dragging ? c.Surface : 'transparent',
+                          boxShadow: dragging ? skin.SHADOW_MODAL : 'none',
+                          position: 'relative',
+                          zIndex: dragging ? 1 : 0,
+                          '&:hover': { backgroundColor: c.Surface }
+                        }}
+                      >
+                        <Checkbox
+                          checked
+                          onChange={() => remove(key)}
+                          onClick={e => e.stopPropagation()}
+                          sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
+                        />
+                        <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant, fontWeight: 600 }} noWrap>
+                          {labels[key] ?? key}
+                        </Typography>
+                        {/* the drag grip — order only, never removal */}
+                        <Box
+                          aria-label='Reorder'
+                          onClick={e => e.stopPropagation()}
+                          onPointerDown={startDrag(key)}
+                          onPointerMove={moveDrag(key)}
+                          onPointerUp={endDrag}
+                          onPointerCancel={endDrag}
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            flexShrink: 0,
+                            display: 'grid',
+                            placeItems: 'center',
+                            touchAction: 'none',
+                            cursor: dragging ? 'grabbing' : 'grab',
+                            color: c.Outline,
+                            '&:hover': { color: c.OnSurfaceVariant }
+                          }}
+                        >
+                          <Icon icon='mdi:drag' fontSize={22} />
+                        </Box>
+                      </Box>
+                    )
+                  })}
+                  {order.length === 0 && <SheetEmpty>No columns selected — pick them on the right.</SheetEmpty>}
+                </Box>
+              </Box>
 
-                  return (
+              {/* Add — the rest of the registry */}
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${skin.HAIR}`, pl: 5 }}>
+                <Typography
+                  sx={{ pb: 2, flexShrink: 0, fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: c.neutralSecondary }}
+                >
+                  Add {noun}
+                </Typography>
+                {showAddSearch && (
+                  <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, px: 4, height: skin.CONTROL_H, flexShrink: 0, borderRadius: '999px', backgroundColor: skin.FIELD_BG }}>
+                    <Icon icon='mdi:magnify' fontSize={18} color={skin.FAINT} />
+                    <Box
+                      component='input'
+                      value={q}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
+                      placeholder='Search columns…'
+                      sx={{
+                        border: 'none',
+                        outline: 'none',
+                        flex: 1,
+                        minWidth: 0,
+                        fontFamily: 'inherit',
+                        fontSize: '15px',
+                        color: c.OnSurfaceVariant,
+                        backgroundColor: 'transparent',
+                        '&::placeholder': { color: c.neutralSecondary }
+                      }}
+                    />
+                  </Box>
+                )}
+                <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>
+                  {addable.map((key, i) => (
                     <Box
                       key={key}
-                      onClick={() => toggle(key)}
+                      onClick={() => add(key)}
                       sx={{
                         height: COL_ROW_H,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        borderBottom: i === order.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
+                        borderBottom: i === addable.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
                         cursor: 'pointer',
                         borderRadius: '10px',
-                        backgroundColor: dragging ? c.Surface : 'transparent',
-                        boxShadow: dragging ? skin.SHADOW_MODAL : 'none',
-                        position: 'relative',
-                        zIndex: dragging ? 1 : 0,
                         '&:hover': { backgroundColor: c.Surface }
                       }}
                     >
                       <Checkbox
-                        checked={on}
-                        onChange={() => toggle(key)}
+                        checked={false}
+                        onChange={() => add(key)}
                         onClick={e => e.stopPropagation()}
                         sx={{ color: skin.DASH_INK, '&.Mui-checked': { color: skin.LIST_GREEN } }}
                       />
-                      <Typography
-                        variant='body1'
-                        sx={{ flex: 1, minWidth: 0, color: on ? c.OnSurfaceVariant : c.neutralSecondary, fontWeight: on ? 600 : 400 }}
-                        noWrap
-                      >
+                      <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant }} noWrap>
                         {labels[key] ?? key}
                       </Typography>
-                      {/* the drag grip — order only, never removal */}
-                      <Box
-                        aria-label='Reorder'
-                        onClick={e => e.stopPropagation()}
-                        onPointerDown={startDrag(key)}
-                        onPointerMove={moveDrag(key)}
-                        onPointerUp={endDrag}
-                        onPointerCancel={endDrag}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          flexShrink: 0,
-                          display: 'grid',
-                          placeItems: 'center',
-                          touchAction: 'none',
-                          cursor: dragging ? 'grabbing' : 'grab',
-                          color: c.Outline,
-                          '&:hover': { color: c.OnSurfaceVariant }
-                        }}
-                      >
-                        <Icon icon='mdi:drag' fontSize={22} />
-                      </Box>
                     </Box>
-                  )
-                })}
-                {order.length === 0 && <SheetEmpty>No columns selected — add them from Add Columns.</SheetEmpty>}
-              </>
-            )}
-
-            {section === 'add' && (
-              <>
-                {addable.map((key, i) => (
-                  <Box
-                    key={key}
-                    onClick={() => add(key)}
-                    sx={{
-                      height: COL_ROW_H,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      borderBottom: i === addable.length - 1 ? 'none' : `0.5px solid ${c.OutlineVariant}`,
-                      cursor: 'pointer',
-                      borderRadius: '10px',
-                      px: 1,
-                      '&:hover': { backgroundColor: c.Surface }
-                    }}
-                  >
-                    <Icon icon='mdi:plus-circle-outline' fontSize={22} color={skin.LIST_GREEN} />
-                    <Typography variant='body1' sx={{ flex: 1, minWidth: 0, color: c.OnSurfaceVariant }} noWrap>
-                      {labels[key] ?? key}
-                    </Typography>
-                  </Box>
-                ))}
-                {addable.length === 0 && <SheetEmpty>{needle ? 'No columns match.' : 'All columns are on the table.'}</SheetEmpty>}
-              </>
-            )}
-
-            {section === 'identity' && identityOptions && identityList}
-          </Box>
+                  ))}
+                  {addable.length === 0 && <SheetEmpty>{needle ? 'No columns match.' : 'All columns are on the table.'}</SheetEmpty>}
+                </Box>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>{identityOptions && identityList}</Box>
+          )}
         </Box>
       </Box>
 
