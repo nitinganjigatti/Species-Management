@@ -13,6 +13,7 @@ import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import {
   HERO_PHOTOS,
+  HERO_PHOTO_FRAMES,
   HeaderSubTabsProvider,
   Sheet,
   SheetDrawer,
@@ -484,6 +485,25 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
   // Single copy in detailUi (the animal card's photo variant resolves there too).
   const heroPhoto = HERO_PHOTOS[String(speciesId)]
 
+  // Photo SLIDER (user call 2026-09-07): frames = the species' photo set (crop-variant
+  // placeholders today); the card swipes / dot-taps between them, the banner backdrop
+  // follows the active frame's crop with a slow object-position glide.
+  const heroFrames = HERO_PHOTO_FRAMES[String(speciesId)] ?? (heroPhoto ? [heroPhoto] : [])
+  const [heroIdx, setHeroIdx] = useState(0)
+  useEffect(() => setHeroIdx(0), [speciesId])
+  const activeFrame = heroFrames[Math.min(heroIdx, heroFrames.length - 1)] ?? heroPhoto
+  const dragX = useRef<number | null>(null)
+  const heroSwipeStart = (e: React.PointerEvent) => {
+    dragX.current = e.clientX
+  }
+  const heroSwipeEnd = (e: React.PointerEvent) => {
+    if (dragX.current == null) return
+    const d = e.clientX - dragX.current
+    dragX.current = null
+    if (d < -40) setHeroIdx(i => Math.min(heroFrames.length - 1, i + 1))
+    else if (d > 40) setHeroIdx(i => Math.max(0, i - 1))
+  }
+
   // The IUCN pill's dot carries the Red List category's own published fill — the
   // sanctioned exception on a surface that otherwise stays in the green family.
   const iucnName = h?.iucnStatus ? stripParen(h.iucnStatus) : ''
@@ -590,12 +610,21 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
           <>
             <Box
               component='img'
-              src={heroPhoto.src}
+              src={activeFrame.src}
               alt=''
               aria-hidden
               // Per-photo vertical anchor so the animal's face lands mid-banner
               // (gazelle 38% — 50% showed only body, 22% overshot to the trees).
-              sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: heroPhoto.bgPos }}
+              // Follows the slider's active frame with a slow crop glide.
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: activeFrame.bgPos,
+                transition: `object-position 700ms ${skin.EASE}`
+              }}
             />
             <Box sx={{ position: 'absolute', inset: 0, background: skin.BANNER_GRAD_SCRIM }} />
           </>
@@ -618,12 +647,62 @@ const SpeciesDetailView: React.FC<SpeciesDetailViewProps> = ({
         >
           {heroPhoto ? (
             <>
+              {/* Slider track — frames slide horizontally on a springy ease; swipe or
+                  tap a dot. Single-frame species get the same markup, zero dots. */}
               <Box
-                component='img'
-                src={heroPhoto.src}
-                alt={h?.commonName || 'Species'}
-                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+                onPointerDown={heroSwipeStart}
+                onPointerUp={heroSwipeEnd}
+                onPointerCancel={() => (dragX.current = null)}
+                sx={{ position: 'absolute', inset: 0, overflow: 'hidden', touchAction: 'pan-y', cursor: heroFrames.length > 1 ? 'grab' : 'default' }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    width: '100%',
+                    height: '100%',
+                    transform: `translateX(-${heroIdx * 100}%)`,
+                    transition: 'transform 480ms cubic-bezier(0.22, 0.9, 0.26, 1)'
+                  }}
+                >
+                  {heroFrames.map((f, i) => (
+                    <Box
+                      key={i}
+                      component='img'
+                      src={f.src}
+                      alt={i === 0 ? h?.commonName || 'Species' : ''}
+                      draggable={false}
+                      sx={{ flex: '0 0 100%', width: '100%', height: '100%', objectFit: 'cover', objectPosition: f.bgPos }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+              {heroFrames.length > 1 && (
+                <Box sx={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '6px', zIndex: 2 }}>
+                  {heroFrames.map((_, i) => (
+                    <Box
+                      key={i}
+                      onClick={e => {
+                        e.stopPropagation()
+                        setHeroIdx(i)
+                      }}
+                      role='button'
+                      aria-label={`Photo ${i + 1}`}
+                      sx={{
+                        height: 6,
+                        borderRadius: '999px',
+                        cursor: 'pointer',
+                        // the micro-animation: the active dot stretches into a pill,
+                        // the rest breathe down to quiet dots
+                        width: i === heroIdx ? 18 : 6,
+                        backgroundColor: '#ffffff',
+                        opacity: i === heroIdx ? 0.95 : 0.55,
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                        transition: `width ${skin.DUR_STD} ${skin.EASE}, opacity ${skin.DUR_STD} ${skin.EASE}`
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
             </>
           ) : (
             <Box

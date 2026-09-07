@@ -1391,6 +1391,24 @@ export const HERO_PHOTOS: Record<string, { src: string; bgPos: string }> = {
   '449': { src: '/images/species/449.jpg', bgPos: 'center 10%' }
 }
 
+/** Banner photo SLIDER frames (user call 2026-09-07): a species can carry several
+ *  photos — the banner photo card swipes between them with slider dots. Until real
+ *  extra photos land, the two photo species carry crop-variant frames of their own
+ *  image as placeholders (each frame = src + objectPosition). Single-frame species
+ *  render the plain photo, no dots. */
+export const HERO_PHOTO_FRAMES: Record<string, { src: string; bgPos: string }[]> = {
+  '2150': [
+    { src: '/images/species/2150.jpg', bgPos: 'center 38%' },
+    { src: '/images/species/2150.jpg', bgPos: 'center 78%' },
+    { src: '/images/species/2150.jpg', bgPos: 'center 8%' }
+  ],
+  '449': [
+    { src: '/images/species/449.jpg', bgPos: 'center 10%' },
+    { src: '/images/species/449.jpg', bgPos: 'center 55%' },
+    { src: '/images/species/449.jpg', bgPos: 'center 92%' }
+  ]
+}
+
 /** Species hero photo for the AnimalIdCard photo variant — a tab provides it ONCE at its
  *  root (value = HERO_PHOTOS[speciesId]) and every card row below resolves it, so sheet
  *  components don't thread photo props four levels deep. */

@@ -1504,6 +1504,10 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
   const [tableView, setTableView] = useState<'animal' | 'site'>('animal')
   const [tableMode, setTableMode] = useState<CircleSubTab>('births')
   const [sheet, setSheet] = useState<SheetView | null>(null)
+  // Births-vs-Deaths expand (user call 2026-09-07): ONE fullscreen-style icon in the
+  // section header — expand stacks the two charts full-width, the icon flips to the
+  // collapse glyph; tap again restores the pair. This section only.
+  const [bvdStacked, setBvdStacked] = useState(false)
 
   const birthEvents = lifecycle?.births || []
   const deathEvents = lifecycle?.deaths || []
@@ -1772,13 +1776,37 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       {/* ── Births vs Deaths — year-per-line pair, ONE page-level period (the band above).
           Seasonal Breeding/Mortality Pattern cards DELETED (demo review 2026-09-04).
           Conditional width: an empty side hides and the other takes the full row. */}
-      <SectionHeader title='Births vs Deaths' sub='Same period · aligned months' />
+      <SectionHeader
+        title='Births vs Deaths'
+        sub='Same period · aligned months'
+        action={
+          <Box
+            onClick={() => setBvdStacked(s => !s)}
+            role='button'
+            aria-label={bvdStacked ? 'Collapse charts' : 'Expand charts'}
+            sx={{
+              width: 36,
+              height: 36,
+              display: 'grid',
+              placeItems: 'center',
+              borderRadius: '50%',
+              bgcolor: '#ffffff',
+              border: `1px solid ${skin.HAIR}`,
+              cursor: 'pointer',
+              ...skin.cardPressSx,
+              '&:hover': { bgcolor: skin.ROW_HOVER }
+            }}
+          >
+            <Icon icon={bvdStacked ? 'mdi:arrow-collapse' : 'mdi:arrow-expand'} fontSize='1.1rem' color={skin.INK2} />
+          </Box>
+        }
+      />
       <Box
         sx={{
           display: 'grid',
           gap: 4,
           alignItems: 'stretch',
-          gridTemplateColumns: filteredBirths.length > 0 && filteredDeaths.length > 0 ? '1fr 1fr' : '1fr'
+          gridTemplateColumns: bvdStacked || !(filteredBirths.length > 0 && filteredDeaths.length > 0) ? '1fr' : '1fr 1fr'
         }}
       >
         {(filteredBirths.length > 0 || filteredDeaths.length === 0) && (
