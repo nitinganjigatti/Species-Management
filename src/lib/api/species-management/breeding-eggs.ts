@@ -154,6 +154,8 @@ export interface ClutchDetail {
   size: number
   hatched: number
   fates: EggFate[]
+  /** Per-egg user-facing ids, parallel to `fates` — the egg module's UEID grammar (eggs.ts). */
+  eggIds: string[]
 }
 
 /** A single egg's incubation weight track vs the ideal loss corridor. */
@@ -607,7 +609,10 @@ export async function getFemaleDetail(
     const thisHatched = Math.min(size, Math.round(hatchLeft / (b.clutchSizes.length - ci)))
     hatchLeft -= thisHatched
     const fates: EggFate[] = []
+    const eggIds: string[] = []
     for (let e = 0; e < size; e++) {
+      // UEID-#### = the egg module's user-facing egg number grammar (eggs.ts precedent)
+      eggIds.push(`UEID-${pad(100 + Math.floor(cr() * 8899), 4)}`)
       if (e < thisHatched) fates.push('hatched')
       else {
         const roll = cr()
@@ -620,7 +625,8 @@ export async function getFemaleDetail(
       laidDate: isoDaysAgo(20 + ci * 30 + Math.floor(cr() * 10)),
       size,
       hatched: thisHatched,
-      fates
+      fates,
+      eggIds
     }
   })
 

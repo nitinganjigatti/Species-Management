@@ -28,10 +28,12 @@ import {
   YearLinesChart,
   ListSheet,
   SheetDrawer,
+  ColumnSettingsSheet,
   thinScrollbarSx
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import Icon from 'src/@core/components/icon'
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
-import type { ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
+import type { ColumnPref, ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 import { SiteFilterControl } from 'src/views/pages/species-management/ipad3/detail/tabs/MedicalTab'
 import { getFemaleDetail } from 'src/lib/api/species-management/breeding-eggs'
@@ -54,6 +56,15 @@ const ClutchBars: React.FC<{ sizes: number[] }> = ({ sizes }) => {
   )
 }
 
+// Per-egg fate wording in the clutch list (dots + legend stay retired — text only).
+const FATE_LABEL: Record<string, string> = {
+  hatched: 'Hatched',
+  infertile: 'Infertile',
+  dead_in_shell: 'Dead in shell',
+  early_cracked: 'Cracked early',
+  incubating: 'Incubating'
+}
+
 const MONTH_L = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -63,6 +74,48 @@ const fmtD = (iso?: string) => {
   const d = new Date(iso)
 
   return isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+/* ── settings-driven roster columns (platform rule: every table gets the column
+   picker — Population pattern, user call 2026-09-07). The Female card column is
+   fixed; the picker chooses WHICH data columns ride beside it and their ORDER,
+   saved per user in localStorage and sanitized against the registry so new keys
+   append with their default state. */
+
+const EGG_COL_LABELS: Record<string, string> = {
+  clutches: 'Clutches',
+  eggs: 'Eggs',
+  fertile: 'Fertile',
+  hatched: 'Hatched',
+  prevHatchPct: 'Vs Her Last Season',
+  site: 'Site',
+  enclosure: 'Enclosure'
+}
+
+const EGG_DEFAULT_COLS: ColumnPref[] = [
+  { key: 'clutches', on: true },
+  { key: 'eggs', on: true },
+  { key: 'fertile', on: false },
+  { key: 'hatched', on: true },
+  { key: 'prevHatchPct', on: true },
+  // site/enclosure OFF by default — the card's 3rd row already carries the location
+  { key: 'site', on: false },
+  { key: 'enclosure', on: false }
+]
+
+const EGG_PREFS_STORE = 'ipad3:eggs:tableprefs:v1'
+
+const loadEggColPrefs = (): ColumnPref[] => {
+  try {
+    const raw = window.localStorage.getItem(EGG_PREFS_STORE)
+    if (!raw) return EGG_DEFAULT_COLS
+    const saved = (JSON.parse(raw) as ColumnPref[]).filter(p => EGG_COL_LABELS[p.key] && typeof p.on === 'boolean')
+    const missing = EGG_DEFAULT_COLS.filter(d => !saved.some(p => p.key === d.key))
+
+    return saved.length ? [...saved, ...missing] : EGG_DEFAULT_COLS
+  } catch {
+    return EGG_DEFAULT_COLS
+  }
 }
 
 /* ------------------------------------------------------ drill sheets (every stat opens one) */
@@ -124,31 +177,43 @@ const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: Femal
               <SheetEmpty>Loading…</SheetEmpty>
             ) : (
               <>
-                {/* Clutch view SIMPLIFIED (demo review 2026-09-04): clutch + egg count,
-                    hatch outcome as "2 of 3" — the per-egg fate dots and legend retired. */}
+                {/* Clutch view: clutch + egg count, hatch outcome as "2 of 3" (demo review
+                    2026-09-04) + each clutch lists its eggs by ID (user call 2026-09-07 —
+                    "show the egg id") with the fate as quiet TEXT (dots/legend stay retired). */}
                 <SheetSection first label='Clutches'>
                   {detail.clutches.map((cl, ci) => (
                     <Box
                       key={cl.clutchId}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 3,
                         py: 3.5,
                         borderBottom: ci < detail.clutches.length - 1 ? `0.5px solid ${c.OutlineVariant}` : 'none'
                       }}
                     >
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                          {cl.clutchId}
-                        </Typography>
-                        <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
-                          {fmtD(cl.laidDate)} • {cl.size} {cl.size === 1 ? 'egg' : 'eggs'}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                            {cl.clutchId}
+                          </Typography>
+                          <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+                            {fmtD(cl.laidDate)} • {cl.size} {cl.size === 1 ? 'egg' : 'eggs'}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ ml: 'auto', fontSize: '1rem', fontWeight: 600, color: cl.hatched === 0 ? c.neutralSecondary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                          {cl.hatched} of {cl.size} hatched
                         </Typography>
                       </Box>
-                      <Typography sx={{ ml: 'auto', fontSize: '1rem', fontWeight: 600, color: cl.hatched === 0 ? c.neutralSecondary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                        {cl.hatched} of {cl.size} hatched
-                      </Typography>
+                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column' }}>
+                        {(cl.eggIds ?? []).map((eid, ei) => (
+                          <Box key={eid + ei} sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 3, py: 1 }}>
+                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                              {eid}
+                            </Typography>
+                            <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
+                              {FATE_LABEL[cl.fates[ei]] ?? cl.fates[ei]}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
                     </Box>
                   ))}
                 </SheetSection>
@@ -225,7 +290,32 @@ const BreedingAnalytics: React.FC<{
   }
   const pickSite = (v: string | null) => {
     setSiteFilter(v)
+    setRosterSiteRaw(null) // a page-scope change can strand a narrower table pick
     setPm(p => ({ ...p, page: 0 }))
+  }
+
+  // Roster-local site dropdown (user call 2026-09-07 — the table row: clutch filter,
+  // site, settings; the animal-table grammar). Scopes the TABLE only; the page strip's
+  // site pick still scopes everything, so this one offers the sites left within it.
+  const [rosterSite, setRosterSiteRaw] = useState<string | null>(null)
+  const setRosterSite = (v: string | null) => {
+    setRosterSiteRaw(v)
+    setPm(p => ({ ...p, page: 0 }))
+  }
+
+  // Column picker (Population pattern) — load AFTER mount (localStorage in the
+  // initializer would break hydration).
+  const [colsOpen, setColsOpen] = useState(false)
+  const [colPrefs, setColPrefs] = useState<ColumnPref[]>(EGG_DEFAULT_COLS)
+  React.useEffect(() => setColPrefs(loadEggColPrefs()), [])
+  const applyColPrefs = (cols: ColumnPref[]) => {
+    setColPrefs(cols)
+    try {
+      // NB: `window` here is the component's period window — use the global explicitly
+      globalThis.localStorage.setItem(EGG_PREFS_STORE, JSON.stringify(cols))
+    } catch {
+      /* private mode etc. — prefs just don't persist */
+    }
   }
 
   /* ── page scope (user call 2026-09-06): ONE white control strip on top — the CoL
@@ -303,9 +393,10 @@ const BreedingAnalytics: React.FC<{
         inTab(f) &&
         inClutch(f) &&
         (!siteFilter || f.site === siteFilter) &&
+        (!rosterSite || f.site === rosterSite) &&
         (!query || `${f.name} ${f.identifier} ${f.site} ${f.enclosure}`.toLowerCase().includes(query))
     )
-  }, [s.females_rows, rosterTab, clutchFilter, siteFilter, q])
+  }, [s.females_rows, rosterTab, clutchFilter, siteFilter, rosterSite, q])
 
   /* site dropdown options — every site that holds a female, biggest first */
   const siteOpts = useMemo(() => {
@@ -314,6 +405,14 @@ const BreedingAnalytics: React.FC<{
 
     return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([site, n]) => ({ site, n }))
   }, [s.females_rows])
+
+  /* roster site dropdown options — the sites left inside the page scope, biggest first */
+  const rosterSiteOpts = useMemo(() => {
+    const m = new Map<string, number>()
+    scopedFemales.forEach(f => f.site && m.set(f.site, (m.get(f.site) ?? 0) + 1))
+
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([site, n]) => ({ site, n }))
+  }, [scopedFemales])
   const femaleRows = useMemo(() => {
     const start = pm.page * pm.pageSize
 
@@ -552,16 +651,10 @@ const BreedingAnalytics: React.FC<{
     )
   }
 
-  const femaleCols: GridColDef[] = [
-    {
-      minWidth: 380,
-      flex: 1,
-      sortable: false,
-      field: 'name',
-      headerName: 'Female',
-      renderCell: (p: GridRenderCellParams) => femaleCardCell(p.row as FemaleRow)
-    },
-    {
+  /* data-column registry — the settings picker (EGG_COL_LABELS) decides which of
+     these ride beside the fixed Female card column, and in what order */
+  const eggColDefs: Record<string, GridColDef> = {
+    clutches: {
       minWidth: 170,
       flex: 1,
       sortable: false,
@@ -574,7 +667,7 @@ const BreedingAnalytics: React.FC<{
         </Box>
       )
     },
-    {
+    eggs: {
       minWidth: 110,
       flex: 0.7,
       sortable: false,
@@ -584,7 +677,20 @@ const BreedingAnalytics: React.FC<{
         <Typography sx={{ fontSize: '1rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{p.row.eggs}</Typography>
       )
     },
-    {
+    fertile: {
+      minWidth: 110,
+      flex: 0.7,
+      sortable: false,
+      field: 'fertile',
+      headerName: 'Fertile',
+      renderCell: (p: GridRenderCellParams) =>
+        p.row.eggs ? (
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{p.row.fertile}</Typography>
+        ) : (
+          <Typography sx={{ fontSize: '1rem', color: c.neutralSecondary }}>—</Typography>
+        )
+    },
+    hatched: {
       // hatch outcome = a COUNT pair, never a percentage (demo review 2026-09-04)
       minWidth: 140,
       flex: 0.9,
@@ -600,14 +706,48 @@ const BreedingAnalytics: React.FC<{
           <Typography sx={{ fontSize: '1rem', color: c.neutralSecondary }}>—</Typography>
         )
     },
-    {
+    prevHatchPct: {
       minWidth: 190,
       flex: 1,
       sortable: false,
       field: 'prevHatchPct',
       headerName: 'Vs Her Last Season',
       renderCell: (p: GridRenderCellParams) => prevPill(p.row)
+    },
+    site: {
+      minWidth: 160,
+      flex: 1,
+      sortable: false,
+      field: 'site',
+      headerName: 'Site',
+      renderCell: (p: GridRenderCellParams) => (
+        <Typography sx={{ fontSize: '1rem', color: p.row.site ? c.OnSurfaceVariant : c.neutralSecondary }}>{p.row.site || '—'}</Typography>
+      )
+    },
+    enclosure: {
+      minWidth: 170,
+      flex: 1,
+      sortable: false,
+      field: 'enclosure',
+      headerName: 'Enclosure',
+      renderCell: (p: GridRenderCellParams) => (
+        <Typography sx={{ fontSize: '1rem', color: p.row.enclosure ? c.OnSurfaceVariant : c.neutralSecondary }}>
+          {p.row.enclosure || '—'}
+        </Typography>
+      )
     }
+  }
+
+  const femaleCols: GridColDef[] = [
+    {
+      minWidth: 380,
+      flex: 1,
+      sortable: false,
+      field: 'name',
+      headerName: 'Female',
+      renderCell: (p: GridRenderCellParams) => femaleCardCell(p.row as FemaleRow)
+    },
+    ...colPrefs.filter(p => p.on).map(p => eggColDefs[p.key]).filter(Boolean)
   ]
 
   /* roster tabs — vaccination statusTabs pattern: tabs in the card title slot, per-tab underline */
@@ -808,8 +948,9 @@ const BreedingAnalytics: React.FC<{
           site dropdown + search in the action slot. Landscape: one row. Portrait: tabs row,
           then ONE scrolling controls row (the ControlsRow rule — never a wrapped second line). ── */}
       {(() => {
-        // site moved to the page-scope strip (2026-09-06) — the roster keeps tabs, the
-        // clutch FILTER (kit PillSelect — replaced the clutch tabs, user call) + search
+        // roster controls (user call 2026-09-07): clutch FILTER (kit PillSelect), the
+        // roster's OWN site dropdown (table-local — the page strip still scopes the
+        // whole tab), then the column-settings gear; search rides along.
         const clutchCtl = (
           <PillSelect
             value={clutchFilter}
@@ -821,13 +962,52 @@ const BreedingAnalytics: React.FC<{
             ]}
           />
         )
+        const rosterSiteCtl =
+          rosterSiteOpts.length > 1 ? (
+            <SiteFilterControl
+              sites={rosterSiteOpts as any}
+              sitesTotal={rosterSiteOpts.length}
+              tracked={scopedFemales.length}
+              value={rosterSite}
+              onChange={setRosterSite}
+              overdueWord='overdue'
+              caption={(x: any) => `${x.n} females`}
+            />
+          ) : null
+        // Settings — the column-picker trigger, always beside the filters (demo call rule)
+        const settingsBtn = (
+          <Box
+            onClick={() => setColsOpen(true)}
+            aria-label='Table columns'
+            sx={{
+              width: 44,
+              height: 44,
+              flexShrink: 0,
+              display: 'grid',
+              placeItems: 'center',
+              borderRadius: '50%',
+              bgcolor: '#ffffff',
+              border: `1px solid ${skin.HAIR}`,
+              cursor: 'pointer',
+              ...skin.cardPressSx,
+              '&:hover': { bgcolor: skin.ROW_HOVER }
+            }}
+          >
+            <Icon icon='mdi:cog-outline' fontSize='1.25rem' color={skin.INK2} />
+          </Box>
+        )
         const searchCtl = <SearchPill elastic value={q} onChange={setQ} placeholder='Search females…' />
         const stackedHeader = (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minWidth: 0 }}>
-            {rosterTabs}
+            {/* portrait: tabs + gear on line one (Population grammar), controls scroll below */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              {rosterTabs}
+              {settingsBtn}
+            </Box>
             <ControlsRow>
               {searchCtl}
               {clutchCtl}
+              {rosterSiteCtl}
             </ControlsRow>
           </Box>
         )
@@ -837,8 +1017,10 @@ const BreedingAnalytics: React.FC<{
         title={portrait ? stackedHeader : rosterTabs}
         action={
           portrait ? undefined : (
-            <ControlsRow sx={{ width: 'auto', flex: '1 1 auto', justifyContent: 'flex-end', ml: 3, maxWidth: 520 }}>
+            <ControlsRow sx={{ width: 'auto', flex: '1 1 auto', justifyContent: 'flex-end', ml: 3, maxWidth: 640 }}>
               {clutchCtl}
+              {rosterSiteCtl}
+              {settingsBtn}
               {searchCtl}
             </ControlsRow>
           )
@@ -861,6 +1043,16 @@ const BreedingAnalytics: React.FC<{
 
       <FemaleDrawer speciesId={s.speciesId} className={s.className} row={openFemale} onClose={() => setOpenFemale(null)} />
       <ListSheet view={sheetView} onClose={() => setSheet(null)} />
+
+      {/* Settings — data columns (choose + order), saved per user (Population pattern) */}
+      <ColumnSettingsSheet
+        open={colsOpen}
+        onClose={() => setColsOpen(false)}
+        labels={EGG_COL_LABELS}
+        value={colPrefs}
+        defaults={EGG_DEFAULT_COLS}
+        onApply={cols => applyColPrefs(cols)}
+      />
     </Box>
   )
 }
