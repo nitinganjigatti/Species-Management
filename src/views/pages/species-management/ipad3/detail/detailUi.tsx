@@ -517,7 +517,7 @@ export const ViewToggle: React.FC<{
           {v.count != null && (
             <Typography
               component='span'
-              sx={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: on ? skin.TOGGLE_ON : skin.FAINT }}
+              sx={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: on ? skin.TOGGLE_ON : skin.FAINT }}
             >
               {v.count}
             </Typography>
@@ -1303,7 +1303,7 @@ export const AnimalIdCard: React.FC<{
               backgroundColor: skin.ANIMAL_TAG[tag]
             }}
           >
-            <Typography sx={{ fontSize: 10, fontWeight: 600, lineHeight: 1, color: '#ffffff', whiteSpace: 'nowrap' }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: '#ffffff', whiteSpace: 'nowrap' }}>
               {tag === 'group' && groupCount != null ? `G ${groupCount}` : TAG_LETTER[tag]}
             </Typography>
           </Box>
@@ -3573,7 +3573,7 @@ export const DetailTable: React.FC<{
         '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD, backgroundColor: skin.TABLE_HEAD_BG },
         // Never clip a header — let it wrap to two lines instead of showing "OVER…".
         '& .MuiDataGrid-columnHeaderTitle': {
-          fontSize: '13px',
+          fontSize: '14px',
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',

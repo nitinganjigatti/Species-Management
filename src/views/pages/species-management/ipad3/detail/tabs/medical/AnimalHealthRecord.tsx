@@ -429,7 +429,7 @@ const AnimalHealthRecord: React.FC<{
               {data.activeSymptoms.length > 0 && (
                 <>
                   <Typography
-                    sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
                   >
                     Symptoms
                   </Typography>
@@ -457,7 +457,7 @@ const AnimalHealthRecord: React.FC<{
                 <>
                   {data.activeSymptoms.length > 0 && <Box sx={{ height: 12 }} />}
                   <Typography
-                    sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
+                    sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, px: 3.5, mb: 1.5 }}
                   >
                     Clinical assessments
                   </Typography>

@@ -59,7 +59,7 @@ const SignalsBand: React.FC<{ cells: SignalCell[] }> = ({ cells }) => (
         >
           <Typography
             sx={{
-              fontSize: '13px',
+              fontSize: '14px',
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',

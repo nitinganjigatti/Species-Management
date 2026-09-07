@@ -324,7 +324,7 @@ const SignalDrawer: React.FC<{
           {dist.length > 0 && (
             <Box sx={{ px: SHEET_PX, mt: 4 }}>
               <Typography
-                sx={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, mb: 2 }}
+                sx={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.neutralSecondary, mb: 2 }}
               >
                 {payload.distributionTitle ?? 'Result Distribution'}
               </Typography>
