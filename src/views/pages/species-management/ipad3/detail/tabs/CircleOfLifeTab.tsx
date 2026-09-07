@@ -319,12 +319,14 @@ const YearLinesCard: React.FC<{
   noun: string
   empty: string
   onPoint?: (year: number, monthIdx: number) => void
-}> = ({ title, series, accent, noun, empty, onPoint }) => {
+  /** Title-row right-corner slot (2026-09-07: the expand/collapse icon). */
+  action?: React.ReactNode
+}> = ({ title, series, accent, noun, empty, onPoint, action }) => {
   const cells = series.flatMap(sr => sr.values.filter(v => v > 0))
 
   if (!cells.length) {
     return (
-      <SectionCard title={title}>
+      <SectionCard title={title} action={action}>
         <EmptyState message={empty} />
       </SectionCard>
     )
@@ -337,14 +339,14 @@ const YearLinesCard: React.FC<{
     series.forEach(sr => sr.values.forEach((v, m) => v > 0 && rows.push({ label: `${MONTHS_S[m]} ${sr.year}`, value: v.toLocaleString() })))
 
     return (
-      <SectionCard title={title}>
+      <SectionCard title={title} action={action}>
         <FactRows rows={rows} />
       </SectionCard>
     )
   }
 
   return (
-    <SectionCard title={title}>
+    <SectionCard title={title} action={action}>
       <YearLinesChart series={series} accent={accent} noun={noun} onPoint={onPoint} />
     </SectionCard>
   )
@@ -1776,10 +1778,12 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
       {/* ── Births vs Deaths — year-per-line pair, ONE page-level period (the band above).
           Seasonal Breeding/Mortality Pattern cards DELETED (demo review 2026-09-04).
           Conditional width: an empty side hides and the other takes the full row. */}
-      <SectionHeader
-        title='Births vs Deaths'
-        sub='Same period · aligned months'
-        action={
+      <SectionHeader title='Births vs Deaths' sub='Same period · aligned months' />
+      {(() => {
+        // The fullscreen-style icon rides EACH card's title row, right corner (user
+        // call 2026-09-07): tap → both charts stack full-width, glyph flips to
+        // collapse; tap again → side-by-side. Either card's icon drives the pair.
+        const expandBtn = (
           <Box
             onClick={() => setBvdStacked(s => !s)}
             role='button'
@@ -1799,8 +1803,9 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
           >
             <Icon icon={bvdStacked ? 'mdi:arrow-collapse' : 'mdi:arrow-expand'} fontSize='1.1rem' color={skin.INK2} />
           </Box>
-        }
-      />
+        )
+
+        return (
       <Box
         sx={{
           display: 'grid',
@@ -1817,6 +1822,7 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
             noun='births'
             empty='No birth data for this period'
             onPoint={openBirthYM}
+            action={expandBtn}
           />
         )}
         {(filteredDeaths.length > 0 || filteredBirths.length === 0) && (
@@ -1827,9 +1833,12 @@ const CircleOfLifeTab: React.FC<CircleOfLifeTabProps> = ({ births, deaths, lifec
             noun='deaths'
             empty='No death data for this period'
             onPoint={openDeathYM}
+            action={expandBtn}
           />
         )}
       </Box>
+        )
+      })()}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, alignItems: 'stretch' }}>
         <GenderPie
           title='Births by Gender'
