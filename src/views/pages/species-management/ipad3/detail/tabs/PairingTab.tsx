@@ -124,6 +124,9 @@ interface SiteRow {
   grp: number
   total: number
   verdict: SiteVerdict
+  /** Enclosures in this site whose OWN verdict (same verdictOf rule per enclosure)
+   *  matches the site's — the chip's "- N ENCL" suffix (user call 2026-09-07). */
+  verdictEnc: number
 }
 
 const VERDICT_TEXT: Record<SiteVerdict, string> = {
@@ -133,7 +136,8 @@ const VERDICT_TEXT: Record<SiteVerdict, string> = {
   needsSexing: 'Needs Sexing'
 }
 
-const verdictOf = (s: Omit<SiteRow, 'verdict'>): SiteVerdict => {
+// Works on ANY row carrying the gender grid — sites and single enclosures alike.
+const verdictOf = (s: { male: number; female: number; ud: number; ind: number; grp: number; total: number }): SiteVerdict => {
   const sexed = s.male + s.female
   const unsexed = s.ud + s.ind + s.grp
   if (s.total > 0 && (sexed === 0 || unsexed * 3 >= s.total)) return 'needsSexing'
@@ -143,7 +147,7 @@ const verdictOf = (s: Omit<SiteRow, 'verdict'>): SiteVerdict => {
   return 'balanced'
 }
 
-const VerdictChip: React.FC<{ v: SiteVerdict }> = ({ v }) => {
+const VerdictChip: React.FC<{ v: SiteVerdict; encl?: number }> = ({ v, encl }) => {
   const warn = v === 'needsSexing'
 
   return (
@@ -161,9 +165,18 @@ const VerdictChip: React.FC<{ v: SiteVerdict }> = ({ v }) => {
     >
       <Typography
         component='span'
-        sx={{ fontSize: '14px', fontWeight: 600, lineHeight: 1, color: warn ? skin.strokeOf(skin.TONE_FILL.warn) : skin.TONE_TYPE.neutral }}
+        sx={{
+          fontSize: '14px',
+          fontWeight: 600,
+          lineHeight: 1,
+          fontVariantNumeric: 'tabular-nums',
+          color: warn ? skin.strokeOf(skin.TONE_FILL.warn) : skin.TONE_TYPE.neutral
+        }}
       >
         {VERDICT_TEXT[v]}
+        {/* "- 4 ENCL" = 4 enclosures here classify as this verdict; hidden at 0 (a site
+            can aggregate to a verdict no single enclosure carries) */}
+        {encl != null && encl > 0 && ` - ${encl.toLocaleString()} ENCL`}
       </Typography>
     </Box>
   )
@@ -285,7 +298,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
 
   /* ── site-wise rows: the gender grid summed per site + the verdict ── */
   const siteRows: SiteRow[] = useMemo(() => {
-    const by = new Map<string, Omit<SiteRow, 'verdict'>>()
+    const by = new Map<string, Omit<SiteRow, 'verdict' | 'verdictEnc'>>()
     for (const r of allRows) {
       const s = by.get(r.site) || { site: r.site, male: 0, female: 0, ud: 0, ind: 0, grp: 0, total: 0 }
       s.male += r.male
@@ -297,16 +310,25 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       by.set(r.site, s)
     }
 
-    return [...by.values()].map(s => ({ ...s, verdict: verdictOf(s) })).sort((a, b) => b.total - a.total)
+    return [...by.values()]
+      .map(s => {
+        const verdict = verdictOf(s)
+
+        return { ...s, verdict, verdictEnc: allRows.filter(r => r.site === s.site && verdictOf(r) === verdict).length }
+      })
+      .sort((a, b) => b.total - a.total)
   }, [allRows])
 
-  // Verdict picker options — ALWAYS the full vocabulary in fixed order (user call
-  // 2026-09-07): zero-count verdicts render disabled/greyed, never removed.
+  // Verdict picker options — ALWAYS the full vocabulary (user call 2026-09-07):
+  // zero-count verdicts render disabled/greyed, never removed, and SINK to the
+  // bottom (stable sort — the fixed order holds within each group).
   const verdictOptions = useMemo(() => {
     const m = new Map<SiteVerdict, number>()
     for (const r of siteRows) m.set(r.verdict, (m.get(r.verdict) || 0) + 1)
 
-    return (['male', 'female', 'balanced', 'needsSexing'] as SiteVerdict[]).map(v => ({ label: VERDICT_TEXT[v], n: m.get(v) || 0 }))
+    return (['male', 'female', 'balanced', 'needsSexing'] as SiteVerdict[])
+      .map(v => ({ label: VERDICT_TEXT[v], n: m.get(v) || 0 }))
+      .sort((a, b) => (a.n === 0 ? 1 : 0) - (b.n === 0 ? 1 : 0))
   }, [siteRows])
 
   const siteRowsFiltered = useMemo(() => {
@@ -369,7 +391,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       headerName: 'Site',
       renderCell: p => (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1.5 }}>
-          <VerdictChip v={(p.row as SiteRow).verdict} />
+          <VerdictChip v={(p.row as SiteRow).verdict} encl={(p.row as SiteRow).verdictEnc} />
           <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: skin.INK }}>{p.row.site}</Typography>
         </Box>
       )
