@@ -3572,7 +3572,22 @@ export const DetailTable: React.FC<{
   // (before pinning, so sticky offsets never count a dropped column).
   const noSerials = columns.filter(c => c.field !== 'sl_no')
 
-  const pinned = pinFields.length ? noSerials.filter(col => pinFields.includes(col.field)) : []
+  /* HARD RULE (user standard, re-hit 2026-09-07 — "nothing gets cut from any column"):
+     a column can never be narrower than its own header text. Enforced at the COMPONENT
+     (the serial rule's pattern) so no caller's hand-tuned width can bring clipping back:
+     floor ≈ header chars at the 14px caps + TRACK_CAPS header type (~11px/char) plus the
+     grid's 20+16 cell padding and breathing room. Fixed-width and minWidth columns are
+     both raised to the floor when they sit under it. */
+  const headerFloor = (col: GridColDef) => (col.headerName ? Math.ceil(col.headerName.length * 11) + 44 : 0)
+  const sized = noSerials.map(col => {
+    const floor = headerFloor(col)
+    if (!floor) return col
+    if (col.width != null) return col.width >= floor ? col : { ...col, width: floor }
+
+    return (col.minWidth ?? 0) >= floor ? col : { ...col, minWidth: floor }
+  })
+
+  const pinned = pinFields.length ? sized.filter(col => pinFields.includes(col.field)) : []
 
   // Scrolled-under cue: once the table is horizontally scrolled, columns slide BENEATH
   // the pinned ones. ONE continuous gradient strip is overlaid along the pinned edge
@@ -3634,8 +3649,8 @@ export const DetailTable: React.FC<{
   // The LAST column gets extra right padding (user call 2026-09-05: a right-aligned
   // Total sat flush against the table edge) — tagged by class so the rule survives
   // flexed widths and the grid's own scrollbar filler elements.
-  const lastPadded = noSerials.map((c, i) =>
-    i === noSerials.length - 1 && typeof c.cellClassName !== 'function' && typeof (c as any).headerClassName !== 'function'
+  const lastPadded = sized.map((c, i) =>
+    i === sized.length - 1 && typeof c.cellClassName !== 'function' && typeof (c as any).headerClassName !== 'function'
       ? {
           ...c,
           cellClassName: [c.cellClassName, 'dg-col-last'].filter(Boolean).join(' '),
