@@ -2519,8 +2519,11 @@ export const ColumnSettingsSheet: React.FC<{
         </IconButton>
       </Box>
 
-      {/* Body — left menu rail + panel */}
+      {/* Body — left menu rail + panel. The rail renders ONLY when there is more than
+          one tab (user call 2026-09-07): Columns-only consumers (Eggs, Assessments) go
+          rail-less; a future tab — or Population's Card Identity — brings it back. */}
       <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', px: 5, minHeight: 0 }}>
+        {railItems.length > 1 && (
         <Box sx={{ width: 200, flexShrink: 0, overflowY: 'auto' }}>
           {railItems.map(r => {
             const on = section === r.key
@@ -2570,8 +2573,18 @@ export const ColumnSettingsSheet: React.FC<{
             )
           })}
         </Box>
+        )}
 
-        <Box sx={{ borderLeft: `1px solid ${skin.HAIR}`, pl: 5, pr: 1, flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box
+          sx={{
+            ...(railItems.length > 1 ? { borderLeft: `1px solid ${skin.HAIR}`, pl: 5 } : {}),
+            pr: 1,
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
           {section === 'cols' ? (
             /* ── the two panes side by side (user call 2026-09-07): Selected (ordered,
                drag = reorder, uncheck = move right) | Add (check = move left, at END) ── */
@@ -2583,6 +2596,12 @@ export const ColumnSettingsSheet: React.FC<{
                 >
                   Selected · {order.length}
                 </Typography>
+                {addablePool.length === 0 && (
+                  // pool exhausted → the Add pane below is gone; say so here instead
+                  <Typography sx={{ pb: 2, flexShrink: 0, fontSize: '14px', color: c.neutralSecondary }}>
+                    All columns are added — uncheck one to set it aside.
+                  </Typography>
+                )}
                 <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>
                   {order.map((key, i) => {
                     const dragging = dragKey === key
@@ -2644,7 +2663,10 @@ export const ColumnSettingsSheet: React.FC<{
                 </Box>
               </Box>
 
-              {/* Add — the rest of the registry */}
+              {/* Add — the rest of the registry; the pane only exists while there is
+                  something left to add (user call 2026-09-07 — an empty pane wastes
+                  half the sheet; Selected stretches full width instead) */}
+              {addablePool.length > 0 && (
               <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${skin.HAIR}`, pl: 5 }}>
                 <Typography
                   sx={{ pb: 2, flexShrink: 0, fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: skin.TRACK_CAPS, color: c.neutralSecondary }}
@@ -2700,9 +2722,10 @@ export const ColumnSettingsSheet: React.FC<{
                       </Typography>
                     </Box>
                   ))}
-                  {addable.length === 0 && <SheetEmpty>{needle ? 'No columns match.' : 'All columns are on the table.'}</SheetEmpty>}
+                  {addable.length === 0 && <SheetEmpty>No columns match.</SheetEmpty>}
                 </Box>
               </Box>
+              )}
             </Box>
           ) : (
             <Box sx={{ flex: 1, overflowY: 'auto', pb: 3 }}>{identityOptions && identityList}</Box>
