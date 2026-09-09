@@ -3701,6 +3701,21 @@ export const DetailTable: React.FC<{
   // this fallback styling covers columns left ungrouped anyway.
   const ungroupedStyle: Record<string, any> = {}
   if (columnGroupingModel) {
+    // SINGLE-HEADING columns (one-child groups, e.g. Site/Mixed/Empty/Total): the label
+    // cell + its blank leaf cell read as ONE tall undivided cell (user call 2026-09-09) —
+    // no tier hairline under the label, and ONE continuous right-edge rule across both
+    // tiers instead of the two per-tier separator stubs.
+    const lastField = sized[sized.length - 1]?.field
+    for (const g of columnGroupingModel) {
+      if (g.children.length !== 1) continue
+      const f = g.children[0].field
+      const edge = f === lastField ? {} : { borderRight: `1px solid ${skin.ROW_LINE}` }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edge }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edge }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
+    }
+
     const groupedFields = new Set(columnGroupingModel.flatMap(g => g.children.map(ch => ch.field)))
     for (const col of sized) {
       if (groupedFields.has(col.field)) continue
