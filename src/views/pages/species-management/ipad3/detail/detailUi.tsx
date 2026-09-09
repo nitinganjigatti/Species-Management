@@ -3675,8 +3675,7 @@ export const DetailTable: React.FC<{
         position: 'sticky',
         left,
         zIndex: 5,
-        // pinned leaf header matches its tier — the lighter sub-header wash when grouped
-        backgroundColor: columnGroupingModel ? skin.TABLE_HEAD_BG_SUB : skin.TABLE_HEAD_BG,
+        backgroundColor: skin.TABLE_HEAD_BG,
         ...edge
       }
       // Grouped-header tables: the group-row cell sitting ABOVE a pinned column (its
@@ -3768,12 +3767,9 @@ export const DetailTable: React.FC<{
           ? {
               '& .MuiDataGrid-columnHeader--filledGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
               '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
-              // The LEAF header tier drops to 12px caps on a LIGHTER wash than the group
-              // tier (user calls 2026-09-09) — the two rows read as distinct levels;
-              // two-word leaf headers wrap at the word break.
-              '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup)': {
-                backgroundColor: skin.TABLE_HEAD_BG_SUB
-              },
+              // The LEAF header tier drops to 12px caps — SAME wash as the group tier
+              // (user reversal 2026-09-09: no lighter second row); two-word leaf headers
+              // wrap at the word break.
               '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup) .MuiDataGrid-columnHeaderTitle':
                 { fontSize: '12px' },
               ...ungroupedStyle
