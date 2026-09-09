@@ -129,6 +129,7 @@ export const FOCUS_RING = 'rgba(55,189,105,0.45)'
  *  population/births in the list green, deaths in the soft coral. Zeros print
  *  as an em dash in the pale ink — "0 deaths" is a silence, not a finding. */
 export const TABLE_HEAD_BG = '#ddebe9' // header bar fill — iPad 3 teal wash (user hex, 2026-09-01)
+export const TABLE_HEAD_BG_SUB = '#E8F4F2' // grouped-table LEAF header tier — one shade lighter than the group tier (user hex, 2026-09-09)
 export const TABLE_HEAD_INK = '#4a6156' // header type — muted dark green, uppercase
 export const ROW_LINE = '#eef1ee' // the one row separator
 export const ROW_HOVER = '#f4f9f6' // row / option hover wash
