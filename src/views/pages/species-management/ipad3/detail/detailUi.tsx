@@ -3706,10 +3706,24 @@ export const DetailTable: React.FC<{
     // no tier hairline under the label, and ONE continuous right-edge rule across both
     // tiers instead of the two per-tier separator stubs.
     const lastField = sized[sized.length - 1]?.field
+    const singleFields = new Set(columnGroupingModel.filter(g => g.children.length === 1).map(g => g.children[0].field))
     for (const g of columnGroupingModel) {
       if (g.children.length !== 1) continue
       const f = g.children[0].field
-      const edge = f === lastField ? {} : { borderRight: `1px solid ${skin.ROW_LINE}` }
+      const idx = sized.findIndex(c => c.field === f)
+      const prev = idx > 0 ? sized[idx - 1].field : null
+      // LEFT edge gets the same continuous treatment (user call 2026-09-09): hide the
+      // left neighbor's per-tier separator stubs (both tiers) and draw one full-height
+      // rule — unless the neighbor is itself a single column already drawing its right edge.
+      const edge: Record<string, string> = {}
+      if (f !== lastField) edge.borderRight = `1px solid ${skin.ROW_LINE}`
+      if (prev && !singleFields.has(prev)) {
+        edge.borderLeft = `1px solid ${skin.ROW_LINE}`
+        ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${prev}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
+        ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields*="|-${prev}-|"] .MuiDataGrid-columnSeparator`] = {
+          display: 'none'
+        }
+      }
       ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edge }
       ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
       ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edge }
