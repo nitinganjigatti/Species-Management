@@ -334,7 +334,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
               {a > 0 ? a.toLocaleString() : '—'}
             </Typography>
             <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }}>
-              {e.toLocaleString()} encl.
+              in {e.toLocaleString()} Encl
             </Typography>
           </Box>
         )
