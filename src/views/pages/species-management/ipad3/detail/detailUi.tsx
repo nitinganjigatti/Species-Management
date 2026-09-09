@@ -3601,7 +3601,21 @@ export const DetailTable: React.FC<{
      floor ≈ header chars at the 14px caps + TRACK_CAPS header type (~11px/char) plus the
      grid's 20+16 cell padding and breathing room. Fixed-width and minWidth columns are
      both raised to the floor when they sit under it. */
-  const headerFloor = (col: GridColDef) => (col.headerName ? Math.ceil(col.headerName.length * 11) + 44 : 0)
+  const headerFloor = (col: GridColDef) => {
+    if (!col.headerName) return 0
+
+    // Grouped tables: leaf headers render 12px caps (user call 2026-09-09 — the ONE
+    // approved sub-14 exception besides badge glyphs) and a multi-word header may wrap
+    // at its word break, so the floor only needs the LONGEST WORD at the smaller glyph
+    // (~9.5px/char at 12px caps + TRACK_CAPS). Never lets any header clip.
+    if (columnGroupingModel) {
+      const longest = Math.max(...col.headerName.split(/\s+/).map(w => w.length))
+
+      return Math.ceil(longest * 9.5) + 44
+    }
+
+    return Math.ceil(col.headerName.length * 11) + 44
+  }
   const sized = noSerials.map(col => {
     const floor = headerFloor(col)
     if (!floor) return col
@@ -3731,7 +3745,11 @@ export const DetailTable: React.FC<{
         ...(columnGroupingModel
           ? {
               '& .MuiDataGrid-columnHeader--filledGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
-              '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` }
+              '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
+              // The LEAF header tier drops to 12px caps (user call 2026-09-09) — the group
+              // tier keeps the standard 14px; two-word leaf headers wrap at the word break.
+              '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup) .MuiDataGrid-columnHeaderTitle':
+                { fontSize: '12px' }
             }
           : {}),
         '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '16px', borderBottomColor: skin.ROW_LINE },
