@@ -3676,7 +3676,9 @@ export const DetailTable: React.FC<{
         left,
         zIndex: 5,
         backgroundColor: skin.TABLE_HEAD_BG,
-        ...edge
+        // grouped tables: the header edge is the centered stub drawn below — the
+        // full-height pinned rule stays on BODY cells only (user call 2026-09-09)
+        ...(columnGroupingModel ? {} : edge)
       }
       // Grouped-header tables: the group-row cell sitting ABOVE a pinned column (its
       // data-fields token carries the column's field) pins too, or scrolled columns
@@ -3686,7 +3688,7 @@ export const DetailTable: React.FC<{
         left,
         zIndex: 5,
         backgroundColor: skin.TABLE_HEAD_BG,
-        ...edge
+        ...(columnGroupingModel ? {} : edge)
       }
       stickyStyle[`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${col.field}"]`] = { backgroundColor: skin.ROW_HOVER }
       left += col.width ?? col.minWidth ?? 100
@@ -3728,7 +3730,6 @@ export const DetailTable: React.FC<{
           display: 'none'
         }
       }
-      if (pinFields.includes(f)) sides.length = 0
       const INSET = 14 // the stub's breathing room from the merged cell's top/bottom
       const line = `linear-gradient(${theme.palette.divider}, ${theme.palette.divider})`
       const edgeOf = (tier: 'group' | 'leaf') =>
@@ -3841,7 +3842,11 @@ export const DetailTable: React.FC<{
         '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderTitle': { textAlign: 'right' },
         '& .dg-col-last': { paddingRight: '28px !important' },
         ...(onRowClick ? { '& .MuiDataGrid-row': { cursor: 'pointer' } } : {}),
-        ...stickyStyle
+        // sticky spreads LAST — merge any stub-edge styling into colliding keys so the
+        // pinned column keeps both its pinning AND its centered header divider
+        ...Object.fromEntries(
+          Object.entries(stickyStyle).map(([k, v]) => [k, { ...(v as any), ...((ungroupedStyle as any)[k] || {}) }])
+        )
       }}
     />
   )
