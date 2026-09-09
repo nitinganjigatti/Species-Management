@@ -394,15 +394,15 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     bucketCol('maleDom', 'Male Dominant'),
     bucketCol('femaleDom', 'Female Dominant'),
     bucketCol('pair', 'Pair'),
-    // Mixed's quiet line can carry all five classes — floor it for the worst case;
-    // label rides the group tier (single headings in the FIRST row, user call 2026-09-09)
-    bucketCol('mixedB', '', 200),
     // UD / ID — the platform's standard class codes (user reversal 2026-09-09: full
     // Undetermined/Indeterminate made the columns too wide; these two stay codes,
     // matching the enclosure view's UD | ID columns and the quiet-line tags)
     bucketCol('undet', 'UD'),
     bucketCol('indet', 'ID'),
     bucketCol('groupB', 'Group'),
+    // Mixed sits AFTER Unknown (user call 2026-09-09); its quiet line can carry all
+    // five classes — floor it for the worst case; label rides the group tier
+    bucketCol('mixedB', '', 200),
     bucketCol('emptyB', '', 110),
     {
       // Total spells the unit ("N animals") so the whole table reads without a legend
@@ -434,8 +434,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     { groupId: 'Site', headerAlign: 'left' as const, children: [{ field: 'site' }] },
     { groupId: 'Single Sex', headerAlign: 'center' as const, children: [{ field: 'maleOnly' }, { field: 'femaleOnly' }] },
     { groupId: 'Dominance', headerAlign: 'center' as const, children: [{ field: 'maleDom' }, { field: 'femaleDom' }, { field: 'pair' }] },
-    { groupId: 'Mixed', headerAlign: 'right' as const, children: [{ field: 'mixedB' }] },
     { groupId: 'Unknown', headerAlign: 'center' as const, children: [{ field: 'undet' }, { field: 'indet' }, { field: 'groupB' }] },
+    { groupId: 'Mixed', headerAlign: 'right' as const, children: [{ field: 'mixedB' }] },
     { groupId: 'Empty', headerAlign: 'right' as const, children: [{ field: 'emptyB' }] },
     { groupId: 'Total', headerAlign: 'right' as const, children: [{ field: 'totalE' }] }
   ]
