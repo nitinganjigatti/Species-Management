@@ -389,10 +389,11 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     bucketCol('pair', 'Pair'),
     // Mixed's quiet line can carry all five classes — floor it for the worst case
     bucketCol('mixedB', 'Mixed', 200),
-    // full words (user call 2026-09-09: "Undet./Indet. — no one will understand");
-    // single words can't wrap, the header floor just widens the columns to fit
-    bucketCol('undet', 'Undetermined'),
-    bucketCol('indet', 'Indeterminate'),
+    // UD / ID — the platform's standard class codes (user reversal 2026-09-09: full
+    // Undetermined/Indeterminate made the columns too wide; these two stay codes,
+    // matching the enclosure view's UD | ID columns and the quiet-line tags)
+    bucketCol('undet', 'UD'),
+    bucketCol('indet', 'ID'),
     bucketCol('groupB', 'Group'),
     bucketCol('emptyB', 'Empty', 96),
     {
