@@ -3563,6 +3563,10 @@ export const DetailTable: React.FC<{
    *  directly on the page/sheet ground so it gets its own white surface. Tables already
    *  inside a white card stay frameless (a frame-in-frame reads boxed). */
   framed?: boolean
+  /** Two-tier grouped header (MUI columnGroupingModel): group row on top, column headers
+   *  under it — ungrouped columns get a quiet empty cell above. Pinned columns stay pinned
+   *  through BOTH tiers (the group-row cells are made sticky alongside their column). */
+  columnGroupingModel?: { groupId: string; headerName?: string; headerAlign?: 'left' | 'center' | 'right'; children: { field: string }[] }[]
 }> = ({
   columns,
   rows,
@@ -3576,7 +3580,8 @@ export const DetailTable: React.FC<{
   handleSortModel,
   stickyField,
   stickyFields,
-  framed = false
+  framed = false,
+  columnGroupingModel
 }) => {
   const theme = useTheme() as any
   const c = cc(theme)
@@ -3659,6 +3664,16 @@ export const DetailTable: React.FC<{
         backgroundColor: skin.TABLE_HEAD_BG,
         ...edge
       }
+      // Grouped-header tables: the group-row cell sitting ABOVE a pinned column (its
+      // data-fields token carries the column's field) pins too, or scrolled columns
+      // slide visibly across the top tier of the pinned edge.
+      stickyStyle[`& .MuiDataGrid-columnHeader[data-fields*="|-${col.field}-|"]`] = {
+        position: 'sticky',
+        left,
+        zIndex: 5,
+        backgroundColor: skin.TABLE_HEAD_BG,
+        ...edge
+      }
       stickyStyle[`& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="${col.field}"]`] = { backgroundColor: skin.ROW_HOVER }
       left += col.width ?? col.minWidth ?? 100
     })
@@ -3702,11 +3717,23 @@ export const DetailTable: React.FC<{
       // HARD RULE (2026-07-31): pagination earns its footer only past 10 rows — a short table
       // paginating is noise. Callers can still force-hide via `hideFooter`.
       hideFooter={hideFooter || total <= 10}
+      columnGroupingModel={columnGroupingModel}
       externalTableStyle={{
         mt: 0, // kill CommonTable's baked-in 20px top margin — the card title's mb is the spacing
         // CC table language: pale teal-green header, uppercase overline header type,
         // ONE row hairline (no vertical rules), quiet green row hover.
-        '& .MuiDataGrid-columnHeaders': { backgroundColor: skin.TABLE_HEAD_BG },
+        // A grouped header is TWO tiers — CommonTable's baked 56px min/max would crush it.
+        '& .MuiDataGrid-columnHeaders': columnGroupingModel
+          ? { backgroundColor: skin.TABLE_HEAD_BG, minHeight: 'unset !important', maxHeight: 'unset !important' }
+          : { backgroundColor: skin.TABLE_HEAD_BG },
+        // Group-row cells: same caps type as column headers but quieter weight, and a
+        // hairline under the tier so the two header rows read as separate lines.
+        ...(columnGroupingModel
+          ? {
+              '& .MuiDataGrid-columnHeader--filledGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
+              '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` }
+            }
+          : {}),
         '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '16px', borderBottomColor: skin.ROW_LINE },
         '& .MuiDataGrid-row:hover': { backgroundColor: skin.ROW_HOVER },
         '& .MuiDataGrid-columnHeader': { ...GRID_CELL_PAD, backgroundColor: skin.TABLE_HEAD_BG },

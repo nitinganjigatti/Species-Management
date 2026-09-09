@@ -106,32 +106,79 @@ const EnclosureAnimalsDrawer: React.FC<{
   )
 }
 
-/* ── site-wise composition buckets (user call 2026-09-07 — verdicts retired as not
-   insightful): every site row carries the FIVE buckets as columns — Male Only /
-   Female Only / Male & Female / Unsexed / Empty — each cell in ONE consistent grammar:
-   animals (bold) over "N encl." (quiet), dash when the bucket has no enclosures. */
+/* ── site-wise composition buckets, FLIPPED emphasis (user call 2026-09-09, wireframe
+   approved): the buckets classify ENCLOSURES, so the enclosure count is the bold figure
+   and the quiet line under it itemizes the animals inside, class-tagged (12M • 3F).
+   Full ladder restored the same day — the 09-07 grid folded UD/ID/G into "Unsexed" and
+   rode Mixed on Male & Female; now every composition has its own column, grouped by a
+   two-tier header: Single Sex (Male/Female Only) · Dominance (the Male & Female split:
+   Male Dom / Female Dom / Pair 1:1) · Mixed (the multi-class catch-all) · Unknown
+   (Undet./Indet./Group) · Empty · Total. Every enclosure lands in EXACTLY one bucket,
+   so the row's bold figures sum to Total. */
 
-type Bucket = 'maleOnly' | 'femaleOnly' | 'mixed' | 'unsexed' | 'empty'
+type Bucket = 'maleOnly' | 'femaleOnly' | 'maleDom' | 'femaleDom' | 'pair' | 'mixedB' | 'undet' | 'indet' | 'groupB' | 'emptyB'
 
-// Enclosure composition → bucket. 'Mixed' (both sexes + unsexed) holds both sexes,
-// so it rides the Male & Female bucket; UD/ID/Group compositions are all Unsexed.
-const bucketOf = (c: string): Bucket =>
-  c === 'Male' ? 'maleOnly' : c === 'Female' ? 'femaleOnly' : c === 'Male & Female' || c === 'Mixed' ? 'mixed' : c === 'Empty' ? 'empty' : 'unsexed'
+const BUCKETS: Bucket[] = ['maleOnly', 'femaleOnly', 'maleDom', 'femaleDom', 'pair', 'mixedB', 'undet', 'indet', 'groupB', 'emptyB']
+
+// Enclosure row → bucket. The kit composition ladder already isolates every class —
+// only 'Male & Female' needs the row's own M/F counts to pick its dominance side.
+const bucketOf = (r: EncRow): Bucket => {
+  switch (r.composition) {
+    case 'Male':
+      return 'maleOnly'
+    case 'Female':
+      return 'femaleOnly'
+    case 'Male & Female':
+      return r.male > r.female ? 'maleDom' : r.female > r.male ? 'femaleDom' : 'pair'
+    case 'Undetermined':
+      return 'undet'
+    case 'Indeterminate':
+      return 'indet'
+    case 'Group':
+      return 'groupB'
+    case 'Empty':
+      return 'emptyB'
+    default:
+      return 'mixedB' // 'Mixed' — any multi-class blend involving UD/ID/G
+  }
+}
+
+// One bucket's cell: enclosures (the bold figure) + the class-wise animals inside.
+interface BucketCell {
+  e: number
+  m: number
+  f: number
+  ud: number
+  ind: number
+  grp: number
+}
+
+const emptyCell = (): BucketCell => ({ e: 0, m: 0, f: 0, ud: 0, ind: 0, grp: 0 })
 
 interface SiteRow {
   site: string
-  maleOnlyA: number
-  maleOnlyE: number
-  femaleOnlyA: number
-  femaleOnlyE: number
-  mixedA: number
-  mixedE: number
-  unsexedA: number
-  unsexedE: number
-  emptyA: number
-  emptyE: number
-  totalA: number
+  buckets: Record<Bucket, BucketCell>
   totalE: number
+  totalA: number
+}
+
+// Quiet-line grammar: fixed segment order M · F · UD · ID · G, zero classes OMITTED
+// (never dashed); one segment breathes ("62 M"), several compact and join on a full
+// bullet ("12M • 3F" — user call 2026-09-09: the separator must be clearly visible).
+const animalsLineOf = (c: BucketCell): string => {
+  const segs = (
+    [
+      [c.m, 'M'],
+      [c.f, 'F'],
+      [c.ud, 'UD'],
+      [c.ind, 'ID'],
+      [c.grp, 'G']
+    ] as [number, string][]
+  ).filter(([n]) => n > 0)
+  if (!segs.length) return '—'
+  if (segs.length === 1) return `${segs[0][0].toLocaleString()} ${segs[0][1]}`
+
+  return segs.map(([n, t]) => `${n.toLocaleString()}${t}`).join(' • ')
 }
 
 const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] }> = ({ housing, animals = [] }) => {
@@ -220,35 +267,30 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     return m
   }, [allRows])
 
-  /* ── site-wise bucket rows (user call 2026-09-07): per site, each composition
-     bucket carries BOTH dimensions — animals living in that bucket's enclosures
-     and how many enclosures. One rule for every bucket, Male & Female included. ── */
+  /* ── site-wise bucket rows: per site, each bucket accumulates its enclosure count
+     (the bold figure) AND the class-wise animal counts inside (the quiet line). ── */
   const siteRows: SiteRow[] = useMemo(() => {
     const by = new Map<string, SiteRow>()
     for (const r of allRows) {
-      const s =
-        by.get(r.site) ||
-        ({
+      let s = by.get(r.site)
+      if (!s) {
+        s = {
           site: r.site,
-          maleOnlyA: 0,
-          maleOnlyE: 0,
-          femaleOnlyA: 0,
-          femaleOnlyE: 0,
-          mixedA: 0,
-          mixedE: 0,
-          unsexedA: 0,
-          unsexedE: 0,
-          emptyA: 0,
-          emptyE: 0,
-          totalA: 0,
-          totalE: 0
-        } as SiteRow)
-      const b = bucketOf(r.composition)
-      ;(s as any)[`${b}A`] += r.total
-      ;(s as any)[`${b}E`] += 1
-      s.totalA += r.total
+          buckets: Object.fromEntries(BUCKETS.map(b => [b, emptyCell()])) as Record<Bucket, BucketCell>,
+          totalE: 0,
+          totalA: 0
+        }
+        by.set(r.site, s)
+      }
+      const c = s.buckets[bucketOf(r)]
+      c.e += 1
+      c.m += r.male
+      c.f += r.female
+      c.ud += r.ud
+      c.ind += r.ind
+      c.grp += r.grp
       s.totalE += 1
-      by.set(r.site, s)
+      s.totalA += r.total
     }
 
     return [...by.values()].sort((a, b) => b.totalA - a.totalA)
@@ -301,46 +343,33 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     countCol('total', 'Total', { total: true })
   ]
 
-  // Site-wise bucket column — ONE consistent cell grammar (user call 2026-09-07):
-  // animals bold on top, "N encl." quiet under it; dash when the bucket has no
-  // enclosures. Empty's animal line is a dash by definition — same grammar, no special case.
-  const bucketCol = (b: Bucket | 'total', header: string): GridColDef => {
-    const fa = b === 'total' ? 'totalA' : `${b}A`
-    const fe = b === 'total' ? 'totalE' : `${b}E`
+  // Site-wise bucket column — ONE cell grammar, flipped emphasis (user call 2026-09-09):
+  // enclosure count bold on top, class-tagged animals quiet under it; a bucket holding
+  // no enclosures is a single pale dash; Empty's quiet line is a dash by definition.
+  const bucketCol = (b: Bucket, header: string, minWidth = 120): GridColDef => ({
+    minWidth,
+    flex: 1,
+    sortable: false,
+    align: 'right',
+    headerAlign: 'right',
+    field: b,
+    headerName: header,
+    renderCell: p => {
+      const c = (p.row as SiteRow).buckets[b]
+      if (!c.e) return txtCell('—', skin.DASH_INK, 400)
 
-    return {
-      minWidth: b === 'total' ? 116 : 132,
-      flex: 1,
-      sortable: false,
-      align: 'right',
-      headerAlign: 'right',
-      field: fa,
-      headerName: header,
-      renderCell: p => {
-        const a = p.row[fa] as number
-        const e = p.row[fe] as number
-        if (!e) return txtCell('—', skin.DASH_INK, 400)
-
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
-            <Typography
-              sx={{
-                fontSize: '1rem',
-                fontWeight: b === 'total' ? 700 : 600,
-                fontVariantNumeric: 'tabular-nums',
-                color: b === 'total' ? skin.LIST_GREEN : a > 0 ? skin.INK : skin.DASH_INK
-              }}
-            >
-              {a > 0 ? a.toLocaleString() : '—'}
-            </Typography>
-            <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap' }}>
-              in {e.toLocaleString()} Encl
-            </Typography>
-          </Box>
-        )
-      }
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: skin.INK }}>
+            {c.e.toLocaleString()}
+          </Typography>
+          <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+            {animalsLineOf(c)}
+          </Typography>
+        </Box>
+      )
     }
-  }
+  })
 
   const siteColumns: GridColDef[] = [
     {
@@ -354,10 +383,43 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     },
     bucketCol('maleOnly', 'Male Only'),
     bucketCol('femaleOnly', 'Female Only'),
-    bucketCol('mixed', 'Male & Female'),
-    bucketCol('unsexed', 'Unsexed'),
-    bucketCol('empty', 'Empty'),
-    bucketCol('total', 'Total')
+    bucketCol('maleDom', 'Male Dom'),
+    bucketCol('femaleDom', 'Female Dom'),
+    bucketCol('pair', 'Pair'),
+    // Mixed's quiet line can carry all five classes — floor it for the worst case
+    bucketCol('mixedB', 'Mixed', 200),
+    bucketCol('undet', 'Undet.'),
+    bucketCol('indet', 'Indet.'),
+    bucketCol('groupB', 'Group'),
+    bucketCol('emptyB', 'Empty', 96),
+    {
+      // Total spells the unit ("N animals") so the whole table reads without a legend
+      minWidth: 140,
+      flex: 1,
+      sortable: false,
+      align: 'right',
+      headerAlign: 'right',
+      field: 'totalE',
+      headerName: 'Total',
+      renderCell: p => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.LIST_GREEN }}>
+            {(p.row as SiteRow).totalE.toLocaleString()}
+          </Typography>
+          <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+            {(p.row as SiteRow).totalA.toLocaleString()} animals
+          </Typography>
+        </Box>
+      )
+    }
+  ]
+
+  // The two-tier header: bucket families on top. Mixed / Empty / Total stay ungrouped
+  // (a quiet empty cell above), so the family row carries only real groupings.
+  const siteColumnGroups = [
+    { groupId: 'Single Sex', headerAlign: 'center' as const, children: [{ field: 'maleOnly' }, { field: 'femaleOnly' }] },
+    { groupId: 'Dominance', headerAlign: 'center' as const, children: [{ field: 'maleDom' }, { field: 'femaleDom' }, { field: 'pair' }] },
+    { groupId: 'Unknown', headerAlign: 'center' as const, children: [{ field: 'undet' }, { field: 'indet' }, { field: 'groupB' }] }
   ]
 
   const start = pm.page * pm.pageSize
@@ -454,20 +516,28 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
         {view === 'site' ? (
           siteRowsFiltered.length ? (
             // Site row tap drills INTO that site's enclosures (the enclosure view,
-            // site-filtered — chips + search stay usable there).
-            <DetailTable
-              columns={siteColumns}
-              rows={sitePage}
-              total={siteRowsFiltered.length}
-              rowHeight={76}
-              paginationModel={pm}
-              setPaginationModel={setPm}
-              onRowClick={(p: { row: SiteRow }) => {
-                setSite(p.row.site)
-                setView('enclosure')
-                setPm(x => ({ ...x, page: 0 }))
-              }}
-            />
+            // site-filtered — chips + search stay usable there). 12 data columns →
+            // horizontal scroll, so Site pins left (the platform sticky rule).
+            <>
+              <DetailTable
+                columns={siteColumns}
+                columnGroupingModel={siteColumnGroups}
+                stickyFields={['site']}
+                rows={sitePage}
+                total={siteRowsFiltered.length}
+                rowHeight={76}
+                paginationModel={pm}
+                setPaginationModel={setPm}
+                onRowClick={(p: { row: SiteRow }) => {
+                  setSite(p.row.site)
+                  setView('enclosure')
+                  setPm(x => ({ ...x, page: 0 }))
+                }}
+              />
+              <Typography sx={{ mt: 2, fontSize: '14px', color: skin.FAINT }}>
+                Bold figure = enclosures &nbsp;•&nbsp; quiet line = the animals in them
+              </Typography>
+            </>
           ) : (
             <EmptyState message='No sites match your filters' />
           )

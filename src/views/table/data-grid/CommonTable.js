@@ -53,7 +53,9 @@ const CommonTable = ({
   handleSearch,
   hideFooter = false,
   getRowClassName, // New prop for conditional row styling
-  getRowId
+  getRowId,
+  // Two-tier grouped headers (MUI columnGroupingModel) — optional, rendered only when passed
+  columnGroupingModel
 }) => {
   const theme = useTheme()
 
@@ -301,6 +303,7 @@ const CommonTable = ({
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
       {...(getRowId && { getRowId })}
+      {...(columnGroupingModel && { columnGroupingModel })}
     />
   )
 }
