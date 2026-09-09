@@ -3712,24 +3712,37 @@ export const DetailTable: React.FC<{
       const f = g.children[0].field
       const idx = sized.findIndex(c => c.field === f)
       const prev = idx > 0 ? sized[idx - 1].field : null
-      // LEFT edge gets the same continuous treatment (user call 2026-09-09): hide the
-      // left neighbor's per-tier separator stubs (both tiers) and draw one full-height
-      // rule — unless the neighbor is itself a single column already drawing its right edge.
-      // COLUMN dividers use the theme divider (what the header separator stubs are colored
-      // with) — NEVER the row hairline (user-caught 2026-09-09: the two are different).
-      const colRule = `1px solid ${theme.palette.divider}`
-      const edge: Record<string, string> = {}
-      if (f !== lastField) edge.borderRight = colRule
+      // Edge treatment (user calls 2026-09-09): our column divider convention is a
+      // CENTERED stub, never an end-to-end border — so the single tall cell gets ONE
+      // line, theme-divider colored, vertically centered across BOTH tiers: drawn as
+      // edge gradients (label cell inset from the top, blank leaf cell inset from the
+      // bottom, meeting flush at the tier boundary). The left neighbor's per-tier stubs
+      // are hidden; skipped when the neighbor is itself a single column (no doubling),
+      // and PINNED columns draw nothing — the pinned-edge rule owns their boundary.
+      const sides: ('left' | 'right')[] = []
+      if (f !== lastField) sides.push('right')
       if (prev && !singleFields.has(prev)) {
-        edge.borderLeft = colRule
+        sides.push('left')
         ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${prev}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
         ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields*="|-${prev}-|"] .MuiDataGrid-columnSeparator`] = {
           display: 'none'
         }
       }
-      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edge }
+      if (pinFields.includes(f)) sides.length = 0
+      const INSET = 14 // the stub's breathing room from the merged cell's top/bottom
+      const line = `linear-gradient(${theme.palette.divider}, ${theme.palette.divider})`
+      const edgeOf = (tier: 'group' | 'leaf') =>
+        sides.length
+          ? {
+              backgroundImage: sides.map(() => line).join(', '),
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: sides.map(() => `1px calc(100% - ${INSET}px)`).join(', '),
+              backgroundPosition: sides.map(s => (tier === 'group' ? `${s} 0 top ${INSET}px` : `${s} 0 top 0`)).join(', ')
+            }
+          : {}
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edgeOf('group') }
       ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
-      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edge }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edgeOf('leaf') }
       ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
     }
 
