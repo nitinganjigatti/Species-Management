@@ -3694,6 +3694,27 @@ export const DetailTable: React.FC<{
     })
   }
 
+  // UNGROUPED columns in a grouped table read as ONE full-height header cell (user call
+  // 2026-09-09, the Site column): both tiers wear the group-tier wash with no hairline
+  // between them, and the title keeps the standard 14px — the tier split (lighter wash,
+  // 12px caps) only applies to columns actually sitting under a group. Selector
+  // specificity outranks the tier rules AND the pinned-column background, so a pinned
+  // identity column stays one solid block.
+  const ungroupedStyle: Record<string, any> = {}
+  if (columnGroupingModel) {
+    const groupedFields = new Set(columnGroupingModel.flatMap(g => g.children.map(ch => ch.field)))
+    for (const col of sized) {
+      if (groupedFields.has(col.field)) continue
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--emptyGroup[data-fields*="|-${col.field}-|"]`] = { borderBottom: 'none' }
+      ungroupedStyle[
+        `& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup)[data-field="${col.field}"]`
+      ] = { backgroundColor: skin.TABLE_HEAD_BG }
+      ungroupedStyle[
+        `& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup)[data-field="${col.field}"] .MuiDataGrid-columnHeaderTitle`
+      ] = { fontSize: '14px' }
+    }
+  }
+
   // The LAST column gets extra right padding (user call 2026-09-05: a right-aligned
   // Total sat flush against the table edge) — tagged by class so the rule survives
   // flexed widths and the grid's own scrollbar filler elements.
@@ -3754,7 +3775,8 @@ export const DetailTable: React.FC<{
                 backgroundColor: skin.TABLE_HEAD_BG_SUB
               },
               '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeader--filledGroup):not(.MuiDataGrid-columnHeader--emptyGroup) .MuiDataGrid-columnHeaderTitle':
-                { fontSize: '12px' }
+                { fontSize: '12px' },
+              ...ungroupedStyle
             }
           : {}),
         '& .MuiDataGrid-cell': { ...GRID_CELL_PAD, display: 'flex', alignItems: 'center', fontSize: '16px', borderBottomColor: skin.ROW_LINE },
