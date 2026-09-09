@@ -79,6 +79,10 @@ export interface LedgerEvent {
   delta: number
   /** Census / group events — the group's size after the update. */
   groupCount?: number
+  /** Acquisitions — where the animal came from (outside org, synthesized). */
+  source?: string
+  /** Disposals — where the animal went (outside org, synthesized). */
+  dest?: string
   age?: string
   weight?: string
   chip?: string
@@ -108,6 +112,20 @@ const hash = (s: string) => {
 
 const DAY = 86_400_000
 const clampDate = (d: Date, max: Date) => (d.getTime() > max.getTime() ? max : d)
+
+// Transactions carry a TIME (user call 2026-09-09 — the statement is record-level now):
+// source dates are midnight-stamped, so a deterministic working-hours time fills in.
+const withTime = (d: Date, seed: number) => {
+  if (d.getHours() !== 0 || d.getMinutes() !== 0) return d
+  const x = new Date(d)
+  x.setHours(8 + (seed % 10), (seed >>> 3) % 60, 0, 0)
+
+  return x
+}
+
+// Outside-org counterparties for acquisitions (from) and disposals (to) — synthesized
+// like everything else here; hashes keep them stable per animal.
+const ORG_POOL = ['Wildlife Rescue Centre', 'National Zoological Park', 'Vandalur Exchange Programme', 'Forest Department', 'Private Donor']
 
 const classOf = (gender?: string): LedgerClass => {
   const g = (gender || '').toLowerCase()
@@ -200,10 +218,11 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
       ...base,
       id: `${a.antzId}:in`,
       kind,
-      date: clampDate(entry, now),
+      date: clampDate(withTime(entry, h >>> 2), now),
       cls: entryCls,
       delta: 1,
-      ...(tx && { site: tx.from })
+      ...(tx && { site: tx.from }),
+      ...(kind === 'acquisition' && { source: ORG_POOL[(h >>> 9) % ORG_POOL.length] })
     })
 
     if (sexedLater && reclassAt) {
@@ -253,14 +272,30 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
     const cls: LedgerClass = h % 100 < 38 ? 'male' : h % 100 < 76 ? 'female' : h % 100 < 92 ? 'undetermined' : 'indetermined'
     const site = sitePool.length ? sitePool[(h >> 4) % sitePool.length] : undefined
     const enclosure = enclPool.length ? enclPool[(h >> 6) % enclPool.length] : undefined
-    const entry = new Date(now.getTime() - ((h % 1700) + 160) * DAY)
-    const exit = clampDate(new Date(entry.getTime() + (90 + ((h >> 7) % 900)) * DAY), now)
+    const entry = withTime(new Date(now.getTime() - ((h % 1700) + 160) * DAY), h >>> 5)
+    const exit = clampDate(withTime(new Date(entry.getTime() + (90 + ((h >> 7) % 900)) * DAY), h >>> 8), now)
     const inKind: LedgerEventKind = (h >> 9) % 100 < 55 ? 'birth' : 'acquisition'
     const outKind: LedgerEventKind = (h >> 11) % 100 < 70 ? 'death' : 'disposal'
     const base = { aid, site, enclosure, former: true }
 
-    events.push({ ...base, id: `${aid}:in`, kind: inKind, date: entry, cls, delta: 1 })
-    events.push({ ...base, id: `${aid}:out`, kind: outKind, date: exit, cls, delta: -1 })
+    events.push({
+      ...base,
+      id: `${aid}:in`,
+      kind: inKind,
+      date: entry,
+      cls,
+      delta: 1,
+      ...(inKind === 'acquisition' && { source: ORG_POOL[(h >>> 9) % ORG_POOL.length] })
+    })
+    events.push({
+      ...base,
+      id: `${aid}:out`,
+      kind: outKind,
+      date: exit,
+      cls,
+      delta: -1,
+      ...(outKind === 'disposal' && { dest: ORG_POOL[(h >>> 13) % ORG_POOL.length] })
+    })
   })
 
   // DEMO SHOWCASE DAY (user call 2026-09-05): one recent day carrying EVERY statement
@@ -275,13 +310,22 @@ export const deriveLedgerEvents = (animals: AnimalRecord[], now = new Date()): L
     const site = sitePool.length ? sitePool[dh % sitePool.length] : undefined
     const enclosure = enclPool.length ? enclPool[(dh >>> 3) % enclPool.length] : undefined
     const nb = { aid: `AH-${2300 + (dh % 50)}`, site, enclosure, former: true }
-    const aq = { aid: `AH-${2360 + ((dh >>> 4) % 30)}`, site, enclosure, former: true }
     const aqCls: LedgerClass = (dh >>> 5) % 2 ? 'male' : 'female'
 
     events.push({ ...nb, id: `${nb.aid}:in`, kind: 'birth', date: at(9 * 60), cls: 'undetermined', delta: 1 })
     events.push({ ...nb, id: `${nb.aid}:out`, kind: 'death', date: at(18 * 60), cls: 'undetermined', delta: -1 })
-    events.push({ ...aq, id: `${aq.aid}:in`, kind: 'acquisition', date: at(10 * 60), cls: aqCls, delta: 1 })
-    events.push({ ...aq, id: `${aq.aid}:out`, kind: 'disposal', date: at(17 * 60), cls: aqCls, delta: -1 })
+
+    // BATCH transaction showcase (user scenario 2026-09-09 — "10 animals from outside
+    // is ONE row"): THREE animals acquired in one recorded transaction (same instant,
+    // same source) and disposed the same day in one transaction — the statement folds
+    // each trio into a single row with Animals = 3; still exactly net zero.
+    const src = ORG_POOL[(dh >>> 6) % ORG_POOL.length]
+    const dst = ORG_POOL[(dh >>> 8) % ORG_POOL.length]
+    for (let i = 0; i < 3; i++) {
+      const aq = { aid: `AH-${2360 + ((dh >>> 4) % 30) + i}`, site, enclosure, former: true }
+      events.push({ ...aq, id: `${aq.aid}:in`, kind: 'acquisition', date: at(10 * 60), cls: aqCls, delta: 1, source: src })
+      events.push({ ...aq, id: `${aq.aid}:out`, kind: 'disposal', date: at(17 * 60), cls: aqCls, delta: -1, dest: dst })
+    }
 
     const groups = animals.filter(a => classOf(a.gender) === 'group')
     if (groups.length) {
@@ -521,74 +565,72 @@ export const computeLedger = (
   }
 }
 
-/* ── the bank-statement rows (demo review 2026-09-04; day-rows 2026-09-05) ────
-   The Ledger sub-tab = a bank statement of the species count: ONE ROW PER DAY,
-   latest first. The row DESCRIBES every event of that day (kind + count chips,
-   "+N more" past the cap) and In / Out carry the day's totals — Subhash's
-   description rule: "how many got in with which event, how many got out with
-   what event". Count-changing events only (reclass and neutral transfers don't
-   move the number). */
+/* ── the bank-statement rows, TRANSACTION-LEVEL (user feedback 2026-09-09 — supersedes
+   the 2026-09-05 one-row-per-day grammar): ONE ROW = ONE RECORDED TRANSACTION, latest
+   first. Two births on a day = two rows; a batch acquisition of N at one instant = one
+   row with Animals = N. No In/Out columns, no running Total — each row carries its
+   DIRECTION (in / out / neutral transfer) and its animal count; the event's context
+   (acquisition source, disposal destination, transfer from→to) rides as a description.
+   Reclass sits out (count-neutral bookkeeping); neutral transfers always show. */
 
-export interface StatementEventGroup {
-  kind: LedgerEventKind
-  count: number
-  delta: number
-}
-
-export interface StatementRow {
+export interface TransactionRow {
   id: string
   date: Date
-  /** The day's events grouped by kind, in occurrence order. */
-  groups: StatementEventGroup[]
-  /** Day totals — everything IN (+) and OUT (absolute). */
-  inCount: number
-  outCount: number
-  /** Running total after the day's last event. */
-  balance: number
+  kind: LedgerEventKind
+  direction: 'in' | 'out' | 'neutral'
+  /** Animals in the transaction (census rows: the |delta| adjustment). */
+  count: number
+  site?: string
+  fromSite?: string
+  toSite?: string
+  source?: string
+  dest?: string
   events: LedgerEvent[]
 }
 
-export const statementRows = (
+export const transactionRows = (
   all: LedgerEvent[],
-  preset: LedgerPreset,
-  sites: string[] | null,
-  now = new Date()
-): StatementRow[] => {
+  /** Window — null bound = open (all time). `to` is inclusive. */
+  from: Date | null,
+  to: Date | null,
+  sites: string[] | null
+): TransactionRow[] => {
   const universe = resolveEvents(all, sites)
-  const start = presetStart(preset, now)
-  let total = 0
-  const rows: StatementRow[] = []
-  const byKey = new Map<string, StatementRow>()
+  const by = new Map<string, TransactionRow>()
+  const rows: TransactionRow[] = []
 
   for (const e of universe) {
-    // Reclass sits out (count-neutral bookkeeping) — but TRANSFERS always show (user
-    // call 2026-09-05: the ledger has EVERYTHING): neutral ones ride as delta-0 rows
-    // (no In/Out), directional ones count. Reconciliation keeps its site-scope gate.
-    if (e.delta === 0 && e.kind !== 'transfer') continue
-    total += e.delta
-    if (start && e.date < start) continue
-    const key = `${e.date.getFullYear()}-${e.date.getMonth()}-${e.date.getDate()}`
-    let r = byKey.get(key)
+    if (e.kind === 'reclass') continue
+    if (from && e.date < from) continue
+    if (to && e.date > to) continue
+    // One transaction = same kind, same instant, same place, same counterparty.
+    const key = `${e.kind}|${e.date.getTime()}|${e.site || ''}|${e.fromSite || ''}|${e.toSite || ''}|${e.source || ''}|${e.dest || ''}`
+    let r = by.get(key)
     if (!r) {
-      r = { id: key, date: e.date, groups: [], inCount: 0, outCount: 0, balance: total, events: [] }
-      byKey.set(key, r)
+      r = {
+        id: key,
+        date: e.date,
+        kind: e.kind,
+        direction: e.kind === 'transfer' ? 'neutral' : e.delta > 0 ? 'in' : e.delta < 0 ? 'out' : 'neutral',
+        count: 0,
+        site: e.site,
+        fromSite: e.fromSite,
+        toSite: e.toSite,
+        source: e.source,
+        dest: e.dest,
+        events: []
+      }
+      by.set(key, r)
       rows.push(r)
     }
-    let g = r.groups.find(x => x.kind === e.kind)
-    if (!g) {
-      g = { kind: e.kind, count: 0, delta: 0 }
-      r.groups.push(g)
-    }
-    g.count += 1
-    g.delta += e.delta
-    if (e.delta > 0) r.inCount += e.delta
-    else r.outCount += -e.delta
-    r.balance = total
+    r.count += e.kind === 'census' ? Math.abs(e.delta) : 1
     r.events.push(e)
   }
 
-  return rows.reverse() // latest first
+  return rows.sort((a, b) => b.date.getTime() - a.date.getTime())
 }
+
+export const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
 /* ── stock membership (Opening / Closing drills) ─────────────────────────────
    The animals composing the stock at a boundary — each listed via its ENTRY event

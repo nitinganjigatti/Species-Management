@@ -17,10 +17,12 @@
 // (synthesized in ledger.ts) surface only under a site scope: one site = directional
 // Transfer In/Out (counted), several = neutral "Transfer" (boundary-crossing counts).
 
-import React, { useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import React, { forwardRef, useMemo, useState } from 'react'
+import { Box, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { GridColDef } from '@mui/x-data-grid'
+import DatePicker from 'react-datepicker'
+import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord } from 'src/types/species-management/detail'
@@ -51,16 +53,17 @@ import {
   ddMMMyyyy,
   deriveLedgerEvents,
   EVENT_LABEL,
+  hhmm,
   LEDGER_CLASSES,
   LEDGER_PRESETS,
   monthYearLabel,
   presetStart,
   resolveEvents,
   signed,
-  statementRows,
-  stockRows
+  stockRows,
+  transactionRows
 } from './ledger/ledger'
-import type { ClassCounts, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset, StatementRow } from './ledger/ledger'
+import type { ClassCounts, LedgerClass, LedgerEvent, LedgerEventKind, LedgerPreset, TransactionRow } from './ledger/ledger'
 
 interface LedgerTabProps {
   animals?: AnimalRecord[]
@@ -222,7 +225,14 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
   // Duration scopes the STATEMENT only — Reconciliation is always All Time (user call).
   const [subTab, setSubTab] = useState<'ledger' | 'recon'>('ledger')
+  // Time scope (user calls 2026-09-09): the presets PLUS Specific Date (one day) and
+  // Date Range (from–to) — the two picker modes ride the same control.
+  const [timeMode, setTimeMode] = useState<'preset' | 'day' | 'range'>('preset')
   const [preset, setPreset] = useState<LedgerPreset>('last_1y')
+  const [dayPick, setDayPick] = useState<Date | null>(null)
+  const [rangePick, setRangePick] = useState<[Date | null, Date | null]>([null, null])
+  // Event scope (user call 2026-09-09) — multi-select dropdown, [] = all events.
+  const [eventSel, setEventSel] = useState<string[]>([])
   // Site scope is MULTI-select on this tab (user call 2026-09-04); [] = all sites.
   const [siteSel, setSiteSel] = useState<string[]>([])
   const sites = useMemo(() => Array.from(new Set(all.map(a => a.site).filter(Boolean))).sort() as string[], [all])
@@ -239,9 +249,10 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const [drillFiltersOpen, setDrillFiltersOpen] = useState(false)
 
   // Entry points PRE-SELECT filters (the core ask — never "go back to change").
+  // Picker modes have no preset equivalent — their drills open All Time.
   const openDrill = (partial: Partial<DrillFilter>) => {
     setDrillQ('')
-    setDrill({ kinds: [], classes: [], sites: [...siteSel], preset, ...partial })
+    setDrill({ kinds: [], classes: [], sites: [...siteSel], preset: timeMode === 'preset' ? preset : 'all', ...partial })
   }
 
   const patchDrill = (patch: Partial<DrillFilter>) =>
@@ -295,19 +306,74 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     openDrill({ kinds: [kind], classes: cls ? [cls] : [], preset: 'all' })
   const stockDrill = (boundary: 'opening' | 'closing', cls?: LedgerClass) =>
     openDrill({ stock: boundary, classes: cls ? [cls] : [], preset: 'all' })
-  // A day row lists ALL its movement — every kind of the day pre-selected + the day chip.
-  const rowDrill = (r: StatementRow) => openDrill({ kinds: r.groups.map(g => g.kind), day: r.date, preset: 'all' })
+  // A transaction row drills to its records: the kind + that day pinned as chips.
+  const rowDrill = (r: TransactionRow) => openDrill({ kinds: [r.kind], day: r.date, preset: 'all' })
 
   /* ── controls (the Population/Housing header grammar) ── */
 
-  const periodCtl = (
-    <CategoryFilter
-      options={LEDGER_PRESETS.map(p => p.label)}
-      value={periodLabel}
-      onChange={v => setPreset(LEDGER_PRESETS.find(p => p.label === v)?.key ?? 'last_1y')}
-      width={200}
-      placeholder='Last 12 Months'
+  const TIME_DAY = 'Specific Date'
+  const TIME_RANGE = 'Date Range'
+  const timeValue = timeMode === 'day' ? TIME_DAY : timeMode === 'range' ? TIME_RANGE : periodLabel
+
+  // Pill-shaped picker input (the DashboardDateRange custom-input pattern).
+  const PickerInput = forwardRef((props: any, ref) => (
+    <TextField
+      size='small'
+      inputRef={ref}
+      {...props}
+      placeholder={props.rangeMode ? 'Pick dates…' : 'Pick a date…'}
+      sx={{
+        width: props.rangeMode ? 210 : 150,
+        '& .MuiInputBase-root': { height: skin.CONTROL_H, borderRadius: '999px', backgroundColor: '#ffffff', fontSize: '15px' },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: skin.DROPDOWN_BORDER }
+      }}
     />
+  ))
+  PickerInput.displayName = 'PickerInput'
+
+  const periodCtl = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <CategoryFilter
+        options={[...LEDGER_PRESETS.map(p => p.label), TIME_DAY, TIME_RANGE]}
+        value={timeValue}
+        onChange={v => {
+          if (v === TIME_DAY) setTimeMode('day')
+          else if (v === TIME_RANGE) setTimeMode('range')
+          else {
+            setTimeMode('preset')
+            setPreset(LEDGER_PRESETS.find(p => p.label === v)?.key ?? 'last_1y')
+          }
+        }}
+        width={200}
+        placeholder='Last 12 Months'
+      />
+      {timeMode === 'day' && (
+        <DatePickerWrapper>
+          <DatePicker
+            selected={dayPick}
+            maxDate={new Date()}
+            onChange={(d: Date | null) => setDayPick(d)}
+            dateFormat='dd MMM yyyy'
+            customInput={<PickerInput />}
+          />
+        </DatePickerWrapper>
+      )}
+      {timeMode === 'range' && (
+        <DatePickerWrapper>
+          <DatePicker
+            selectsRange
+            startDate={rangePick[0]}
+            endDate={rangePick[1]}
+            selected={rangePick[0]}
+            maxDate={new Date()}
+            shouldCloseOnSelect={false}
+            onChange={(dates: [Date | null, Date | null]) => setRangePick(dates)}
+            dateFormat='dd MMM yyyy'
+            customInput={<PickerInput rangeMode />}
+          />
+        </DatePickerWrapper>
+      )}
+    </Box>
   )
 
   const siteCtl = multiSite && (
@@ -320,54 +386,117 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     />
   )
 
-  /* ── the bank statement ── */
+  /* ── the bank statement — TRANSACTION rows (user feedback 2026-09-09) ── */
 
-  const stmtData = useMemo(
-    () => statementRows(events, preset, siteSel).map(r => ({ ...r, dateMs: r.date.getTime() })),
-    [events, preset, siteSel]
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
+
+  // The statement's time window from the mode: preset start / one day / from–to.
+  // An unpicked day/range = open window (everything) until the picker lands.
+  const txWindow = useMemo((): { from: Date | null; to: Date | null } => {
+    if (timeMode === 'day') return dayPick ? { from: startOfDay(dayPick), to: endOfDay(dayPick) } : { from: null, to: null }
+    if (timeMode === 'range') return { from: rangePick[0] ? startOfDay(rangePick[0]) : null, to: rangePick[1] ? endOfDay(rangePick[1]) : null }
+
+    return { from: presetStart(preset, new Date()), to: null }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeMode, preset, dayPick, rangePick])
+
+  const txAll = useMemo(
+    () => transactionRows(events, txWindow.from, txWindow.to, siteSel.length ? siteSel : null),
+    [events, txWindow, siteSel]
   )
-  const stmt = useSortableTable(stmtData, { field: 'dateMs', sort: 'desc' }, 20)
 
-  // Direction only holds inside ONE site — a multi-site scope wears the neutral chip.
-  const neutralStmtTransfers = siteSel.length > 1
+  // Event dropdown options = the kinds actually present in the window (vocabulary order),
+  // captioned with their transaction counts. Values are the display labels.
+  const eventOptions = useMemo(() => {
+    const order: LedgerEventKind[] = ['birth', 'acquisition', 'census', 'transfer', 'transfer_in', 'transfer_out', 'death', 'disposal']
+    const counts = new Map<LedgerEventKind, number>()
+    txAll.forEach(r => counts.set(r.kind, (counts.get(r.kind) || 0) + 1))
 
-  const dashCell = <CellText color={skin.DASH_INK}>—</CellText>
+    return order.filter(k => counts.has(k)).map(k => ({ kind: k, n: counts.get(k)! }))
+  }, [txAll])
 
-  // A day's events show as up to MAX_CHIPS chips inline; the rest fold into "+N more"
-  // (user call 2026-09-05 — the row tap lists everything anyway).
-  const MAX_CHIPS = 3
+  const txFiltered = useMemo(
+    () => (eventSel.length ? txAll.filter(r => eventSel.includes(EVENT_LABEL[r.kind])) : txAll),
+    [txAll, eventSel]
+  )
+  const txData = useMemo(() => txFiltered.map(r => ({ ...r, dateMs: r.date.getTime() })), [txFiltered])
+  const stmt = useSortableTable(txData, { field: 'dateMs', sort: 'desc' }, 20)
+
+  const eventCtl = (
+    <SiteFilterSelect
+      sites={eventOptions.map(o => ({ site: EVENT_LABEL[o.kind], caption: `${o.n.toLocaleString()} transactions` }))}
+      multiple
+      multiValue={eventSel}
+      onMultiChange={setEventSel}
+      allLabel='All Events'
+      headerTitle='Events'
+      plural='Events'
+      searchPlaceholder='Search events…'
+      rowIcon='mdi:swap-vertical'
+      allIcon='mdi:swap-vertical-bold'
+      allCaption={`${txAll.length.toLocaleString()} transactions`}
+      emptyText='No events in this period'
+    />
+  )
+
+  // Transfer context (from → to), acquisition source, disposal destination — the quiet
+  // description line under the chip; rows without context stay chip-only.
+  const descOf = (r: TransactionRow): string | null =>
+    isTransferKind(r.kind) && r.fromSite && r.toSite
+      ? `${r.fromSite} → ${r.toSite}`
+      : r.source
+      ? `From: ${r.source}`
+      : r.dest
+      ? `To: ${r.dest}`
+      : null
+
+  const DIR_LOOK: Record<TransactionRow['direction'], { label: string; color: string }> = {
+    in: { label: 'In', color: skin.LIST_GREEN },
+    out: { label: 'Out', color: skin.strokeOf(cc.Tertiary) },
+    neutral: { label: 'Transfer', color: skin.TONE_TYPE.neutral }
+  }
 
   const stmtColumns: GridColDef[] = useMemo(
     () => [
       {
-        minWidth: 160,
+        minWidth: 210,
         field: 'dateMs',
-        headerName: 'Date',
-        renderCell: (p: any) => <CellText weight={600}>{ddMMMyyyy((p.row as StatementRow).date)}</CellText>
-      },
-      {
-        // ONE row per day — this column DESCRIBES the day: every event kind as a chip
-        // (count INSIDE the pill), so a birth-and-death day reads as both chips side by side.
-        flex: 1,
-        minWidth: 280,
-        field: 'groups',
-        headerName: 'Description',
-        sortable: false,
+        headerName: 'Date & Time',
         renderCell: (p: any) => {
-          const r = p.row as StatementRow
-          const shown = r.groups.slice(0, MAX_CHIPS)
-          const rest = r.groups.length - shown.length
+          const r = p.row as TransactionRow
 
           return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, minWidth: 0, overflow: 'hidden' }}>
-              {shown.map(g => (
-                <Box key={g.kind} sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                  <EventChip kind={isTransferKind(g.kind) && neutralStmtTransfers ? 'transfer' : g.kind} count={g.count} />
-                </Box>
-              ))}
-              {rest > 0 && (
-                <Typography component='span' sx={{ fontSize: '14px', fontWeight: 600, color: skin.INK2, whiteSpace: 'nowrap' }}>
-                  +{rest} more
+            <CellText weight={600}>
+              {ddMMMyyyy(r.date)}
+              <Box component='span' sx={{ ml: 1.5, fontWeight: 400, color: skin.FAINT }}>
+                {hhmm(r.date)}
+              </Box>
+            </CellText>
+          )
+        }
+      },
+      {
+        // ONE row per transaction: the chip names the event, the quiet line under it
+        // carries its context (transfer from→to, acquisition source, disposal
+        // destination) — only when there is one (user call 2026-09-09).
+        flex: 1,
+        minWidth: 280,
+        field: 'kind',
+        headerName: 'Event',
+        sortable: false,
+        renderCell: (p: any) => {
+          const r = p.row as TransactionRow
+          const desc = descOf(r)
+
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1, minWidth: 0 }}>
+              <EventChip kind={r.kind} />
+              {desc && (
+                <Typography
+                  sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}
+                >
+                  {desc}
                 </Typography>
               )}
             </Box>
@@ -375,41 +504,32 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         }
       },
       {
-        minWidth: 100,
-        field: 'in',
-        headerName: 'In',
+        minWidth: 130,
+        field: 'direction',
+        headerName: 'Direction',
         sortable: false,
         renderCell: (p: any) => {
-          const r = p.row as StatementRow
+          const d = DIR_LOOK[(p.row as TransactionRow).direction]
 
-          return r.inCount > 0 ? <CellText weight={600} color={skin.LIST_GREEN}>{`+${r.inCount.toLocaleString()}`}</CellText> : dashCell
-        }
-      },
-      {
-        minWidth: 100,
-        field: 'out',
-        headerName: 'Out',
-        sortable: false,
-        renderCell: (p: any) => {
-          const r = p.row as StatementRow
-
-          return r.outCount > 0 ? (
-            <CellText weight={600} color={skin.strokeOf(cc.Tertiary)}>{`−${r.outCount.toLocaleString()}`}</CellText>
-          ) : (
-            dashCell
+          return (
+            <CellText weight={600} color={d.color}>
+              {d.label}
+            </CellText>
           )
         }
       },
       {
         minWidth: 110,
-        field: 'balance',
-        headerName: 'Total',
+        field: 'count',
+        headerName: 'Animals',
         sortable: false,
-        renderCell: (p: any) => <CellText weight={600}>{(p.row as StatementRow).balance.toLocaleString()}</CellText>
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: (p: any) => <CellText weight={600}>{(p.row as TransactionRow).count.toLocaleString()}</CellText>
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [neutralStmtTransfers, cc]
+    [cc]
   )
 
   if (!all.length) {
@@ -650,7 +770,18 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
       {/* ONE card, two underline sub-tabs. Duration control rides the Ledger tab only —
           Reconciliation is ALWAYS all time (user call 2026-09-04). */}
-      <SectionCard titleMb={3} title={subTabsNode} action={subTab === 'ledger' ? periodCtl : undefined}>
+      <SectionCard
+        titleMb={3}
+        title={subTabsNode}
+        action={
+          subTab === 'ledger' ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {eventCtl}
+              {periodCtl}
+            </Box>
+          ) : undefined
+        }
+      >
         {subTab === 'ledger' ? (
           stmt.total ? (
             <DetailTable
@@ -661,7 +792,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
               setPaginationModel={stmt.setPaginationModel}
               sortModel={stmt.sortModel}
               handleSortModel={stmt.handleSortModel}
-              onRowClick={(p: any) => rowDrill(p.row as StatementRow)}
+              onRowClick={(p: any) => rowDrill(p.row as TransactionRow)}
             />
           ) : (
             <EmptyState message='No entries in this period' />
