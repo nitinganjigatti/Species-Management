@@ -344,8 +344,13 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
   ]
 
   // Site-wise bucket column — ONE cell grammar, flipped emphasis (user call 2026-09-09):
-  // enclosure count bold on top, class-tagged animals quiet under it; a bucket holding
+  // enclosure count bold on top, the animals inside quiet under it; a bucket holding
   // no enclosures is a single pale dash; Empty's quiet line is a dash by definition.
+  // SINGLE-CLASS buckets say "62 animals" — repeating the class tag under a header that
+  // already names it read twice (user call 2026-09-09); only the multi-class buckets
+  // (Dominance, Mixed) itemize with class-tagged segments.
+  const SINGLE_CLASS: Bucket[] = ['maleOnly', 'femaleOnly', 'undet', 'indet', 'groupB']
+
   const bucketCol = (b: Bucket, header: string, minWidth = 120): GridColDef => ({
     minWidth,
     flex: 1,
@@ -357,6 +362,8 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     renderCell: p => {
       const c = (p.row as SiteRow).buckets[b]
       if (!c.e) return txtCell('—', skin.DASH_INK, 400)
+      const a = c.m + c.f + c.ud + c.ind + c.grp
+      const quiet = SINGLE_CLASS.includes(b) ? (a > 0 ? `${a.toLocaleString()} animals` : '—') : animalsLineOf(c)
 
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
@@ -364,7 +371,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
             {c.e.toLocaleString()}
           </Typography>
           <Typography sx={{ fontSize: '14px', color: skin.FAINT, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-            {animalsLineOf(c)}
+            {quiet}
           </Typography>
         </Box>
       )
