@@ -3715,10 +3715,13 @@ export const DetailTable: React.FC<{
       // LEFT edge gets the same continuous treatment (user call 2026-09-09): hide the
       // left neighbor's per-tier separator stubs (both tiers) and draw one full-height
       // rule — unless the neighbor is itself a single column already drawing its right edge.
+      // COLUMN dividers use the theme divider (what the header separator stubs are colored
+      // with) — NEVER the row hairline (user-caught 2026-09-09: the two are different).
+      const colRule = `1px solid ${theme.palette.divider}`
       const edge: Record<string, string> = {}
-      if (f !== lastField) edge.borderRight = `1px solid ${skin.ROW_LINE}`
+      if (f !== lastField) edge.borderRight = colRule
       if (prev && !singleFields.has(prev)) {
-        edge.borderLeft = `1px solid ${skin.ROW_LINE}`
+        edge.borderLeft = colRule
         ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${prev}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
         ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields*="|-${prev}-|"] .MuiDataGrid-columnSeparator`] = {
           display: 'none'
