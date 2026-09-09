@@ -3709,6 +3709,36 @@ export const DetailTable: React.FC<{
     // tiers instead of the two per-tier separator stubs.
     const lastField = sized[sized.length - 1]?.field
     const singleFields = new Set(columnGroupingModel.filter(g => g.children.length === 1).map(g => g.children[0].field))
+    const INSET = 14 // the stub's breathing room from the merged header's top/bottom
+    const line = `linear-gradient(${theme.palette.divider}, ${theme.palette.divider})`
+    const edgeOf = (sides: ('left' | 'right')[], tier: 'group' | 'leaf') =>
+      sides.length
+        ? {
+            backgroundImage: sides.map(() => line).join(', '),
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: sides.map(() => `1px calc(100% - ${INSET}px)`).join(', '),
+            backgroundPosition: sides.map(s => (tier === 'group' ? `${s} 0 top ${INSET}px` : `${s} 0 top 0`)).join(', ')
+          }
+        : {}
+
+    // GROUP boundaries wear the SAME merged centered divider (user call 2026-09-09,
+    // Single Sex | Dominance): the first column of a multi-child group draws one
+    // two-tier line on its LEFT edge and the neighbor's per-tier stubs are hidden —
+    // skipped when the neighbor is a single column already drawing its own edge.
+    for (const g of columnGroupingModel) {
+      if (g.children.length < 2) continue
+      const f = g.children[0].field
+      const idx = sized.findIndex(c => c.field === f)
+      const prev = idx > 0 ? sized[idx - 1].field : null
+      if (!prev || singleFields.has(prev)) continue
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${prev}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields*="|-${prev}-|"] .MuiDataGrid-columnSeparator`] = {
+        display: 'none'
+      }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields*="|-${f}-|"]`] = { ...edgeOf(['left'], 'group') }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edgeOf(['left'], 'leaf') }
+    }
+
     for (const g of columnGroupingModel) {
       if (g.children.length !== 1) continue
       const f = g.children[0].field
@@ -3730,20 +3760,9 @@ export const DetailTable: React.FC<{
           display: 'none'
         }
       }
-      const INSET = 14 // the stub's breathing room from the merged cell's top/bottom
-      const line = `linear-gradient(${theme.palette.divider}, ${theme.palette.divider})`
-      const edgeOf = (tier: 'group' | 'leaf') =>
-        sides.length
-          ? {
-              backgroundImage: sides.map(() => line).join(', '),
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: sides.map(() => `1px calc(100% - ${INSET}px)`).join(', '),
-              backgroundPosition: sides.map(s => (tier === 'group' ? `${s} 0 top ${INSET}px` : `${s} 0 top 0`)).join(', ')
-            }
-          : {}
-      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edgeOf('group') }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"]`] = { borderBottom: 'none', ...edgeOf(sides, 'group') }
       ungroupedStyle[`& .MuiDataGrid-columnHeader--filledGroup[data-fields="|-${f}-|"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
-      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edgeOf('leaf') }
+      ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"]`] = { ...edgeOf(sides, 'leaf') }
       ungroupedStyle[`& .MuiDataGrid-columnHeader[data-field="${f}"] .MuiDataGrid-columnSeparator`] = { display: 'none' }
     }
 
