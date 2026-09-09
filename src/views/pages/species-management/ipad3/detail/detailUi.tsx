@@ -3811,8 +3811,9 @@ export const DetailTable: React.FC<{
         // hairline under the tier so the two header rows read as separate lines.
         ...(columnGroupingModel
           ? {
-              '& .MuiDataGrid-columnHeader--filledGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
-              '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${skin.ROW_LINE}` },
+              // tier hairlines match the vertical divider stubs (user call 2026-09-09)
+              '& .MuiDataGrid-columnHeader--filledGroup': { borderBottom: `1px solid ${theme.palette.divider}` },
+              '& .MuiDataGrid-columnHeader--emptyGroup': { borderBottom: `1px solid ${theme.palette.divider}` },
               // The LEAF header tier drops to 12px caps — SAME wash as the group tier
               // (user reversal 2026-09-09: no lighter second row); two-word leaf headers
               // wrap at the word break.
