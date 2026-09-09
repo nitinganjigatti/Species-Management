@@ -384,7 +384,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       flex: 1,
       sortable: false,
       field: 'site',
-      headerName: 'Site',
+      headerName: '', // label lives in the group tier (single headings ride the FIRST row)
       // kit NameSiteCell — the identity-cell standard: wraps to 2 lines, never clips
       renderCell: p => <NameSiteCell name={p.row.site} />
     },
@@ -394,15 +394,16 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     bucketCol('maleDom', 'Male Dominant'),
     bucketCol('femaleDom', 'Female Dominant'),
     bucketCol('pair', 'Pair'),
-    // Mixed's quiet line can carry all five classes — floor it for the worst case
-    bucketCol('mixedB', 'Mixed', 200),
+    // Mixed's quiet line can carry all five classes — floor it for the worst case;
+    // label rides the group tier (single headings in the FIRST row, user call 2026-09-09)
+    bucketCol('mixedB', '', 200),
     // UD / ID — the platform's standard class codes (user reversal 2026-09-09: full
     // Undetermined/Indeterminate made the columns too wide; these two stay codes,
     // matching the enclosure view's UD | ID columns and the quiet-line tags)
     bucketCol('undet', 'UD'),
     bucketCol('indet', 'ID'),
     bucketCol('groupB', 'Group'),
-    bucketCol('emptyB', 'Empty', 96),
+    bucketCol('emptyB', '', 110),
     {
       // Total spells the unit ("N animals") so the whole table reads without a legend
       minWidth: 140,
@@ -411,7 +412,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
       align: 'right',
       headerAlign: 'right',
       field: 'totalE',
-      headerName: 'Total',
+      headerName: '',
       renderCell: p => (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
           <Typography sx={{ fontSize: '1rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: skin.LIST_GREEN }}>
@@ -425,12 +426,18 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     }
   ]
 
-  // The two-tier header: bucket families on top. Mixed / Empty / Total stay ungrouped
-  // (a quiet empty cell above), so the family row carries only real groupings.
+  // The two-tier header: EVERY top-level heading rides the FIRST row (user call
+  // 2026-09-09) — bucket families as real groups, and each standalone column (Site /
+  // Mixed / Empty / Total) as its own one-child group with the leaf header left blank,
+  // so the second row carries ONLY sub-headings.
   const siteColumnGroups = [
+    { groupId: 'Site', headerAlign: 'left' as const, children: [{ field: 'site' }] },
     { groupId: 'Single Sex', headerAlign: 'center' as const, children: [{ field: 'maleOnly' }, { field: 'femaleOnly' }] },
     { groupId: 'Dominance', headerAlign: 'center' as const, children: [{ field: 'maleDom' }, { field: 'femaleDom' }, { field: 'pair' }] },
-    { groupId: 'Unknown', headerAlign: 'center' as const, children: [{ field: 'undet' }, { field: 'indet' }, { field: 'groupB' }] }
+    { groupId: 'Mixed', headerAlign: 'right' as const, children: [{ field: 'mixedB' }] },
+    { groupId: 'Unknown', headerAlign: 'center' as const, children: [{ field: 'undet' }, { field: 'indet' }, { field: 'groupB' }] },
+    { groupId: 'Empty', headerAlign: 'right' as const, children: [{ field: 'emptyB' }] },
+    { groupId: 'Total', headerAlign: 'right' as const, children: [{ field: 'totalE' }] }
   ]
 
   const start = pm.page * pm.pageSize

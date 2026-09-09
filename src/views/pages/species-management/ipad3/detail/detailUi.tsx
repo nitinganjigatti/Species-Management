@@ -3694,12 +3694,12 @@ export const DetailTable: React.FC<{
     })
   }
 
-  // UNGROUPED columns in a grouped table read as ONE full-height header cell (user call
-  // 2026-09-09, the Site column): both tiers wear the group-tier wash with no hairline
-  // between them, and the title keeps the standard 14px — the tier split (lighter wash,
-  // 12px caps) only applies to columns actually sitting under a group. Selector
-  // specificity outranks the tier rules AND the pinned-column background, so a pinned
-  // identity column stays one solid block.
+  // UNGROUPED columns in a grouped table read as ONE full-height header cell: both tiers
+  // wear the group-tier wash with no hairline between them, and the title keeps the
+  // standard 14px. NOTE (user call 2026-09-09): standalone headings normally shouldn't
+  // sit in the leaf row at all — callers give each single column its own one-child GROUP
+  // (label up top, leaf headerName '') so all top-level headings share the first row;
+  // this fallback styling covers columns left ungrouped anyway.
   const ungroupedStyle: Record<string, any> = {}
   if (columnGroupingModel) {
     const groupedFields = new Set(columnGroupingModel.flatMap(g => g.children.map(ch => ch.field)))
