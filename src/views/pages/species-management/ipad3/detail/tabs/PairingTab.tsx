@@ -383,8 +383,9 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
     },
     bucketCol('maleOnly', 'Male Only'),
     bucketCol('femaleOnly', 'Female Only'),
-    bucketCol('maleDom', 'Male Dom'),
-    bucketCol('femaleDom', 'Female Dom'),
+    // full words (user calls 2026-09-09) — two-word headers wrap at the word break
+    bucketCol('maleDom', 'Male Dominant'),
+    bucketCol('femaleDom', 'Female Dominant'),
     bucketCol('pair', 'Pair'),
     // Mixed's quiet line can carry all five classes — floor it for the worst case
     bucketCol('mixedB', 'Mixed', 200),
