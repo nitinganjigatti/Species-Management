@@ -747,14 +747,14 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                     {egg.hatchWeight} g at hatch · {egg.hatchMethod}
                   </Typography>
                 </Box>
-                {/* the hatchling as THE animal card (user call 2026-09-10 — never a bare id) */}
+                {/* the hatchling as THE animal card (user call 2026-09-10 — never a bare id):
+                    bare on the wash, roomy, split from the text by a vertical hairline */}
                 {egg.hatchlingId && (
-                  <Box sx={{ bgcolor: '#ffffff', borderRadius: '12px', px: 4, py: 3, flexShrink: 0 }}>
+                  <Box sx={{ borderLeft: `1px solid ${c.OutlineVariant}`, pl: 5, py: 1, flexShrink: 0, minWidth: 300 }}>
                     <AnimalIdCard
                       identifiers={synthAnimalIdentity(egg.hatchlingId).identifiers}
                       enclosure={synthAnimalIdentity(egg.hatchlingId).enclosure}
                       tag={synthAnimalIdentity(egg.hatchlingId).tag}
-                      size={75}
                     />
                   </Box>
                 )}
