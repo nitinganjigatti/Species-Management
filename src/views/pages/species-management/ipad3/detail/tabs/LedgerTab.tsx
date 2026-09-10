@@ -5,7 +5,12 @@
 // 1. LEDGER — the bank statement of the species count: ONE ROW PER DAY (user call
 //    2026-09-05), latest first — Date · Description (every event of the day as chips,
 //    count inside the pill "Birth 2", "+N more" past 3) · In · Out (day totals) · running Total.
-//    Duration filter (default Last 12 Months) applies HERE only.
+//    Scoping (user call 2026-09-10): the three header dropdowns (Site / Event / Duration)
+//    collapsed into ONE standard Filters trigger → SpeciesFilterSheet (the Population
+//    anatomy); applied picks ride as FilterChips above the table. Site applies to BOTH
+//    sub-tabs, Event + Duration to the statement only (Reconciliation is all-time).
+//    Specific Date / Date Range are Duration facet options — their pill pickers appear
+//    beside the Filters button once picked.
 // 2. RECONCILIATION — the gender-wise grid (M · F · UD · ID · G · Total), ALWAYS ALL
 //    TIME (user call: opening balance is always the 0 baseline); Closing keeps the
 //    inset verdict panel.
@@ -28,7 +33,6 @@ import * as skin from 'src/views/pages/species-management/ipad3/skin'
 import type { AnimalRecord } from 'src/types/species-management/detail'
 import {
   AnimalCardRow,
-  CategoryFilter,
   CellText,
   DetailTable,
   DrillSheet,
@@ -38,7 +42,6 @@ import {
   SectionCard,
   SHEET_PX,
   SheetSearch,
-  SiteFilterSelect,
   UnderlineTabs,
   synthAnimalIdentity
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
@@ -247,6 +250,8 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const [drill, setDrill] = useState<DrillFilter | null>(null)
   const [drillQ, setDrillQ] = useState('')
   const [drillFiltersOpen, setDrillFiltersOpen] = useState(false)
+  // THE statement filter sheet (user call 2026-09-10) — one trigger for Site/Event/Duration.
+  const [stmtFiltersOpen, setStmtFiltersOpen] = useState(false)
 
   // Entry points PRE-SELECT filters (the core ask — never "go back to change").
   // Picker modes have no preset equivalent — their drills open All Time.
@@ -313,7 +318,6 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
   const TIME_DAY = 'Specific Date'
   const TIME_RANGE = 'Date Range'
-  const timeValue = timeMode === 'day' ? TIME_DAY : timeMode === 'range' ? TIME_RANGE : periodLabel
 
   // Pill-shaped picker input (the DashboardDateRange custom-input pattern).
   const PickerInput = forwardRef((props: any, ref) => (
@@ -331,22 +335,9 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   ))
   PickerInput.displayName = 'PickerInput'
 
-  const periodCtl = (
+  // The date pickers surface only once Specific Date / Date Range is picked in the sheet.
+  const pickerCtl = (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-      <CategoryFilter
-        options={[...LEDGER_PRESETS.map(p => p.label), TIME_DAY, TIME_RANGE]}
-        value={timeValue}
-        onChange={v => {
-          if (v === TIME_DAY) setTimeMode('day')
-          else if (v === TIME_RANGE) setTimeMode('range')
-          else {
-            setTimeMode('preset')
-            setPreset(LEDGER_PRESETS.find(p => p.label === v)?.key ?? 'last_1y')
-          }
-        }}
-        width={200}
-        placeholder='Last 12 Months'
-      />
       {timeMode === 'day' && (
         <DatePickerWrapper>
           <DatePicker
@@ -376,16 +367,6 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     </Box>
   )
 
-  const siteCtl = multiSite && (
-    <SiteFilterSelect
-      sites={sites.map(name => ({ site: name, caption: `${all.filter(a => a.site === name).length.toLocaleString()} animals` }))}
-      multiple
-      multiValue={siteSel}
-      onMultiChange={setSiteSel}
-      allCaption={`${all.length.toLocaleString()} animals`}
-    />
-  )
-
   /* ── the bank statement — TRANSACTION rows (user feedback 2026-09-09) ── */
 
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -406,16 +387,6 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
     [events, txWindow, siteSel]
   )
 
-  // Event dropdown options = the kinds actually present in the window (vocabulary order),
-  // captioned with their transaction counts. Values are the display labels.
-  const eventOptions = useMemo(() => {
-    const order: LedgerEventKind[] = ['birth', 'acquisition', 'census', 'transfer', 'transfer_in', 'transfer_out', 'death', 'disposal']
-    const counts = new Map<LedgerEventKind, number>()
-    txAll.forEach(r => counts.set(r.kind, (counts.get(r.kind) || 0) + 1))
-
-    return order.filter(k => counts.has(k)).map(k => ({ kind: k, n: counts.get(k)! }))
-  }, [txAll])
-
   const txFiltered = useMemo(
     () => (eventSel.length ? txAll.filter(r => eventSel.includes(EVENT_LABEL[r.kind])) : txAll),
     [txAll, eventSel]
@@ -423,21 +394,159 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
   const txData = useMemo(() => txFiltered.map(r => ({ ...r, dateMs: r.date.getTime() })), [txFiltered])
   const stmt = useSortableTable(txData, { field: 'dateMs', sort: 'desc' }, 20)
 
-  const eventCtl = (
-    <SiteFilterSelect
-      sites={eventOptions.map(o => ({ site: EVENT_LABEL[o.kind], caption: `${o.n.toLocaleString()} transactions` }))}
-      multiple
-      multiValue={eventSel}
-      onMultiChange={setEventSel}
-      allLabel='All Events'
-      headerTitle='Events'
-      plural='Events'
-      searchPlaceholder='Search events…'
-      rowIcon='mdi:swap-vertical'
-      allIcon='mdi:swap-vertical-bold'
-      allCaption={`${txAll.length.toLocaleString()} transactions`}
-      emptyText='No events in this period'
-    />
+  /* ── THE one statement filter (user call 2026-09-10): the three dropdowns collapsed
+     into one Filters trigger → standard SpeciesFilterSheet (Population anatomy) ── */
+
+  const DUR_DAY = 'day'
+  const DUR_RANGE = 'range'
+  const durValue = timeMode === 'day' ? DUR_DAY : timeMode === 'range' ? DUR_RANGE : preset
+
+  const windowFor = (dur: string): { from: Date | null; to: Date | null } => {
+    if (dur === DUR_DAY) return dayPick ? { from: startOfDay(dayPick), to: endOfDay(dayPick) } : { from: null, to: null }
+    if (dur === DUR_RANGE)
+      return { from: rangePick[0] ? startOfDay(rangePick[0]) : null, to: rangePick[1] ? endOfDay(rangePick[1]) : null }
+
+    return { from: presetStart(dur as LedgerPreset, new Date()), to: null }
+  }
+
+  const txFor = (dur: string, siteScope: string[]) => {
+    const w = windowFor(dur)
+
+    return transactionRows(events, w.from, w.to, siteScope.length ? siteScope : null)
+  }
+
+  // Facet counts follow the drill rule: each option's figure = the list you'd get
+  // picking JUST it, the other sections staying applied (live via resolveSections).
+  const STMT_KIND_ORDER: LedgerEventKind[] = ['birth', 'acquisition', 'census', 'transfer', 'transfer_in', 'transfer_out', 'death', 'disposal']
+  const stmtSectionsFor = (draft: Record<string, string[]>): FilterSheetSection[] => {
+    const dur = (draft.duration || [])[0] || 'last_1y'
+    const sitePick = draft.site || []
+    const evPick = draft.event || []
+    const evOnly = (rows: TransactionRow[]) => (evPick.length ? rows.filter(r => evPick.includes(EVENT_LABEL[r.kind])) : rows)
+    const base = txFor(dur, sitePick)
+    const kindCounts = new Map<LedgerEventKind, number>()
+    base.forEach(r => kindCounts.set(r.kind, (kindCounts.get(r.kind) || 0) + 1))
+
+    return [
+      {
+        key: 'event',
+        label: 'Event',
+        options: STMT_KIND_ORDER.filter(k => kindCounts.has(k)).map(k => ({
+          value: EVENT_LABEL[k],
+          label: EVENT_LABEL[k],
+          count: kindCounts.get(k)!
+        }))
+      },
+      ...(multiSite
+        ? [{ key: 'site', label: 'Site', options: sites.map(s => ({ value: s, label: s, count: evOnly(txFor(dur, [s])).length })) }]
+        : []),
+      {
+        key: 'duration',
+        label: 'Duration',
+        single: true,
+        options: [
+          ...LEDGER_PRESETS.map(p => ({ value: p.key as string, label: p.label, count: evOnly(txFor(p.key, sitePick)).length })),
+          { value: DUR_DAY, label: TIME_DAY, count: evOnly(txFor(DUR_DAY, sitePick)).length },
+          { value: DUR_RANGE, label: TIME_RANGE, count: evOnly(txFor(DUR_RANGE, sitePick)).length }
+        ]
+      }
+    ]
+  }
+
+  const applyStmtFilters = (sel: Record<string, string[]>) => {
+    const siteNext = sel.site || []
+    // site scope gone → direction goes with it (the drill's folding rule)
+    const evNext = Array.from(
+      new Set(
+        (sel.event || []).map(l =>
+          !siteNext.length && (l === EVENT_LABEL.transfer_in || l === EVENT_LABEL.transfer_out) ? EVENT_LABEL.transfer : l
+        )
+      )
+    )
+    setSiteSel(siteNext)
+    setEventSel(evNext)
+    const dur = (sel.duration || [])[0]
+    if (dur === DUR_DAY) setTimeMode('day')
+    else if (dur === DUR_RANGE) setTimeMode('range')
+    else {
+      setTimeMode('preset')
+      setPreset((dur as LedgerPreset) || 'last_1y')
+    }
+  }
+
+  const stmtSelected = { event: eventSel, site: siteSel, duration: [durValue] }
+  const durDefault = timeMode === 'preset' && preset === 'last_1y'
+  const stmtFilterCount = eventSel.length + siteSel.length + (durDefault ? 0 : 1)
+
+  const durChipLabel =
+    timeMode === 'day'
+      ? dayPick
+        ? ddMMMyyyy(dayPick)
+        : TIME_DAY
+      : timeMode === 'range'
+      ? rangePick[0] && rangePick[1]
+        ? `${ddMMMyyyy(rangePick[0])} – ${ddMMMyyyy(rangePick[1])}`
+        : TIME_RANGE
+      : periodLabel
+
+  const clearDuration = () => {
+    setTimeMode('preset')
+    setPreset('last_1y')
+    setDayPick(null)
+    setRangePick([null, null])
+  }
+
+  // Applied picks ride as the standard FilterChips. Site scopes BOTH sub-tabs; Event and
+  // Duration scope the statement only, so their chips ride the Ledger sub-tab alone.
+  const stmtChips = [
+    ...(subTab === 'ledger'
+      ? eventSel.map(l => ({ key: `ev:${l}`, label: l, onClear: () => setEventSel(prev => prev.filter(x => x !== l)) }))
+      : []),
+    ...siteSel.map(s => ({ key: `site:${s}`, label: s, onClear: () => setSiteSel(prev => prev.filter(x => x !== s)) })),
+    ...(subTab === 'ledger' && !durDefault ? [{ key: 'dur', label: durChipLabel, onClear: clearDuration }] : [])
+  ]
+
+  // The Filters pill trigger with count badge (Population's exact anatomy).
+  const stmtFiltersBtn = (
+    <Box
+      onClick={() => setStmtFiltersOpen(true)}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 1.5,
+        px: 3.5,
+        height: 44,
+        flexShrink: 0,
+        borderRadius: '999px',
+        bgcolor: '#ffffff',
+        border: `1px solid ${skin.HAIR}`,
+        cursor: 'pointer',
+        userSelect: 'none',
+        ...skin.cardPressSx,
+        '&:hover': { bgcolor: skin.ROW_HOVER }
+      }}
+    >
+      <Icon icon='mage:filter' fontSize='1.25rem' color={skin.INK2} />
+      <Typography sx={{ fontSize: '15px', fontWeight: 500, color: skin.INK2, whiteSpace: 'nowrap' }}>Filters</Typography>
+      {stmtFilterCount > 0 && (
+        <Box
+          sx={{
+            minWidth: 20,
+            height: 20,
+            px: 1,
+            borderRadius: '999px',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: '14px',
+            fontWeight: 700,
+            bgcolor: skin.ACCENT_FILL,
+            color: '#ffffff'
+          }}
+        >
+          {stmtFilterCount}
+        </Box>
+      )}
+    </Box>
   )
 
   // Transfer context (from → to), acquisition source, disposal destination — the quiet
@@ -762,26 +871,29 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* headline + site scope (site applies to BOTH sub-tabs) */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK, mr: 'auto' }}>Ledger</Typography>
-        {siteCtl}
-      </Box>
+      {/* headline — the scoping now lives behind the ONE Filters trigger on the card */}
+      <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK }}>Ledger</Typography>
 
-      {/* ONE card, two underline sub-tabs. Duration control rides the Ledger tab only —
-          Reconciliation is ALWAYS all time (user call 2026-09-04). */}
+      {/* ONE card, two underline sub-tabs. ONE Filters trigger for Site/Event/Duration
+          (user call 2026-09-10); Reconciliation is ALWAYS all time (user call 2026-09-04),
+          so only the Site pick touches it. */}
       <SectionCard
         titleMb={3}
         title={subTabsNode}
         action={
-          subTab === 'ledger' ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {eventCtl}
-              {periodCtl}
-            </Box>
-          ) : undefined
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {subTab === 'ledger' && pickerCtl}
+            {stmtFiltersBtn}
+          </Box>
         }
       >
+        {stmtChips.length > 0 && (
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {stmtChips.map(c => (
+              <FilterChip key={c.key} label={c.label} onClear={c.onClear} />
+            ))}
+          </Box>
+        )}
         {subTab === 'ledger' ? (
           stmt.total ? (
             <DetailTable
@@ -926,6 +1038,17 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ animals }) => {
         resolveSections={draft => (drill ? sectionsFor(draftToFilter(draft)) : [])}
         selected={drill ? { event: drill.kinds, sex: drill.classes, site: drill.sites, duration: [drill.preset] } : {}}
         onApply={applyDrillFilters}
+      />
+
+      {/* the statement's ONE filter surface — the same standard sheet as the drill */}
+      <SpeciesFilterSheet
+        open={stmtFiltersOpen}
+        onClose={() => setStmtFiltersOpen(false)}
+        title='Filters'
+        sections={stmtSectionsFor(stmtSelected)}
+        resolveSections={stmtSectionsFor}
+        selected={stmtSelected}
+        onApply={applyStmtFilters}
       />
     </Box>
   )
