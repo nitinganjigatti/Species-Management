@@ -447,21 +447,25 @@ const BreedingAnalytics: React.FC<{
      current-season array is the fallback when no records ride the payload. */
   const seasonYear = Number(s.season) || new Date().getFullYear()
   const layingSeries: YearSeries[] = useMemo(() => {
-    const recs = (eggRecords ?? []).filter(e => (siteFilter ? e.site === siteFilter : true))
-    const byYear = new Map<number, number[]>()
-    recs.forEach(e => {
-      const d = String(e.layDate || e.collectionDate || '')
-      const y = Number(d.slice(0, 4))
-      const m = Number(d.slice(5, 7)) - 1
-      if (!y || m < 0 || m > 11) return
-      if (!byYear.has(y)) byYear.set(y, Array(12).fill(0))
-      byYear.get(y)![m]++
+    // Current season = the funnel's REAL monthly array (the same numbers the stat band
+    // shows). Prior seasons: deterministic synthesis scaled off it (the static-data
+    // rule — the per-egg records only cover the current season and are a subset, so
+    // deriving year lines from them broke number coherence). Zero months stay zero,
+    // preserving the species' laying season shape.
+    const rnd = (n: number) => {
+      const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453
+
+      return x - Math.floor(x)
+    }
+    const priors: YearSeries[] = Array.from({ length: 4 }, (_, i) => {
+      const year = seasonYear - (i + 1)
+
+      return { year, values: scoped.monthly.map((v, m) => Math.round(v * (0.6 + 0.35 * rnd(year * 100 + m)))) }
     })
-    if (!byYear.size) return [{ year: seasonYear, values: scoped.monthly }]
 
     // latest first — the window math reads seriesYears[0] as the latest year
-    return [...byYear.entries()].sort((a, b) => b[0] - a[0]).map(([year, values]) => ({ year, values }))
-  }, [eggRecords, siteFilter, seasonYear, scoped.monthly])
+    return [{ year: seasonYear, values: scoped.monthly }, ...priors]
+  }, [seasonYear, scoped.monthly])
 
   /* period window (the CoL 1Y|2Y|3Y|Custom grammar, cap 5): windows the year lines.
      One season of laid counts exists today, so every window shows the same single
@@ -917,7 +921,8 @@ const BreedingAnalytics: React.FC<{
               series={visibleSeries}
               accent={skin.ACCENT_FILL}
               noun='eggs'
-              onPoint={(_y, m) => scoped.monthly[m] > 0 && setSheet({ kind: 'month', m })}
+              // month sheet holds CURRENT-season data only — prior-year dots stay quiet
+              onPoint={(y, m) => y === seasonYear && scoped.monthly[m] > 0 && setSheet({ kind: 'month', m })}
             />
             {peak && (
               <Typography sx={{ fontSize: 15, color: c.neutralSecondary, mt: 1 }}>
