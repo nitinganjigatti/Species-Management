@@ -280,16 +280,13 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         renderCell: (p: any) => {
           const e = p.row as EggDetail
           const last = e.weighings[e.weighings.length - 1]
+          // NOTHING beyond antz (user call 2026-09-10): the module has no corridor /
+          // on-track verdicts — days in incubation only (weight lives in the sheet's log).
           if (e.status === 'incubating') {
             return (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
-                <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>
-                  Day {e.dayNow} of {e.incubationDays}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600, color: e.breachDay != null ? skin.TONE_TYPE.warn : skin.TONE_TYPE.good }}>
-                  {e.breachDay != null ? '⚠ Below corridor' : 'On track'}
-                </Typography>
-              </Box>
+              <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>
+                Day {e.dayNow} of {e.incubationDays}
+              </Typography>
             )
           }
           if (e.status === 'discarded') {
@@ -446,17 +443,6 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
   const last = egg?.weighings[egg.weighings.length - 1]
   const lossPct = egg && last ? Math.round(((last.grams - egg.initialWeight) / egg.initialWeight) * 1000) / 10 : 0
 
-  // full-length actual array for the corridor chart, from the sampled weighings
-  const actual = useMemo(() => {
-    if (!egg) return []
-    const arr: (number | null)[] = Array(egg.incubationDays + 1).fill(null)
-    egg.weighings.forEach(w => {
-      if (w.day <= egg.incubationDays) arr[w.day] = w.grams
-    })
-
-    return arr
-  }, [egg])
-
   const capsSx = { fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT } as const
 
   const tile = (label: string, value: React.ReactNode, sub?: React.ReactNode, subColor?: string, meterPct?: number) => (
@@ -536,17 +522,19 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                   {tile('Condition', 'Fresh', 'State: Received')}
                 </>
               )}
+              {/* NOTHING beyond antz (user call 2026-09-10): the module tracks weight +
+                  change % only — no corridor verdicts, no candling schedule wording. */}
               {egg.status === 'incubating' && (
                 <>
                   {tile('Incubation', <>Day {egg.dayNow} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, Math.round(((egg.dayNow || 0) / egg.incubationDays) * 100))}
-                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`, egg.breachDay != null ? skin.TONE_TYPE.warn : skin.TONE_TYPE.good)}
-                  {tile('Condition', egg.condition, (egg.dayNow || 0) >= 9 ? 'Candled Day 9' : 'Candling due Day 9')}
+                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`)}
+                  {tile('Condition', egg.condition, `State: ${look.label}`)}
                 </>
               )}
               {egg.status === 'hatched' && (
                 <>
                   {tile('Incubation', <>{egg.incubationDays} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.hatchDate)}`)}
-                  {tile('Weight loss', `${lossPct}%`, `${egg.initialWeight} → ${last?.grams} g`, skin.TONE_TYPE.good)}
+                  {tile('Weight change', `${lossPct}%`, `${egg.initialWeight} → ${last?.grams} g`)}
                   {tile('Hatch', egg.hatchMethod || 'Natural', `${egg.hatchWeight} g at hatch`)}
                 </>
               )}
@@ -554,14 +542,14 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                 <>
                   {tile('Incubation', <>Day {egg.incubationDays} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, 100)}
                   {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`)}
-                  {tile('Condition', egg.discardReason || egg.condition, `Confirmed Day ${last?.day ?? egg.incubationDays}`)}
+                  {tile('Condition', egg.discardReason || egg.condition, `State: ${look.label}`)}
                 </>
               )}
               {egg.status === 'discarded' && (
                 <>
                   {tile('In system', <>{Math.max(1, last?.day ?? 1)} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.discardDate)}`)}
                   {tile('Last weight', `${last?.grams} g`, `Recorded ${fmtD(last?.date)}`)}
-                  {tile('Reason', egg.discardReason || '—', egg.discardReason === 'Infertile on candling' ? 'On candling · Day 9' : undefined)}
+                  {tile('Reason', egg.discardReason || '—', undefined)}
                 </>
               )}
             </Box>
@@ -591,36 +579,26 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
               </Box>
             </Box>
 
-            {/* ── weight — per-egg log + corridor (3-point sparse rule) ── */}
+            {/* ── weight — the antz "Egg weight" chart + log, NOTHING beyond antz
+                (user call 2026-09-10: no ideal-loss corridor, no verdicts); 3-point
+                sparse rule keeps one-dot charts away ── */}
             {egg.status !== 'received' && (
               <Box sx={{ pt: 4 }}>
                 <Typography sx={capsSx}>
                   {egg.weighings.length >= 3
-                    ? `Weight vs ideal loss · target ${egg.targetLossPct}%`
+                    ? 'Egg weight'
                     : `Weight · ${egg.weighings.length} ${egg.weighings.length === 1 ? 'weighing' : 'weighings'} — the chart appears from the 3rd`}
                 </Typography>
                 {egg.weighings.length >= 3 && (
                   <Box sx={{ mt: 2 }}>
                     <TrendAreaChart
-                      values={actual}
-                      labels={egg.ideal.map((_, d) => `Day ${d}`)}
+                      values={egg.weighings.map(w => w.grams)}
+                      labels={egg.weighings.map(w => `Day ${w.day}`)}
                       color={theme.palette.secondary.main}
-                      name='This egg'
+                      name='Weight'
                       unit=' g'
                       height={230}
-                      corridor={{
-                        ideal: egg.ideal,
-                        upper: egg.bandUpper,
-                        lower: egg.bandLower,
-                        idealName: `Ideal (${egg.targetLossPct}% loss)`,
-                        breachIndex: egg.breachDay ?? undefined
-                      }}
                     />
-                    {egg.breachDay != null && (
-                      <Box sx={{ mt: 2 }}>
-                        <Box sx={chipSx(skin.TONE_SOFT.warn, skin.TONE_TYPE.warn)}>⚠ Below corridor since Day {egg.breachDay}</Box>
-                      </Box>
-                    )}
                   </Box>
                 )}
                 <Box sx={{ mt: 3, border: `1px solid ${skin.HAIR}`, borderRadius: '12px', overflow: 'hidden' }}>
