@@ -37,7 +37,7 @@ import type { ColumnPref, ListRow, SheetView, YearSeries } from 'src/views/pages
 import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 import { SiteFilterControl } from 'src/views/pages/species-management/ipad3/detail/tabs/MedicalTab'
 import { getFemaleDetail } from 'src/lib/api/species-management/breeding-eggs'
-import type { FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
+import type { EggDetail, EggStatus, FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
 
 const cc = (theme: any) => theme.palette.customColors as Record<string, string>
 
@@ -130,122 +130,567 @@ type SheetSpec =
 // ListRow / SheetView / ListSheet were promoted to detailUi (2026-08-07) — one generic
 // list sheet for every tab; imported above.
 
-/** Per-female detail drawer (L3): clutch-by-clutch, monthly rhythm, egg weight-loss corridor. */
-const FemaleDrawer: React.FC<{ speciesId: number; className?: string; row: FemaleRow | null; onClose: () => void }> = ({ speciesId, className, row, onClose }) => {
+/* ══════════════════════════════════════════════════════════════════════════════
+   FEMALE PAGE + EGG SHEET (2026-09-10 rebuild, locked mockups egg_detail_flow_1_1
+   [white page] + _1_2 [dark sheet hero]): the drawer is RETIRED — tapping a female
+   swaps the tab to her full page; tapping any egg opens the per-egg bottom sheet
+   copied from the antz egg-detail anatomy (AEID primary / UEID quiet, stat tiles,
+   facts, per-egg weight log + corridor). Sparse rule: a chart needs 3 points.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/** Status → the whole presentation vocabulary (plate/chip/wording). Color = semantics. */
+const eggLook = (theme: any) => {
+  const c = cc(theme)
+
+  return {
+    received: { label: 'Received', plate: c.antzSecondaryBg, glyph: theme.palette.secondary.main, ink: skin.TAB_PILL },
+    incubating: { label: 'In Incubation', plate: skin.TONE_SOFT.good, glyph: skin.ACCENT_FILL, ink: skin.ACCENT_INK },
+    hatched: { label: 'Hatched', plate: skin.TONE_SOFT.good, glyph: skin.ACCENT_FILL, ink: skin.ACCENT_INK },
+    to_be_discarded: { label: 'To Be Discarded', plate: skin.TONE_SOFT.warn, glyph: skin.TONE_TYPE.warn, ink: skin.TONE_TYPE.warn },
+    discarded: { label: 'Discarded', plate: c.BgTeritary, glyph: c.Tertiary, ink: skin.strokeOf(c.Tertiary) }
+  } as Record<EggStatus, { label: string; plate: string; glyph: string; ink: string }>
+}
+
+/** The egg mark — hatched wears the crack line. */
+const EggGlyph: React.FC<{ fill: string; plate: string; hatched?: boolean; size?: number; glass?: boolean }> = ({ fill, plate, hatched, size = 44, glass }) => (
+  <Box
+    sx={{
+      width: size,
+      height: size,
+      borderRadius: size >= 80 ? '16px' : '12px',
+      display: 'grid',
+      placeItems: 'center',
+      flexShrink: 0,
+      bgcolor: glass ? skin.HERO_GLASS : plate
+    }}
+  >
+    <svg width={size * 0.5} height={size * 0.6} viewBox='0 0 22 26'>
+      <path d='M11 1C6 1 1 10 1 16.5 1 21.7 5.5 25 11 25s10-3.3 10-8.5C21 10 16 1 11 1z' fill={fill} />
+      {hatched && <path d='M4 12.5l3 2 3-3 4 4 4-2.5' stroke='#fff' strokeWidth='2' fill='none' />}
+    </svg>
+  </Box>
+)
+
+/** One egg row — plate + AEID (navy identity ink) + quiet meta, toned fate right. */
+const EggListRow: React.FC<{ egg: EggDetail; divider: boolean; onOpen: () => void }> = ({ egg, divider, onOpen }) => {
+  const theme = useTheme() as any
+  const look = eggLook(theme)[egg.status]
+  const last = egg.weighings[egg.weighings.length - 1]
+
+  const meta =
+    egg.status === 'incubating'
+      ? `Day ${egg.dayNow} of ${egg.incubationDays} · last ${last?.grams} g`
+      : egg.status === 'hatched'
+      ? `Hatched ${fmtD(egg.hatchDate)}`
+      : egg.status === 'discarded'
+      ? `Discarded ${fmtD(egg.discardDate)}`
+      : egg.status === 'to_be_discarded'
+      ? `Requested ${fmtD(last?.date || egg.collectedDate)}`
+      : `Collected ${fmtD(egg.collectedDate)}`
+  const sub =
+    egg.status === 'hatched'
+      ? `→ ${egg.hatchlingId}`
+      : egg.status === 'incubating'
+      ? egg.breachDay != null
+        ? 'Below corridor'
+        : 'On track'
+      : egg.discardReason || (egg.status === 'received' ? 'Fresh · awaiting allocation' : '')
+
+  return (
+    <Box
+      onClick={onOpen}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 3.5,
+        py: 3,
+        px: 2,
+        cursor: 'pointer',
+        borderRadius: '12px',
+        borderTop: divider ? `1px solid ${skin.ROW_LINE}` : 'none',
+        transition: `background ${skin.DUR_FAST} ${skin.EASE}, transform ${skin.DUR_STD} ${skin.EASE}`,
+        '&:hover': { bgcolor: skin.ROW_HOVER },
+        '&:active': { transform: 'scale(0.98)', transitionDuration: skin.DUR_FAST }
+      }}
+    >
+      <EggGlyph fill={look.glyph} plate={look.plate} hatched={egg.status === 'hatched'} />
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: '15.5px', fontWeight: 700, color: skin.CARD_ID_INK, fontVariantNumeric: 'tabular-nums' }}>{egg.aeid}</Typography>
+        <Typography sx={{ fontSize: 14, color: skin.FAINT, fontVariantNumeric: 'tabular-nums', mt: 0.25 }}>{meta}</Typography>
+      </Box>
+      <Box sx={{ ml: 'auto', textAlign: 'right', flexShrink: 0 }}>
+        <Typography sx={{ fontSize: '14.5px', fontWeight: 600, color: look.ink }}>{look.label}</Typography>
+        {sub && (
+          <Typography sx={{ fontSize: '14px', color: egg.status === 'hatched' ? skin.ACCENT_INK : skin.FAINT, fontWeight: egg.status === 'hatched' ? 600 : 400, mt: 0.25 }}>
+            {sub}
+          </Typography>
+        )}
+      </Box>
+      <Typography sx={{ color: skin.DASH_INK, fontSize: 19, flexShrink: 0 }}>›</Typography>
+    </Box>
+  )
+}
+
+/** Clutch group header — the species-table teal wash band. */
+const ClutchHead: React.FC<{ title: string; caption?: string; outcome?: React.ReactNode }> = ({ title, caption, outcome }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, bgcolor: skin.TABLE_HEAD_BG, borderRadius: '12px', px: 4, py: 2.75, mt: 3, mb: 1 }}>
+    <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK, whiteSpace: 'nowrap' }}>
+      {title}
+    </Typography>
+    {caption && (
+      <Typography sx={{ fontSize: 14, color: skin.TABLE_HEAD_INK, opacity: 0.85, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{caption}</Typography>
+    )}
+    {outcome && <Box sx={{ ml: 'auto' }}>{outcome}</Box>}
+  </Box>
+)
+
+/** The FEMALE PAGE (in-tab, replaces the retired drawer). White grammar (mockup _1_1). */
+const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleRow; onBack: () => void }> = ({ speciesId, className, row, onBack }) => {
   const theme = useTheme() as any
   const c = cc(theme)
   const [detail, setDetail] = useState<FemaleDetail | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [openEgg, setOpenEgg] = useState<EggDetail | null>(null)
 
   React.useEffect(() => {
     let alive = true
-    if (row) {
-      setLoading(true)
-      getFemaleDetail(speciesId, row.antzId, className).then(d => {
-        if (alive) {
-          setDetail(d)
-          setLoading(false)
-        }
-      })
-    } else setDetail(null)
+    getFemaleDetail(speciesId, row.antzId, className).then(d => alive && setDetail(d))
 
     return () => {
       alive = false
     }
-  }, [row, speciesId, className])
+  }, [speciesId, row.antzId, className])
 
-  const wt = detail?.weightTrack
   const seasonYear = new Date().getFullYear()
+  const eggs = detail?.eggDetails ?? []
+  const live = eggs.filter(e => e.status === 'incubating')
+  const loose = eggs.filter(e => !e.clutchId)
+  const populatedMonths = (detail?.monthly ?? []).filter(v => v > 0).length
 
   return (
-    <SheetDrawer open={!!row} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
-      {row && (
-        <Sheet>
-          <SheetHeader
-            avatar
-            title={row.name}
-            stats={[
-              { label: 'Eggs', value: row.eggs },
-              { label: 'Clutches', value: row.clutches },
-              // hatch outcome is a COUNT, never a percentage (demo review 2026-09-04)
-              { label: 'Hatched', value: `${row.hatched} of ${row.eggs}` }
-            ]}
-            onClose={onClose}
-          />
-          <Box sx={{ flex: 1, overflowY: 'auto', px: SHEET_PX, pb: 3 }}>
-            {loading || !detail ? (
-              <SheetEmpty>Loading…</SheetEmpty>
-            ) : (
-              <>
-                {/* Clutch view: clutch + egg count, hatch outcome as "2 of 3" (demo review
-                    2026-09-04) + each clutch lists its eggs by ID (user call 2026-09-07 —
-                    "show the egg id") with the fate as quiet TEXT (dots/legend stay retired). */}
-                <SheetSection first label='Clutches'>
-                  {detail.clutches.map((cl, ci) => (
-                    <Box
-                      key={cl.clutchId}
-                      sx={{
-                        py: 3.5,
-                        borderBottom: ci < detail.clutches.length - 1 ? `0.5px solid ${c.OutlineVariant}` : 'none'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                            {cl.clutchId}
-                          </Typography>
-                          <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
-                            {fmtD(cl.laidDate)} • {cl.size} {cl.size === 1 ? 'egg' : 'eggs'}
-                          </Typography>
-                        </Box>
-                        <Typography sx={{ ml: 'auto', fontSize: '1rem', fontWeight: 600, color: cl.hatched === 0 ? c.neutralSecondary : c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                          {cl.hatched} of {cl.size} hatched
-                        </Typography>
-                      </Box>
-                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column' }}>
-                        {(cl.eggIds ?? []).map((eid, ei) => (
-                          <Box key={eid + ei} sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 3, py: 1 }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                              {eid}
-                            </Typography>
-                            <Typography sx={{ fontSize: 14, color: c.neutralSecondary, whiteSpace: 'nowrap' }}>
-                              {FATE_LABEL[cl.fates[ei]] ?? cl.fates[ei]}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* back pill */}
+      <Box
+        onClick={onBack}
+        sx={{
+          alignSelf: 'flex-start',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 1.5,
+          bgcolor: '#ffffff',
+          border: `1px solid ${skin.HAIR}`,
+          borderRadius: '999px',
+          px: 4,
+          py: 2,
+          cursor: 'pointer',
+          ...skin.cardPressSx,
+          '&:hover': { bgcolor: skin.ROW_HOVER }
+        }}
+      >
+        <Typography sx={{ fontSize: 19, lineHeight: 1, color: skin.ACCENT_INK }}>‹</Typography>
+        <Typography sx={{ fontSize: 15, fontWeight: 600, color: skin.TAB_PILL }}>Eggs</Typography>
+      </Box>
+
+      {/* identity card — the mobile animal-card grammar */}
+      <SectionCard>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Box sx={{ width: 84, height: 84, borderRadius: '14px', bgcolor: skin.CARD_PLACEHOLDER_BG, position: 'relative', flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -7,
+                left: -7,
+                minWidth: 26,
+                height: 26,
+                px: 1.5,
+                borderRadius: '8px',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#ffffff',
+                bgcolor: skin.ANIMAL_TAG.female
+              }}
+            >
+              F
+            </Box>
+            <Icon icon='mdi:bird' fontSize='2rem' color={c.Outline} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 19, fontWeight: 700, color: skin.CARD_ID_INK }}>
+              {row.name} <Box component='span' sx={{ color: skin.MUTED, fontWeight: 500 }}>· #{row.antzId}</Box>
+            </Typography>
+            {detail && (
+              <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 0.75 }}>
+                {[detail.enclosure, detail.site].filter(Boolean).join(' · ')}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      </SectionCard>
+
+      {/* season verdicts — counts, never percentages. EVERY figure derives from the ONE
+          eggDetails list so the band can never disagree with the rows below it. */}
+      <SignalsBand
+        cells={[
+          { key: 'eggs', label: 'Eggs', count: detail ? eggs.length : row.eggs, tone: 'neutral' },
+          {
+            key: 'fertile',
+            label: 'Fertile',
+            count: detail ? detail.fertile : row.fertile,
+            display: detail ? `${detail.fertile} of ${eggs.length}` : `${row.fertile} of ${row.eggs}`,
+            tone: 'neutral'
+          },
+          {
+            key: 'hatched',
+            label: 'Hatched',
+            count: detail ? eggs.filter(e => e.status === 'hatched').length : row.hatched,
+            display: detail ? `${eggs.filter(e => e.status === 'hatched').length} of ${eggs.length}` : `${row.hatched} of ${row.eggs}`,
+            tone: 'good'
+          },
+          { key: 'live', label: 'In incubation', count: live.length, tone: 'good' }
+        ]}
+      />
+
+      {/* NOW — the attention section */}
+      {live.length > 0 && (
+        <SectionCard title={<Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}>In Incubation · {live.length}</Typography>} titleMb={1}>
+          {live.map((e, i) => (
+            <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
+          ))}
+        </SectionCard>
+      )}
+
+      {/* the season archive: clutches + loose eggs, per-egg rows all tappable */}
+      <SectionCard
+        title={
+          <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}>
+            This Season · {detail?.clutches.length ?? row.clutches} {(detail?.clutches.length ?? row.clutches) === 1 ? 'clutch' : 'clutches'}
+            {loose.length > 0 && ` · ${loose.length} loose ${loose.length === 1 ? 'egg' : 'eggs'}`}
+          </Typography>
+        }
+        titleMb={1}
+      >
+        {(detail?.clutches ?? []).map(cl => {
+          const clutchEggs = eggs.filter(e => e.clutchId === cl.clutchId)
+
+          return (
+            <React.Fragment key={cl.clutchId}>
+              <ClutchHead
+                title={`Clutch ${cl.clutchId}`}
+                caption={`${fmtD(cl.laidDate)} · ${cl.size} ${cl.size === 1 ? 'egg' : 'eggs'}`}
+                outcome={
+                  <Typography sx={{ fontSize: 15, fontWeight: 700, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums' }}>
+                    {cl.hatched} <Box component='span' sx={{ fontWeight: 500, fontSize: 14, opacity: 0.8 }}>of {cl.size} hatched</Box>
+                  </Typography>
+                }
+              />
+              {clutchEggs.map((e, i) => (
+                <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
+              ))}
+            </React.Fragment>
+          )
+        })}
+        {loose.length > 0 && (
+          <>
+            <ClutchHead title='Without Clutch' caption={`${loose.length} ${loose.length === 1 ? 'egg' : 'eggs'}`} />
+            {loose.map((e, i) => (
+              <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
+            ))}
+          </>
+        )}
+        {!detail && <EmptyState message='Loading…' />}
+      </SectionCard>
+
+      {/* rhythm — the kit year line, sparse guard at 3 (CoL rule) */}
+      <SectionCard title='Monthly Laying Rhythm' titleMb={3}>
+        {detail ? (
+          populatedMonths >= 3 ? (
+            <YearLinesChart series={[{ year: seasonYear, values: detail.monthly }]} accent={skin.ACCENT_FILL} noun='eggs' height={220} />
+          ) : (
+            <Box>
+              {detail.monthly.map((v, m) =>
+                v > 0 ? (
+                  <Box key={m} sx={{ display: 'flex', justifyContent: 'space-between', py: 2, borderBottom: `1px solid ${skin.ROW_LINE}` }}>
+                    <Typography sx={{ fontSize: 15, color: skin.MUTED }}>{MONTH_FULL[m]} {seasonYear}</Typography>
+                    <Typography sx={{ fontSize: 15, fontWeight: 700, color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
+                  </Box>
+                ) : null
+              )}
+            </Box>
+          )
+        ) : (
+          <EmptyState message='Loading…' />
+        )}
+      </SectionCard>
+
+      <EggSheet egg={openEgg} onClose={() => setOpenEgg(null)} />
+    </Box>
+  )
+}
+
+/** THE EGG SHEET — the antz egg-detail anatomy in our skin, dark banner hero (mockup _1_2). */
+const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ egg, onClose }) => {
+  const theme = useTheme() as any
+  const c = cc(theme)
+  const [showAllWeights, setShowAllWeights] = useState(false)
+
+  React.useEffect(() => {
+    setShowAllWeights(false)
+  }, [egg?.aeid])
+
+  const look = egg ? eggLook(theme)[egg.status] : null
+  const last = egg?.weighings[egg.weighings.length - 1]
+  const lossPct = egg && last ? Math.round(((last.grams - egg.initialWeight) / egg.initialWeight) * 1000) / 10 : 0
+
+  // full-length actual array for the corridor chart, from the sampled weighings
+  const actual = useMemo(() => {
+    if (!egg) return []
+    const arr: (number | null)[] = Array(egg.incubationDays + 1).fill(null)
+    egg.weighings.forEach(w => {
+      if (w.day <= egg.incubationDays) arr[w.day] = w.grams
+    })
+
+    return arr
+  }, [egg])
+
+  const capsSx = { fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT } as const
+
+  const tile = (label: string, value: React.ReactNode, sub?: React.ReactNode, subColor?: string, meterPct?: number) => (
+    <Box sx={{ flex: 1, bgcolor: skin.GROUND, borderRadius: '14px', px: 4, py: 3.5, minWidth: 0 }}>
+      <Typography sx={capsSx}>{label}</Typography>
+      <Typography sx={{ fontSize: 22, fontWeight: 700, color: skin.VALUE, mt: 1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{value}</Typography>
+      {sub && (
+        <Typography sx={{ fontSize: 14, mt: 0.5, color: subColor || skin.MUTED, fontWeight: subColor ? 600 : 400, fontVariantNumeric: 'tabular-nums' }}>{sub}</Typography>
+      )}
+      {meterPct != null && (
+        <Box sx={{ height: 6, borderRadius: '99px', bgcolor: skin.TRACK, mt: 2.5, overflow: 'hidden' }}>
+          <Box sx={{ height: '100%', width: `${meterPct}%`, borderRadius: '99px', bgcolor: skin.ACCENT_FILL }} />
+        </Box>
+      )}
+    </Box>
+  )
+
+  const fact = (k: string, v: React.ReactNode) => (
+    <Box sx={{ display: 'flex', gap: 3, py: 2, borderBottom: `1px solid ${skin.ROW_LINE}`, fontSize: 15, minWidth: 0 }}>
+      <Typography sx={{ width: 118, flexShrink: 0, color: skin.FAINT, fontSize: 15 }}>{k}</Typography>
+      <Typography sx={{ color: skin.INK2, fontWeight: 500, fontSize: 15, fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>{v}</Typography>
+    </Box>
+  )
+
+  const chipSx = (bg: string, ink: string) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    height: 30,
+    px: 3,
+    borderRadius: '999px',
+    fontSize: 14,
+    fontWeight: 600,
+    whiteSpace: 'nowrap' as const,
+    bgcolor: bg,
+    color: ink
+  })
+
+  const of = (t: string) => <Box component='span' sx={{ fontSize: '14.5px', fontWeight: 500, color: skin.NEUTRAL_SEC }}>{t}</Box>
+
+  const shownWeights = egg ? (showAllWeights ? [...egg.weighings].reverse() : [...egg.weighings].reverse().slice(0, 3)) : []
+
+  return (
+    <SheetDrawer open={!!egg} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
+      {egg && look && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+          {/* ── dark banner hero (the species-banner ramp — the identity anchor) ── */}
+          <Box sx={{ background: skin.BANNER_GRAD, px: 7, pt: 5, pb: 5, display: 'flex', gap: 4.5, alignItems: 'flex-start', flexShrink: 0 }}>
+            <EggGlyph fill={look.glyph} plate={look.plate} hatched={egg.status === 'hatched'} size={92} glass />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: 27, fontWeight: 700, color: skin.HERO_ON, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{egg.aeid}</Typography>
+              <Typography sx={{ fontSize: 15, color: skin.HERO_MUTE, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
+                <Box component='span' sx={{ color: skin.HERO_SOFT, fontWeight: 600 }}>UEID :</Box> {egg.ueid}
+              </Typography>
+              <Typography sx={{ fontSize: '13.5px', color: skin.HERO_MUTE, mt: 2 }}>Updated {fmtD(last?.date || egg.collectedDate)}</Typography>
+            </Box>
+            <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2.5, flexShrink: 0 }}>
+              <Box
+                onClick={onClose}
+                sx={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: skin.HERO_GLASS, color: skin.HERO_ON, cursor: 'pointer', fontSize: 15 }}
+              >
+                ✕
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={chipSx(look.plate, look.ink)}>{look.label}</Box>
+                {egg.condition && egg.condition !== look.label && <Box sx={chipSx(skin.HERO_GLASS, skin.HERO_SOFT)}>{egg.condition}</Box>}
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ flex: 1, overflowY: 'auto', px: 7, pb: 8, minHeight: 0 }}>
+            {/* ── stat tiles (the antz hero cards → mint StatTiles) ── */}
+            <Box sx={{ display: 'flex', gap: 3, py: 4.5, borderBottom: `1px solid ${skin.HAIR}` }}>
+              {egg.status === 'received' && (
+                <>
+                  {tile('Age', <>{Math.max(1, Math.round((Date.now() - new Date(egg.collectedDate).getTime()) / 86400000))} {of('days')}</>, `Found ${fmtD(egg.collectedDate)}`)}
+                  {tile('Weight', `${egg.initialWeight} g`, 'Initial weighing')}
+                  {tile('Condition', 'Fresh', 'State: Received')}
+                </>
+              )}
+              {egg.status === 'incubating' && (
+                <>
+                  {tile('Incubation', <>Day {egg.dayNow} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, Math.round(((egg.dayNow || 0) / egg.incubationDays) * 100))}
+                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`, egg.breachDay != null ? skin.TONE_TYPE.warn : skin.TONE_TYPE.good)}
+                  {tile('Condition', egg.condition, (egg.dayNow || 0) >= 9 ? 'Candled Day 9' : 'Candling due Day 9')}
+                </>
+              )}
+              {egg.status === 'hatched' && (
+                <>
+                  {tile('Incubation', <>{egg.incubationDays} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.hatchDate)}`)}
+                  {tile('Weight loss', `${lossPct}%`, `${egg.initialWeight} → ${last?.grams} g`, skin.TONE_TYPE.good)}
+                  {tile('Hatch', egg.hatchMethod || 'Natural', `${egg.hatchWeight} g at hatch`)}
+                </>
+              )}
+              {egg.status === 'to_be_discarded' && (
+                <>
+                  {tile('Incubation', <>Day {egg.incubationDays} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, 100)}
+                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`)}
+                  {tile('Condition', egg.discardReason || egg.condition, `Confirmed Day ${last?.day ?? egg.incubationDays}`)}
+                </>
+              )}
+              {egg.status === 'discarded' && (
+                <>
+                  {tile('In system', <>{Math.max(1, last?.day ?? 1)} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.discardDate)}`)}
+                  {tile('Last weight', `${last?.grams} g`, `Recorded ${fmtD(last?.date)}`)}
+                  {tile('Reason', egg.discardReason || '—', egg.discardReason === 'Infertile on candling' ? 'On candling · Day 9' : undefined)}
+                </>
+              )}
+            </Box>
+
+            {/* ── details (the antz left card: provenance, location, parents, initials) ── */}
+            <Box sx={{ py: 4, borderBottom: `1px solid ${skin.HAIR}` }}>
+              <Typography sx={capsSx}>Details</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 8, mt: 2 }}>
+                {fact('Laid', fmtD(egg.laidDate))}
+                {fact('Collected', fmtD(egg.collectedDate))}
+                {fact('Clutch', egg.clutchId || 'No clutch')}
+                {fact('Site', egg.site || '—')}
+                {fact('Nursery', egg.nursery ? `${egg.nursery} · Incubator ${egg.incubator}` : 'Not allocated')}
+                {fact('Mother', egg.motherLabel)}
+                {fact(
+                  'Father',
+                  egg.probableFathers ? (
+                    <Box component='span' sx={{ color: skin.ACCENT_INK, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                      Probable ({egg.probableFathers})
                     </Box>
-                  ))}
-                </SheetSection>
+                  ) : (
+                    egg.fatherLabel
+                  )
+                )}
+                {fact('Initial weight', `${egg.initialWeight} g`)}
+                {fact('Initial size', `${egg.lengthMm} mm × ${egg.widthMm} mm`)}
+              </Box>
+            </Box>
 
-                {/* seasonal chart = the kit year-per-line LINE (one season here = one line) */}
-                <SheetSection label='Monthly Laying Rhythm'>
-                  <YearLinesChart series={[{ year: seasonYear, values: detail.monthly }]} accent={skin.ACCENT_FILL} noun='eggs' height={220} />
-                </SheetSection>
-
-                {wt && (
-                  <SheetSection label={`Egg Weight Loss vs Ideal • ${wt.startWeight} g • ${wt.incubationDays}-day incubation`} noDivider>
+            {/* ── weight — per-egg log + corridor (3-point sparse rule) ── */}
+            {egg.status !== 'received' && (
+              <Box sx={{ pt: 4 }}>
+                <Typography sx={capsSx}>
+                  {egg.weighings.length >= 3
+                    ? `Weight vs ideal loss · target ${egg.targetLossPct}%`
+                    : `Weight · ${egg.weighings.length} ${egg.weighings.length === 1 ? 'weighing' : 'weighings'} — the chart appears from the 3rd`}
+                </Typography>
+                {egg.weighings.length >= 3 && (
+                  <Box sx={{ mt: 2 }}>
                     <TrendAreaChart
-                      values={wt.actual}
-                      labels={wt.ideal.map((_, d) => `Day ${d}`)}
+                      values={actual}
+                      labels={egg.ideal.map((_, d) => `Day ${d}`)}
                       color={theme.palette.secondary.main}
                       name='This egg'
                       unit=' g'
-                      height={240}
+                      height={230}
                       corridor={{
-                        ideal: wt.ideal,
-                        upper: wt.bandUpper,
-                        lower: wt.bandLower,
-                        idealName: `Ideal (${wt.targetLossPct}% loss)`,
-                        breachIndex: wt.breachDay ?? undefined
+                        ideal: egg.ideal,
+                        upper: egg.bandUpper,
+                        lower: egg.bandLower,
+                        idealName: `Ideal (${egg.targetLossPct}% loss)`,
+                        breachIndex: egg.breachDay ?? undefined
                       }}
                     />
-                  </SheetSection>
+                    {egg.breachDay != null && (
+                      <Box sx={{ mt: 2 }}>
+                        <Box sx={chipSx(skin.TONE_SOFT.warn, skin.TONE_TYPE.warn)}>⚠ Below corridor since Day {egg.breachDay}</Box>
+                      </Box>
+                    )}
+                  </Box>
                 )}
-              </>
+                <Box sx={{ mt: 3, border: `1px solid ${skin.HAIR}`, borderRadius: '12px', overflow: 'hidden' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', px: 4, py: 2.5, bgcolor: skin.TABLE_HEAD_BG }}>
+                    <Typography sx={{ width: 150, fontSize: '13.5px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK }}>Date</Typography>
+                    <Typography sx={{ width: 100, fontSize: '13.5px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK }}>Time</Typography>
+                    <Typography sx={{ ml: 'auto', mr: 10, fontSize: '13.5px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK }}>Change</Typography>
+                    <Typography sx={{ fontSize: '13.5px', fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK }}>Weight</Typography>
+                  </Box>
+                  {shownWeights.map((w, i) => {
+                    const idx = egg.weighings.findIndex(x => x.day === w.day)
+                    const prev = idx > 0 ? egg.weighings[idx - 1] : undefined
+                    const delta = prev ? Math.round((w.grams - prev.grams) * 10) / 10 : null
+
+                    return (
+                      <Box key={w.day} sx={{ display: 'flex', alignItems: 'center', px: 4, py: 2.75, borderTop: i === 0 ? 'none' : `1px solid ${skin.ROW_LINE}` }}>
+                        <Typography sx={{ width: 150, fontSize: 15, fontWeight: 500, color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>{fmtD(w.date)}</Typography>
+                        <Typography sx={{ width: 100, fontSize: 15, color: skin.MUTED, fontVariantNumeric: 'tabular-nums' }}>{w.time}</Typography>
+                        <Typography sx={{ ml: 'auto', mr: 10, fontSize: 14, color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>
+                          {delta == null ? '' : `${delta > 0 ? '+' : ''}${delta} g`}
+                        </Typography>
+                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>{w.grams} g</Typography>
+                      </Box>
+                    )
+                  })}
+                </Box>
+                {egg.weighings.length > 3 && !showAllWeights && (
+                  <Typography
+                    onClick={() => setShowAllWeights(true)}
+                    sx={{ textAlign: 'center', pt: 3, fontSize: '14.5px', fontWeight: 600, color: skin.ACCENT_INK, cursor: 'pointer' }}
+                  >
+                    View all {egg.weighings.length} weighings ›
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* ── outcome / next — structural emphasis on a tone plate ── */}
+            {egg.status === 'received' && (
+              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.GROUND, px: 5, py: 4 }}>
+                <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Next</Typography>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5 }}>Awaiting allocation to incubation</Typography>
+                <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1 }}>The weight log starts with the first incubation weighing</Typography>
+              </Box>
+            )}
+            {egg.status === 'hatched' && (
+              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.TONE_SOFT.good, px: 5, py: 4 }}>
+                <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Outcome</Typography>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5, fontVariantNumeric: 'tabular-nums' }}>
+                  Hatched {fmtD(egg.hatchDate)} → <Box component='span' sx={{ color: skin.ACCENT_INK }}>{egg.hatchlingId}</Box>
+                </Typography>
+                <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
+                  {egg.hatchWeight} g at hatch · {egg.hatchMethod}
+                </Typography>
+              </Box>
+            )}
+            {egg.status === 'to_be_discarded' && (
+              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.TONE_SOFT.warn, px: 5, py: 4 }}>
+                <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Pending</Typography>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5 }}>Discard requested · {egg.discardReason}</Typography>
+                <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1 }}>Security check pending · Necropsy: sample to be taken</Typography>
+              </Box>
+            )}
+            {egg.status === 'discarded' && (
+              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: c.BgTeritary, px: 5, py: 4 }}>
+                <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Outcome</Typography>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5, fontVariantNumeric: 'tabular-nums' }}>
+                  Discarded {fmtD(egg.discardDate)} · {egg.discardReason}
+                </Typography>
+                <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1 }}>Batch {egg.discardBatch} · Sample taken</Typography>
+              </Box>
             )}
           </Box>
-        </Sheet>
+        </Box>
       )}
     </SheetDrawer>
   )
@@ -838,6 +1283,13 @@ const BreedingAnalytics: React.FC<{
     }
   ]
 
+  // Tapping a female SWAPS the tab to her full page (user call 2026-09-10 — too much
+  // detail for a sheet; the egg sheet then stacks as the only overlay). Back restores
+  // the roster exactly as left — all state lives up here.
+  if (openFemale) {
+    return <FemalePage speciesId={s.speciesId} className={s.className} row={openFemale} onBack={() => setOpenFemale(null)} />
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* ── ZONE 0 · page scope — the CoL strip grammar (user call 2026-09-06):
@@ -1040,7 +1492,6 @@ const BreedingAnalytics: React.FC<{
         )
       })()}
 
-      <FemaleDrawer speciesId={s.speciesId} className={s.className} row={openFemale} onClose={() => setOpenFemale(null)} />
       <ListSheet view={sheetView} onClose={() => setSheet(null)} />
 
       {/* Settings — data columns (choose + order), saved per user (Population pattern) */}

@@ -171,6 +171,55 @@ export interface WeightTrack {
   breachDay?: number // first day the actual left the band (if any)
 }
 
+/** One recorded weighing in an egg's log (the egg module's assessments_data grammar). */
+export interface EggWeighing {
+  day: number
+  date: string
+  time: string // deterministic "hh:mm" working-hours stamp
+  grams: number
+}
+
+export type EggStatus = 'received' | 'incubating' | 'hatched' | 'to_be_discarded' | 'discarded'
+
+/** The FULL per-egg record — the antz egg-detail surface (/egg/eggs/{id}) as the
+ *  declared future-backend contract. AEID (egg_code) is the PRIMARY identity,
+ *  UEID (egg_number) the quiet second line — the module's own hero order. */
+export interface EggDetail {
+  aeid: string
+  ueid: string
+  clutchId?: string // undefined = a loose, no-clutch egg
+  status: EggStatus
+  condition: string // Intact / Fresh / Dead in shell / Infertile / Broken / Rotten
+  laidDate: string
+  collectedDate: string
+  site?: string
+  nursery?: string
+  incubator?: string
+  motherLabel: string
+  fatherLabel: string
+  /** >0 renders the "Probable (N)" tappable grammar instead of a single father. */
+  probableFathers?: number
+  initialWeight: number
+  lengthMm: number
+  widthMm: number
+  incubationDays: number
+  targetLossPct: number
+  /** incubating only — the current incubation day */
+  dayNow?: number
+  weighings: EggWeighing[] // oldest → newest
+  ideal: number[]
+  bandUpper: number[]
+  bandLower: number[]
+  breachDay?: number
+  hatchDate?: string
+  hatchlingId?: string
+  hatchWeight?: number
+  hatchMethod?: string
+  discardDate?: string
+  discardReason?: string
+  discardBatch?: string
+}
+
 export interface FemaleDetail {
   speciesId: number
   antzId: string
@@ -179,7 +228,11 @@ export interface FemaleDetail {
   enclosure?: string
   site?: string
   eggs: number
+  /** eggs minus the infertile ones — the female-level pairing signal. */
+  fertile: number
   clutches: ClutchDetail[]
+  /** Every egg as a full record: clutch eggs (grouped by clutchId) + loose eggs. */
+  eggDetails: EggDetail[]
   monthly: number[]
   monthlyLabels: string[]
   weightTrack: WeightTrack
@@ -589,6 +642,145 @@ function buildWeightTrack(r: () => number, className?: string): WeightTrack {
   return { eggLabel: 'Representative egg', startWeight, incubationDays, targetLossPct, ideal, bandUpper, bandLower, actual, breachDay }
 }
 
+/* ── per-egg record synthesis (2026-09-10 build: female page + egg sheet) ────── */
+
+const isoAddDays = (iso: string, d: number) => {
+  const t = new Date(iso)
+  t.setDate(t.getDate() + d)
+
+  return t.toISOString().slice(0, 10)
+}
+const daysSince = (iso: string) => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000))
+
+/** Build one full egg record. `endDay` = the last day the egg was weighed (status-driven). */
+function buildEggDetail(
+  er: () => number,
+  className: string | undefined,
+  base: {
+    aeid: string
+    ueid: string
+    clutchId?: string
+    status: EggStatus
+    laidDate: string
+    site?: string
+    motherLabel: string
+  }
+): EggDetail {
+  const reptile = className === 'Reptilia'
+  const initialWeight = round(reptile ? 8 + er() * 30 : 24 + er() * 30, 1)
+  const age = daysSince(base.laidDate)
+  // hatch/discard events can never postdate today — a hatched egg's incubation is
+  // clamped inside its real age (synthetic-data clamp, 2026-09-10 harness-caught).
+  const rawIncubation = reptile ? 55 + Math.floor(er() * 20) : 21 + Math.floor(er() * 12)
+  const incubationDays = base.status === 'hatched' ? Math.min(rawIncubation, Math.max(8, age - 1)) : rawIncubation
+  const targetLossPct = round(13 + er() * 2, 1)
+  const perDay = (initialWeight * (targetLossPct / 100)) / incubationDays
+  const tol = initialWeight * 0.012
+
+  const { status } = base
+  const collectedDate = isoAddDays(base.laidDate, er() > 0.6 ? 1 : 0)
+  const discardReason =
+    status === 'discarded' || status === 'to_be_discarded'
+      ? er() < 0.4
+        ? 'Infertile on candling'
+        : er() < 0.75
+        ? 'Dead in shell'
+        : er() < 0.9
+        ? 'Broken'
+        : 'Rotten'
+      : undefined
+
+  // how far the weighing log runs, per status — never past the egg's real age
+  const endDayRaw =
+    status === 'received'
+      ? 0
+      : status === 'hatched'
+      ? incubationDays
+      : status === 'incubating'
+      ? Math.min(Math.max(1, age), incubationDays - 2)
+      : discardReason === 'Infertile on candling'
+      ? 9 + Math.floor(er() * 5)
+      : discardReason === 'Broken'
+      ? 3 + Math.floor(er() * 5)
+      : incubationDays // dead in shell / rotten discovered at term
+  const endDay = status === 'received' ? 0 : Math.min(endDayRaw, Math.max(1, age - 1))
+
+  const ideal: number[] = []
+  const bandUpper: number[] = []
+  const bandLower: number[] = []
+  const driesOut = er() > 0.6
+  let breachDay: number | undefined
+  const weighings: EggWeighing[] = []
+  const gap = 2 + Math.floor(er() * 2) // weighed every 2–3 days
+  for (let d = 0; d <= incubationDays; d++) {
+    const idl = initialWeight - perDay * d
+    ideal.push(round(idl, 1))
+    bandUpper.push(round(idl + tol, 1))
+    bandLower.push(round(idl - tol, 1))
+    if (d <= endDay && (d % gap === 0 || d === endDay)) {
+      const drift = driesOut ? -(d / incubationDays) * tol * 2.4 : (d / incubationDays) * tol * 1.4
+      const jitter = (er() - 0.5) * tol * 0.4
+      const grams = round(idl + drift + jitter, 1)
+      if (breachDay == null && (grams > idl + tol || grams < idl - tol)) breachDay = d
+      weighings.push({
+        day: d,
+        date: isoAddDays(base.laidDate, d),
+        time: `${pad(9 + Math.floor(er() * 3))}:${pad(Math.floor(er() * 12) * 5)}`,
+        grams
+      })
+    }
+  }
+
+  const last = weighings[weighings.length - 1]
+  const father = er()
+  const detail: EggDetail = {
+    ...base,
+    collectedDate,
+    condition:
+      status === 'received'
+        ? 'Fresh'
+        : discardReason === 'Infertile on candling'
+        ? 'Infertile'
+        : discardReason || 'Intact',
+    nursery: status === 'received' ? undefined : `N-${1 + Math.floor(er() * 3)}`,
+    incubator: status === 'received' ? undefined : `INC-${pad(1 + Math.floor(er() * 12))}`,
+    motherLabel: base.motherLabel,
+    fatherLabel: father < 0.45 ? 'Probable (2)' : `Ring: R-${pad(1000 + Math.floor(father * 8000), 4)}`,
+    probableFathers: father < 0.45 ? 2 : undefined,
+    initialWeight,
+    lengthMm: Math.round(reptile ? 25 + er() * 20 : 35 + er() * 15),
+    widthMm: Math.round(reptile ? 20 + er() * 14 : 27 + er() * 10),
+    incubationDays,
+    targetLossPct,
+    dayNow: status === 'incubating' ? endDay : undefined,
+    weighings,
+    ideal,
+    bandUpper,
+    bandLower,
+    breachDay: breachDay != null && breachDay <= endDay ? breachDay : undefined
+  }
+
+  if (status === 'hatched') {
+    detail.hatchDate = isoAddDays(base.laidDate, incubationDays)
+    detail.hatchlingId = `ANTZ-${pad(1000 + Math.floor(er() * 8999), 4)}`
+    detail.hatchWeight = round(initialWeight * (0.32 + er() * 0.08), 1)
+    detail.hatchMethod = er() < 0.85 ? 'Natural' : 'Assisted'
+  }
+  if (status === 'discarded') {
+    detail.discardDate = isoAddDays(base.laidDate, Math.min(endDay + 1, age))
+    detail.discardReason = discardReason
+    detail.discardBatch = `DR-${pad(1000 + Math.floor(er() * 900), 4)}`
+  }
+  if (status === 'to_be_discarded') {
+    detail.discardReason = discardReason
+  }
+  if (status === 'received' && last == null) {
+    detail.weighings = [{ day: 0, date: collectedDate, time: '10:05', grams: initialWeight }]
+  }
+
+  return detail
+}
+
 export async function getFemaleDetail(
   speciesId: number | string,
   antzId: string,
@@ -611,8 +803,9 @@ export async function getFemaleDetail(
     const fates: EggFate[] = []
     const eggIds: string[] = []
     for (let e = 0; e < size; e++) {
-      // UEID-#### = the egg module's user-facing egg number grammar (eggs.ts precedent)
-      eggIds.push(`UEID-${pad(100 + Math.floor(cr() * 8899), 4)}`)
+      // AEID-#### = the egg module's system egg_code — the PRIMARY egg identity
+      // (user call 2026-09-10; UEID/egg_number is the quiet second line).
+      eggIds.push(`AEID-${pad(100 + Math.floor(cr() * 8899), 4)}`)
       if (e < thisHatched) fates.push('hatched')
       else {
         const roll = cr()
@@ -630,6 +823,59 @@ export async function getFemaleDetail(
     }
   })
 
+  /* full per-egg records — clutch eggs first (statuses from their fates; the FRESHEST
+     clutch keeps its non-hatched eggs LIVE in incubation), then two loose eggs so the
+     no-clutch grammar always has examples. One dead-in-shell egg stays 'to_be_discarded'
+     (the pending security-check state). */
+  const er = rng(seedOf(sid) ^ seedOf(f.antzId) ^ 0x5eed)
+  const motherLabel = `Chip: ${pad(900 + Math.floor(er() * 99))}-${pad(10000 + Math.floor(er() * 89999), 5)} · #${f.antzId}`
+  let pendingUsed = false
+  let liveLeft = 2
+  const eggDetails: EggDetail[] = []
+  clutches.forEach((cl, ci) => {
+    cl.fates.forEach((fate, ei) => {
+      let status: EggStatus
+      if (fate === 'hatched') status = 'hatched'
+      else if (ci === 0 && liveLeft > 0) {
+        status = 'incubating'
+        liveLeft--
+      } else if (fate === 'dead_in_shell' && !pendingUsed) {
+        status = 'to_be_discarded'
+        pendingUsed = true
+      } else status = 'discarded'
+      eggDetails.push(
+        buildEggDetail(er, className, {
+          aeid: cl.eggIds[ei],
+          ueid: `E-${pad(4000 + Math.floor(er() * 5000), 4)}`,
+          clutchId: cl.clutchId,
+          status,
+          laidDate: cl.laidDate,
+          site: f.site,
+          motherLabel
+        })
+      )
+    })
+  })
+  eggDetails.push(
+    buildEggDetail(er, className, {
+      aeid: `AEID-${pad(100 + Math.floor(er() * 8899), 4)}`,
+      ueid: `E-${pad(4000 + Math.floor(er() * 5000), 4)}`,
+      status: 'received',
+      laidDate: isoDaysAgo(2),
+      site: f.site,
+      motherLabel
+    }),
+    buildEggDetail(er, className, {
+      aeid: `AEID-${pad(100 + Math.floor(er() * 8899), 4)}`,
+      ueid: `E-${pad(4000 + Math.floor(er() * 5000), 4)}`,
+      status: 'incubating',
+      laidDate: isoDaysAgo(4), // 4 days in = 1–2 weighings → the sparse example
+      site: f.site,
+      motherLabel
+    })
+  )
+  const fertile = eggDetails.filter(e => e.condition !== 'Infertile').length
+
   return {
     speciesId: sid,
     antzId: f.antzId,
@@ -638,7 +884,9 @@ export async function getFemaleDetail(
     enclosure: f.enclosure,
     site: f.site,
     eggs: b.eggs,
+    fertile,
     clutches,
+    eggDetails,
     monthly: b.monthly,
     monthlyLabels: MONTHS,
     weightTrack: buildWeightTrack(b.r, className)
