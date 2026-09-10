@@ -738,7 +738,7 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
             )}
             {egg.status === 'hatched' && (
               <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.TONE_SOFT.good, px: 5, py: 4, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                <Box sx={{ minWidth: 0, mr: 'auto' }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Outcome</Typography>
                   <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5, fontVariantNumeric: 'tabular-nums' }}>
                     Hatched {fmtD(egg.hatchDate)}
@@ -748,9 +748,9 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                   </Typography>
                 </Box>
                 {/* the hatchling as THE animal card (user call 2026-09-10 — never a bare id):
-                    bare on the wash, roomy, split from the text by a vertical hairline */}
+                    bare on the wash, equal halves — the hairline lands mid-panel */}
                 {egg.hatchlingId && (
-                  <Box sx={{ borderLeft: `1px solid ${c.OutlineVariant}`, pl: 5, py: 1, flexShrink: 0, minWidth: 300 }}>
+                  <Box sx={{ flex: 1, minWidth: 0, borderLeft: `1px solid ${c.OutlineVariant}`, pl: 5, py: 1 }}>
                     <AnimalIdCard
                       identifiers={synthAnimalIdentity(egg.hatchlingId).identifiers}
                       enclosure={synthAnimalIdentity(egg.hatchlingId).enclosure}
