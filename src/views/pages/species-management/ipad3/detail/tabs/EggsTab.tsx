@@ -284,7 +284,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
             return (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
                 <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>
-                  Day {e.dayNow} of {e.incubationDays} · last {last?.grams} g
+                  Day {e.dayNow} of {e.incubationDays}
                 </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600, color: e.breachDay != null ? skin.TONE_TYPE.warn : skin.TONE_TYPE.good }}>
                   {e.breachDay != null ? '⚠ Below corridor' : 'On track'}
@@ -294,21 +294,16 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
           }
           const text =
             e.status === 'hatched'
-              ? `Hatched ${fmtD(e.hatchDate)}`
+              ? fmtD(e.hatchDate)
               : e.status === 'discarded'
               ? `${fmtD(e.discardDate)} · ${e.discardReason}`
               : e.status === 'to_be_discarded'
-              ? `${e.discardReason} · security check pending`
+              ? e.discardReason
               : 'Fresh · awaiting allocation'
 
           return (
             <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {text}
-              {e.status === 'hatched' && (
-                <Box component='span' sx={{ ml: 1.5, fontWeight: 700, color: skin.ACCENT_INK }}>
-                  → {e.hatchlingId}
-                </Box>
-              )}
             </Typography>
           )
         }
