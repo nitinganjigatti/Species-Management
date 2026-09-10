@@ -748,14 +748,16 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                   </Typography>
                 </Box>
                 {/* the hatchling as THE animal card (user call 2026-09-10 — never a bare id):
-                    bare on the wash, equal halves — the hairline lands mid-panel */}
+                    equal halves, the card on a white plate, no divider */}
                 {egg.hatchlingId && (
-                  <Box sx={{ flex: 1, minWidth: 0, borderLeft: `1px solid ${c.OutlineVariant}`, pl: 5, py: 1 }}>
-                    <AnimalIdCard
-                      identifiers={synthAnimalIdentity(egg.hatchlingId).identifiers}
-                      enclosure={synthAnimalIdentity(egg.hatchlingId).enclosure}
-                      tag={synthAnimalIdentity(egg.hatchlingId).tag}
-                    />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '12px', px: 4, py: 3 }}>
+                      <AnimalIdCard
+                        identifiers={synthAnimalIdentity(egg.hatchlingId).identifiers}
+                        enclosure={synthAnimalIdentity(egg.hatchlingId).enclosure}
+                        tag={synthAnimalIdentity(egg.hatchlingId).tag}
+                      />
+                    </Box>
                   </Box>
                 )}
               </Box>
