@@ -456,7 +456,7 @@ const PairingTab: React.FC<{ housing?: SpeciesHousing; animals?: AnimalRecord[] 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, width: '100%', minWidth: 0 }}>
               <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK, whiteSpace: 'nowrap' }}>
-                {view === 'site' ? 'Site Demographics' : 'Enclosure Demographics'}
+                Enclosure Demographics
               </Typography>
               {multiSite && (
                 <ViewToggle
