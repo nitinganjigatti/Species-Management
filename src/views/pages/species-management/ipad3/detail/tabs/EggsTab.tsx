@@ -311,20 +311,19 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
           cells riding the same white card behind a hairline. Every figure derives
           from the ONE eggDetails list so the band can never disagree with the rows. */}
       <SectionCard>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-          <Box sx={{ flexShrink: 0, py: 1 }}>
-            <AnimalIdCard
-              identifiers={femaleIdentifiers}
-              enclosure={detail?.enclosure}
-              site={detail?.site}
-              tag='female'
-              name={row.name !== row.identifier && row.name !== row.antzId ? row.name : undefined}
-              photo={synthAnimalIdentity(row.antzId).hasPhoto ? heroPhoto?.src : undefined}
-              photoPos={heroPhoto?.bgPos}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 360px', display: 'flex', minWidth: 0, borderLeft: { xs: 'none', md: `1px solid ${skin.HAIR}` } }}>
-            {[
+        <Box sx={{ pb: 4, borderBottom: `1px solid ${skin.HAIR}` }}>
+          <AnimalIdCard
+            identifiers={femaleIdentifiers}
+            enclosure={detail?.enclosure}
+            site={detail?.site}
+            tag='female'
+            name={row.name !== row.identifier && row.name !== row.antzId ? row.name : undefined}
+            photo={synthAnimalIdentity(row.antzId).hasPhoto ? heroPhoto?.src : undefined}
+            photoPos={heroPhoto?.bgPos}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', minWidth: 0, pt: 4 }}>
+          {[
               { label: 'Eggs', value: detail ? `${eggs.length}` : `${row.eggs}`, ink: skin.VALUE },
               {
                 label: 'Fertile',
@@ -340,7 +339,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
               },
               { label: 'In incubation', value: `${live.length}`, ink: skin.ACCENT_INK }
             ].map((cell, i) => (
-              <Box key={cell.label} sx={{ flex: 1, px: 5, py: 2, minWidth: 0, borderLeft: i > 0 ? `1px solid ${skin.HAIR}` : 'none' }}>
+              <Box key={cell.label} sx={{ flex: 1, pl: i > 0 ? 5 : 0, pr: 5, py: 2, minWidth: 0, borderLeft: i > 0 ? `1px solid ${skin.HAIR}` : 'none' }}>
                 <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT, whiteSpace: 'nowrap' }}>
                   {cell.label}
                 </Typography>
@@ -349,7 +348,6 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
                 </Typography>
               </Box>
             ))}
-          </Box>
         </Box>
       </SectionCard>
 
