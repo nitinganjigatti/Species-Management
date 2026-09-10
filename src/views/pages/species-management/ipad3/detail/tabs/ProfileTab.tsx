@@ -393,6 +393,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, header }) => {
     >
       {/* ════ LEFT COLUMN ════ */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        {/* Conservation leads the column (user call 2026-09-10) */}
+        <Section tint={T.mint} icon='mdi:shield-outline' title='Conservation Risk Level'>
+          <IucnScale status={header?.iucnStatus} />
+        </Section>
+
         <Section tint={T.teal} icon='mdi:clipboard-text-outline' title='About Species'>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
             {[
@@ -446,9 +451,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, header }) => {
           </Box>
         </Section>
 
-        <Section tint={T.mint} icon='mdi:shield-outline' title='Conservation Risk Level'>
-          <IucnScale status={header?.iucnStatus} />
-        </Section>
       </Box>
 
       {/* ════ RIGHT COLUMN ════ */}
