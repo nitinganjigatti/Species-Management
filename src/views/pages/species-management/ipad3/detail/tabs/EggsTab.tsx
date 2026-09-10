@@ -441,13 +441,27 @@ const BreedingAnalytics: React.FC<{
   }, [scoped.monthly]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* seasonal laying = the kit YearLinesChart (LINE, year-per-line, Jan–Dec — the
-     2026-09-04 standard). The funnel carries monthly LAID counts for the current
-     season only, so the ladder holds one line; more seasons join as the data grows. */
+     2026-09-04 standard). Year lines built from the EGG RECORDS' lay dates (site-scoped),
+     so every season with data gets its own line and the 1Y|2Y|3Y|Custom window actually
+     windows years — the CoL Births behavior (user call 2026-09-10). The funnel's single
+     current-season array is the fallback when no records ride the payload. */
   const seasonYear = Number(s.season) || new Date().getFullYear()
-  const layingSeries: YearSeries[] = useMemo(
-    () => [{ year: seasonYear, values: scoped.monthly }],
-    [seasonYear, scoped.monthly]
-  )
+  const layingSeries: YearSeries[] = useMemo(() => {
+    const recs = (eggRecords ?? []).filter(e => (siteFilter ? e.site === siteFilter : true))
+    const byYear = new Map<number, number[]>()
+    recs.forEach(e => {
+      const d = String(e.layDate || e.collectionDate || '')
+      const y = Number(d.slice(0, 4))
+      const m = Number(d.slice(5, 7)) - 1
+      if (!y || m < 0 || m > 11) return
+      if (!byYear.has(y)) byYear.set(y, Array(12).fill(0))
+      byYear.get(y)![m]++
+    })
+    if (!byYear.size) return [{ year: seasonYear, values: scoped.monthly }]
+
+    // latest first — the window math reads seriesYears[0] as the latest year
+    return [...byYear.entries()].sort((a, b) => b[0] - a[0]).map(([year, values]) => ({ year, values }))
+  }, [eggRecords, siteFilter, seasonYear, scoped.monthly])
 
   /* period window (the CoL 1Y|2Y|3Y|Custom grammar, cap 5): windows the year lines.
      One season of laid counts exists today, so every window shows the same single
