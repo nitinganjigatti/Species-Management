@@ -295,7 +295,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
           sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 4, cursor: 'pointer', ...skin.cardPressSx }}
         >
           <Icon icon='mdi:chevron-left' fontSize='1.5rem' color={skin.ACCENT_INK} />
-          <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.ACCENT_INK }}>Eggs</Typography>
+          <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.ACCENT_INK }}>Go Back</Typography>
         </Box>
         <Box sx={{ pb: 4, borderBottom: `1px solid ${skin.HAIR}` }}>
           <AnimalIdCard
