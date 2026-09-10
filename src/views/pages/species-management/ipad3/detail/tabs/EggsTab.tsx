@@ -292,14 +292,16 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
               </Box>
             )
           }
+          if (e.status === 'discarded') {
+            return (
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>{fmtD(e.discardDate)}</Typography>
+                <Typography sx={{ fontSize: '14px', color: skin.FAINT }}>{e.discardReason}</Typography>
+              </Box>
+            )
+          }
           const text =
-            e.status === 'hatched'
-              ? fmtD(e.hatchDate)
-              : e.status === 'discarded'
-              ? `${fmtD(e.discardDate)} · ${e.discardReason}`
-              : e.status === 'to_be_discarded'
-              ? e.discardReason
-              : 'Fresh · awaiting allocation'
+            e.status === 'hatched' ? fmtD(e.hatchDate) : e.status === 'to_be_discarded' ? e.discardReason : 'Fresh · awaiting allocation'
 
           return (
             <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
