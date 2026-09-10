@@ -737,14 +737,27 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
               </Box>
             )}
             {egg.status === 'hatched' && (
-              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.TONE_SOFT.good, px: 5, py: 4 }}>
-                <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Outcome</Typography>
-                <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5, fontVariantNumeric: 'tabular-nums' }}>
-                  Hatched {fmtD(egg.hatchDate)} → <Box component='span' sx={{ color: skin.ACCENT_INK }}>{egg.hatchlingId}</Box>
-                </Typography>
-                <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
-                  {egg.hatchWeight} g at hatch · {egg.hatchMethod}
-                </Typography>
+              <Box sx={{ mt: 4.5, borderRadius: '14px', bgcolor: skin.TONE_SOFT.good, px: 5, py: 4, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                <Box sx={{ minWidth: 0, mr: 'auto' }}>
+                  <Typography sx={{ ...capsSx, color: skin.ON_SURFACE, opacity: 0.75 }}>Outcome</Typography>
+                  <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.INK, mt: 1.5, fontVariantNumeric: 'tabular-nums' }}>
+                    Hatched {fmtD(egg.hatchDate)}
+                  </Typography>
+                  <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    {egg.hatchWeight} g at hatch · {egg.hatchMethod}
+                  </Typography>
+                </Box>
+                {/* the hatchling as THE animal card (user call 2026-09-10 — never a bare id) */}
+                {egg.hatchlingId && (
+                  <Box sx={{ bgcolor: '#ffffff', borderRadius: '12px', px: 4, py: 3, flexShrink: 0 }}>
+                    <AnimalIdCard
+                      identifiers={synthAnimalIdentity(egg.hatchlingId).identifiers}
+                      enclosure={synthAnimalIdentity(egg.hatchlingId).enclosure}
+                      tag={synthAnimalIdentity(egg.hatchlingId).tag}
+                      size={75}
+                    />
+                  </Box>
+                )}
               </Box>
             )}
             {egg.status === 'to_be_discarded' && (
