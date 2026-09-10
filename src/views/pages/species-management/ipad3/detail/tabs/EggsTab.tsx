@@ -410,9 +410,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         titleMb={3}
         title={
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
-            <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK }}>
-              This Season&apos;s Eggs · {eggs.length}
-            </Typography>
+            <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK }}>Eggs · {eggs.length}</Typography>
             {eggTabs.length > 0 && (
               <UnderlineTabs
                 tabs={eggTabs.map(t => ({ key: t.status, label: `${t.label} (${t.n})` }))}
