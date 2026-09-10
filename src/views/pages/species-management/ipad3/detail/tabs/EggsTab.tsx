@@ -29,13 +29,15 @@ import {
   ListSheet,
   SheetDrawer,
   ColumnSettingsSheet,
-  thinScrollbarSx
+  thinScrollbarSx,
+  UnderlineTabs
 } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import Icon from 'src/@core/components/icon'
 import { CTRL_H, RangeSelect, yearItemsFor } from 'src/views/pages/species-management/ipad3/detail/tabs/CircleOfLifeTab'
 import type { ColumnPref, ListRow, SheetView, YearSeries } from 'src/views/pages/species-management/ipad3/detail/detailUi'
 import SignalsBand from 'src/views/pages/species-management/ipad3/detail/tabs/medical/SignalsBand'
 import { SiteFilterControl } from 'src/views/pages/species-management/ipad3/detail/tabs/MedicalTab'
+import { useSortableTable } from 'src/views/pages/species-management/ipad3/detail/useSortableTable'
 import { getFemaleDetail } from 'src/lib/api/species-management/breeding-eggs'
 import type { EggDetail, EggStatus, FemaleDetail, FemaleRow, SpeciesFunnel } from 'src/lib/api/species-management/breeding-eggs'
 
@@ -171,79 +173,6 @@ const EggGlyph: React.FC<{ fill: string; plate: string; hatched?: boolean; size?
   </Box>
 )
 
-/** One egg row — plate + AEID (navy identity ink) + quiet meta, toned fate right. */
-const EggListRow: React.FC<{ egg: EggDetail; divider: boolean; onOpen: () => void }> = ({ egg, divider, onOpen }) => {
-  const theme = useTheme() as any
-  const look = eggLook(theme)[egg.status]
-  const last = egg.weighings[egg.weighings.length - 1]
-
-  const meta =
-    egg.status === 'incubating'
-      ? `Day ${egg.dayNow} of ${egg.incubationDays} · last ${last?.grams} g`
-      : egg.status === 'hatched'
-      ? `Hatched ${fmtD(egg.hatchDate)}`
-      : egg.status === 'discarded'
-      ? `Discarded ${fmtD(egg.discardDate)}`
-      : egg.status === 'to_be_discarded'
-      ? `Requested ${fmtD(last?.date || egg.collectedDate)}`
-      : `Collected ${fmtD(egg.collectedDate)}`
-  const sub =
-    egg.status === 'hatched'
-      ? `→ ${egg.hatchlingId}`
-      : egg.status === 'incubating'
-      ? egg.breachDay != null
-        ? 'Below corridor'
-        : 'On track'
-      : egg.discardReason || (egg.status === 'received' ? 'Fresh · awaiting allocation' : '')
-
-  return (
-    <Box
-      onClick={onOpen}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 3.5,
-        py: 3,
-        px: 2,
-        cursor: 'pointer',
-        borderRadius: '12px',
-        borderTop: divider ? `1px solid ${skin.ROW_LINE}` : 'none',
-        transition: `background ${skin.DUR_FAST} ${skin.EASE}, transform ${skin.DUR_STD} ${skin.EASE}`,
-        '&:hover': { bgcolor: skin.ROW_HOVER },
-        '&:active': { transform: 'scale(0.98)', transitionDuration: skin.DUR_FAST }
-      }}
-    >
-      <EggGlyph fill={look.glyph} plate={look.plate} hatched={egg.status === 'hatched'} />
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: '15.5px', fontWeight: 700, color: skin.CARD_ID_INK, fontVariantNumeric: 'tabular-nums' }}>{egg.aeid}</Typography>
-        <Typography sx={{ fontSize: 14, color: skin.FAINT, fontVariantNumeric: 'tabular-nums', mt: 0.25 }}>{meta}</Typography>
-      </Box>
-      <Box sx={{ ml: 'auto', textAlign: 'right', flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '14.5px', fontWeight: 600, color: look.ink }}>{look.label}</Typography>
-        {sub && (
-          <Typography sx={{ fontSize: '14px', color: egg.status === 'hatched' ? skin.ACCENT_INK : skin.FAINT, fontWeight: egg.status === 'hatched' ? 600 : 400, mt: 0.25 }}>
-            {sub}
-          </Typography>
-        )}
-      </Box>
-      <Typography sx={{ color: skin.DASH_INK, fontSize: 19, flexShrink: 0 }}>›</Typography>
-    </Box>
-  )
-}
-
-/** Clutch group header — the species-table teal wash band. */
-const ClutchHead: React.FC<{ title: string; caption?: string; outcome?: React.ReactNode }> = ({ title, caption, outcome }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, bgcolor: skin.TABLE_HEAD_BG, borderRadius: '12px', px: 4, py: 2.75, mt: 3, mb: 1 }}>
-    <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.TABLE_HEAD_INK, whiteSpace: 'nowrap' }}>
-      {title}
-    </Typography>
-    {caption && (
-      <Typography sx={{ fontSize: 14, color: skin.TABLE_HEAD_INK, opacity: 0.85, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{caption}</Typography>
-    )}
-    {outcome && <Box sx={{ ml: 'auto' }}>{outcome}</Box>}
-  </Box>
-)
-
 /** The FEMALE PAGE (in-tab, replaces the retired drawer). White grammar (mockup _1_1). */
 const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleRow; onBack: () => void }> = ({ speciesId, className, row, onBack }) => {
   const theme = useTheme() as any
@@ -277,10 +206,117 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
   }, [speciesId, row.antzId, className])
 
   const seasonYear = new Date().getFullYear()
-  const eggs = detail?.eggDetails ?? []
+  const eggs = useMemo(() => detail?.eggDetails ?? [], [detail])
   const live = eggs.filter(e => e.status === 'incubating')
-  const loose = eggs.filter(e => !e.clutchId)
   const populatedMonths = (detail?.monthly ?? []).filter(v => v > 0).length
+
+  /* lifecycle sub-tabs WITH counts (no All — user call): only statuses that exist,
+     attention-first order; the tab's eggs render as the standard DetailTable. */
+  const [eggTab, setEggTab] = useState<EggStatus | null>(null)
+  const look = eggLook(theme)
+  const eggTabs = useMemo(() => {
+    const order: EggStatus[] = ['incubating', 'received', 'hatched', 'to_be_discarded', 'discarded']
+
+    return order
+      .map(status => ({ status, label: look[status].label, n: eggs.filter(e => e.status === status).length }))
+      .filter(t => t.n > 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eggs])
+  const activeEggTab = eggTab && eggTabs.some(t => t.status === eggTab) ? eggTab : eggTabs[0]?.status
+  const tabData = useMemo(
+    () =>
+      eggs
+        .filter(e => e.status === activeEggTab)
+        .map(e => ({ ...e, id: e.aeid, laidMs: new Date(e.laidDate).getTime(), clutch: e.clutchId || '—' })),
+    [eggs, activeEggTab]
+  )
+  const tabTable = useSortableTable(tabData, { field: 'laidMs', sort: 'desc' }, 10)
+
+  const eggColumns: GridColDef[] = useMemo(
+    () => [
+      {
+        minWidth: 210,
+        field: 'aeid',
+        headerName: 'Egg',
+        renderCell: (p: any) => {
+          const e = p.row as EggDetail
+          const l = look[e.status]
+
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0 }}>
+              <EggGlyph fill={l.glyph} plate={l.plate} hatched={e.status === 'hatched'} size={40} />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: '15px', fontWeight: 700, color: skin.CARD_ID_INK, fontVariantNumeric: 'tabular-nums' }}>{e.aeid}</Typography>
+                <Typography sx={{ fontSize: '14px', color: skin.FAINT, fontVariantNumeric: 'tabular-nums' }}>UEID : {e.ueid}</Typography>
+              </Box>
+            </Box>
+          )
+        }
+      },
+      {
+        minWidth: 150,
+        field: 'clutch',
+        headerName: 'Clutch',
+        renderCell: (p: any) => (
+          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: p.row.clutchId ? skin.INK2 : skin.DASH_INK, fontVariantNumeric: 'tabular-nums' }}>
+            {p.row.clutch}
+          </Typography>
+        )
+      },
+      {
+        minWidth: 140,
+        field: 'laidMs',
+        headerName: 'Laid',
+        renderCell: (p: any) => (
+          <Typography sx={{ fontSize: '15px', fontWeight: 500, color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>{fmtD((p.row as EggDetail).laidDate)}</Typography>
+        )
+      },
+      {
+        flex: 1,
+        minWidth: 250,
+        field: 'detail',
+        headerName: 'Detail',
+        sortable: false,
+        renderCell: (p: any) => {
+          const e = p.row as EggDetail
+          const last = e.weighings[e.weighings.length - 1]
+          if (e.status === 'incubating') {
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+                <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums' }}>
+                  Day {e.dayNow} of {e.incubationDays} · last {last?.grams} g
+                </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600, color: e.breachDay != null ? skin.TONE_TYPE.warn : skin.TONE_TYPE.good }}>
+                  {e.breachDay != null ? '⚠ Below corridor' : 'On track'}
+                </Typography>
+              </Box>
+            )
+          }
+          const text =
+            e.status === 'hatched'
+              ? `Hatched ${fmtD(e.hatchDate)}`
+              : e.status === 'discarded'
+              ? `Discarded ${fmtD(e.discardDate)} · ${e.discardReason}`
+              : e.status === 'to_be_discarded'
+              ? `${e.discardReason} · security check pending`
+              : 'Fresh · awaiting allocation'
+
+          return (
+            <Typography sx={{ fontSize: '15px', color: skin.INK2, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {text}
+              {e.status === 'hatched' && (
+                <Box component='span' sx={{ ml: 1.5, fontWeight: 700, color: skin.ACCENT_INK }}>
+                  → {e.hatchlingId}
+                </Box>
+              )}
+            </Typography>
+          )
+        }
+      }
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -332,54 +368,44 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         </Box>
       </SectionCard>
 
-      {/* NOW — the attention section */}
-      {live.length > 0 && (
-        <SectionCard title={<Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}>In Incubation · {live.length}</Typography>} titleMb={1}>
-          {live.map((e, i) => (
-            <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
-          ))}
-        </SectionCard>
-      )}
-
-      {/* the season archive: clutches + loose eggs, per-egg rows all tappable */}
+      {/* ONE eggs section (user call 2026-09-10): title + count on top, lifecycle
+          sub-tabs WITH counts below (no All tab — the antz egg-list grammar), and the
+          eggs as a TABLE (the long grouped list read as too much). Row tap → egg sheet. */}
       <SectionCard
+        titleMb={3}
         title={
-          <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT }}>
-            This Season · {detail?.clutches.length ?? row.clutches} {(detail?.clutches.length ?? row.clutches) === 1 ? 'clutch' : 'clutches'}
-            {loose.length > 0 && ` · ${loose.length} loose ${loose.length === 1 ? 'egg' : 'eggs'}`}
-          </Typography>
-        }
-        titleMb={1}
-      >
-        {(detail?.clutches ?? []).map(cl => {
-          const clutchEggs = eggs.filter(e => e.clutchId === cl.clutchId)
-
-          return (
-            <React.Fragment key={cl.clutchId}>
-              <ClutchHead
-                title={`Clutch ${cl.clutchId}`}
-                caption={`${fmtD(cl.laidDate)} · ${cl.size} ${cl.size === 1 ? 'egg' : 'eggs'}`}
-                outcome={
-                  <Typography sx={{ fontSize: 15, fontWeight: 700, color: c.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums' }}>
-                    {cl.hatched} <Box component='span' sx={{ fontWeight: 500, fontSize: 14, opacity: 0.8 }}>of {cl.size} hatched</Box>
-                  </Typography>
-                }
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0 }}>
+            <Typography sx={{ fontSize: '20px', fontWeight: 600, color: skin.INK }}>
+              This Season&apos;s Eggs · {eggs.length}
+            </Typography>
+            {eggTabs.length > 0 && (
+              <UnderlineTabs
+                tabs={eggTabs.map(t => ({ key: t.status, label: `${t.label} (${t.n})` }))}
+                value={activeEggTab}
+                onChange={k => setEggTab(k as EggStatus)}
               />
-              {clutchEggs.map((e, i) => (
-                <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
-              ))}
-            </React.Fragment>
+            )}
+          </Box>
+        }
+      >
+        {detail ? (
+          tabTable.total ? (
+            <DetailTable
+              columns={eggColumns}
+              rows={tabTable.rows}
+              total={tabTable.total}
+              paginationModel={tabTable.paginationModel}
+              setPaginationModel={tabTable.setPaginationModel}
+              sortModel={tabTable.sortModel}
+              handleSortModel={tabTable.handleSortModel}
+              onRowClick={(p: any) => setOpenEgg(p.row as EggDetail)}
+            />
+          ) : (
+            <EmptyState message='No eggs here' />
           )
-        })}
-        {loose.length > 0 && (
-          <>
-            <ClutchHead title='Without Clutch' caption={`${loose.length} ${loose.length === 1 ? 'egg' : 'eggs'}`} />
-            {loose.map((e, i) => (
-              <EggListRow key={e.aeid} egg={e} divider={i > 0} onOpen={() => setOpenEgg(e)} />
-            ))}
-          </>
+        ) : (
+          <EmptyState message='Loading…' />
         )}
-        {!detail && <EmptyState message='Loading…' />}
       </SectionCard>
 
       {/* rhythm — the kit year line, sparse guard at 3 (CoL rule) */}
