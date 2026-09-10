@@ -208,7 +208,48 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
   const seasonYear = new Date().getFullYear()
   const eggs = useMemo(() => detail?.eggDetails ?? [], [detail])
   const live = eggs.filter(e => e.status === 'incubating')
-  const populatedMonths = (detail?.monthly ?? []).filter(v => v > 0).length
+
+  /* Monthly Laying Rhythm = THE standard year-lines grammar (user call 2026-09-10):
+     1Y|2Y|3Y|Custom window over one line per season she laid in. Current season = the
+     real monthly array; prior seasons deterministic synthesis scaled off it (the
+     static-data rule — zero months stay zero, seasons she never laid drop out). */
+  const rhythmSeries: YearSeries[] = useMemo(() => {
+    if (!detail) return []
+    const rnd = (n: number) => {
+      const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453
+
+      return x - Math.floor(x)
+    }
+    const seed = row.antzId.split('').reduce((s2, ch) => s2 + ch.charCodeAt(0), 0)
+    const priors = Array.from({ length: 4 }, (_, i) => {
+      const year = seasonYear - (i + 1)
+
+      return { year, values: detail.monthly.map((v, m) => Math.round(v * (0.55 + 0.4 * rnd(seed + year * 100 + m)))) }
+    }).filter(sr => sr.values.some(v => v > 0))
+
+    return [{ year: seasonYear, values: detail.monthly }, ...priors]
+  }, [detail, row.antzId, seasonYear])
+
+  const R_CAP = 5
+  const [rPeriodMode, setRPeriodMode] = useState<'quick' | 'range'>('quick')
+  const [rPreset, setRPreset] = useState<'last_1y' | 'last_2y' | 'last_3y'>('last_1y')
+  const [rFrom, setRFrom] = useState<number | null>(null)
+  const [rTo, setRTo] = useState<number | null>(null)
+  const rYears = rhythmSeries.map(sr => sr.year)
+  const rLatest = rYears[0] ?? seasonYear
+  const enterRCustom = () => {
+    setRPeriodMode('range')
+    if (rFrom == null && rTo == null) {
+      setRFrom(Math.max(rYears[rYears.length - 1] ?? rLatest, rLatest - (R_CAP - 1)))
+      setRTo(rLatest)
+    }
+  }
+  const rWindow =
+    rPeriodMode === 'range'
+      ? { from: rFrom ?? rLatest - (R_CAP - 1), to: rTo ?? rLatest }
+      : { from: rLatest - (rPreset === 'last_1y' ? 0 : rPreset === 'last_2y' ? 1 : 2), to: rLatest }
+  const visibleRhythm = rhythmSeries.filter(sr => sr.year >= rWindow.from && sr.year <= rWindow.to)
+  const populatedMonths = visibleRhythm.reduce((n, sr) => n + sr.values.filter(v => v > 0).length, 0)
 
   /* lifecycle sub-tabs WITH counts (no All — user call): only statuses that exist,
      attention-first order; the tab's eggs render as the standard DetailTable. */
@@ -402,20 +443,54 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         )}
       </SectionCard>
 
-      {/* rhythm — the kit year line, sparse guard at 3 (CoL rule) */}
-      <SectionCard title='Monthly Laying Rhythm' titleMb={3}>
+      {/* rhythm — kit YearLinesChart with THE standard 1Y|2Y|3Y|Custom window (user
+          call 2026-09-10), year-per-line for every season she laid; sparse guard at 3 */}
+      <SectionCard
+        title='Monthly Laying Rhythm'
+        titleMb={3}
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap', '& > *': { flexShrink: 0 } }}>
+            <ViewToggle
+              height={CTRL_H}
+              items={[
+                { key: 'last_1y', label: '1Y' },
+                { key: 'last_2y', label: '2Y' },
+                { key: 'last_3y', label: '3Y' },
+                { key: 'custom', label: 'Custom' }
+              ]}
+              value={rPeriodMode === 'range' ? 'custom' : rPreset}
+              onChange={k => {
+                if (k === 'custom') enterRCustom()
+                else {
+                  setRPeriodMode('quick')
+                  setRPreset(k as 'last_1y' | 'last_2y' | 'last_3y')
+                }
+              }}
+            />
+            {rPeriodMode === 'range' && (
+              <>
+                <RangeSelect value={rFrom} onPick={setRFrom} items={yearItemsFor(rYears, rTo, R_CAP, 'from')} anyLabel='From' />
+                <Typography sx={{ color: c.neutralSecondary }}>–</Typography>
+                <RangeSelect value={rTo} onPick={setRTo} items={yearItemsFor(rYears, rFrom, R_CAP, 'to')} anyLabel='To' />
+              </>
+            )}
+          </Box>
+        }
+      >
         {detail ? (
           populatedMonths >= 3 ? (
-            <YearLinesChart series={[{ year: seasonYear, values: detail.monthly }]} accent={skin.ACCENT_FILL} noun='eggs' height={220} />
+            <YearLinesChart series={visibleRhythm} accent={skin.ACCENT_FILL} noun='eggs' height={220} />
           ) : (
             <Box>
-              {detail.monthly.map((v, m) =>
-                v > 0 ? (
-                  <Box key={m} sx={{ display: 'flex', justifyContent: 'space-between', py: 2, borderBottom: `1px solid ${skin.ROW_LINE}` }}>
-                    <Typography sx={{ fontSize: 15, color: skin.MUTED }}>{MONTH_FULL[m]} {seasonYear}</Typography>
-                    <Typography sx={{ fontSize: 15, fontWeight: 700, color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
-                  </Box>
-                ) : null
+              {visibleRhythm.flatMap(sr =>
+                sr.values.map((v, m) =>
+                  v > 0 ? (
+                    <Box key={`${sr.year}-${m}`} sx={{ display: 'flex', justifyContent: 'space-between', py: 2, borderBottom: `1px solid ${skin.ROW_LINE}` }}>
+                      <Typography sx={{ fontSize: 15, color: skin.MUTED }}>{MONTH_FULL[m]} {sr.year}</Typography>
+                      <Typography sx={{ fontSize: 15, fontWeight: 700, color: skin.VALUE, fontVariantNumeric: 'tabular-nums' }}>{v}</Typography>
+                    </Box>
+                  ) : null
+                )
               )}
             </Box>
           )
