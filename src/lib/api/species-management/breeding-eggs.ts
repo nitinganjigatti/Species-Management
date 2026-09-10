@@ -869,11 +869,38 @@ export async function getFemaleDetail(
       aeid: `AEID-${pad(100 + Math.floor(er() * 8899), 4)}`,
       ueid: `E-${pad(4000 + Math.floor(er() * 5000), 4)}`,
       status: 'incubating',
-      laidDate: isoDaysAgo(4), // 4 days in = 1–2 weighings → the sparse example
+      laidDate: isoDaysAgo(24),
+      site: f.site,
+      motherLabel
+    }),
+    buildEggDetail(er, className, {
+      aeid: `AEID-${pad(100 + Math.floor(er() * 8899), 4)}`,
+      ueid: `E-${pad(4000 + Math.floor(er() * 5000), 4)}`,
+      status: 'incubating',
+      laidDate: isoDaysAgo(34),
       site: f.site,
       motherLabel
     })
   )
+
+  // The two loose incubating eggs carry LONG DAILY weight logs (user ask 2026-09-10 —
+  // the scrollable-chart demo states): 25 ticks gently DECREASING, 35 ticks INCREASING.
+  const demoLog = (eggD: EggDetail, ticks: number, dir: 1 | -1) => {
+    eggD.laidDate = isoDaysAgo(ticks - 1)
+    eggD.collectedDate = eggD.laidDate
+    eggD.incubationDays = Math.max(eggD.incubationDays, ticks + 6)
+    eggD.dayNow = ticks - 1
+    eggD.condition = 'Intact'
+    eggD.weighings = Array.from({ length: ticks }, (_, d) => ({
+      day: d,
+      date: isoAddDays(eggD.laidDate, d),
+      time: `${pad(9 + (d % 3))}:${pad(((d * 5) % 55) + 5)}`,
+      grams: round(eggD.initialWeight * (1 + dir * 0.0035 * d) + Math.sin(d * 1.7) * 0.12, 1)
+    }))
+  }
+  demoLog(eggDetails[eggDetails.length - 2], 25, -1)
+  demoLog(eggDetails[eggDetails.length - 1], 35, 1)
+
   const fertile = eggDetails.filter(e => e.condition !== 'Infertile').length
 
   return {

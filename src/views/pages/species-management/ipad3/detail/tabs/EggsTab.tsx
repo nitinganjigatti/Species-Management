@@ -520,20 +520,51 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
 
   const capsSx = { fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT } as const
 
-  const tile = (label: string, value: React.ReactNode, sub?: React.ReactNode, subColor?: string, meterPct?: number) => (
-    <Box sx={{ flex: 1, bgcolor: skin.GROUND, borderRadius: '14px', px: 4, py: 3.5, minWidth: 0 }}>
-      <Typography sx={capsSx}>{label}</Typography>
-      <Typography sx={{ fontSize: 22, fontWeight: 700, color: skin.VALUE, mt: 1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{value}</Typography>
-      {sub && (
-        <Typography sx={{ fontSize: 14, mt: 0.5, color: subColor || skin.MUTED, fontWeight: subColor ? 600 : 400, fontVariantNumeric: 'tabular-nums' }}>{sub}</Typography>
-      )}
-      {meterPct != null && (
-        <Box sx={{ height: 6, borderRadius: '99px', bgcolor: skin.TRACK, mt: 2.5, overflow: 'hidden' }}>
-          <Box sx={{ height: '100%', width: `${meterPct}%`, borderRadius: '99px', bgcolor: skin.ACCENT_FILL }} />
-        </Box>
-      )}
-    </Box>
-  )
+  /* the three status stats ride the DARK BANNER as species-banner cells (user call
+     2026-09-10 — the mint tiles read grey/dead): black-wash cells, hairline splits,
+     banner figure colors yellow · teal · green by position. */
+  interface HeroCell {
+    label: string
+    value: React.ReactNode
+    sub?: React.ReactNode
+    meterPct?: number
+  }
+  const of = (t: string) => <Box component='span' sx={{ fontSize: '14.5px', fontWeight: 500, color: skin.HERO_MUTE }}>{t}</Box>
+  const CELL_INKS = [skin.BANNER_YELLOW, skin.BANNER_TEAL, skin.BANNER_GREEN]
+  const heroCells = (e: EggDetail, lastW?: { grams: number; date: string; day: number }): HeroCell[] => {
+    switch (e.status) {
+      case 'received':
+        return [
+          { label: 'Age', value: <>{Math.max(1, Math.round((Date.now() - new Date(e.collectedDate).getTime()) / 86400000))} {of('days')}</>, sub: `Found ${fmtD(e.collectedDate)}` },
+          { label: 'Weight', value: `${e.initialWeight} g`, sub: 'Initial weighing' },
+          { label: 'Condition', value: 'Fresh', sub: 'State: Received' }
+        ]
+      case 'incubating':
+        return [
+          { label: 'Incubation', value: <>Day {e.dayNow} {of(`of ~${e.incubationDays}`)}</>, meterPct: Math.round(((e.dayNow || 0) / e.incubationDays) * 100) },
+          { label: 'Weight', value: `${lastW?.grams} g`, sub: `${lossPct}% vs initial` },
+          { label: 'Condition', value: e.condition, sub: 'State: In Incubation' }
+        ]
+      case 'hatched':
+        return [
+          { label: 'Incubation', value: <>{e.incubationDays} {of('days')}</>, sub: `${fmtD(e.laidDate)} – ${fmtD(e.hatchDate)}` },
+          { label: 'Weight change', value: `${lossPct}%`, sub: `${e.initialWeight} → ${lastW?.grams} g` },
+          { label: 'Hatch', value: e.hatchMethod || 'Natural', sub: `${e.hatchWeight} g at hatch` }
+        ]
+      case 'to_be_discarded':
+        return [
+          { label: 'Incubation', value: <>Day {e.incubationDays} {of(`of ~${e.incubationDays}`)}</>, meterPct: 100 },
+          { label: 'Weight', value: `${lastW?.grams} g`, sub: `${lossPct}% vs initial` },
+          { label: 'Condition', value: e.discardReason || e.condition, sub: `State: To Be Discarded` }
+        ]
+      case 'discarded':
+        return [
+          { label: 'In system', value: <>{Math.max(1, lastW?.day ?? 1)} {of('days')}</>, sub: `${fmtD(e.laidDate)} – ${fmtD(e.discardDate)}` },
+          { label: 'Last weight', value: `${lastW?.grams} g`, sub: `Recorded ${fmtD(lastW?.date)}` },
+          { label: 'Reason', value: e.discardReason || '—' }
+        ]
+    }
+  }
 
   const fact = (k: string, v: React.ReactNode) => (
     <Box sx={{ display: 'flex', gap: 3, py: 2, borderBottom: `1px solid ${skin.ROW_LINE}`, fontSize: 15, minWidth: 0 }}>
@@ -555,80 +586,67 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
     color: ink
   })
 
-  const of = (t: string) => <Box component='span' sx={{ fontSize: '14.5px', fontWeight: 500, color: skin.NEUTRAL_SEC }}>{t}</Box>
-
   const shownWeights = egg ? (showAllWeights ? [...egg.weighings].reverse() : [...egg.weighings].reverse().slice(0, 3)) : []
 
   return (
     <SheetDrawer open={!!egg} onClose={onClose} PaperProps={{ sx: sheetPaperSx('lg') }}>
       {egg && look && (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-          {/* ── dark banner hero (the species-banner ramp — the identity anchor) ── */}
-          <Box sx={{ background: skin.BANNER_GRAD, px: 7, pt: 5, pb: 5, display: 'flex', gap: 4.5, alignItems: 'flex-start', flexShrink: 0 }}>
-            <EggGlyph fill={look.glyph} plate={look.plate} hatched={egg.status === 'hatched'} size={92} glass />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontSize: 27, fontWeight: 700, color: skin.HERO_ON, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{egg.aeid}</Typography>
-              <Typography sx={{ fontSize: 15, color: skin.HERO_MUTE, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
-                <Box component='span' sx={{ color: skin.HERO_SOFT, fontWeight: 600 }}>UEID :</Box> {egg.ueid}
-              </Typography>
-              <Typography sx={{ fontSize: '13.5px', color: skin.HERO_MUTE, mt: 2 }}>Updated {fmtD(last?.date || egg.collectedDate)}</Typography>
-            </Box>
-            <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2.5, flexShrink: 0 }}>
-              <Box
-                onClick={onClose}
-                sx={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: skin.HERO_GLASS, color: skin.HERO_ON, cursor: 'pointer', fontSize: 15 }}
-              >
-                ✕
+          {/* ── dark banner hero as an INSET card (user call 2026-09-10 — never
+              edge-to-edge) carrying identity + the three status stats as species-banner
+              cells (the mint tiles read grey/dead) ── */}
+          <Box sx={{ px: 7, pt: 4, flexShrink: 0 }}>
+            <Box sx={{ background: skin.BANNER_GRAD, borderRadius: '16px', p: 5 }}>
+              <Box sx={{ display: 'flex', gap: 4.5, alignItems: 'flex-start' }}>
+                <EggGlyph fill={look.glyph} plate={look.plate} hatched={egg.status === 'hatched'} size={84} glass />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 27, fontWeight: 700, color: skin.HERO_ON, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>{egg.aeid}</Typography>
+                  <Typography sx={{ fontSize: 15, color: skin.HERO_MUTE, mt: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    <Box component='span' sx={{ color: skin.HERO_SOFT, fontWeight: 600 }}>UEID :</Box> {egg.ueid}
+                  </Typography>
+                  <Typography sx={{ fontSize: '13.5px', color: skin.HERO_MUTE, mt: 2 }}>Updated {fmtD(last?.date || egg.collectedDate)}</Typography>
+                </Box>
+                <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2.5, flexShrink: 0 }}>
+                  <Box
+                    onClick={onClose}
+                    sx={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: skin.HERO_GLASS, color: skin.HERO_ON, cursor: 'pointer', fontSize: 15 }}
+                  >
+                    ✕
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={chipSx(look.plate, look.ink)}>{look.label}</Box>
+                    {egg.condition && egg.condition !== look.label && <Box sx={chipSx(skin.HERO_GLASS, skin.HERO_SOFT)}>{egg.condition}</Box>}
+                  </Box>
+                </Box>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Box sx={chipSx(look.plate, look.ink)}>{look.label}</Box>
-                {egg.condition && egg.condition !== look.label && <Box sx={chipSx(skin.HERO_GLASS, skin.HERO_SOFT)}>{egg.condition}</Box>}
+
+              {/* the stats as banner cells — black wash, hairline splits, yellow · teal · green */}
+              <Box sx={{ display: 'flex', mt: 4, borderRadius: '12px', overflow: 'hidden' }}>
+                {heroCells(egg, last).map((cell, i) => (
+                  <Box key={cell.label} sx={{ flex: 1, bgcolor: skin.BANNER_CELL, px: 4, py: 3, minWidth: 0, borderLeft: i > 0 ? `1px solid ${skin.BANNER_CELL_HAIR}` : 'none' }}>
+                    <Typography sx={{ fontSize: '13.5px', fontWeight: 600, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.HERO_MUTE, whiteSpace: 'nowrap' }}>
+                      {cell.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: 21, fontWeight: 700, color: CELL_INKS[i], mt: 0.75, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      {cell.value}
+                    </Typography>
+                    {cell.sub && (
+                      <Typography sx={{ fontSize: 14, mt: 0.5, color: skin.HERO_MUTE, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {cell.sub}
+                      </Typography>
+                    )}
+                    {cell.meterPct != null && (
+                      <Box sx={{ height: 5, borderRadius: '99px', bgcolor: skin.HERO_GLASS, mt: 2.5, overflow: 'hidden' }}>
+                        <Box sx={{ height: '100%', width: `${cell.meterPct}%`, borderRadius: '99px', bgcolor: skin.BANNER_GREEN }} />
+                      </Box>
+                    )}
+                  </Box>
+                ))}
               </Box>
             </Box>
           </Box>
 
           <Box sx={{ flex: 1, overflowY: 'auto', px: 7, pb: 8, minHeight: 0 }}>
-            {/* ── stat tiles (the antz hero cards → mint StatTiles) ── */}
-            <Box sx={{ display: 'flex', gap: 3, py: 4.5, borderBottom: `1px solid ${skin.HAIR}` }}>
-              {egg.status === 'received' && (
-                <>
-                  {tile('Age', <>{Math.max(1, Math.round((Date.now() - new Date(egg.collectedDate).getTime()) / 86400000))} {of('days')}</>, `Found ${fmtD(egg.collectedDate)}`)}
-                  {tile('Weight', `${egg.initialWeight} g`, 'Initial weighing')}
-                  {tile('Condition', 'Fresh', 'State: Received')}
-                </>
-              )}
-              {/* NOTHING beyond antz (user call 2026-09-10): the module tracks weight +
-                  change % only — no corridor verdicts, no candling schedule wording. */}
-              {egg.status === 'incubating' && (
-                <>
-                  {tile('Incubation', <>Day {egg.dayNow} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, Math.round(((egg.dayNow || 0) / egg.incubationDays) * 100))}
-                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`)}
-                  {tile('Condition', egg.condition, `State: ${look.label}`)}
-                </>
-              )}
-              {egg.status === 'hatched' && (
-                <>
-                  {tile('Incubation', <>{egg.incubationDays} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.hatchDate)}`)}
-                  {tile('Weight change', `${lossPct}%`, `${egg.initialWeight} → ${last?.grams} g`)}
-                  {tile('Hatch', egg.hatchMethod || 'Natural', `${egg.hatchWeight} g at hatch`)}
-                </>
-              )}
-              {egg.status === 'to_be_discarded' && (
-                <>
-                  {tile('Incubation', <>Day {egg.incubationDays} {of(`of ~${egg.incubationDays}`)}</>, undefined, undefined, 100)}
-                  {tile('Weight', `${last?.grams} g`, `${lossPct}% vs initial`)}
-                  {tile('Condition', egg.discardReason || egg.condition, `State: ${look.label}`)}
-                </>
-              )}
-              {egg.status === 'discarded' && (
-                <>
-                  {tile('In system', <>{Math.max(1, last?.day ?? 1)} {of('days')}</>, `${fmtD(egg.laidDate)} – ${fmtD(egg.discardDate)}`)}
-                  {tile('Last weight', `${last?.grams} g`, `Recorded ${fmtD(last?.date)}`)}
-                  {tile('Reason', egg.discardReason || '—', undefined)}
-                </>
-              )}
-            </Box>
-
             {/* ── details (the antz left card: provenance, location, parents, initials) ── */}
             <Box sx={{ py: 4, borderBottom: `1px solid ${skin.HAIR}` }}>
               <Typography sx={capsSx}>Details</Typography>
@@ -673,6 +691,7 @@ const EggSheet: React.FC<{ egg: EggDetail | null; onClose: () => void }> = ({ eg
                       name='Weight'
                       unit=' g'
                       height={230}
+                      scrollable
                     />
                   </Box>
                 )}

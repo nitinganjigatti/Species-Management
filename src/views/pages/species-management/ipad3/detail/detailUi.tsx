@@ -4797,8 +4797,8 @@ export const ChartHoverCard: React.FC<{
  *  ≤12 visible ticks (tooltips/clicks keep full labels), and two-line axes get a PINNED 44px
  *  reserve so side-by-side charts share a baseline. Every chart with a month+year x-axis —
  *  bar or line, card or side sheet, any module — must run its labels through this. */
-export const monthYearAxis = (labels: string[]) => {
-  const every = Math.max(1, Math.ceil(labels.length / 12))
+export const monthYearAxis = (labels: string[], maxTicks = 12) => {
+  const every = Math.max(1, Math.ceil(labels.length / maxTicks))
   let hasTwoLine = false
   const categories = labels.map((l, i) => {
     if (i % every !== 0) return ''
@@ -4834,7 +4834,8 @@ export function TrendAreaChart({
   onPointClick,
   flush = false,
   series2,
-  corridor
+  corridor,
+  scrollable = false
 }: {
   /** Nulls allowed in corridor mode only — a not-yet-measured day; the line stops there. */
   values: (number | null)[]
@@ -4859,16 +4860,21 @@ export function TrendAreaChart({
    *  Mutually exclusive with `series2`. The band is carved out by re-filling below the
    *  lower bound in the card background, so grid lines inside the band are masked. */
   corridor?: { ideal: number[]; upper: number[]; lower: number[]; idealName?: string; breachIndex?: number }
+  /** Past 12 points the chart WIDENS (56px per point) inside a thin horizontal scroller
+   *  instead of thinning its ticks — EVERY point keeps its label and dot (user standard
+   *  2026-09-10, egg weight log). Below 13 points it behaves exactly as before. */
+  scrollable?: boolean
 }) {
   const theme = useTheme() as any
   const c = cc(theme)
   const n = values.length
   const cor = corridor
   const stacked = !!series2 && !cor
+  const scrollWide = scrollable && n > 12
 
-  // Shared month/year axis standard — two-line labels + ≤12 visible ticks; value labels
-  // thin to the same indices.
-  const { categories, every } = monthYearAxis(labels)
+  // Shared month/year axis standard — two-line labels + ≤12 visible ticks (scrollable
+  // mode keeps EVERY tick and scrolls instead); value labels thin to the same indices.
+  const { categories, every } = monthYearAxis(labels, scrollWide ? n : 12)
 
   const totalAt = (i: number) => (values[i] ?? 0) + (series2?.values[i] ?? 0)
 
@@ -4887,12 +4893,14 @@ export function TrendAreaChart({
       sx={{
         ...(flush ? { mx: -4, mb: -4 } : {}),
         ...apexTooltipSx(theme),
-        ...(onPointClick ? { '& .apexcharts-marker, & .apexcharts-series': { cursor: 'pointer' } } : {})
+        ...(onPointClick ? { '& .apexcharts-marker, & .apexcharts-series': { cursor: 'pointer' } } : {}),
+        ...(scrollWide ? { overflowX: 'auto', ...thinScrollbarSx } : {})
       }}
     >
       <ReactApexcharts
         type='area'
         height={height}
+        {...(scrollWide ? { width: n * 56 } : {})}
         options={{
           chart: {
             toolbar: { show: false },
@@ -4933,7 +4941,7 @@ export function TrendAreaChart({
           markers: cor
             ? {
                 // dots on the measured track only; the band/ideal stay clean
-                size: [0, 0, 0, n > 24 ? 3 : 4],
+                size: [0, 0, 0, scrollWide ? 4 : n > 24 ? 3 : 4],
                 colors: [theme.palette.primary.main, theme.palette.background.paper, c.neutralSecondary, color],
                 strokeColors: theme.palette.common.white,
                 strokeWidth: 1,
@@ -4944,8 +4952,9 @@ export function TrendAreaChart({
               }
             : {
                 // Dense series: hide the per-point dots — 100+ markers overlap the stroke and the
-                // line reads as dotted. Hover still shows a marker.
-                size: n > 24 ? 0 : 4,
+                // line reads as dotted. Hover still shows a marker. Scrollable mode keeps them
+                // (56px/point leaves room).
+                size: scrollWide ? 4 : n > 24 ? 0 : 4,
                 colors: stacked ? [color, series2!.color] : [color],
                 strokeColors: theme.palette.common.white,
                 strokeWidth: 1.5,
