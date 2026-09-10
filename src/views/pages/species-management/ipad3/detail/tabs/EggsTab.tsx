@@ -296,7 +296,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
             e.status === 'hatched'
               ? `Hatched ${fmtD(e.hatchDate)}`
               : e.status === 'discarded'
-              ? `Discarded ${fmtD(e.discardDate)} · ${e.discardReason}`
+              ? `${fmtD(e.discardDate)} · ${e.discardReason}`
               : e.status === 'to_be_discarded'
               ? `${e.discardReason} · security check pending`
               : 'Fresh · awaiting allocation'
