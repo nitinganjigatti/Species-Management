@@ -426,20 +426,6 @@ const BreedingAnalytics: React.FC<{
     [roster, siteFilter]
   )
 
-  /* laying-calendar peak: the best consecutive 3-month window (site-scoped months) */
-  const peak = useMemo(() => {
-    const m = scoped.monthly
-    const total = m.reduce((a, b) => a + b, 0)
-    if (!total) return null
-    let best = { i: 0, sum: -1 }
-    for (let i = 0; i < 12; i++) {
-      const sum = m[i] + m[(i + 1) % 12] + m[(i + 2) % 12]
-      if (sum > best.sum) best = { i, sum }
-    }
-
-    return { label: `${MONTH_L[best.i]}–${MONTH_L[(best.i + 2) % 12]}`, pct: Math.round((best.sum / total) * 100) }
-  }, [scoped.monthly]) // eslint-disable-line react-hooks/exhaustive-deps
-
   /* seasonal laying = the kit YearLinesChart (LINE, year-per-line, Jan–Dec — the
      2026-09-04 standard). Year lines built from the EGG RECORDS' lay dates (site-scoped),
      so every season with data gets its own line and the 1Y|2Y|3Y|Custom window actually
@@ -924,12 +910,6 @@ const BreedingAnalytics: React.FC<{
               // month sheet holds CURRENT-season data only — prior-year dots stay quiet
               onPoint={(y, m) => y === seasonYear && scoped.monthly[m] > 0 && setSheet({ kind: 'month', m })}
             />
-            {peak && (
-              <Typography sx={{ fontSize: 15, color: c.neutralSecondary, mt: 1 }}>
-                Peak <b style={{ color: c.OnSurfaceVariant }}>{peak.label}</b> • {peak.pct}% of the season's eggs — tap a month for its
-                fertile / hatched breakup
-              </Typography>
-            )}
           </>
         )}
       </SectionCard>
