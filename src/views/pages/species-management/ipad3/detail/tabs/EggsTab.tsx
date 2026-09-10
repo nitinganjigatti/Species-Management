@@ -312,16 +312,10 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         <Box sx={{ display: 'flex', minWidth: 0, pt: 4 }}>
           {[
               { label: 'Eggs', value: detail ? `${eggs.length}` : `${row.eggs}`, ink: skin.VALUE },
-              {
-                label: 'Fertile',
-                value: detail ? `${detail.fertile} of ${eggs.length}` : `${row.fertile} of ${row.eggs}`,
-                ink: skin.VALUE
-              },
+              { label: 'Fertile', value: detail ? `${detail.fertile}` : `${row.fertile}`, ink: skin.VALUE },
               {
                 label: 'Hatched',
-                value: detail
-                  ? `${eggs.filter(e => e.status === 'hatched').length} of ${eggs.length}`
-                  : `${row.hatched} of ${row.eggs}`,
+                value: detail ? `${eggs.filter(e => e.status === 'hatched').length}` : `${row.hatched}`,
                 ink: skin.LIST_GREEN
               },
               { label: 'In incubation', value: `${live.length}`, ink: skin.ACCENT_INK }
