@@ -284,33 +284,19 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* back pill */}
-      <Box
-        onClick={onBack}
-        sx={{
-          alignSelf: 'flex-start',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 1.5,
-          bgcolor: '#ffffff',
-          border: `1px solid ${skin.HAIR}`,
-          borderRadius: '999px',
-          px: 4,
-          py: 2,
-          cursor: 'pointer',
-          ...skin.cardPressSx,
-          '&:hover': { bgcolor: skin.ROW_HOVER }
-        }}
-      >
-        <Typography sx={{ fontSize: 19, lineHeight: 1, color: skin.ACCENT_INK }}>‹</Typography>
-        <Typography sx={{ fontSize: 15, fontWeight: 600, color: skin.TAB_PILL }}>Eggs</Typography>
-      </Box>
-
       {/* identity + season verdicts as ONE card (user call 2026-09-10): the kit
           AnimalIdCard — THE animal-card rule, never hand-rolled — with the verdict
           cells riding the same white card behind a hairline. Every figure derives
           from the ONE eggDetails list so the band can never disagree with the rows. */}
       <SectionCard>
+        {/* back row INSIDE the card — the "‹ Species" page-header grammar (user call) */}
+        <Box
+          onClick={onBack}
+          sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 4, cursor: 'pointer', ...skin.cardPressSx }}
+        >
+          <Icon icon='mdi:chevron-left' fontSize='1.5rem' color={skin.ACCENT_INK} />
+          <Typography sx={{ fontSize: 17, fontWeight: 700, color: skin.ACCENT_INK }}>Eggs</Typography>
+        </Box>
         <Box sx={{ pb: 4, borderBottom: `1px solid ${skin.HAIR}` }}>
           <AnimalIdCard
             identifiers={femaleIdentifiers}
