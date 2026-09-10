@@ -318,6 +318,7 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
             site={detail?.site}
             tag='female'
             name={row.name !== row.identifier && row.name !== row.antzId ? row.name : undefined}
+            size={75}
             photo={synthAnimalIdentity(row.antzId).hasPhoto ? heroPhoto?.src : undefined}
             photoPos={heroPhoto?.bgPos}
           />
