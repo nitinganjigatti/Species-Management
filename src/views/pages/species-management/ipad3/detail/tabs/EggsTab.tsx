@@ -248,8 +248,24 @@ const ClutchHead: React.FC<{ title: string; caption?: string; outcome?: React.Re
 const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleRow; onBack: () => void }> = ({ speciesId, className, row, onBack }) => {
   const theme = useTheme() as any
   const c = cc(theme)
+  const heroPhoto = React.useContext(HeroPhotoContext)
   const [detail, setDetail] = useState<FemaleDetail | null>(null)
   const [openEgg, setOpenEgg] = useState<EggDetail | null>(null)
+
+  // the roster's identifier rule verbatim: real chip/ring beats synthesis, AID rides
+  const femaleIdentifiers = useMemo(() => {
+    const syn = synthAnimalIdentity(row.antzId)
+    const hasRealId = !!row.identifier && row.identifier !== row.antzId
+    const t = (row.idType || '').toLowerCase()
+    const idLabel = t.includes('ring') ? 'Ring' : t.includes('chip') || t.includes('transponder') ? 'Chip' : row.idType || 'ID'
+
+    return hasRealId
+      ? [
+          { label: idLabel, value: row.identifier as string },
+          { label: 'AID', value: row.antzId }
+        ]
+      : syn.identifiers
+  }, [row])
 
   React.useEffect(() => {
     let alive = true
@@ -290,66 +306,52 @@ const FemalePage: React.FC<{ speciesId: number; className?: string; row: FemaleR
         <Typography sx={{ fontSize: 15, fontWeight: 600, color: skin.TAB_PILL }}>Eggs</Typography>
       </Box>
 
-      {/* identity card — the mobile animal-card grammar */}
+      {/* identity + season verdicts as ONE card (user call 2026-09-10): the kit
+          AnimalIdCard — THE animal-card rule, never hand-rolled — with the verdict
+          cells riding the same white card behind a hairline. Every figure derives
+          from the ONE eggDetails list so the band can never disagree with the rows. */}
       <SectionCard>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Box sx={{ width: 84, height: 84, borderRadius: '14px', bgcolor: skin.CARD_PLACEHOLDER_BG, position: 'relative', flexShrink: 0, display: 'grid', placeItems: 'center' }}>
-            <Box
-              sx={{
-                position: 'absolute',
-                top: -7,
-                left: -7,
-                minWidth: 26,
-                height: 26,
-                px: 1.5,
-                borderRadius: '8px',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#ffffff',
-                bgcolor: skin.ANIMAL_TAG.female
-              }}
-            >
-              F
-            </Box>
-            <Icon icon='mdi:bird' fontSize='2rem' color={c.Outline} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          <Box sx={{ flexShrink: 0, py: 1 }}>
+            <AnimalIdCard
+              identifiers={femaleIdentifiers}
+              enclosure={detail?.enclosure}
+              site={detail?.site}
+              tag='female'
+              name={row.name !== row.identifier && row.name !== row.antzId ? row.name : undefined}
+              photo={synthAnimalIdentity(row.antzId).hasPhoto ? heroPhoto?.src : undefined}
+              photoPos={heroPhoto?.bgPos}
+            />
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 19, fontWeight: 700, color: skin.CARD_ID_INK }}>
-              {row.name} <Box component='span' sx={{ color: skin.MUTED, fontWeight: 500 }}>· #{row.antzId}</Box>
-            </Typography>
-            {detail && (
-              <Typography sx={{ fontSize: '14.5px', color: skin.MUTED, mt: 0.75 }}>
-                {[detail.enclosure, detail.site].filter(Boolean).join(' · ')}
-              </Typography>
-            )}
+          <Box sx={{ flex: '1 1 360px', display: 'flex', minWidth: 0, borderLeft: { xs: 'none', md: `1px solid ${skin.HAIR}` } }}>
+            {[
+              { label: 'Eggs', value: detail ? `${eggs.length}` : `${row.eggs}`, ink: skin.VALUE },
+              {
+                label: 'Fertile',
+                value: detail ? `${detail.fertile} of ${eggs.length}` : `${row.fertile} of ${row.eggs}`,
+                ink: skin.VALUE
+              },
+              {
+                label: 'Hatched',
+                value: detail
+                  ? `${eggs.filter(e => e.status === 'hatched').length} of ${eggs.length}`
+                  : `${row.hatched} of ${row.eggs}`,
+                ink: skin.LIST_GREEN
+              },
+              { label: 'In incubation', value: `${live.length}`, ink: skin.ACCENT_INK }
+            ].map((cell, i) => (
+              <Box key={cell.label} sx={{ flex: 1, px: 5, py: 2, minWidth: 0, borderLeft: i > 0 ? `1px solid ${skin.HAIR}` : 'none' }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 700, letterSpacing: skin.TRACK_CAPS, textTransform: 'uppercase', color: skin.FAINT, whiteSpace: 'nowrap' }}>
+                  {cell.label}
+                </Typography>
+                <Typography sx={{ fontSize: 24, fontWeight: 700, color: cell.ink, mt: 1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                  {cell.value}
+                </Typography>
+              </Box>
+            ))}
           </Box>
         </Box>
       </SectionCard>
-
-      {/* season verdicts — counts, never percentages. EVERY figure derives from the ONE
-          eggDetails list so the band can never disagree with the rows below it. */}
-      <SignalsBand
-        cells={[
-          { key: 'eggs', label: 'Eggs', count: detail ? eggs.length : row.eggs, tone: 'neutral' },
-          {
-            key: 'fertile',
-            label: 'Fertile',
-            count: detail ? detail.fertile : row.fertile,
-            display: detail ? `${detail.fertile} of ${eggs.length}` : `${row.fertile} of ${row.eggs}`,
-            tone: 'neutral'
-          },
-          {
-            key: 'hatched',
-            label: 'Hatched',
-            count: detail ? eggs.filter(e => e.status === 'hatched').length : row.hatched,
-            display: detail ? `${eggs.filter(e => e.status === 'hatched').length} of ${eggs.length}` : `${row.hatched} of ${row.eggs}`,
-            tone: 'good'
-          },
-          { key: 'live', label: 'In incubation', count: live.length, tone: 'good' }
-        ]}
-      />
 
       {/* NOW — the attention section */}
       {live.length > 0 && (
